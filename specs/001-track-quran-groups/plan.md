@@ -36,7 +36,7 @@ The implementation uses feature-first MVVM. Cubits act as ViewModels, repositori
 
 ### Pre-Research Gate
 
-- **I. Offline-First**: PASS WITH DOCUMENTED DEVIATION. The v1 tracking loop remains usable from local cache after a group/day has been opened. Supabase Auth, public discovery, join requests, membership approval, assignment publishing, and shared progress sync require network because multi-user coordination cannot be solved locally. This deviation is documented in Complexity Tracking.
+- **I. Offline-Resilient Core**: PASS. The personal assignment loop remains usable from local cache after a group/day has been opened. Supabase Auth, public discovery, join requests, membership approval, assignment publishing, and shared progress sync are network-backed shared coordination operations allowed by the constitution.
 - **II. Mobile-First UX & Accessibility**: PASS. Plan targets phone-first iOS/Android layouts, Arabic-first copy, RTL support, adjustable Quran label/range text size, and contrast-sensitive visual states.
 - **III. Test-First**: PASS. The plan requires Cubit, repository/use-case, widget, and integration tests before implementation.
 - **IV. MVVM Architecture with Cubit**: PASS. Feature folders use `data/`, `cubit/`, and `view/`; Cubits act as ViewModels; Views call Cubit methods and render state.
@@ -44,7 +44,7 @@ The implementation uses feature-first MVVM. Cubits act as ViewModels, repositori
 
 ### Post-Design Gate
 
-- **I. Offline-First**: PASS WITH DOCUMENTED DEVIATION. `data-model.md`, `supabase-rpc.md`, and `repository-contracts.md` include local cache and sync queue boundaries for offline assignment viewing and queued completion. Network-only operations are limited to auth, discovery, join requests, organizer approvals, publishing, and shared sync.
+- **I. Offline-Resilient Core**: PASS. `data-model.md`, `supabase-rpc.md`, and `repository-contracts.md` include local cache and sync queue boundaries for offline assignment viewing and queued completion. Network-backed shared operations are limited to auth, discovery, join requests, organizer approvals, publishing, and shared sync.
 - **II. Mobile-First UX & Accessibility**: PASS. `ui-contract.md` defines Arabic-first phone screens, RTL handling, offline/stale states, public discovery privacy, join-request pending copy, and text-size settings.
 - **III. Test-First**: PASS. `quickstart.md` defines unit, Cubit, widget, and integration validation paths.
 - **IV. MVVM Architecture with Cubit**: PASS. Project structure, contracts, and quickstart preserve Model/ViewModel/View separation.
@@ -130,6 +130,4 @@ integration_test/
 
 ## Complexity Tracking
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| Supabase-backed auth and group coordination require network for shared operations despite the Offline-First constitution. | A 30-person group tracker needs authenticated identity, public discovery, join requests, organizer permissions, shared assignment publishing, shared completion counts, and conflict-safe updates across devices. | A purely local offline app could show Quran labels/ranges but could not coordinate group membership, approval, assignment uniqueness, organizer permissions, or shared progress truthfully. |
+No active constitution violations. Supabase-backed auth and group coordination are treated as permitted network-backed shared coordination under the Offline-Resilient Core principle.

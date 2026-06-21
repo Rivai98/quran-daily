@@ -12,6 +12,12 @@ The v1 app UI is a working Quran group tracker, not a marketing landing page. Sc
 - Offline or stale group progress must be clearly visible.
 - Future features must not appear as disabled navigation items in v1.
 - The app must not show notification permission prompts, reminder controls, or push settings in v1.
+- `lib/core/localization/arabic_strings.dart` is the source of truth for required Arabic labels, empty states, success messages, warnings, and errors.
+- Canonical assignment status labels are: pending `قيد الانتظار`, completed `مكتمل`, missed `فائت`, and late `مكتمل متأخر`.
+- Arabic error, warning, success, and empty-state messages must be screen-specific, explain the problem, and name the next available action.
+- Retryable failure states must keep the user's typed input, selected filters, selected group, and currently viewed day unless the user explicitly clears them.
+- Dense screens with 30 assignments must use stable, scrollable phone layouts with no horizontal overflow. Long Arabic labels wrap without overlapping actions.
+- Assignment member identity means display name plus role marker where relevant. Avatar initials are optional; phone numbers and private contact details are not shown.
 
 ## Screen: Auth Entry
 
@@ -42,7 +48,7 @@ The v1 app UI is a working Quran group tracker, not a marketing landing page. Sc
 
 **Required UI**
 - List of approved groups.
-- Create group action.
+- Create group action with Arabic name, short description, group timezone, and public/private fields.
 - Public group discovery action.
 - Last selected group shortcut when available.
 
@@ -108,7 +114,7 @@ The v1 app UI is a working Quran group tracker, not a marketing landing page. Sc
 - Primary action to open personal assignment.
 - Organizer entry point only for organizers.
 - Join-request review entry point only for organizers.
-- History entry point.
+- History entry point only for organizers.
 - Offline/stale indicator when shared progress may be outdated.
 
 ## Screen: Personal Assignment Detail
@@ -214,8 +220,31 @@ Auth Entry
           -> Organizer Assignment Review
           -> Organizer Join Requests
           -> Member Management
-          -> Daily History
+          -> Daily History (organizers only)
           -> Settings
 ```
 
 The dashboard is the default first screen after sign-in when a selected approved group exists.
+
+## Arabic Empty-State and Error Contract
+
+| Screen | Empty-state purpose | Next action | Error and recovery requirements |
+|--------|---------------------|-------------|---------------------------------|
+| Auth Entry | Not applicable; signed-out state explains Google sign-in. | Start Google sign-in. | Sign-in failure and cancellation use Arabic copy that lets the user retry without losing route context. |
+| Group Selection | Explain that the user has no approved groups yet. | Create a group or open public discovery. | Loading failures show cached selected group if available and explain retry. |
+| Public Group Discovery | Explain that no public group matched the search. | Change search text or clear the query. | Network failure shows cached public profiles when available; join-request conflicts distinguish already pending, already approved, rejected, and group full. |
+| Organizer Join Requests | Explain that no users are waiting for approval. | Return to member management. | Approval failures distinguish not organizer, request no longer pending, and group full, with retry or refresh guidance. |
+| Group Dashboard | Explain that no daily cycle has been published today. | Organizer opens assignment review; members wait for organizer publishing. | Offline/stale banner stays visible near the progress header until a fresh refresh succeeds. |
+| Personal Assignment Detail | Not applicable when an assignment exists; missing assignment explains that no part is assigned today. | Return to dashboard. | Completion errors distinguish offline queued, queue failed, not assignment owner, closed cycle, and duplicate completion. |
+| Organizer Assignment Review | Explain when the draft is not ready because the group does not have exactly 30 active members. | Open member management. | Publish failures distinguish fewer than 30 members, duplicate part, duplicate member, and existing cycle. |
+| Member Management | Explain whether the group has fewer than 30 active members or is full. | Review pending requests or continue to assignment review when ready. | Group-full validation explains that approval is blocked until an active slot is available. |
+| Daily History | Explain that no previous cycles exist yet. | Return to dashboard. | History loading failures preserve selected date range and allow retry. |
+| Settings | Not applicable; show current settings. | Adjust text size or sign out. | Save failures keep the selected text size visible and allow retry. |
+
+## State Transition and Layout Rules
+
+- When the group's local day changes while the app is open, the dashboard switches to the new current day and organizers can open the previous day from history.
+- Late completion is visually distinct from missed and completed states in dashboard, assignment detail, and history.
+- The dashboard places the stale/offline message near the progress header and keeps it visible while shared progress may be outdated.
+- The 30-assignment overview uses non-color indicators, Arabic status labels, and stable cell sizing so status changes do not shift the layout.
+- Primary actions stay reachable on small phones; destructive or irreversible actions require confirmation copy in Arabic.

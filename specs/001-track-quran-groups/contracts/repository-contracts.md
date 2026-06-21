@@ -54,7 +54,7 @@ All asynchronous operations return either a value or a typed failure. Failures m
 - `markAssignmentComplete(assignmentId, recordedAt)`
 - `undoAssignmentCompletion(assignmentId)`
 - `syncPendingOperations()`
-- `getHistory(groupId, fromDate, toDate)`
+- `getHistory(groupId, fromDate, toDate)` for organizers only
 
 ## QuranPartRepository
 
@@ -119,6 +119,7 @@ Use cases are small command/query objects that wrap one business operation.
 
 **GroupSelectionCubit**
 - Loads approved groups and selected group state.
+- Owns create-group form state, timezone selection, and create failure state.
 - Does not publish cycles or mark completion.
 
 **GroupDiscoveryCubit**
@@ -146,7 +147,7 @@ Use cases are small command/query objects that wrap one business operation.
 - Enforces UI-level validation before calling backend functions.
 
 **HistoryCubit**
-- Loads daily history summaries and details.
+- Loads organizer-only daily history summaries and details.
 
 **SettingsCubit**
 - Owns local display settings such as Quran label/range text size.

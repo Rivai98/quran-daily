@@ -85,7 +85,7 @@ A group organizer reviews previous daily cycles to understand consistency, ident
 
 - A group cannot publish a daily one-part-per-member cycle until it has exactly 30 active member slots.
 - If a member leaves or becomes inactive after assignments are published, the organizer can reassign that member's part before the daily cycle ends.
-- If the day changes according to the group's timezone while a member is viewing the app, the app clearly switches to the new daily cycle and preserves access to the previous day in history.
+- If the day changes according to the group's timezone while a member is viewing the app, the app clearly switches to the new daily cycle and preserves organizer access to the previous day in history.
 - If a member is offline, the app still shows their last available assignment and personal completion state, with a clear indication that shared group progress may not be current.
 - If all 30 parts are completed before the day ends, the group dashboard shows the day as complete while still allowing members to review their assigned parts.
 - If a completion is submitted after the day ends, the app records it as late and keeps the original daily result distinguishable from on-time completion.
@@ -103,12 +103,12 @@ A group organizer reviews previous daily cycles to understand consistency, ident
 - **FR-007**: Members MUST be able to see their assigned Quran part for the current day from the primary group view.
 - **FR-008**: Members MUST be able to mark their assigned part as complete for the current day.
 - **FR-009**: The app MUST show group progress as completed parts out of 30 and as a percentage for the current daily cycle.
-- **FR-010**: The app MUST show each assignment with member identity, Quran part number, and status.
+- **FR-010**: The app MUST show each assignment with member display name, role marker where relevant, Quran part number, and status.
 - **FR-011**: Assignment statuses MUST include at minimum pending, completed, missed, and late completion.
 - **FR-012**: The app MUST prevent duplicate assignment of the same Quran part within one daily cycle.
 - **FR-013**: The app MUST prevent one active member from receiving more than one Quran part in the same daily cycle for v1.
 - **FR-014**: Organizers MUST be able to reassign a pending or missed part when a member cannot complete it.
-- **FR-015**: The app MUST preserve daily history showing completion results for previous cycles.
+- **FR-015**: The app MUST preserve daily history showing completion results for previous cycles for organizer review.
 - **FR-016**: The app MUST make today's assignment and the user's own completion state available without an internet connection after the group has been opened on the device.
 - **FR-017**: The app MUST clearly indicate when shared group progress may be outdated because the user is offline.
 - **FR-018**: The app MUST support Arabic Quran labels and right-to-left reading presentation where Quran content or Arabic labels are shown.
@@ -158,7 +158,11 @@ A group organizer reviews previous daily cycles to understand consistency, ident
 - **SC-005**: The group dashboard accurately shows completion counts for all 30 assignments in 100% of acceptance test cases.
 - **SC-006**: In usability testing, at least 85% of participants can explain which parts are pending, completed, missed, and late without help.
 - **SC-007**: A member who has previously opened today's assignment can view it and update personal completion state while offline in 100% of offline acceptance test cases.
-- **SC-008**: Arabic Quran labels and right-to-left content remain readable at default and enlarged text sizes in 100% of visual acceptance test cases.
+- **SC-008**: Arabic labels, right-to-left content, empty states, errors, and Quran part labels remain readable at default and enlarged text sizes in 100% of visual acceptance test cases across all v1 screens.
+- **SC-009**: A signed-in user can find a public group, submit a join request, and understand the pending approval state in under 60 seconds during usability testing.
+- **SC-010**: At least 90% of users can explain the reason and next available action for Arabic empty states on group selection, public discovery, join requests, dashboard, and history screens without help.
+- **SC-011**: At least 90% of users can identify the next recovery action from Arabic error messages for sign-in, discovery, join request, approval, publishing, completion, history, and settings failures.
+- **SC-012**: Organizers can identify and resolve group-full or no-pending-request states without ambiguity in under 30 seconds during usability testing.
 
 ## Assumptions
 

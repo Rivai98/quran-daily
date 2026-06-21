@@ -6,6 +6,7 @@ These contracts describe the backend operations the Flutter app depends on. Exac
 
 - All functions require an authenticated Supabase user unless explicitly noted.
 - Row-level security must prevent users from reading private group data where they are not approved members.
+- Migrations must create concrete RLS policies for public discovery, approved-member reads, organizer-only writes, and non-member rejection; placeholders are not sufficient.
 - Public discovery returns only group name, short description, active member count, group timezone, and the current user's request status.
 - Organizer-only mutations must verify active organizer membership inside the database operation.
 - Critical write operations must be atomic and must not rely on client-only validation.
@@ -251,5 +252,5 @@ Returns daily history summaries and optional details for a group.
 - Optional assignment details when requesting one day.
 
 **Validation**
-- Caller must be an approved group member.
-- Organizer-only member follow-up fields require organizer role.
+- Caller must be an active organizer of the group.
+- Non-organizer approved members and non-members cannot read history summaries or details through this function.

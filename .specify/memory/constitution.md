@@ -1,25 +1,26 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.0.0 → 1.1.0
-Bump type: MINOR — Principle IV materially rewritten to mandate MVVM architecture
-  and Cubit state management; Technology Stack section updated accordingly.
+Version change: 1.1.0 -> 2.0.0
+Bump type: MAJOR - Principle I materially redefined to permit authenticated
+  shared group coordination over the network while keeping the personal reading
+  and cached assignment loop offline-resilient.
 
-Modified principles (old → new):
-  IV. Feature Modularity → IV. MVVM Architecture with Cubit
+Modified principles (old -> new):
+  I. Offline-First -> I. Offline-Resilient Core
 
 Added sections: none
 Removed sections: none
 
 Templates reviewed:
-  ✅ .specify/templates/plan-template.md — Constitution Check gate is generic;
-       the "Project Structure" section already supports feature-based folder layouts.
-       MVVM layer paths (data/, cubit/, view/) should be used when filling
-       "Source Code" structure for any new feature plan.
-  ✅ .specify/templates/spec-template.md — No changes required; requirements
-       format is architecture-agnostic.
-  ✅ .specify/templates/tasks-template.md — Task phases align with MVVM layers:
-       Model tasks before Cubit tasks before View tasks within each user story.
+  OK .specify/templates/plan-template.md - Constitution Check gate is generic;
+     active plans must state which operations are offline-capable and which
+     shared operations require network.
+  OK .specify/templates/spec-template.md - No changes required; requirements
+     format is architecture-agnostic.
+  OK .specify/templates/tasks-template.md - Task phases already support offline
+     cache, sync, and network-backed operations.
+  N/A .specify/templates/commands/ - Directory not present in this workspace.
 
 Deferred TODOs: none
 -->
@@ -28,16 +29,28 @@ Deferred TODOs: none
 
 ## Core Principles
 
-### I. Offline-First
+### I. Offline-Resilient Core
 
-The app MUST be fully usable without an internet connection. All Quran text,
-audio references, and daily reading data MUST be bundled or locally cached at
-first launch. Network calls are permitted only for optional features (e.g., cloud
-sync, updates). A user opening the app in airplane mode MUST reach their reading
-content within one tap.
+The app MUST keep the personal Quran assignment loop usable without an internet
+connection after the relevant group and day have been opened on the device.
+Quran part metadata, Arabic labels, reading ranges, today's assignment, the
+user's own completion state, and pending personal completion operations MUST be
+bundled or locally cached.
 
-**Rationale**: Reliable daily worship depends on always-available access. Network
-dependency would break the app's core promise.
+Network calls are permitted for authenticated shared group coordination:
+Supabase Auth, public group discovery, join requests, organizer approvals,
+assignment publishing, shared progress refresh, and cross-device sync. When
+shared data may be stale because the device is offline, the UI MUST label that
+state clearly and MUST NOT present stale shared progress as fresh truth.
+
+A user opening the app in airplane mode after the relevant group/day has been
+cached MUST reach their cached assignment and personal completion action within
+one tap from the selected group dashboard. Full Quran text and audio are not
+required unless a feature explicitly includes them.
+
+**Rationale**: Reliable daily worship requires local access to the member's own
+assignment and completion flow, while group membership, approval, and shared
+progress require an authenticated source of truth across devices.
 
 ### II. Mobile-First UX & Accessibility
 
@@ -70,11 +83,11 @@ Every feature MUST follow the Model-View-ViewModel (MVVM) pattern implemented
 with Cubit from the `flutter_bloc` package. The folder structure for each feature
 is non-negotiable:
 
-```
+```text
 lib/features/<feature_name>/
-├── data/          # Model layer: entities, repository interfaces, data sources
-├── cubit/         # ViewModel layer: Cubit class(es) + State class(es)
-└── view/          # View layer: Flutter widgets only
+|-- data/          # Model layer: entities, repository interfaces, data sources
+|-- cubit/         # ViewModel layer: Cubit class(es) + State class(es)
+`-- view/          # View layer: Flutter widgets only
 ```
 
 Rules:
@@ -84,7 +97,7 @@ Rules:
   business logic and state transitions live here. Cubits MUST NOT import Flutter
   widgets. Cubits call repository interfaces, never concrete data sources directly.
 - **View layer** (`view/`): widgets render Cubit state via `BlocBuilder` /
-  `BlocListener`. Views MUST NOT contain business logic — they call Cubit methods
+  `BlocListener`. Views MUST NOT contain business logic; they call Cubit methods
   and display state only.
 - `setState` is permitted ONLY for purely local, ephemeral UI state (e.g.,
   animation controllers, focus nodes) with no business significance.
@@ -92,7 +105,7 @@ Rules:
   `lib/core/`. Feature modules MUST NOT import from sibling feature modules.
 
 **Rationale**: MVVM with Cubit enforces a clear, testable separation of concerns.
-The unidirectional data flow (View → Cubit → State → View) makes state changes
+The unidirectional data flow (View -> Cubit -> State -> View) makes state changes
 predictable and auditable, which is critical for a correctness-sensitive app.
 
 ### V. Simplicity & YAGNI
@@ -110,11 +123,12 @@ maintenance burden without user benefit.
 - **Language**: Dart (SDK ^3.10.4)
 - **Framework**: Flutter (Material Design, `uses-material-design: true`)
 - **Platforms**: iOS 15+ and Android API 26+ (primary); Web is out of scope for v1
-- **Architecture**: MVVM — Model / Cubit (ViewModel) / View (see Principle IV)
-- **State Management**: Cubit (`flutter_bloc`) — MANDATORY for all feature state.
+- **Architecture**: MVVM - Model / Cubit (ViewModel) / View (see Principle IV)
+- **State Management**: Cubit (`flutter_bloc`) - MANDATORY for all feature state.
   `setState` is allowed only for local ephemeral UI state with no business logic.
-- **Storage**: Local file system or SQLite for offline Quran data; `shared_preferences`
-  for user settings
+- **Storage**: Supabase PostgreSQL for authenticated shared group coordination;
+  SQLite or local files for offline Quran part metadata, cached assignments, and
+  pending personal completion operations; `shared_preferences` for user settings
 - **Testing**: `flutter_test` (unit + widget), `bloc_test` (Cubit unit tests),
   `integration_test` (end-to-end)
 - **Linting**: `flutter_lints` ^6.0.0; all lints MUST pass with no suppressions
@@ -122,12 +136,12 @@ maintenance burden without user benefit.
 
 ## Development Workflow
 
-- Features follow the speckit workflow: `/speckit-specify` → `/speckit-plan` →
-  `/speckit-tasks` → `/speckit-implement`
+- Features follow the speckit workflow: `/speckit-specify` -> `/speckit-plan` ->
+  `/speckit-tasks` -> `/speckit-implement`
 - The Constitution Check in `plan-template.md` MUST pass before Phase 0 begins
 - Each feature lives in `specs/<###-feature-name>/`
 - Task order within a user story MUST respect layer dependencies:
-  `data/` entities → repository interface → Cubit + State → View widgets
+  `data/` entities -> repository interface -> Cubit + State -> View widgets
 - Widget tests and Cubit unit tests MUST pass before a feature is marked complete
 - Run `flutter analyze` and `flutter test` before every commit; both MUST be
   green
@@ -151,4 +165,4 @@ relevant `plan.md` with explicit justification.
 these principles. Reviewers are empowered to block merges for constitution
 violations.
 
-**Version**: 1.1.0 | **Ratified**: 2026-06-20 | **Last Amended**: 2026-06-20
+**Version**: 2.0.0 | **Ratified**: 2026-06-20 | **Last Amended**: 2026-06-21
