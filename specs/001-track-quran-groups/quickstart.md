@@ -138,3 +138,22 @@ flutter test integration_test -d ios
 - Cubit tests cover loading, cached/offline states, stale indicators, public discovery states, join request pending/approved/rejected states, organizer validation, completion queued/synced states, and error states.
 - Widget tests cover Arabic auth entry, group selection, public discovery, join-request pending message, organizer join request review, dashboard, assignment detail, organizer review, member management, history, settings, text-size behavior, no-reader boundary, and no-notification boundary.
 - Integration tests cover the main discovery/request/approval flow, member dashboard flow, organizer publishing flow, offline queued completion flow, and history review flow.
+
+## Visual QA: UI Convergence
+
+Run the focused professional UI checks after Phase 8 implementation:
+
+```powershell
+flutter test test/features/quran_groups/view
+flutter test test/core/localization
+flutter analyze
+```
+
+Manual visual acceptance checks:
+
+1. Open the dashboard at 320px and 360px phone widths.
+2. Confirm the progress header, personal assignment card, status legend, 30-part grid, member rows, and organizer actions are readable without horizontal overflow.
+3. Increase Arabic text scale to at least 125% and confirm dense rows still fit.
+4. Confirm public discovery shows only public metadata before approval.
+5. Confirm organizer screens show validation banners and clear next actions.
+6. Confirm settings contains text-size/cache/RTL status only, with no notification controls.

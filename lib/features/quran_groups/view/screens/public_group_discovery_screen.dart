@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../widgets/public_group_profile_card.dart';
+import '../widgets/state_panel.dart';
 
 class PublicGroupDiscoveryScreen extends StatelessWidget {
   const PublicGroupDiscoveryScreen({super.key});
@@ -11,39 +13,23 @@ class PublicGroupDiscoveryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text(ArabicStrings.discoverGroups)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.screen,
         children: const [
           TextField(
             decoration: InputDecoration(
-              labelText: 'ابحث باسم المجموعة',
+              labelText: ArabicStrings.searchGroupLabel,
               prefixIcon: Icon(Icons.search),
             ),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: AppSpacing.md),
           PublicGroupProfileCard(),
-          SizedBox(height: 16),
-          _EmptyDiscoveryPreview(),
+          SizedBox(height: AppSpacing.md),
+          StatePanel(
+            icon: Icons.search_off,
+            title: ArabicStrings.noPublicGroups,
+            message: ArabicStrings.publicDiscoveryHint,
+          ),
         ],
-      ),
-    );
-  }
-}
-
-class _EmptyDiscoveryPreview extends StatelessWidget {
-  const _EmptyDiscoveryPreview();
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: const [
-            Icon(Icons.search_off),
-            SizedBox(width: 12),
-            Expanded(child: Text(ArabicStrings.noPublicGroups)),
-          ],
-        ),
       ),
     );
   }

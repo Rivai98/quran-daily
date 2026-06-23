@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/router.dart';
 import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../widgets/dense_info_row.dart';
+import '../widgets/state_panel.dart';
 
 class GroupSelectionScreen extends StatelessWidget {
   const GroupSelectionScreen({super.key});
@@ -11,24 +14,31 @@ class GroupSelectionScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text(ArabicStrings.groupSelectionTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.screen,
         children: [
-          _ActionPanel(
+          StatePanel(
+            icon: Icons.add_circle_outline,
             title: ArabicStrings.noApprovedGroups,
-            primaryLabel: ArabicStrings.createGroup,
-            secondaryLabel: ArabicStrings.discoverGroups,
-            onPrimary: () => _showCreateGroupSheet(context),
-            onSecondary: () => Navigator.pushNamed(context, AppRoutes.discovery),
+            message: ArabicStrings.publicDiscoveryHint,
+            actionLabel: ArabicStrings.createGroup,
+            onAction: () => _showCreateGroupSheet(context),
           ),
-          const SizedBox(height: 16),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.groups),
-              title: const Text('مجموعة الفجر'),
-              subtitle: const Text('30 عضو - توقيت القاهرة - آخر مزامنة قبل 5 دقائق'),
-              trailing: const Icon(Icons.chevron_left),
-              onTap: () => Navigator.pushNamed(context, AppRoutes.dashboard),
-            ),
+          const SizedBox(height: AppSpacing.sm),
+          DenseInfoRow(
+            icon: Icons.travel_explore,
+            title: ArabicStrings.discoverGroups,
+            subtitle: ArabicStrings.pendingApproval,
+            onTap: () => Navigator.pushNamed(context, AppRoutes.discovery),
+            trailing: const Icon(Icons.chevron_left),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          DenseInfoRow(
+            icon: Icons.groups,
+            title: ArabicStrings.groupFajr,
+            subtitle:
+                '${ArabicStrings.memberCount30} - ${ArabicStrings.timezoneCairo} - ${ArabicStrings.lastSyncFiveMinutes}',
+            onTap: () => Navigator.pushNamed(context, AppRoutes.dashboard),
+            trailing: const Icon(Icons.chevron_left),
           ),
         ],
       ),
@@ -39,27 +49,46 @@ class GroupSelectionScreen extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (context) {
         return Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.only(
+            left: AppSpacing.md,
+            right: AppSpacing.md,
+            top: AppSpacing.md,
+            bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.md,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('إنشاء مجموعة عامة',
-                  style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 12),
-              const TextField(decoration: InputDecoration(labelText: 'اسم المجموعة')),
-              const SizedBox(height: 12),
+              Text(
+                ArabicStrings.createPublicGroup,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: AppSpacing.md),
               const TextField(
-                decoration: InputDecoration(labelText: 'وصف قصير'),
+                decoration: InputDecoration(
+                  labelText: ArabicStrings.groupNameLabel,
+                  prefixIcon: Icon(Icons.drive_file_rename_outline),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              const TextField(
+                decoration: InputDecoration(
+                  labelText: ArabicStrings.shortDescriptionLabel,
+                  prefixIcon: Icon(Icons.notes),
+                ),
                 maxLines: 2,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
               const TextField(
-                decoration: InputDecoration(labelText: 'المنطقة الزمنية'),
+                decoration: InputDecoration(
+                  labelText: ArabicStrings.timezoneLabel,
+                  prefixIcon: Icon(Icons.schedule),
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               FilledButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Text(ArabicStrings.createGroup),
@@ -68,49 +97,6 @@ class GroupSelectionScreen extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _ActionPanel extends StatelessWidget {
-  const _ActionPanel({
-    required this.title,
-    required this.primaryLabel,
-    required this.secondaryLabel,
-    required this.onPrimary,
-    required this.onSecondary,
-  });
-
-  final String title;
-  final String primaryLabel;
-  final String secondaryLabel;
-  final VoidCallback onPrimary;
-  final VoidCallback onSecondary;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: onPrimary,
-              icon: const Icon(Icons.add),
-              label: Text(primaryLabel),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: onSecondary,
-              icon: const Icon(Icons.search),
-              label: Text(secondaryLabel),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

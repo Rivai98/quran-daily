@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_theme.dart';
+import 'metric_card.dart';
+
 class DashboardProgressHeader extends StatelessWidget {
   const DashboardProgressHeader({super.key});
 
@@ -8,15 +13,46 @@ class DashboardProgressHeader extends StatelessWidget {
     final theme = Theme.of(context);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.card,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('مجموعة الفجر', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 4),
-            Text('اليوم: 21 يونيو 2026 - توقيت القاهرة',
-                style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.auto_stories,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        ArabicStrings.groupFajr,
+                        style: theme.textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        ArabicStrings.todayCairoDate,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
                 Expanded(
@@ -24,19 +60,50 @@ class DashboardProgressHeader extends StatelessWidget {
                     value: 12 / 30,
                     minHeight: 12,
                     borderRadius: BorderRadius.circular(8),
+                    color: AppTheme.completeColor,
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   '12 / 30',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text('نسبة إتمام ورد اليوم: 40%', style: theme.textTheme.bodyLarge),
+            const SizedBox(height: AppSpacing.md),
+            const Row(
+              children: [
+                Expanded(
+                  child: MetricCard(
+                    icon: Icons.check_circle,
+                    label: ArabicStrings.completedPartsMetric,
+                    value: '12',
+                    color: AppTheme.completeColor,
+                  ),
+                ),
+                SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: MetricCard(
+                    icon: Icons.percent,
+                    label: ArabicStrings.completionRateMetric,
+                    value: '40%',
+                    color: Color(0xFF1D6B4F),
+                  ),
+                ),
+                SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: MetricCard(
+                    icon: Icons.pending_actions,
+                    label: ArabicStrings.remainingPartsMetric,
+                    value: '18',
+                    color: AppTheme.pendingColor,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

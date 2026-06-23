@@ -229,6 +229,34 @@
 
 ---
 
+## Phase 8: UI Convergence - Professional Visual Upgrade
+
+**Purpose**: Close the gap between the current placeholder UI and the expected polished Arabic mobile experience. Current views rely heavily on default `Card`/`ListTile` layouts, placeholder data, weak hierarchy, and repeated unstructured panels. This phase keeps the v1 scope unchanged while making the app feel production-ready, calm, readable, and attractive for daily Quran group tracking.
+
+### Tests for UI Convergence
+
+- [X] T125 [P] Write failing widget tests for polished dashboard hierarchy, 30-status grid stability, organizer entry visibility, and no RenderFlex overflow at 320px, 360px, and enlarged text sizes in `test/features/quran_groups/view/group_dashboard_screen_test.dart` and `test/features/quran_groups/view/widgets/assignment_status_grid_test.dart`
+- [X] T126 [P] Write failing widget tests for professional empty, loading, error, offline, and validation panels across group selection, discovery, join requests, member management, assignment review, history, and settings in `test/features/quran_groups/view/professional_state_panels_test.dart`
+- [X] T127 [P] Write failing widget tests proving all visible v1 view copy comes from UTF-8 Arabic strings or localized constants, with no mojibake placeholder text in `test/core/localization/arabic_strings_test.dart` and `test/features/quran_groups/view/arabic_copy_integrity_test.dart`
+- [X] T128 [P] Write failing widget tests for text fitting and responsive row behavior in dense member, assignment, join request, and history lists at narrow phone widths in `test/features/quran_groups/view/dense_list_layout_test.dart`
+
+### Implementation for UI Convergence
+
+- [X] T129 Build a coherent app visual foundation with spacing, typography, status colors, container surfaces, input styling, chip styling, and button hierarchy in `lib/core/theme/app_theme.dart` and `lib/core/theme/app_spacing.dart`
+- [X] T130 Create reusable professional state and layout widgets for section headers, metric cards, empty/error/offline panels, validation banners, action rows, and dense list rows in `lib/features/quran_groups/view/widgets/app_section_header.dart`, `lib/features/quran_groups/view/widgets/metric_card.dart`, `lib/features/quran_groups/view/widgets/state_panel.dart`, `lib/features/quran_groups/view/widgets/validation_banner.dart`, and `lib/features/quran_groups/view/widgets/dense_info_row.dart`
+- [X] T131 Rework the group dashboard into a polished daily tracking surface with a clear progress summary, highlighted personal assignment, status legend, stable 30-part overview, readable member list, and role-aware organizer actions in `lib/features/quran_groups/view/screens/group_dashboard_screen.dart`, `lib/features/quran_groups/view/widgets/dashboard_progress_header.dart`, `lib/features/quran_groups/view/widgets/assignment_status_grid.dart`, `lib/features/quran_groups/view/widgets/assignment_list.dart`, and `lib/features/quran_groups/view/widgets/offline_stale_banner.dart`
+- [X] T132 Rework group selection and public discovery with polished approved-group cards, public discovery search, member-count/timezone metadata, pending status treatment, and clear empty states in `lib/features/quran_groups/view/screens/group_selection_screen.dart`, `lib/features/quran_groups/view/screens/public_group_discovery_screen.dart`, and `lib/features/quran_groups/view/widgets/public_group_profile_card.dart`
+- [X] T133 Rework the personal assignment detail screen with a prominent Quran part/range panel, status-aware completion area, confirmation/undo affordances, no-reader boundary, and offline queued sync treatment in `lib/features/quran_groups/view/screens/personal_assignment_detail_screen.dart`, `lib/features/quran_groups/view/widgets/completion_action_panel.dart`, and `lib/features/quran_groups/view/widgets/offline_completion_status.dart`
+- [X] T134 Rework organizer workflows with professional 30-member readiness, join-request review cards, assignment draft rows, duplicate/missing warnings, swap/reassign controls, and publish validation in `lib/features/quran_groups/view/screens/organizer_join_requests_screen.dart`, `lib/features/quran_groups/view/screens/member_management_screen.dart`, `lib/features/quran_groups/view/screens/organizer_assignment_review_screen.dart`, `lib/features/quran_groups/view/widgets/join_request_tile.dart`, `lib/features/quran_groups/view/widgets/member_slot_readiness.dart`, and `lib/features/quran_groups/view/widgets/assignment_draft_row.dart`
+- [X] T135 Rework daily history and settings into polished utility screens with summary timeline rows, missed/late detail treatment, readable text-size preview, cache timestamp panel, and no notification settings in `lib/features/quran_groups/view/screens/daily_history_screen.dart`, `lib/features/quran_groups/view/screens/settings_screen.dart`, `lib/features/quran_groups/view/widgets/history_day_summary_tile.dart`, and `lib/features/quran_groups/view/widgets/history_assignment_detail.dart`
+- [X] T136 Replace hardcoded placeholder view copy and mojibake strings with centralized Arabic constants, status labels, section labels, validation messages, and action labels in `lib/core/localization/arabic_strings.dart` and all Dart files under `lib/features/quran_groups/view/`
+- [X] T137 Update visual QA and validation notes with the professional UI acceptance checklist, tested phone widths, text-scale checks, and final Flutter commands in `specs/001-track-quran-groups/quickstart.md`
+- [ ] T138 Run `flutter analyze`, `flutter test test/features/quran_groups/view`, and `flutter test test/core/localization` after the UI convergence implementation and fix every lint, layout, and copy-integrity failure reported from `analysis_options.yaml`, `test/features/quran_groups/view/`, and `test/core/localization/`
+
+**Checkpoint**: v1 UI feels production-ready while preserving the approved feature scope: Arabic-first, phone-first, no Quran reader, no notifications, no unsupported future features, and stable dense layouts for all 30 assignments.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

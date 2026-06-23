@@ -1,51 +1,179 @@
 class ArabicStrings {
   const ArabicStrings._();
 
-  static const appName = 'ورد الجماعة';
-  static const signInWithGoogle = 'تسجيل الدخول بجوجل';
-  static const signInHint = 'تابع وردك اليومي مع مجموعتك من شاشة عربية واضحة.';
-  static const signInError = 'تعذر تسجيل الدخول. حاول مرة أخرى.';
-  static const loading = 'جاري التحميل...';
-  static const retry = 'إعادة المحاولة';
-  static const refresh = 'تحديث';
-  static const save = 'حفظ';
-  static const cancel = 'إلغاء';
-  static const back = 'رجوع';
-  static const open = 'فتح';
-  static const createGroup = 'إنشاء مجموعة';
-  static const discoverGroups = 'اكتشاف المجموعات العامة';
-  static const pendingApproval = 'بانتظار القبول من مالك المجموعة';
-  static const groupSelectionTitle = 'مجموعاتي';
-  static const dashboardTitle = 'متابعة ورد اليوم';
-  static const assignmentDetailTitle = 'وردك اليوم';
-  static const organizerReviewTitle = 'مراجعة توزيع الأجزاء';
-  static const joinRequestsTitle = 'طلبات الانضمام';
-  static const memberManagementTitle = 'إدارة الأعضاء';
-  static const historyTitle = 'سجل الختمات اليومية';
-  static const settingsTitle = 'الإعدادات';
-  static const completed = 'مكتمل';
-  static const pending = 'قيد الانتظار';
-  static const missed = 'فائت';
-  static const late = 'مكتمل متأخر';
-  static const completeAction = 'تأكيد إتمام الجزء';
-  static const undoAction = 'تراجع عن الإتمام';
+  static const appName =
+      '\u{648}\u{631}\u{62f} \u{627}\u{644}\u{62c}\u{645}\u{627}\u{639}\u{629}';
+  static const signInWithGoogle =
+      '\u{62a}\u{633}\u{62c}\u{64a}\u{644} \u{627}\u{644}\u{62f}\u{62e}\u{648}\u{644} \u{628}\u{62c}\u{648}\u{62c}\u{644}';
+  static const signInHint =
+      '\u{62a}\u{627}\u{628}\u{639} \u{648}\u{631}\u{62f}\u{643} \u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a} \u{645}\u{639} \u{645}\u{62c}\u{645}\u{648}\u{639}\u{62a}\u{643} \u{645}\u{646} \u{634}\u{627}\u{634}\u{629} \u{639}\u{631}\u{628}\u{64a}\u{629} \u{648}\u{627}\u{636}\u{62d}\u{629}.';
+  static const signInError =
+      '\u{62a}\u{639}\u{630}\u{631} \u{62a}\u{633}\u{62c}\u{64a}\u{644} \u{627}\u{644}\u{62f}\u{62e}\u{648}\u{644}. \u{62d}\u{627}\u{648}\u{644} \u{645}\u{631}\u{629} \u{623}\u{62e}\u{631}\u{649}.';
+  static const loading =
+      '\u{62c}\u{627}\u{631}\u{64a} \u{627}\u{644}\u{62a}\u{62d}\u{645}\u{64a}\u{644}...';
+  static const retry =
+      '\u{625}\u{639}\u{627}\u{62f}\u{629} \u{627}\u{644}\u{645}\u{62d}\u{627}\u{648}\u{644}\u{629}';
+  static const refresh = '\u{62a}\u{62d}\u{62f}\u{64a}\u{62b}';
+  static const save = '\u{62d}\u{641}\u{638}';
+  static const cancel = '\u{625}\u{644}\u{63a}\u{627}\u{621}';
+  static const back = '\u{631}\u{62c}\u{648}\u{639}';
+  static const open = '\u{641}\u{62a}\u{62d}';
+  static const createGroup =
+      '\u{625}\u{646}\u{634}\u{627}\u{621} \u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}';
+  static const discoverGroups =
+      '\u{627}\u{643}\u{62a}\u{634}\u{627}\u{641} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{627}\u{62a} \u{627}\u{644}\u{639}\u{627}\u{645}\u{629}';
+  static const pendingApproval =
+      '\u{628}\u{627}\u{646}\u{62a}\u{638}\u{627}\u{631} \u{627}\u{644}\u{642}\u{628}\u{648}\u{644} \u{645}\u{646} \u{645}\u{627}\u{644}\u{643} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}';
+  static const groupSelectionTitle =
+      '\u{645}\u{62c}\u{645}\u{648}\u{639}\u{627}\u{62a}\u{64a}';
+  static const dashboardTitle =
+      '\u{645}\u{62a}\u{627}\u{628}\u{639}\u{629} \u{648}\u{631}\u{62f} \u{627}\u{644}\u{64a}\u{648}\u{645}';
+  static const assignmentDetailTitle =
+      '\u{648}\u{631}\u{62f}\u{643} \u{627}\u{644}\u{64a}\u{648}\u{645}';
+  static const organizerReviewTitle =
+      '\u{645}\u{631}\u{627}\u{62c}\u{639}\u{629} \u{62a}\u{648}\u{632}\u{64a}\u{639} \u{627}\u{644}\u{623}\u{62c}\u{632}\u{627}\u{621}';
+  static const joinRequestsTitle =
+      '\u{637}\u{644}\u{628}\u{627}\u{62a} \u{627}\u{644}\u{627}\u{646}\u{636}\u{645}\u{627}\u{645}';
+  static const memberManagementTitle =
+      '\u{625}\u{62f}\u{627}\u{631}\u{629} \u{627}\u{644}\u{623}\u{639}\u{636}\u{627}\u{621}';
+  static const historyTitle =
+      '\u{633}\u{62c}\u{644} \u{627}\u{644}\u{62e}\u{62a}\u{645}\u{627}\u{62a} \u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a}\u{629}';
+  static const settingsTitle =
+      '\u{627}\u{644}\u{625}\u{639}\u{62f}\u{627}\u{62f}\u{627}\u{62a}';
+  static const completed = '\u{645}\u{643}\u{62a}\u{645}\u{644}';
+  static const pending =
+      '\u{642}\u{64a}\u{62f} \u{627}\u{644}\u{627}\u{646}\u{62a}\u{638}\u{627}\u{631}';
+  static const missed = '\u{641}\u{627}\u{626}\u{62a}';
+  static const late =
+      '\u{645}\u{643}\u{62a}\u{645}\u{644} \u{645}\u{62a}\u{623}\u{62e}\u{631}';
+  static const completeAction =
+      '\u{62a}\u{623}\u{643}\u{64a}\u{62f} \u{625}\u{62a}\u{645}\u{627}\u{645} \u{627}\u{644}\u{62c}\u{632}\u{621}';
+  static const undoAction =
+      '\u{62a}\u{631}\u{627}\u{62c}\u{639} \u{639}\u{646} \u{627}\u{644}\u{625}\u{62a}\u{645}\u{627}\u{645}';
   static const offlineStale =
-      'أنت تعرض بيانات محفوظة. قد لا تكون متابعة المجموعة محدثة.';
+      '\u{623}\u{646}\u{62a} \u{62a}\u{639}\u{631}\u{636} \u{628}\u{64a}\u{627}\u{646}\u{627}\u{62a} \u{645}\u{62d}\u{641}\u{648}\u{638}\u{629}. \u{642}\u{62f} \u{644}\u{627} \u{62a}\u{643}\u{648}\u{646} \u{645}\u{62a}\u{627}\u{628}\u{639}\u{629} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{645}\u{62d}\u{62f}\u{62b}\u{629}.';
   static const noApprovedGroups =
-      'لا توجد مجموعات مقبولة بعد. أنشئ مجموعة أو ابحث عن مجموعة عامة.';
+      '\u{644}\u{627} \u{62a}\u{648}\u{62c}\u{62f} \u{645}\u{62c}\u{645}\u{648}\u{639}\u{627}\u{62a} \u{645}\u{642}\u{628}\u{648}\u{644}\u{629} \u{628}\u{639}\u{62f}. \u{623}\u{646}\u{634}\u{626} \u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{623}\u{648} \u{627}\u{628}\u{62d}\u{62b} \u{639}\u{646} \u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{639}\u{627}\u{645}\u{629}.';
   static const noPublicGroups =
-      'لا توجد نتائج مطابقة. غيّر كلمات البحث أو امسح التصفية.';
+      '\u{644}\u{627} \u{62a}\u{648}\u{62c}\u{62f} \u{646}\u{62a}\u{627}\u{626}\u{62c} \u{645}\u{637}\u{627}\u{628}\u{642}\u{629}. \u{63a}\u{64a}\u{651}\u{631} \u{643}\u{644}\u{645}\u{627}\u{62a} \u{627}\u{644}\u{628}\u{62d}\u{62b} \u{623}\u{648} \u{627}\u{645}\u{633}\u{62d} \u{627}\u{644}\u{62a}\u{635}\u{641}\u{64a}\u{629}.';
   static const noJoinRequests =
-      'لا توجد طلبات انضمام حالية. يمكنك العودة لإدارة الأعضاء.';
+      '\u{644}\u{627} \u{62a}\u{648}\u{62c}\u{62f} \u{637}\u{644}\u{628}\u{627}\u{62a} \u{627}\u{646}\u{636}\u{645}\u{627}\u{645} \u{62d}\u{627}\u{644}\u{64a}\u{629}. \u{64a}\u{645}\u{643}\u{646}\u{643} \u{627}\u{644}\u{639}\u{648}\u{62f}\u{629} \u{644}\u{625}\u{62f}\u{627}\u{631}\u{629} \u{627}\u{644}\u{623}\u{639}\u{636}\u{627}\u{621}.';
   static const noPublishedCycle =
-      'لم ينشر مالك المجموعة ورد اليوم بعد.';
-  static const emptyHistory = 'لا توجد أيام سابقة بعد لهذه المجموعة.';
+      '\u{644}\u{645} \u{64a}\u{646}\u{634}\u{631} \u{645}\u{627}\u{644}\u{643} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{648}\u{631}\u{62f} \u{627}\u{644}\u{64a}\u{648}\u{645} \u{628}\u{639}\u{62f}.';
+  static const emptyHistory =
+      '\u{644}\u{627} \u{62a}\u{648}\u{62c}\u{62f} \u{623}\u{64a}\u{627}\u{645} \u{633}\u{627}\u{628}\u{642}\u{629} \u{628}\u{639}\u{62f} \u{644}\u{647}\u{630}\u{647} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}.';
   static const groupFull =
-      'المجموعة مكتملة. لا يمكن قبول عضو جديد قبل توفر مقعد.';
+      '\u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{645}\u{643}\u{62a}\u{645}\u{644}\u{629}. \u{644}\u{627} \u{64a}\u{645}\u{643}\u{646} \u{642}\u{628}\u{648}\u{644} \u{639}\u{636}\u{648} \u{62c}\u{62f}\u{64a}\u{62f} \u{642}\u{628}\u{644} \u{62a}\u{648}\u{641}\u{631} \u{645}\u{642}\u{639}\u{62f}.';
   static const publishBlocked =
-      'يجب أن تضم المجموعة 30 عضوا نشطا قبل نشر ورد اليوم.';
-  static const noQuranReader = 'يعرض التطبيق اسم الجزء ومداه فقط دون مصحف داخلي.';
-  static const syncQueued = 'تم حفظ الإجراء وسيتم مزامنته عند عودة الاتصال.';
+      '\u{64a}\u{62c}\u{628} \u{623}\u{646} \u{62a}\u{636}\u{645} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} 30 \u{639}\u{636}\u{648}\u{627} \u{646}\u{634}\u{637}\u{627} \u{642}\u{628}\u{644} \u{646}\u{634}\u{631} \u{648}\u{631}\u{62f} \u{627}\u{644}\u{64a}\u{648}\u{645}.';
+  static const noQuranReader =
+      '\u{64a}\u{639}\u{631}\u{636} \u{627}\u{644}\u{62a}\u{637}\u{628}\u{64a}\u{642} \u{627}\u{633}\u{645} \u{627}\u{644}\u{62c}\u{632}\u{621} \u{648}\u{645}\u{62f}\u{627}\u{647} \u{641}\u{642}\u{637} \u{62f}\u{648}\u{646} \u{645}\u{635}\u{62d}\u{641} \u{62f}\u{627}\u{62e}\u{644}\u{64a}.';
+  static const syncQueued =
+      '\u{62a}\u{645} \u{62d}\u{641}\u{638} \u{627}\u{644}\u{625}\u{62c}\u{631}\u{627}\u{621} \u{648}\u{633}\u{62a}\u{62a}\u{645} \u{645}\u{632}\u{627}\u{645}\u{646}\u{62a}\u{647} \u{639}\u{646}\u{62f} \u{639}\u{648}\u{62f}\u{629} \u{627}\u{644}\u{627}\u{62a}\u{635}\u{627}\u{644}.';
   static const createGroupFailure =
-      'تعذر إنشاء المجموعة. راجع الاسم والمنطقة الزمنية ثم حاول مرة أخرى.';
+      '\u{62a}\u{639}\u{630}\u{631} \u{625}\u{646}\u{634}\u{627}\u{621} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}. \u{631}\u{627}\u{62c}\u{639} \u{627}\u{644}\u{627}\u{633}\u{645} \u{648}\u{627}\u{644}\u{645}\u{646}\u{637}\u{642}\u{629} \u{627}\u{644}\u{632}\u{645}\u{646}\u{64a}\u{629} \u{62b}\u{645} \u{62d}\u{627}\u{648}\u{644} \u{645}\u{631}\u{629} \u{623}\u{62e}\u{631}\u{649}.';
+  static const groupFajr =
+      '\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{627}\u{644}\u{641}\u{62c}\u{631}';
+  static const groupDailyWird =
+      '\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{627}\u{644}\u{648}\u{631}\u{62f} \u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a}';
+  static const groupDailyDescription =
+      '\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{639}\u{627}\u{645}\u{629} \u{644}\u{62e}\u{62a}\u{645} \u{627}\u{644}\u{642}\u{631}\u{622}\u{646} \u{64a}\u{648}\u{645}\u{64a}\u{627} \u{628}\u{62a}\u{648}\u{632}\u{64a}\u{639} \u{62c}\u{632}\u{621} \u{644}\u{643}\u{644} \u{639}\u{636}\u{648}.';
+  static const todayCairoDate =
+      '\u{627}\u{644}\u{64a}\u{648}\u{645}: 21 \u{64a}\u{648}\u{646}\u{64a}\u{648} 2026 - \u{62a}\u{648}\u{642}\u{64a}\u{62a} \u{627}\u{644}\u{642}\u{627}\u{647}\u{631}\u{629}';
+  static const yourAssignment =
+      '\u{648}\u{631}\u{62f}\u{643} \u{627}\u{644}\u{64a}\u{648}\u{645}';
+  static const part2 = '\u{62c}\u{632}\u{621} 2';
+  static const partRange2 =
+      '\u{627}\u{644}\u{628}\u{642}\u{631}\u{629} 142 \u{625}\u{644}\u{649} \u{627}\u{644}\u{628}\u{642}\u{631}\u{629} 252';
+  static const partsStatusTitle =
+      '\u{62d}\u{627}\u{644}\u{629} \u{627}\u{644}\u{623}\u{62c}\u{632}\u{627}\u{621}';
+  static const partsStatusSubtitle =
+      '\u{646}\u{638}\u{631}\u{629} \u{633}\u{631}\u{64a}\u{639}\u{629} \u{639}\u{644}\u{649} \u{643}\u{644} \u{623}\u{62c}\u{632}\u{627}\u{621} \u{648}\u{631}\u{62f} \u{627}\u{644}\u{64a}\u{648}\u{645}';
+  static const membersListTitle =
+      '\u{642}\u{627}\u{626}\u{645}\u{629} \u{627}\u{644}\u{623}\u{639}\u{636}\u{627}\u{621}';
+  static const membersListSubtitle =
+      '\u{62d}\u{627}\u{644}\u{629} \u{639}\u{64a}\u{646}\u{629} \u{645}\u{646} \u{623}\u{639}\u{636}\u{627}\u{621} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{627}\u{644}\u{64a}\u{648}\u{645}';
+  static const organizerActionsTitle =
+      '\u{625}\u{62c}\u{631}\u{627}\u{621}\u{627}\u{62a} \u{627}\u{644}\u{645}\u{627}\u{644}\u{643}';
+  static const reviewAssignmentsAction =
+      '\u{645}\u{631}\u{627}\u{62c}\u{639}\u{629} \u{627}\u{644}\u{62a}\u{648}\u{632}\u{64a}\u{639}';
+  static const reviewJoinRequestsAction =
+      '\u{637}\u{644}\u{628}\u{627}\u{62a} \u{627}\u{644}\u{627}\u{646}\u{636}\u{645}\u{627}\u{645}';
+  static const manageMembersAction =
+      '\u{625}\u{62f}\u{627}\u{631}\u{629} \u{627}\u{644}\u{623}\u{639}\u{636}\u{627}\u{621}';
+  static const openHistoryAction =
+      '\u{627}\u{644}\u{633}\u{62c}\u{644} \u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a}';
+  static const completedPartsMetric =
+      '\u{627}\u{644}\u{623}\u{62c}\u{632}\u{627}\u{621} \u{627}\u{644}\u{645}\u{643}\u{62a}\u{645}\u{644}\u{629}';
+  static const completionRateMetric =
+      '\u{646}\u{633}\u{628}\u{629} \u{627}\u{644}\u{625}\u{62a}\u{645}\u{627}\u{645}';
+  static const remainingPartsMetric =
+      '\u{627}\u{644}\u{645}\u{62a}\u{628}\u{642}\u{64a}';
+  static const latePartsMetric = '\u{645}\u{62a}\u{623}\u{62e}\u{631}';
+  static const openAssignmentAction =
+      '\u{641}\u{62a}\u{62d} \u{648}\u{631}\u{62f}\u{643}';
+  static const statusLegendTitle =
+      '\u{62f}\u{644}\u{64a}\u{644} \u{627}\u{644}\u{62d}\u{627}\u{644}\u{627}\u{62a}';
+  static const activeMembersLabel =
+      '\u{627}\u{644}\u{623}\u{639}\u{636}\u{627}\u{621} \u{627}\u{644}\u{646}\u{634}\u{637}\u{648}\u{646}';
+  static const timezoneCairo =
+      '\u{62a}\u{648}\u{642}\u{64a}\u{62a} \u{627}\u{644}\u{642}\u{627}\u{647}\u{631}\u{629}';
+  static const lastSyncFiveMinutes =
+      '\u{622}\u{62e}\u{631} \u{645}\u{632}\u{627}\u{645}\u{646}\u{629} \u{642}\u{628}\u{644} 5 \u{62f}\u{642}\u{627}\u{626}\u{642}';
+  static const createPublicGroup =
+      '\u{625}\u{646}\u{634}\u{627}\u{621} \u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{639}\u{627}\u{645}\u{629}';
+  static const groupNameLabel =
+      '\u{627}\u{633}\u{645} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}';
+  static const shortDescriptionLabel =
+      '\u{648}\u{635}\u{641} \u{642}\u{635}\u{64a}\u{631}';
+  static const timezoneLabel =
+      '\u{627}\u{644}\u{645}\u{646}\u{637}\u{642}\u{629} \u{627}\u{644}\u{632}\u{645}\u{646}\u{64a}\u{629}';
+  static const searchGroupLabel =
+      '\u{627}\u{628}\u{62d}\u{62b} \u{628}\u{627}\u{633}\u{645} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}';
+  static const requestToJoin =
+      '\u{637}\u{644}\u{628} \u{627}\u{644}\u{627}\u{646}\u{636}\u{645}\u{627}\u{645}';
+  static const memberCount26 = '26 \u{639}\u{636}\u{648}';
+  static const memberCount30 = '30 \u{639}\u{636}\u{648}';
+  static const memberCount29 =
+      '29 / 30 \u{639}\u{636}\u{648} \u{646}\u{634}\u{637}';
+  static const requestFromYousef =
+      '\u{637}\u{644}\u{628} \u{645}\u{646}: \u{64a}\u{648}\u{633}\u{641} \u{625}\u{628}\u{631}\u{627}\u{647}\u{64a}\u{645}';
+  static const approve = '\u{642}\u{628}\u{648}\u{644}';
+  static const reject = '\u{631}\u{641}\u{636}';
+  static const groupReadiness =
+      '\u{62c}\u{627}\u{647}\u{632}\u{64a}\u{629} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}';
+  static const groupOwner =
+      '\u{645}\u{627}\u{644}\u{643} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}';
+  static const memberRole = '\u{639}\u{636}\u{648}';
+  static const readyToPublish =
+      '\u{62c}\u{627}\u{647}\u{632} \u{644}\u{644}\u{646}\u{634}\u{631}';
+  static const swapPart =
+      '\u{62a}\u{628}\u{62f}\u{64a}\u{644} \u{627}\u{644}\u{62c}\u{632}\u{621}';
+  static const publishTodayWird =
+      '\u{646}\u{634}\u{631} \u{648}\u{631}\u{62f} \u{627}\u{644}\u{64a}\u{648}\u{645}';
+  static const textSizeLabel =
+      '\u{62d}\u{62c}\u{645} \u{646}\u{635} \u{627}\u{644}\u{62c}\u{632}\u{621} \u{648}\u{627}\u{644}\u{645}\u{62f}\u{649}';
+  static const selectedGroupCache =
+      '\u{622}\u{62e}\u{631} \u{62d}\u{641}\u{638} \u{644}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{627}\u{644}\u{645}\u{62e}\u{62a}\u{627}\u{631}\u{629}: \u{642}\u{628}\u{644} 5 \u{62f}\u{642}\u{627}\u{626}\u{642}';
+  static const signOut =
+      '\u{62a}\u{633}\u{62c}\u{64a}\u{644} \u{627}\u{644}\u{62e}\u{631}\u{648}\u{62c}';
+  static const noMissedParts =
+      '\u{644}\u{627} \u{62a}\u{648}\u{62c}\u{62f} \u{623}\u{62c}\u{632}\u{627}\u{621} \u{641}\u{627}\u{626}\u{62a}\u{629}';
+  static const threeMissedParts =
+      '3 \u{623}\u{62c}\u{632}\u{627}\u{621} \u{641}\u{627}\u{626}\u{62a}\u{629}';
+  static const oneLatePart =
+      '\u{62c}\u{632}\u{621} \u{645}\u{643}\u{62a}\u{645}\u{644} \u{645}\u{62a}\u{623}\u{62e}\u{631}';
+  static const june20 = '20 \u{64a}\u{648}\u{646}\u{64a}\u{648}';
+  static const june19 = '19 \u{64a}\u{648}\u{646}\u{64a}\u{648}';
+  static const june18 = '18 \u{64a}\u{648}\u{646}\u{64a}\u{648}';
+  static const publicDiscoveryHint =
+      '\u{62a}\u{638}\u{647}\u{631} \u{647}\u{646}\u{627} \u{627}\u{644}\u{645}\u{639}\u{644}\u{648}\u{645}\u{627}\u{62a} \u{627}\u{644}\u{639}\u{627}\u{645}\u{629} \u{641}\u{642}\u{637} \u{642}\u{628}\u{644} \u{627}\u{644}\u{642}\u{628}\u{648}\u{644}.';
+  static const assignmentCompleteHint =
+      '\u{623}\u{643}\u{651}\u{62f} \u{627}\u{644}\u{625}\u{62a}\u{645}\u{627}\u{645} \u{628}\u{639}\u{62f} \u{627}\u{644}\u{627}\u{646}\u{62a}\u{647}\u{627}\u{621} \u{645}\u{646} \u{642}\u{631}\u{627}\u{621}\u{629} \u{627}\u{644}\u{62c}\u{632}\u{621}.';
+  static const undoCompletionHint =
+      '\u{64a}\u{645}\u{643}\u{646}\u{643} \u{627}\u{644}\u{62a}\u{631}\u{627}\u{62c}\u{639} \u{625}\u{630}\u{627} \u{62a}\u{645} \u{627}\u{644}\u{62a}\u{623}\u{643}\u{64a}\u{62f} \u{628}\u{627}\u{644}\u{62e}\u{637}\u{623} \u{642}\u{628}\u{644} \u{625}\u{63a}\u{644}\u{627}\u{642} \u{627}\u{644}\u{64a}\u{648}\u{645}.';
+  static const cacheStatusTitle =
+      '\u{62d}\u{627}\u{644}\u{629} \u{627}\u{644}\u{62d}\u{641}\u{638} \u{627}\u{644}\u{645}\u{62d}\u{644}\u{64a}';
+  static const rtlStatus =
+      '\u{627}\u{644}\u{639}\u{631}\u{636} \u{627}\u{644}\u{62d}\u{627}\u{644}\u{64a} \u{639}\u{631}\u{628}\u{64a} \u{645}\u{646} \u{627}\u{644}\u{64a}\u{645}\u{64a}\u{646} \u{625}\u{644}\u{649} \u{627}\u{644}\u{64a}\u{633}\u{627}\u{631}';
 }

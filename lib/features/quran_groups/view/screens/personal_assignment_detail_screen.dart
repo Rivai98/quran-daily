@@ -1,63 +1,59 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
-import '../widgets/status_chip.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../widgets/completion_action_panel.dart';
+import '../widgets/offline_completion_status.dart';
+import '../widgets/state_panel.dart';
 
 class PersonalAssignmentDetailScreen extends StatelessWidget {
   const PersonalAssignmentDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text(ArabicStrings.assignmentDetailTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.screen,
         children: [
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: AppSpacing.card,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('جزء 2',
-                      style: Theme.of(context).textTheme.headlineMedium),
-                  const SizedBox(height: 8),
-                  const Text('البقرة 142 إلى البقرة 252'),
-                  const SizedBox(height: 12),
-                  const StatusChip(
-                    label: ArabicStrings.pending,
-                    status: ReadingStatus.pending,
+                  Icon(
+                    Icons.menu_book,
+                    color: theme.colorScheme.primary,
+                    size: 34,
                   ),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.check),
-                    label: const Text(ArabicStrings.completeAction),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    ArabicStrings.part2,
+                    style: theme.textTheme.headlineSmall,
                   ),
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.undo),
-                    label: const Text(ArabicStrings.undoAction),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    ArabicStrings.partRange2,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(ArabicStrings.noQuranReader),
-            ),
+          const SizedBox(height: AppSpacing.sm),
+          const CompletionActionPanel(),
+          const SizedBox(height: AppSpacing.sm),
+          const StatePanel(
+            icon: Icons.visibility_off_outlined,
+            title: ArabicStrings.noQuranReader,
+            message: ArabicStrings.noQuranReader,
           ),
-          const SizedBox(height: 12),
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(ArabicStrings.syncQueued),
-            ),
-          ),
+          const SizedBox(height: AppSpacing.sm),
+          const OfflineCompletionStatus(),
         ],
       ),
     );

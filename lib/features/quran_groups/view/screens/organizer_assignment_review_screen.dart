@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../widgets/app_section_header.dart';
+import '../widgets/assignment_draft_row.dart';
+import '../widgets/validation_banner.dart';
 
 class OrganizerAssignmentReviewScreen extends StatelessWidget {
   const OrganizerAssignmentReviewScreen({super.key});
@@ -10,35 +15,26 @@ class OrganizerAssignmentReviewScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text(ArabicStrings.organizerReviewTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.screen,
         children: [
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(ArabicStrings.publishBlocked),
-            ),
+          const ValidationBanner(
+            icon: Icons.warning_amber,
+            message: ArabicStrings.publishBlocked,
+            color: AppTheme.pendingColor,
           ),
-          const SizedBox(height: 12),
-          for (var index = 1; index <= 10; index++)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Card(
-                child: ListTile(
-                  leading: CircleAvatar(child: Text('$index')),
-                  title: Text('عضو $index'),
-                  subtitle: Text('جزء $index - جاهز للنشر'),
-                  trailing: IconButton(
-                    tooltip: 'تبديل الجزء',
-                    onPressed: () {},
-                    icon: const Icon(Icons.swap_horiz),
-                  ),
-                ),
-              ),
-            ),
+          const AppSectionHeader(
+            title: ArabicStrings.reviewAssignmentsAction,
+            subtitle: ArabicStrings.partsStatusSubtitle,
+          ),
+          for (var index = 1; index <= 10; index++) ...[
+            AssignmentDraftRow(index: index),
+            const SizedBox(height: AppSpacing.xs),
+          ],
+          const SizedBox(height: AppSpacing.sm),
           FilledButton.icon(
             onPressed: () {},
             icon: const Icon(Icons.publish),
-            label: const Text('نشر ورد اليوم'),
+            label: const Text(ArabicStrings.publishTodayWird),
           ),
         ],
       ),

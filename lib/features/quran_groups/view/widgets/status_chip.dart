@@ -28,6 +28,7 @@ class StatusChip extends StatelessWidget {
       label: Text(label),
       backgroundColor: color.withOpacity(0.1),
       side: BorderSide(color: color.withOpacity(0.32)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       labelStyle: TextStyle(color: color, fontWeight: FontWeight.w700),
       visualDensity: VisualDensity.compact,
     );

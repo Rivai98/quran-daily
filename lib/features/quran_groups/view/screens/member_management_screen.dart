@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../widgets/app_section_header.dart';
+import '../widgets/dense_info_row.dart';
+import '../widgets/member_slot_readiness.dart';
 
 class MemberManagementScreen extends StatelessWidget {
   const MemberManagementScreen({super.key});
@@ -10,41 +14,23 @@ class MemberManagementScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text(ArabicStrings.memberManagementTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.screen,
         children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('جاهزية المجموعة',
-                      style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 8),
-                  const Text('29 / 30 عضو نشط'),
-                  const SizedBox(height: 12),
-                  LinearProgressIndicator(
-                    value: 29 / 30,
-                    minHeight: 12,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ],
-              ),
+          const MemberSlotReadiness(),
+          const AppSectionHeader(title: ArabicStrings.activeMembersLabel),
+          for (var index = 1; index <= 8; index++) ...[
+            DenseInfoRow(
+              icon: index == 1 ? Icons.admin_panel_settings : Icons.person,
+              title: index == 1
+                  ? ArabicStrings.groupOwner
+                  : '${ArabicStrings.memberRole} $index',
+              subtitle: index == 1
+                  ? ArabicStrings.groupOwner
+                  : ArabicStrings.memberRole,
+              trailing: const Icon(Icons.verified_user_outlined),
             ),
-          ),
-          const SizedBox(height: 12),
-          for (var index = 1; index <= 8; index++)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Card(
-                child: ListTile(
-                  leading: CircleAvatar(child: Text('$index')),
-                  title: Text(index == 1 ? 'مالك المجموعة' : 'عضو $index'),
-                  subtitle: Text(index == 1 ? 'مالك' : 'عضو'),
-                  trailing: const Icon(Icons.verified_user_outlined),
-                ),
-              ),
-            ),
+            const SizedBox(height: AppSpacing.xs),
+          ],
         ],
       ),
     );

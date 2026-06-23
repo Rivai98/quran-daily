@@ -47,3 +47,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 android/.kotlin/
+android/.gradle/
+.gradle/
+
+# CocoaPods build artifacts
+ios/Pods/
+macos/Pods/

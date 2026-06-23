@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../widgets/state_panel.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -17,16 +19,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text(ArabicStrings.settingsTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.screen,
         children: [
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: AppSpacing.card,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('حجم نص الجزء والمدى',
-                      style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    ArabicStrings.textSizeLabel,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   Slider(
                     value: textSize,
                     min: 0.85,
@@ -36,25 +40,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: (value) => setState(() => textSize = value),
                   ),
                   Text(
-                    'جزء 2 - البقرة 142 إلى البقرة 252',
+                    '${ArabicStrings.part2} - ${ArabicStrings.partRange2}',
                     style: TextStyle(fontSize: 18 * textSize),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('آخر حفظ للمجموعة المختارة: قبل 5 دقائق'),
-            ),
+          const SizedBox(height: AppSpacing.sm),
+          const StatePanel(
+            icon: Icons.storage,
+            title: ArabicStrings.cacheStatusTitle,
+            message: ArabicStrings.selectedGroupCache,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
+          const StatePanel(
+            icon: Icons.format_textdirection_r_to_l,
+            title: ArabicStrings.settingsTitle,
+            message: ArabicStrings.rtlStatus,
+          ),
+          const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(
             onPressed: () {},
             icon: const Icon(Icons.logout),
-            label: const Text('تسجيل الخروج'),
+            label: const Text(ArabicStrings.signOut),
           ),
         ],
       ),
