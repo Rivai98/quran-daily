@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/router.dart';
 import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_colors.dart';
 import '../widgets/app_section_header.dart';
 import '../widgets/assignment_list.dart';
 import '../widgets/assignment_status_grid.dart';
@@ -11,12 +11,14 @@ import '../widgets/dashboard_progress_header.dart';
 import '../widgets/dense_info_row.dart';
 import '../widgets/offline_stale_banner.dart';
 import '../widgets/status_chip.dart';
+import '../../../../core/design_system/app_radius.dart';
 
 class GroupDashboardScreen extends StatelessWidget {
   const GroupDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
     return Scaffold(
       appBar: AppBar(
         title: const Text(ArabicStrings.dashboardTitle),
@@ -57,7 +59,7 @@ class GroupDashboardScreen extends StatelessWidget {
             icon: Icons.edit_calendar,
             title: ArabicStrings.reviewAssignmentsAction,
             subtitle: ArabicStrings.publishBlocked,
-            accentColor: AppTheme.lateColor,
+            accentColor: appColors.lateFg,
             onTap: () => Navigator.pushNamed(context, AppRoutes.organizerReview),
             trailing: const Icon(Icons.chevron_left),
           ),
@@ -66,7 +68,7 @@ class GroupDashboardScreen extends StatelessWidget {
             icon: Icons.person_add,
             title: ArabicStrings.reviewJoinRequestsAction,
             subtitle: ArabicStrings.memberCount29,
-            accentColor: AppTheme.pendingColor,
+            accentColor: appColors.pendingFg,
             onTap: () => Navigator.pushNamed(context, AppRoutes.joinRequests),
             trailing: const Icon(Icons.chevron_left),
           ),
@@ -84,7 +86,7 @@ class GroupDashboardScreen extends StatelessWidget {
             icon: Icons.history,
             title: ArabicStrings.openHistoryAction,
             subtitle: ArabicStrings.noMissedParts,
-            accentColor: AppTheme.completeColor,
+            accentColor: appColors.completedFg,
             onTap: () => Navigator.pushNamed(context, AppRoutes.history),
             trailing: const Icon(Icons.chevron_left),
           ),
@@ -116,7 +118,7 @@ class _PersonalAssignmentCard extends StatelessWidget {
                   height: 42,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: AppRadius.smBR,
                   ),
                   child: Icon(
                     Icons.menu_book,

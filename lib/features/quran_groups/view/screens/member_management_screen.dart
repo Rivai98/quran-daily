@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/design_system/app_spacing.dart';
 import '../widgets/app_section_header.dart';
 import '../widgets/dense_info_row.dart';
 import '../widgets/member_slot_readiness.dart';

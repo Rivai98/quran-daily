@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/router.dart';
 import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/design_system/app_spacing.dart';
 import '../widgets/dense_info_row.dart';
 import '../widgets/state_panel.dart';
 

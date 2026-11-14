@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/design_system/app_spacing.dart';
 import '../widgets/app_section_header.dart';
 import '../widgets/history_assignment_detail.dart';
 import '../widgets/history_day_summary_tile.dart';

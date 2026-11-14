@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_colors.dart';
 import 'metric_card.dart';
+import '../../../../core/design_system/app_radius.dart';
 
 class DashboardProgressHeader extends StatelessWidget {
   const DashboardProgressHeader({super.key});
@@ -11,6 +12,7 @@ class DashboardProgressHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final appColors = theme.extension<AppColors>()!;
     return Card(
       child: Padding(
         padding: AppSpacing.card,
@@ -24,7 +26,7 @@ class DashboardProgressHeader extends StatelessWidget {
                   height: 44,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: AppRadius.smBR,
                   ),
                   child: Icon(
                     Icons.auto_stories,
@@ -59,8 +61,8 @@ class DashboardProgressHeader extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: 12 / 30,
                     minHeight: 12,
-                    borderRadius: BorderRadius.circular(8),
-                    color: AppTheme.completeColor,
+                    borderRadius: AppRadius.smBR,
+                    color: appColors.completedFg,
                     backgroundColor: theme.colorScheme.surfaceContainerHighest,
                   ),
                 ),
@@ -74,14 +76,14 @@ class DashboardProgressHeader extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.md),
-            const Row(
+            Row(
               children: [
                 Expanded(
                   child: MetricCard(
                     icon: Icons.check_circle,
                     label: ArabicStrings.completedPartsMetric,
                     value: '12',
-                    color: AppTheme.completeColor,
+                    color: appColors.completedFg,
                   ),
                 ),
                 SizedBox(width: AppSpacing.xs),
@@ -90,7 +92,7 @@ class DashboardProgressHeader extends StatelessWidget {
                     icon: Icons.percent,
                     label: ArabicStrings.completionRateMetric,
                     value: '40%',
-                    color: Color(0xFF1D6B4F),
+                    color: appColors.primary,
                   ),
                 ),
                 SizedBox(width: AppSpacing.xs),
@@ -99,7 +101,7 @@ class DashboardProgressHeader extends StatelessWidget {
                     icon: Icons.pending_actions,
                     label: ArabicStrings.remainingPartsMetric,
                     value: '18',
-                    color: AppTheme.pendingColor,
+                    color: appColors.pendingFg,
                   ),
                 ),
               ],

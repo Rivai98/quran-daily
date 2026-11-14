@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_typography.dart';
 import '../widgets/state_panel.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -41,7 +42,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   Text(
                     '${ArabicStrings.part2} - ${ArabicStrings.partRange2}',
-                    style: TextStyle(fontSize: 18 * textSize),
+                    style: AppTypography.quranLabel,
+                    textScaler: TextScaler.linear(textSize),
                   ),
                 ],
               ),

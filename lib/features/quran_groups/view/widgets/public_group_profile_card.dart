@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_colors.dart';
+import '../../../../core/design_system/app_radius.dart';
 
 class PublicGroupProfileCard extends StatelessWidget {
   const PublicGroupProfileCard({super.key});
@@ -10,6 +11,7 @@ class PublicGroupProfileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final appColors = theme.extension<AppColors>()!;
     return Card(
       child: Padding(
         padding: AppSpacing.card,
@@ -23,7 +25,7 @@ class PublicGroupProfileCard extends StatelessWidget {
                   height: 42,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: AppRadius.smBR,
                   ),
                   child: Icon(Icons.groups, color: theme.colorScheme.primary),
                 ),
@@ -80,16 +82,16 @@ class PublicGroupProfileCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(AppSpacing.xs),
                     decoration: BoxDecoration(
-                      color: AppTheme.pendingColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      color: appColors.pendingFg.withValues(alpha: 0.1),
+                      borderRadius: AppRadius.smBR,
                     ),
-                    child: const Text(
+                    child: Text(
                       ArabicStrings.pendingApproval,
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: AppTheme.pendingColor,
+                        color: appColors.pendingFg,
                         fontWeight: FontWeight.w800,
                       ),
                     ),

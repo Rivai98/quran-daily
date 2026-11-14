@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_radius.dart';
 
 class ValidationBanner extends StatelessWidget {
   const ValidationBanner({
@@ -22,7 +23,7 @@ class ValidationBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         border: Border.all(color: color.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadius.smBR,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

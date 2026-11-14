@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_colors.dart';
 import '../widgets/app_section_header.dart';
 import '../widgets/assignment_draft_row.dart';
 import '../widgets/validation_banner.dart';
@@ -12,15 +12,16 @@ class OrganizerAssignmentReviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
     return Scaffold(
       appBar: AppBar(title: const Text(ArabicStrings.organizerReviewTitle)),
       body: ListView(
         padding: AppSpacing.screen,
         children: [
-          const ValidationBanner(
+          ValidationBanner(
             icon: Icons.warning_amber,
             message: ArabicStrings.publishBlocked,
-            color: AppTheme.pendingColor,
+            color: appColors.pendingFg,
           ),
           const AppSectionHeader(
             title: ArabicStrings.reviewAssignmentsAction,

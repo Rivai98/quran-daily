@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/design_system/app_spacing.dart';
 import 'status_chip.dart';
 
 class CompletionActionPanel extends StatelessWidget {

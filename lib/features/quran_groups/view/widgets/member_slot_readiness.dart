@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_radius.dart';
 
 class MemberSlotReadiness extends StatelessWidget {
   const MemberSlotReadiness({super.key});
@@ -25,7 +26,7 @@ class MemberSlotReadiness extends StatelessWidget {
             LinearProgressIndicator(
               value: 29 / 30,
               minHeight: 12,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: AppRadius.smBR,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(

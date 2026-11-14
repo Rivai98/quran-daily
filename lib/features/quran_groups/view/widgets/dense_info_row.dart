@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_radius.dart';
 
 class DenseInfoRow extends StatelessWidget {
   const DenseInfoRow({
@@ -26,7 +27,7 @@ class DenseInfoRow extends StatelessWidget {
     final color = accentColor ?? theme.colorScheme.primary;
     return Card(
       child: InkWell(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadius.smBR,
         onTap: onTap,
         child: Padding(
           padding: AppSpacing.compactCard,
@@ -37,7 +38,7 @@ class DenseInfoRow extends StatelessWidget {
                 height: 38,
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.11),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppRadius.smBR,
                 ),
                 child: Icon(icon, color: color, size: 20),
               ),

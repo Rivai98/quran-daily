@@ -39,22 +39,22 @@
 
 ## Phase 2A: Design System Foundation (Principle VI) – blocks all screens
 
-- [ ] T009 [P] Write failing tests for color tokens (light/dark values exactly as constitution tables, status fg/bg pairs) in `test/core/design_system/app_colors_test.dart`
-- [ ] T010 [P] Write failing tests for type scale (8 tokens: size/height/weight, Cairo vs Amiri, min size 13) in `test/core/design_system/app_typography_test.dart`
-- [ ] T011 [P] Write failing tests for `ArabicNumerals.format` (digits, percentages, `١٢ / ٣٠`) in `test/core/localization/arabic_numerals_test.dart`
-- [ ] T012 Implement `lib/core/design_system/app_colors.dart` (`AppColors.light`/`AppColors.dark` as `ThemeExtension` incl. status colors)
-- [ ] T013 Implement `lib/core/design_system/app_typography.dart` (Cairo is a variable font: every Cairo `TextStyle` sets both `fontWeight` and `fontVariations: [FontVariation('wght', <same weight>)]` so weights render correctly), `app_spacing.dart` (4-pt scale + gutters), `app_radius.dart` (sm/md/lg/xl/pill)
-- [ ] T014 Implement `lib/core/design_system/app_theme.dart` (Material 3 light + dark `ThemeData` from tokens: buttons, inputs, cards, chips, NavigationBar, AppBar)
-- [ ] T015 Implement `lib/core/localization/arabic_numerals.dart`
-- [ ] T016 [P] Write failing widget tests for `AppButton` (6 variants, heights 52/48, loading keeps width and ignores taps, disabled 38%, icon at start) in `test/core/design_system/widgets/app_button_test.dart`
-- [ ] T017 [P] Write failing widget tests for `StatusChip` and `PartTile` (6 statuses per constitution v2.4.0 status table, incl. `available`/`unread` on existing tokens, always render color + icon + Arabic label; `PartTile` semantics "الجزء ٥، …، جزؤك") in `test/core/design_system/widgets/status_widgets_test.dart`
-- [ ] T018 [P] Write failing widget tests for `StatePanel`, `OfflineBanner`, `ConfirmSheet`, `AppSnackBar`, `SkeletonBox`, `ProgressHeader`, `AppTextField`, `AppCard`, `AppSectionHeader` in `test/core/design_system/widgets/shared_widgets_test.dart`
-- [ ] T019 Implement `AppButton` in `lib/core/design_system/widgets/app_button.dart`
-- [ ] T020 Implement `StatusChip`, `PartTile` and the `AssignmentStatus` → label/icon mapping in `lib/core/design_system/widgets/status_chip.dart` and `part_tile.dart`
-- [ ] T021 Implement remaining shared widgets in `lib/core/design_system/widgets/` (`state_panel.dart`, `offline_banner.dart`, `confirm_sheet.dart`, `app_snack_bar.dart`, `skeleton.dart`, `progress_header.dart`, `app_text_field.dart`, `app_card.dart`, `app_section_header.dart`) and barrel `widgets.dart`
-- [ ] T022 Update `test/helpers/widget_test_app.dart` to pump with Arabic locale, RTL, light/dark, text scale, and screen size params; add `pumpAllVariants` helper (RTL, 200% text, dark, 320 dp width)
-- [ ] T023 Add design-lint test that scans `lib/features/**/*.dart` for `Color(0x`, `fontSize:`, `BorderRadius.circular(` and fails on any match in `test/core/design_system/design_lint_test.dart`
-- [ ] T024 Wire theme in `lib/app/app.dart` (light/dark follow system, `Locale('ar')`, RTL, `flutter_localizations` delegates); delete `lib/core/theme/`
+- [X] T009 [P] Write failing tests for color tokens (light/dark values exactly as constitution tables, status fg/bg pairs) in `test/core/design_system/app_colors_test.dart`
+- [X] T010 [P] Write failing tests for type scale (8 tokens: size/height/weight, Cairo vs Amiri, min size 13) in `test/core/design_system/app_typography_test.dart`
+- [X] T011 [P] Write failing tests for `ArabicNumerals.format` (digits, percentages, `١٢ / ٣٠`) in `test/core/localization/arabic_numerals_test.dart`
+- [X] T012 Implement `lib/core/design_system/app_colors.dart` (`AppColors.light`/`AppColors.dark` as `ThemeExtension` incl. status colors)
+- [X] T013 Implement `lib/core/design_system/app_typography.dart` (Cairo is a variable font: every Cairo `TextStyle` sets both `fontWeight` and `fontVariations: [FontVariation('wght', <same weight>)]` so weights render correctly), `app_spacing.dart` (4-pt scale + gutters), `app_radius.dart` (sm/md/lg/xl/pill)
+- [X] T014 Implement `lib/core/design_system/app_theme.dart` (Material 3 light + dark `ThemeData` from tokens: buttons, inputs, cards, chips, NavigationBar, AppBar)
+- [X] T015 Implement `lib/core/localization/arabic_numerals.dart`
+- [X] T016 [P] Write failing widget tests for `AppButton` (6 variants, heights 52/48, loading keeps width and ignores taps, disabled 38%, icon at start) in `test/core/design_system/widgets/app_button_test.dart`
+- [X] T017 [P] Write failing widget tests for `StatusChip` and `PartTile` (6 statuses per constitution v2.4.0 status table, incl. `available`/`unread` on existing tokens, always render color + icon + Arabic label; `PartTile` semantics "الجزء ٥، …، جزؤك") in `test/core/design_system/widgets/status_widgets_test.dart`
+- [X] T018 [P] Write failing widget tests for `StatePanel`, `OfflineBanner`, `ConfirmSheet`, `AppSnackBar`, `SkeletonBox`, `ProgressHeader`, `AppTextField`, `AppCard`, `AppSectionHeader` in `test/core/design_system/widgets/shared_widgets_test.dart`
+- [X] T019 Implement `AppButton` in `lib/core/design_system/widgets/app_button.dart`
+- [X] T020 Implement `StatusChip`, `PartTile` and the `AssignmentStatus` → label/icon mapping in `lib/core/design_system/widgets/status_chip.dart` and `part_tile.dart`
+- [X] T021 Implement remaining shared widgets in `lib/core/design_system/widgets/` (`state_panel.dart`, `offline_banner.dart`, `confirm_sheet.dart`, `app_snack_bar.dart`, `skeleton.dart`, `progress_header.dart`, `app_text_field.dart`, `app_card.dart`, `app_section_header.dart`) and barrel `widgets.dart`
+- [X] T022 Update `test/helpers/widget_test_app.dart` to pump with Arabic locale, RTL, light/dark, text scale, and screen size params; add `pumpAllVariants` helper (RTL, 200% text, dark, 320 dp width)
+- [X] T023 Add design-lint test that scans `lib/features/**/*.dart` for `Color(0x`, `fontSize:`, `BorderRadius.circular(` and fails on any match in `test/core/design_system/design_lint_test.dart`
+- [X] T024 Wire theme in `lib/app/app.dart` (light/dark follow system, `Locale('ar')`, RTL, `flutter_localizations` delegates); delete `lib/core/theme/`
 
 **Checkpoint**: design system tests green; `flutter analyze` clean.
 

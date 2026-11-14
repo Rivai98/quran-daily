@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_colors.dart';
 import '../widgets/join_request_tile.dart';
 import '../widgets/state_panel.dart';
 import '../widgets/validation_banner.dart';
@@ -12,11 +12,12 @@ class OrganizerJoinRequestsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
     return Scaffold(
       appBar: AppBar(title: const Text(ArabicStrings.joinRequestsTitle)),
       body: ListView(
         padding: AppSpacing.screen,
-        children: const [
+        children: [
           StatePanel(
             icon: Icons.inbox_outlined,
             title: ArabicStrings.noJoinRequests,
@@ -28,7 +29,7 @@ class OrganizerJoinRequestsScreen extends StatelessWidget {
           ValidationBanner(
             icon: Icons.block,
             message: ArabicStrings.groupFull,
-            color: AppTheme.missedColor,
+            color: appColors.missedFg,
           ),
         ],
       ),

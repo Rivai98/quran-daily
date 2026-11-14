@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/design_system/app_colors.dart';
+import '../../../../core/design_system/app_radius.dart';
 
 enum ReadingStatus { pending, completed, missed, late }
 
@@ -16,11 +17,12 @@ class StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
     final color = switch (status) {
-      ReadingStatus.completed => AppTheme.completeColor,
-      ReadingStatus.pending => AppTheme.pendingColor,
-      ReadingStatus.missed => AppTheme.missedColor,
-      ReadingStatus.late => AppTheme.lateColor,
+      ReadingStatus.completed => appColors.completedFg,
+      ReadingStatus.pending => appColors.pendingFg,
+      ReadingStatus.missed => appColors.missedFg,
+      ReadingStatus.late => appColors.lateFg,
     };
 
     return Chip(
@@ -28,7 +30,7 @@ class StatusChip extends StatelessWidget {
       label: Text(label),
       backgroundColor: color.withValues(alpha: 0.1),
       side: BorderSide(color: color.withValues(alpha: 0.32)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.smBR),
       labelStyle: TextStyle(color: color, fontWeight: FontWeight.w700),
       visualDensity: VisualDensity.compact,
     );

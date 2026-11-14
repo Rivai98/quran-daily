@@ -40,12 +40,22 @@ class ArabicStrings {
       '\u{633}\u{62c}\u{644} \u{627}\u{644}\u{62e}\u{62a}\u{645}\u{627}\u{62a} \u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a}\u{629}';
   static const settingsTitle =
       '\u{627}\u{644}\u{625}\u{639}\u{62f}\u{627}\u{62f}\u{627}\u{62a}';
-  static const completed = '\u{645}\u{643}\u{62a}\u{645}\u{644}';
-  static const pending =
-      '\u{642}\u{64a}\u{62f} \u{627}\u{644}\u{627}\u{646}\u{62a}\u{638}\u{627}\u{631}';
-  static const missed = '\u{641}\u{627}\u{626}\u{62a}';
-  static const late =
-      '\u{645}\u{643}\u{62a}\u{645}\u{644} \u{645}\u{62a}\u{623}\u{62e}\u{631}';
+  static const completed =
+      '\u{62a}\u{645}\u{62a} \u{627}\u{644}\u{642}\u{631}\u{627}\u{621}\u{629}';
+  static const pending = 'لم يُقرأ بعد';
+  static const missed = 'فائت';
+  static const late = 'قُرئ متأخرًا';
+
+  /// Constitution v2.4.0 statuses.
+  static const available = 'متاح';
+  static const unread = 'لم يقرأه أحد';
+
+  /// Juz semantics: 'الجزء' + ordinal digit, and the mine marker 'جزؤك'.
+  static const partLabel = 'الجزء';
+  static const mineSuffix = 'جزؤك';
+
+  static const showPassword = 'إظهار كلمة المرور';
+  static const hidePassword = 'إخفاء كلمة المرور';
   static const completeAction =
       '\u{62a}\u{623}\u{643}\u{64a}\u{62f} \u{625}\u{62a}\u{645}\u{627}\u{645} \u{627}\u{644}\u{62c}\u{632}\u{621}';
   static const undoAction =

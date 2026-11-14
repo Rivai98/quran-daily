@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/design_system/app_spacing.dart';
 import 'dense_info_row.dart';
+import '../../../../core/design_system/app_radius.dart';
 
 class HistoryDaySummaryTile extends StatelessWidget {
   const HistoryDaySummaryTile({
@@ -30,7 +31,7 @@ class HistoryDaySummaryTile extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: AppRadius.smBR,
         ),
         child: Text(
           percent,

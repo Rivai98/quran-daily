@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_radius.dart';
 
 class StatePanel extends StatelessWidget {
   const StatePanel({
@@ -35,7 +36,7 @@ class StatePanel extends StatelessWidget {
               height: 42,
               decoration: BoxDecoration(
                 color: tone.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: AppRadius.smBR,
               ),
               child: Icon(icon, color: tone),
             ),

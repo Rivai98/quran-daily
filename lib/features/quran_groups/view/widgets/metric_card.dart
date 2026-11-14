@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_radius.dart';
 
 class MetricCard extends StatelessWidget {
   const MetricCard({
@@ -32,7 +33,7 @@ class MetricCard extends StatelessWidget {
               height: 34,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: AppRadius.smBR,
               ),
               child: Icon(icon, color: color, size: 20),
             ),

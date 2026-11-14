@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import 'status_chip.dart';
+import '../../../../core/design_system/app_radius.dart';
 
 class AssignmentStatusGrid extends StatelessWidget {
   const AssignmentStatusGrid({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
     final assignments = List.generate(30, (index) {
       final part = index + 1;
       final status = switch (part % 10) {
@@ -34,10 +37,10 @@ class AssignmentStatusGrid extends StatelessWidget {
           itemBuilder: (context, index) {
             final item = assignments[index];
             final color = switch (item.status) {
-              ReadingStatus.completed => const Color(0xFF167A4A),
-              ReadingStatus.pending => const Color(0xFF8A6D1F),
-              ReadingStatus.missed => const Color(0xFFB3261E),
-              ReadingStatus.late => const Color(0xFF6750A4),
+              ReadingStatus.completed => appColors.completedFg,
+              ReadingStatus.pending => appColors.pendingFg,
+              ReadingStatus.missed => appColors.missedFg,
+              ReadingStatus.late => appColors.lateFg,
             };
             final label = switch (item.status) {
               ReadingStatus.completed => ArabicStrings.completed,
@@ -49,7 +52,7 @@ class AssignmentStatusGrid extends StatelessWidget {
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.08),
                 border: Border.all(color: color.withValues(alpha: 0.28)),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: AppRadius.smBR,
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),

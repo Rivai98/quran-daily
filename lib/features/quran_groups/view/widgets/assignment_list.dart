@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_colors.dart';
 import 'dense_info_row.dart';
 import 'status_chip.dart';
 
@@ -11,6 +11,7 @@ class AssignmentList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
     final rows = [
       const _AssignmentRow(1, ReadingStatus.completed),
       const _AssignmentRow(2, ReadingStatus.pending),
@@ -26,7 +27,7 @@ class AssignmentList extends StatelessWidget {
             icon: Icons.person,
             title: row.memberLabel,
             subtitle: row.partLabel,
-            accentColor: _colorFor(row.status),
+            accentColor: _colorFor(appColors, row.status),
             trailing: StatusChip(
               label: _labelFor(row.status),
               status: row.status,
@@ -38,12 +39,12 @@ class AssignmentList extends StatelessWidget {
     );
   }
 
-  Color _colorFor(ReadingStatus status) {
+  Color _colorFor(AppColors colors, ReadingStatus status) {
     return switch (status) {
-      ReadingStatus.completed => AppTheme.completeColor,
-      ReadingStatus.pending => AppTheme.pendingColor,
-      ReadingStatus.missed => AppTheme.missedColor,
-      ReadingStatus.late => AppTheme.lateColor,
+      ReadingStatus.completed => colors.completedFg,
+      ReadingStatus.pending => colors.pendingFg,
+      ReadingStatus.missed => colors.missedFg,
+      ReadingStatus.late => colors.lateFg,
     };
   }
 
