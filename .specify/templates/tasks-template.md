@@ -156,6 +156,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX Performance optimization across all stories
 - [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
 - [ ] TXXX Security hardening
+- [ ] TXXX Design system compliance review (constitution Principle VI): no raw colors/sizes/radii in features, shared components used, RTL + 200% text scale + dark theme verified
 - [ ] TXXX Run quickstart.md validation
 
 ---

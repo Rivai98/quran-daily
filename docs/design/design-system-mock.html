@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ختمة يومية - نظام التصميم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri:wght@400;700&family=Cairo:wght@400;500;600;700&family=Readex+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&display=swap" rel="stylesheet">
+<style>
+/* ===== Tokens: constitution Principle VI ===== */
+:root {
+  --primary:#0E5E4E; --on-primary:#FFFFFF;
+  --primary-container:#D7EDE6; --on-primary-container:#08392F;
+  --accent:#B07D2B;
+  --background:#F7F5EF; --surface:#FFFFFF; --surface-muted:#F0EDE4;
+  --ink:#1B2420; --ink-muted:#5A6560; --border:#E2DED3; --danger:#B3261E;
+  --st-completed-fg:#1B7A47; --st-completed-bg:#E3F3EA;
+  --st-pending-fg:#8A5A00;   --st-pending-bg:#FBF0D9;
+  --st-missed-fg:#B3261E;    --st-missed-bg:#FBE6E4;
+  --st-late-fg:#5B47B5;      --st-late-bg:#ECE8FA;
+  --shadow:0 8px 28px rgba(20,30,25,.14);
+  --sp-xxs:4px; --sp-xs:8px; --sp-sm:12px; --sp-md:16px; --sp-lg:24px; --sp-xl:32px; --sp-xxl:48px;
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px;
+  --ui-font:'IBM Plex Sans Arabic';
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --primary:#5CC4A8; --on-primary:#00382D;
+    --primary-container:#123F35; --on-primary-container:#BFEADC;
+    --accent:#E2B866;
+    --background:#0F1513; --surface:#171F1C; --surface-muted:#1F2925;
+    --ink:#E7ECE9; --ink-muted:#A3AFA9; --border:#2C3833; --danger:#FF8A80;
+    --st-completed-fg:#6FD39C; --st-completed-bg:#173A28;
+    --st-pending-fg:#F2C063;   --st-pending-bg:#3A2E12;
+    --st-missed-fg:#FF8A80;    --st-missed-bg:#3D1A18;
+    --st-late-fg:#B4A6FF;      --st-late-bg:#2A2448;
+    --shadow:0 8px 28px rgba(0,0,0,.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --primary:#5CC4A8; --on-primary:#00382D;
+  --primary-container:#123F35; --on-primary-container:#BFEADC;
+  --accent:#E2B866;
+  --background:#0F1513; --surface:#171F1C; --surface-muted:#1F2925;
+  --ink:#E7ECE9; --ink-muted:#A3AFA9; --border:#2C3833; --danger:#FF8A80;
+  --st-completed-fg:#6FD39C; --st-completed-bg:#173A28;
+  --st-pending-fg:#F2C063;   --st-pending-bg:#3A2E12;
+  --st-missed-fg:#FF8A80;    --st-missed-bg:#3D1A18;
+  --st-late-fg:#B4A6FF;      --st-late-bg:#2A2448;
+  --shadow:0 8px 28px rgba(0,0,0,.5);
+  color-scheme: dark;
+}
+
+/* ===== Type scale ===== */
+.t-display  { font-size:28px; line-height:40px; font-weight:700; }
+.t-headline { font-size:22px; line-height:32px; font-weight:700; }
+.t-title    { font-size:18px; line-height:28px; font-weight:600; }
+.t-body-lg  { font-size:16px; line-height:26px; font-weight:400; }
+.t-body     { font-size:15px; line-height:24px; font-weight:400; }
+.t-label    { font-size:14px; line-height:20px; font-weight:600; }
+.t-caption  { font-size:13px; line-height:20px; font-weight:500; }
+.t-quran    { font-family:'Amiri',serif; font-size:20px; line-height:34px; font-weight:700; }
+.muted { color:var(--ink-muted); }
+
+* { box-sizing:border-box; }
+html, body { margin:0; }
+body {
+  background:var(--background); color:var(--ink);
+  font-family:var(--ui-font), system-ui, sans-serif;
+  font-size:15px; line-height:24px;
+}
+.ms { font-family:'Material Symbols Rounded'; font-weight:normal; font-style:normal; font-size:24px;
+  line-height:1; display:inline-block; direction:ltr; -webkit-font-feature-settings:'liga'; font-feature-settings:'liga'; }
+.ms.fill { font-variation-settings:'FILL' 1; }
+.ms.s20 { font-size:20px; }
+.ms.flip { transform:scaleX(-1); }
+
+/* ===== Page chrome (documentation, not app UI) ===== */
+.page { max-width:1180px; margin:0 auto; padding:var(--sp-lg) var(--sp-md) var(--sp-xxl); }
+.topbar { display:flex; flex-wrap:wrap; gap:var(--sp-sm); align-items:center; justify-content:space-between;
+  padding-bottom:var(--sp-lg); border-bottom:1px solid var(--border); margin-bottom:var(--sp-lg); }
+.topbar h1 { margin:0; }
+.controls { display:flex; flex-wrap:wrap; gap:var(--sp-xs); align-items:center; }
+.seg { display:inline-flex; border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; background:var(--surface); }
+.seg button { border:0; background:transparent; color:var(--ink); font:inherit; font-size:14px; font-weight:600;
+  padding:0 var(--sp-sm); min-height:40px; cursor:pointer; }
+.seg button[aria-pressed="true"] { background:var(--primary-container); color:var(--on-primary-container); }
+section.doc { margin-top:var(--sp-xl); }
+section.doc > h2 { margin:0 0 var(--sp-xxs); }
+section.doc > p.lead { margin:0 0 var(--sp-md); color:var(--ink-muted); }
+.grid { display:grid; gap:var(--sp-md); }
+.g2 { grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); }
+.g3 { grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); }
+.g4 { grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); }
+.spec { font-family:ui-monospace,Consolas,monospace; font-size:12px; color:var(--ink-muted); direction:ltr; unicode-bidi:isolate; }
+
+/* ===== Components ===== */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:var(--sp-md); }
+.card > * + * { margin-top:var(--sp-sm); }
+.row { display:flex; align-items:center; gap:var(--sp-sm); }
+.row.between { justify-content:space-between; }
+.stack > * + * { margin-top:var(--sp-sm); }
+
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-xs);
+  min-height:48px; padding:0 var(--sp-lg); border-radius:var(--r-md); border:1px solid transparent;
+  font:inherit; font-size:14px; line-height:20px; font-weight:600; cursor:pointer; white-space:nowrap; }
+.btn.lg { min-height:52px; font-size:16px; }
+.btn.block { width:100%; }
+.btn.primary { background:var(--primary); color:var(--on-primary); }
+.btn.tonal { background:var(--primary-container); color:var(--on-primary-container); }
+.btn.secondary { background:transparent; color:var(--primary); border-color:var(--border); }
+.btn.text { background:transparent; color:var(--primary); padding:0 var(--sp-sm); }
+.btn.danger { background:var(--danger); color:#fff; }
+:root[data-theme="dark"] .btn.danger { color:#3D1A18; }
+.btn.danger-outline { background:transparent; color:var(--danger); border-color:var(--border); }
+.btn[disabled] { opacity:.38; cursor:not-allowed; }
+.btn.icon { width:48px; padding:0; border-radius:50%; color:var(--ink); background:transparent; }
+.spinner { width:20px; height:20px; border-radius:50%; border:2.5px solid currentColor; border-inline-end-color:transparent;
+  animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration:2.4s; } }
+
+.chip { display:inline-flex; align-items:center; gap:var(--sp-xxs); padding:2px var(--sp-sm) 2px var(--sp-xs);
+  border-radius:999px; font-size:13px; line-height:24px; font-weight:600; white-space:nowrap; }
+.chip .ms { font-size:18px; }
+.st-completed { color:var(--st-completed-fg); background:var(--st-completed-bg); }
+.st-pending   { color:var(--st-pending-fg);   background:var(--st-pending-bg); }
+.st-missed    { color:var(--st-missed-fg);    background:var(--st-missed-bg); }
+.st-late      { color:var(--st-late-fg);      background:var(--st-late-bg); }
+
+.field label { display:block; font-size:14px; font-weight:600; margin-bottom:var(--sp-xxs); }
+.input { display:flex; align-items:center; gap:var(--sp-xs); min-height:52px; padding:0 var(--sp-md);
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); }
+.input input { flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--ink); font:inherit; font-size:16px; }
+.input input[type="email"] { direction:ltr; text-align:left; }
+.input.focus { border-color:var(--primary); box-shadow:0 0 0 1px var(--primary); }
+.input.error { border-color:var(--danger); }
+.field .help { font-size:13px; line-height:20px; color:var(--ink-muted); margin-top:var(--sp-xxs); }
+.field .err { font-size:13px; line-height:20px; color:var(--danger); margin-top:var(--sp-xxs); display:flex; gap:4px; align-items:center; }
+
+.banner { display:flex; gap:var(--sp-sm); align-items:flex-start; padding:var(--sp-sm) var(--sp-md);
+  border-radius:var(--r-md); background:var(--st-pending-bg); color:var(--st-pending-fg); }
+.banner p { margin:0; color:var(--ink); }
+.state { text-align:center; padding:var(--sp-xl) var(--sp-md); }
+.state .ms { font-size:40px; color:var(--ink-muted); }
+.state h3 { margin:var(--sp-sm) 0 var(--sp-xxs); }
+.state p { margin:0 0 var(--sp-md); color:var(--ink-muted); }
+
+.sheet { background:var(--surface); border-radius:var(--r-xl) var(--r-xl) 0 0; box-shadow:var(--shadow);
+  padding:var(--sp-xs) var(--sp-md) var(--sp-lg); border:1px solid var(--border); border-bottom:0; }
+.sheet .handle { width:36px; height:4px; border-radius:2px; background:var(--border); margin:0 auto var(--sp-md); }
+.snack { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-sm); padding:var(--sp-xs) var(--sp-xs) var(--sp-xs) var(--sp-md);
+  padding-inline:var(--sp-md) var(--sp-xs); border-radius:var(--r-md); background:var(--ink); color:var(--background); box-shadow:var(--shadow); }
+.snack .btn.text { color:var(--primary-container); }
+
+.skel { background:var(--surface-muted); border-radius:var(--r-sm); height:14px; }
+
+/* Progress */
+.progress { display:flex; align-items:center; gap:var(--sp-md); }
+.ring { --p:40; width:84px; height:84px; border-radius:50%; flex:none;
+  background:conic-gradient(var(--primary) calc(var(--p)*1%), var(--surface-muted) 0); display:grid; place-items:center; }
+.ring > span { width:66px; height:66px; border-radius:50%; background:var(--surface); display:grid; place-items:center; font-size:16px; font-weight:700; }
+.bar { height:8px; border-radius:4px; background:var(--surface-muted); overflow:hidden; }
+.bar > i { display:block; height:100%; background:var(--primary); border-radius:4px; }
+
+/* Part grid */
+.parts { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+.part { aspect-ratio:1; border-radius:var(--r-sm); display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-size:14px; font-weight:700; line-height:18px; position:relative; }
+.part .ms { font-size:14px; }
+.part.me { outline:2px solid var(--primary); outline-offset:1px; }
+
+/* Swatches */
+.sw { display:flex; flex-direction:column; border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; background:var(--surface); }
+.sw i { height:56px; display:block; border-bottom:1px solid var(--border); }
+.sw div { padding:var(--sp-xs) var(--sp-sm); }
+
+/* Phone frames */
+.phones { display:flex; flex-wrap:wrap; gap:var(--sp-lg); justify-content:center; }
+.phone { width:360px; max-width:100%; height:760px; border-radius:36px; border:10px solid #1a1f1d;
+  background:var(--background); overflow:hidden; position:relative; display:flex; flex-direction:column; box-shadow:var(--shadow); }
+.phone-cap { text-align:center; margin-top:var(--sp-xs); }
+.status-bar { height:28px; display:flex; justify-content:space-between; align-items:center; padding:0 var(--sp-md); font-size:12px; font-weight:600; direction:ltr; }
+.appbar { display:flex; align-items:center; gap:var(--sp-xxs); min-height:56px; padding:0 var(--sp-xxs) 0 var(--sp-xxs); padding-inline-start:var(--sp-md); }
+.appbar h2 { margin:0; flex:1; }
+.screen { flex:1; overflow-y:auto; padding:0 var(--sp-md) var(--sp-md); scrollbar-width:thin; }
+.screen > * + * { margin-top:var(--sp-md); }
+.bottom-action { padding:var(--sp-sm) var(--sp-md) var(--sp-md); border-top:1px solid var(--border); background:var(--background); }
+.navbar { display:flex; border-top:1px solid var(--border); background:var(--surface); }
+.navbar a { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:var(--sp-xs) 0 var(--sp-sm);
+  font-size:12px; font-weight:600; color:var(--ink-muted); text-decoration:none; }
+.navbar a .pill { width:56px; height:30px; border-radius:15px; display:grid; place-items:center; }
+.navbar a.on { color:var(--ink); }
+.navbar a.on .pill { background:var(--primary-container); color:var(--on-primary-container); }
+.list-row { display:flex; align-items:center; gap:var(--sp-sm); padding:var(--sp-sm) 0; border-bottom:1px solid var(--border); }
+.list-row:last-child { border-bottom:0; }
+.avatar { width:36px; height:36px; border-radius:50%; background:var(--primary-container); color:var(--on-primary-container);
+  display:grid; place-items:center; font-weight:700; font-size:14px; flex:none; }
+.grow { flex:1; min-width:0; }
+.pattern { position:absolute; inset:0; opacity:.06; pointer-events:none;
+  background-image:radial-gradient(circle at 50% 50%, transparent 9px, var(--primary) 10px, transparent 11px),
+    linear-gradient(45deg, transparent 47%, var(--primary) 48%, var(--primary) 52%, transparent 53%),
+    linear-gradient(-45deg, transparent 47%, var(--primary) 48%, var(--primary) 52%, transparent 53%);
+  background-size:32px 32px; }
+.hero { position:relative; overflow:hidden; }
+.dodont { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:var(--sp-md); }
+.dodont .card h4 { margin:0; display:flex; gap:6px; align-items:center; }
+.do h4 { color:var(--st-completed-fg); } .dont h4 { color:var(--danger); }
+.dodont ul { margin:0; padding-inline-start:20px; }
+table.tk { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden; }
+table.tk th, table.tk td { text-align:start; padding:var(--sp-xs) var(--sp-sm); border-bottom:1px solid var(--border); vertical-align:middle; }
+table.tk th { font-size:13px; color:var(--ink-muted); font-weight:600; background:var(--surface-muted); }
+.scroll-x { overflow-x:auto; }
+@media (max-width:420px) { .phone { border-width:6px; border-radius:28px; height:720px; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="topbar">
+    <div>
+      <h1 class="t-headline">نظام التصميم - ختمة يومية</h1>
+      <div class="t-caption muted">المرجع البصري للمبدأ السادس في الدستور (الإصدار ٢٫١٫٠). الدستور هو المرجع عند أي اختلاف.</div>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="السمة">
+        <button data-theme-btn="light" aria-pressed="false">فاتح</button>
+        <button data-theme-btn="dark" aria-pressed="false">داكن</button>
+      </div>
+      <div class="seg" role="group" aria-label="مقارنة الخط">
+        <button data-font="IBM Plex Sans Arabic" aria-pressed="true">IBM Plex</button>
+        <button data-font="Cairo" aria-pressed="false">Cairo</button>
+        <button data-font="Readex Pro" aria-pressed="false">Readex</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ SCREENS ============ -->
+  <section class="doc">
+    <h2 class="t-headline">شاشات نموذجية</h2>
+    <p class="lead t-body">أمثلة لتطبيق القواعد: زر أساسي واحد لكل شاشة، والحالات تُعرض بلون وأيقونة ونص معًا، والأرقام هندية.</p>
+
+    <div class="phones">
+
+      <!-- Auth -->
+      <div>
+        <div class="phone">
+          <div class="status-bar"><span>9:41</span><span>●●● ▮</span></div>
+          <div class="screen" style="padding-top:var(--sp-xl)">
+            <div class="hero card" style="text-align:center;padding:var(--sp-lg) var(--sp-md)">
+              <div class="pattern"></div>
+              <span class="ms fill" style="font-size:40px;color:var(--primary)">menu_book</span>
+              <div class="t-headline">ختمة يومية</div>
+              <div class="t-body muted">اقرأ جزءك، وأكمل الختمة مع مجموعتك</div>
+            </div>
+            <div class="seg" role="tablist" style="display:flex">
+              <button aria-pressed="true" style="flex:1;min-height:44px">تسجيل الدخول</button>
+              <button aria-pressed="false" style="flex:1;min-height:44px">إنشاء حساب</button>
+            </div>
+            <div class="field">
+              <label>البريد الإلكتروني</label>
+              <div class="input focus"><span class="ms s20 muted">mail</span><input type="email" value="sara@example.com" aria-label="البريد الإلكتروني"></div>
+            </div>
+            <div class="field">
+              <label>كلمة المرور</label>
+              <div class="input error"><span class="ms s20 muted">lock</span><input type="password" value="" placeholder="٨ أحرف على الأقل" aria-label="كلمة المرور"><button class="btn icon" aria-label="إظهار كلمة المرور"><span class="ms s20">visibility</span></button></div>
+              <div class="err"><span class="ms s20">error</span>أدخل كلمة المرور</div>
+            </div>
+            <div class="t-caption muted" style="display:flex;gap:6px"><span class="ms s20">info</span>نسيت كلمة المرور؟ تواصل مع مسؤول التطبيق لتعيين كلمة جديدة.</div>
+          </div>
+          <div class="bottom-action"><button class="btn primary lg block"><span class="ms s20">login</span>تسجيل الدخول</button></div>
+        </div>
+        <div class="phone-cap t-caption muted">الدخول: حقل البريد LTR، خطأ تحت الحقل، الزر مثبت أسفل الشاشة</div>
+      </div>
+
+      <!-- Dashboard -->
+      <div>
+        <div class="phone">
+          <div class="status-bar"><span>9:41</span><span>●●● ▮</span></div>
+          <div class="appbar">
+            <h2 class="t-headline">حلقة الفجر</h2>
+            <button class="btn icon" aria-label="تبديل المجموعة"><span class="ms">swap_horiz</span></button>
+          </div>
+          <div class="screen">
+            <div class="banner"><span class="ms s20">cloud_off</span><p class="t-caption">أنت غير متصل. تقدم المجموعة قد لا يكون محدثًا (آخر تحديث ٨:١٢ ص).</p></div>
+
+            <div class="card" style="border-color:var(--primary)">
+              <div class="row between">
+                <span class="t-caption muted">جزؤك اليوم</span>
+                <span class="chip st-pending"><span class="ms">schedule</span>لم يُقرأ بعد</span>
+              </div>
+              <div class="t-quran">الجزء الخامس</div>
+              <div class="t-body muted">من «والمحصنات» النساء ٢٤ إلى «لا يحب الله» النساء ١٤٧</div>
+              <button class="btn primary lg block"><span class="ms s20">check</span>سجّل إتمام الجزء</button>
+            </div>
+
+            <div class="card">
+              <div class="progress">
+                <div class="ring" style="--p:40"><span>٤٠٪</span></div>
+                <div class="grow">
+                  <div class="t-caption muted">تقدم ختمة اليوم</div>
+                  <div class="t-display">١٢ <span class="t-title muted">/ ٣٠</span></div>
+                  <div class="t-caption muted">متبقٍ ١٨ جزءًا · ينتهي اليوم ١١:٥٩ م (القاهرة)</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="row between"><span class="t-title">الأجزاء</span><button class="btn text">عرض القائمة</button></div>
+              <div class="parts" id="dashParts"></div>
+              <div class="row" style="flex-wrap:wrap;gap:var(--sp-xs)">
+                <span class="chip st-completed"><span class="ms">check_circle</span>تمت ١٢</span>
+                <span class="chip st-pending"><span class="ms">schedule</span>لم تُقرأ ١٨</span>
+              </div>
+            </div>
+          </div>
+          <nav class="navbar">
+            <a class="on" href="#"><span class="pill"><span class="ms fill">today</span></span>اليوم</a>
+            <a href="#"><span class="pill"><span class="ms">history</span></span>السجل</a>
+            <a href="#"><span class="pill"><span class="ms">group</span></span>الأعضاء</a>
+            <a href="#"><span class="pill"><span class="ms">settings</span></span>الإعدادات</a>
+          </nav>
+        </div>
+        <div class="phone-cap t-caption muted">لوحة اليوم: جزء العضو وزره ظاهران دون تمرير</div>
+      </div>
+
+      <!-- Assignment detail done + confirm sheet -->
+      <div>
+        <div class="phone">
+          <div class="status-bar"><span>9:41</span><span>●●● ▮</span></div>
+          <div class="appbar">
+            <button class="btn icon" aria-label="رجوع"><span class="ms">arrow_forward</span></button>
+            <h2 class="t-title">جزئي اليوم</h2>
+          </div>
+          <div class="screen">
+            <div class="card hero" style="text-align:center">
+              <div class="pattern"></div>
+              <span class="chip st-completed"><span class="ms fill">check_circle</span>تمت القراءة ٧:٤٠ ص</span>
+              <div class="t-quran" style="font-size:24px;line-height:40px">الجزء الخامس</div>
+              <div class="t-body muted">من «والمحصنات» النساء ٢٤<br>إلى «لا يحب الله» النساء ١٤٧</div>
+            </div>
+            <div class="card">
+              <div class="list-row"><span class="ms muted">calendar_today</span><span class="grow">التاريخ</span><span class="t-label">السبت ١٤ نوفمبر</span></div>
+              <div class="list-row"><span class="ms muted">schedule</span><span class="grow">نهاية اليوم</span><span class="t-label">١١:٥٩ م</span></div>
+              <div class="list-row"><span class="ms muted">group</span><span class="grow">المجموعة</span><span class="t-label">حلقة الفجر</span></div>
+            </div>
+            <button class="btn danger-outline block"><span class="ms s20">undo</span>التراجع عن الإتمام</button>
+          </div>
+          <div style="position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-end">
+            <div class="sheet" style="width:100%">
+              <div class="handle"></div>
+              <div class="t-title">التراجع عن إتمام الجزء؟</div>
+              <p class="t-body muted" style="margin:var(--sp-xs) 0 var(--sp-md)">سيعود الجزء الخامس إلى «لم يُقرأ بعد»، وينقص تقدم المجموعة جزءًا واحدًا.</p>
+              <div class="row">
+                <button class="btn danger grow">نعم، تراجع</button>
+                <button class="btn secondary grow">إلغاء</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-cap t-caption muted">تأكيد الإجراء العكسي في ورقة سفلية، والزر يذكر النتيجة</div>
+      </div>
+
+      <!-- Organizer review -->
+      <div>
+        <div class="phone">
+          <div class="status-bar"><span>9:41</span><span>●●● ▮</span></div>
+          <div class="appbar">
+            <button class="btn icon" aria-label="رجوع"><span class="ms">arrow_forward</span></button>
+            <h2 class="t-title">مراجعة توزيع اليوم</h2>
+            <button class="btn icon" aria-label="توزيع عشوائي جديد"><span class="ms">shuffle</span></button>
+          </div>
+          <div class="screen">
+            <div class="banner" style="background:var(--st-missed-bg);color:var(--st-missed-fg)"><span class="ms s20">group_off</span><p class="t-caption">يجب أن يكتمل عدد الأعضاء ٣٠ قبل النشر. العدد الحالي ٢٨، وهناك طلبا انضمام بانتظار المراجعة.</p></div>
+            <button class="btn tonal block"><span class="ms s20">person_add</span>راجع طلبات الانضمام (٢)</button>
+            <div class="card" id="reviewList"></div>
+          </div>
+          <div class="bottom-action">
+            <button class="btn primary lg block" disabled><span class="ms s20">publish</span>انشر التوزيع</button>
+          </div>
+        </div>
+        <div class="phone-cap t-caption muted">زر معطل مع سبب واضح وإجراء بديل</div>
+      </div>
+
+      <!-- History -->
+      <div>
+        <div class="phone">
+          <div class="status-bar"><span>9:41</span><span>●●● ▮</span></div>
+          <div class="appbar"><h2 class="t-headline">السجل</h2></div>
+          <div class="screen" id="historyScreen"></div>
+          <nav class="navbar">
+            <a href="#"><span class="pill"><span class="ms">today</span></span>اليوم</a>
+            <a class="on" href="#"><span class="pill"><span class="ms fill">history</span></span>السجل</a>
+            <a href="#"><span class="pill"><span class="ms">group</span></span>الأعضاء</a>
+            <a href="#"><span class="pill"><span class="ms">settings</span></span>الإعدادات</a>
+          </nav>
+        </div>
+        <div class="phone-cap t-caption muted">السجل: الفائت والمتأخر واضحان لكل يوم</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ TYPOGRAPHY ============ -->
+  <section class="doc">
+    <h2 class="t-headline">الخطوط</h2>
+    <p class="lead t-body">خط الواجهة IBM Plex Sans Arabic، وخط أسماء الأجزاء والسور Amiri. جرّب أزرار المقارنة بالأعلى لرؤية Cairo وReadex Pro مكانه.</p>
+    <div class="card">
+      <div class="row between"><span class="t-display">١٢ من ٣٠ جزءًا</span><span class="spec">display 28/40 · 700</span></div>
+      <div class="row between"><span class="t-headline">حلقة الفجر</span><span class="spec">headline 22/32 · 700</span></div>
+      <div class="row between"><span class="t-title">أجزاء اليوم</span><span class="spec">title 18/28 · 600</span></div>
+      <div class="row between"><span class="t-body-lg">اقرأ جزءك اليوم ثم سجّل الإتمام ليظهر تقدمك للمجموعة.</span><span class="spec">bodyLarge 16/26 · 400</span></div>
+      <div class="row between"><span class="t-body">انضم إلى مجموعة عامة وانتظر قبول المالك لتبدأ.</span><span class="spec">body 15/24 · 400</span></div>
+      <div class="row between"><span class="t-label">سجّل إتمام الجزء</span><span class="spec">label 14/20 · 600</span></div>
+      <div class="row between"><span class="t-caption muted">آخر تحديث ٨:١٢ ص</span><span class="spec">caption 13/20 · 500</span></div>
+      <div class="row between"><span class="t-quran">الجزء الخامس · سورة النساء</span><span class="spec">quranLabel Amiri 20/34 · 700</span></div>
+    </div>
+  </section>
+
+  <!-- ============ COLORS ============ -->
+  <section class="doc">
+    <h2 class="t-headline">الألوان</h2>
+    <p class="lead t-body">القيم تتبدل تلقائيًا مع السمة. لا يُكتب أي لون مباشرة في كود الميزات.</p>
+    <div class="grid g4" id="swatches"></div>
+    <h3 class="t-title" style="margin:var(--sp-lg) 0 var(--sp-sm)">حالات الأجزاء</h3>
+    <div class="row" style="flex-wrap:wrap;gap:var(--sp-xs)">
+      <span class="chip st-completed"><span class="ms fill">check_circle</span>تمت القراءة</span>
+      <span class="chip st-pending"><span class="ms">schedule</span>لم يُقرأ بعد</span>
+      <span class="chip st-missed"><span class="ms">cancel</span>فائت</span>
+      <span class="chip st-late"><span class="ms">history</span>قُرئ متأخرًا</span>
+    </div>
+  </section>
+
+  <!-- ============ BUTTONS ============ -->
+  <section class="doc">
+    <h2 class="t-headline">الأزرار</h2>
+    <p class="lead t-body">زر أساسي واحد فقط في الشاشة. النص فعل عربي قصير يصف النتيجة.</p>
+    <div class="grid g3">
+      <div class="card"><div class="t-label">أساسي · 52</div><button class="btn primary lg block"><span class="ms s20">check</span>سجّل إتمام الجزء</button><div class="t-caption muted">الإجراء الرئيسي للشاشة، بعرض كامل أسفلها.</div></div>
+      <div class="card"><div class="t-label">نغمي · 48</div><button class="btn tonal block"><span class="ms s20">person_add</span>راجع الطلبات</button><div class="t-caption muted">إجراء ثانوي مهم.</div></div>
+      <div class="card"><div class="t-label">ثانوي · 48</div><button class="btn secondary block">إلغاء</button><div class="t-caption muted">بديل أو إلغاء.</div></div>
+      <div class="card"><div class="t-label">نصي · 48</div><div><button class="btn text">عرض الكل</button></div><div class="t-caption muted">روابط منخفضة الأهمية.</div></div>
+      <div class="card"><div class="t-label">خطِر · داخل التأكيد فقط</div><button class="btn danger block">نعم، ارفض الطلب</button><div class="t-caption muted">خارج التأكيد يظهر بإطار أحمر فقط.</div></div>
+      <div class="card"><div class="t-label">أيقونة · 48×48</div><div class="row"><button class="btn icon" aria-label="رجوع" title="رجوع"><span class="ms">arrow_forward</span></button><button class="btn icon" aria-label="الإعدادات" title="الإعدادات"><span class="ms">settings</span></button></div><div class="t-caption muted">مع تلميح ووصف للقارئ. سهم الرجوع معكوس في RTL.</div></div>
+      <div class="card"><div class="t-label">تحميل</div><button class="btn primary lg block" disabled style="opacity:1"><span class="spinner"></span>جارٍ التسجيل</button><div class="t-caption muted">معطل، بنفس العرض، والضغط المتكرر يتجاهل.</div></div>
+      <div class="card"><div class="t-label">معطل + السبب</div><button class="btn primary lg block" disabled>انشر التوزيع</button><div class="t-caption" style="color:var(--danger)">يجب أن يكتمل عدد الأعضاء ٣٠ قبل النشر</div></div>
+      <div class="card"><div class="t-label">زوج إجراءات</div><div class="row"><button class="btn primary grow">اقبل</button><button class="btn secondary grow">لاحقًا</button></div><div class="t-caption muted">التأكيد في البداية (يمينًا) والإلغاء في النهاية.</div></div>
+    </div>
+  </section>
+
+  <!-- ============ COMPONENTS ============ -->
+  <section class="doc">
+    <h2 class="t-headline">المكونات المشتركة</h2>
+    <p class="lead t-body">موجودة في <span class="spec">lib/core/design_system/widgets/</span> ولا يُعاد بناؤها داخل الميزات.</p>
+    <div class="grid g2">
+      <div class="card">
+        <div class="t-label">PublicGroupCard + طلب معلّق</div>
+        <div class="row between"><span class="t-title">حلقة الفجر</span><span class="chip st-pending"><span class="ms">hourglass_top</span>بانتظار القبول من مالك المجموعة</span></div>
+        <div class="t-body muted">ختمة يومية بعد صلاة الفجر لأهل الحي.</div>
+        <div class="row t-caption muted" style="gap:var(--sp-md)"><span class="row" style="gap:4px"><span class="ms s20">group</span>٢٨ / ٣٠ عضوًا</span><span class="row" style="gap:4px"><span class="ms s20">public</span>توقيت القاهرة</span></div>
+      </div>
+      <div class="card">
+        <div class="t-label">ProgressHeader (شريط)</div>
+        <div class="row between"><span class="t-display">١٢ <span class="t-title muted">/ ٣٠</span></span><span class="t-title" style="color:var(--primary)">٤٠٪</span></div>
+        <div class="bar"><i style="width:40%"></i></div>
+      </div>
+      <div class="card">
+        <div class="t-label">StatePanel · فارغ</div>
+        <div class="state"><span class="ms">groups</span><h3 class="t-title">لم تنضم إلى أي مجموعة بعد</h3><p class="t-body">ابحث عن مجموعة عامة واطلب الانضمام إليها.</p><button class="btn tonal"><span class="ms s20">search</span>ابحث عن مجموعة</button></div>
+      </div>
+      <div class="card">
+        <div class="t-label">StatePanel · خطأ</div>
+        <div class="state"><span class="ms" style="color:var(--danger)">wifi_off</span><h3 class="t-title">تعذّر تحميل السجل</h3><p class="t-body">تحقق من اتصالك بالإنترنت ثم حاول مرة أخرى.</p><button class="btn secondary"><span class="ms s20">refresh</span>أعد المحاولة</button></div>
+      </div>
+      <div class="card">
+        <div class="t-label">Skeleton (تحميل)</div>
+        <div class="skel" style="width:40%"></div><div class="skel" style="height:56px"></div><div class="skel" style="width:70%"></div><div class="skel" style="width:55%"></div>
+      </div>
+      <div class="card">
+        <div class="t-label">OfflineBanner + AppSnackBar</div>
+        <div class="banner"><span class="ms s20">cloud_off</span><p class="t-caption">أنت غير متصل. سيُرسل إتمامك عند عودة الاتصال.</p></div>
+        <div class="snack"><span class="t-body">سُجّل إتمام الجزء الخامس</span><button class="btn text">تراجع</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SPACING / RADIUS ============ -->
+  <section class="doc">
+    <h2 class="t-headline">المسافات والزوايا</h2>
+    <div class="grid g2">
+      <div class="card" id="spacing"></div>
+      <div class="card">
+        <div class="row" style="flex-wrap:wrap;gap:var(--sp-md);align-items:flex-end">
+          <div style="text-align:center"><div style="width:64px;height:64px;background:var(--primary-container);border-radius:8px"></div><div class="spec">sm 8</div></div>
+          <div style="text-align:center"><div style="width:64px;height:64px;background:var(--primary-container);border-radius:12px"></div><div class="spec">md 12</div></div>
+          <div style="text-align:center"><div style="width:64px;height:64px;background:var(--primary-container);border-radius:16px"></div><div class="spec">lg 16</div></div>
+          <div style="text-align:center"><div style="width:64px;height:64px;background:var(--primary-container);border-radius:24px"></div><div class="spec">xl 24</div></div>
+          <div style="text-align:center"><div style="width:96px;height:32px;background:var(--primary-container);border-radius:999px"></div><div class="spec">pill</div></div>
+        </div>
+        <div class="t-caption muted">الأزرار والحقول md · البطاقات lg · الأوراق السفلية xl · رقائق الحالة pill. الأسطح مسطحة بحد ١px بدون ظل.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DO / DON'T ============ -->
+  <section class="doc">
+    <h2 class="t-headline">افعل ولا تفعل</h2>
+    <div class="dodont">
+      <div class="card do"><h4 class="t-title"><span class="ms fill">check_circle</span>افعل</h4>
+        <ul class="t-body">
+          <li>استخدم التوكنات والمكونات المشتركة فقط.</li>
+          <li>اعرض الحالة بلون وأيقونة ونص معًا.</li>
+          <li>اشرح سبب تعطيل أي زر واعرض الإجراء التالي.</li>
+          <li>اختبر كل شاشة بـ RTL وتكبير ٢٠٠٪ والسمة الداكنة.</li>
+          <li>استخدم الأرقام الهندية عبر المنسّق المشترك.</li>
+        </ul></div>
+      <div class="card dont"><h4 class="t-title"><span class="ms fill">cancel</span>لا تفعل</h4>
+        <ul class="t-body">
+          <li>لا تكتب لونًا أو حجم خط أو مسافة مباشرة في الميزة.</li>
+          <li>لا تضع أكثر من زر أساسي في الشاشة.</li>
+          <li>لا تستخدم Amiri لعناصر الواجهة، ولا خطًا يُحمّل من الإنترنت.</li>
+          <li>لا تكتب نصوصًا إنجليزية أو أخطاء الخادم كما هي.</li>
+          <li>لا تستخدم left/right ثابتة في التخطيط.</li>
+        </ul></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  var AR = '٠١٢٣٤٥٦٧٨٩';
+  function ar(n) { return String(n).replace(/\d/g, function (d) { return AR[d]; }); }
+  var ICON = { completed: 'check_circle', pending: 'schedule', missed: 'cancel', late: 'history' };
+
+  // Theme toggle
+  var root = document.documentElement;
+  function sysDark() { return window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches; }
+  function syncThemeBtns() {
+    var t = root.getAttribute('data-theme') || (sysDark() ? 'dark' : 'light');
+    document.querySelectorAll('[data-theme-btn]').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.themeBtn === t));
+    });
+  }
+  document.querySelectorAll('[data-theme-btn]').forEach(function (b) {
+    b.addEventListener('click', function () { root.setAttribute('data-theme', b.dataset.themeBtn); syncThemeBtns(); });
+  });
+  syncThemeBtns();
+
+  // Font comparison
+  document.querySelectorAll('[data-font]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      root.style.setProperty('--ui-font', "'" + b.dataset.font + "'");
+      document.querySelectorAll('[data-font]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    });
+  });
+
+  // Dashboard grid: 12 completed, rest pending, member owns part 5
+  var done = [1, 2, 3, 4, 7, 9, 11, 14, 18, 21, 25, 30];
+  var dash = document.getElementById('dashParts');
+  for (var i = 1; i <= 30; i++) {
+    var st = done.indexOf(i) > -1 ? 'completed' : 'pending';
+    var el = document.createElement('div');
+    el.className = 'part st-' + st + (i === 5 ? ' me' : '');
+    el.setAttribute('aria-label', 'الجزء ' + ar(i));
+    el.innerHTML = ar(i) + '<span class="ms' + (st === 'completed' ? ' fill' : '') + '">' + ICON[st] + '</span>';
+    dash.appendChild(el);
+  }
+
+  // Organizer review list
+  var names = ['أحمد سالم', 'مريم علي', 'يوسف حسن', 'سارة محمود', 'عمر خالد', 'هدى إبراهيم'];
+  var rl = document.getElementById('reviewList');
+  var html = '<div class="row between"><span class="t-title">العضو والجزء</span><span class="t-caption muted">٢٨ / ٣٠</span></div>';
+  names.forEach(function (n, k) {
+    html += '<div class="list-row"><span class="avatar">' + n[0] + '</span><span class="grow"><span class="t-label">' + n + '</span>' +
+      (k === 0 ? ' <span class="chip st-completed" style="line-height:20px">المنظم</span>' : '') +
+      '</span><span class="t-quran" style="font-size:16px;line-height:24px">الجزء ' + ar(k + 1) + '</span>' +
+      '<button class="btn icon" aria-label="تبديل الجزء"><span class="ms s20">swap_vert</span></button></div>';
+  });
+  html += '<div class="list-row"><span class="avatar" style="background:var(--st-missed-bg);color:var(--st-missed-fg)"><span class="ms s20">person_off</span></span><span class="grow t-label" style="color:var(--st-missed-fg)">مقعد شاغر</span><span class="t-quran" style="font-size:16px;line-height:24px">الجزء ٢٩</span></div>';
+  rl.innerHTML = html;
+
+  // History
+  var days = [
+    { d: 'الجمعة ١٣ نوفمبر', c: 30, m: 0, l: 0 },
+    { d: 'الخميس ١٢ نوفمبر', c: 27, m: 2, l: 1 },
+    { d: 'الأربعاء ١١ نوفمبر', c: 29, m: 0, l: 1 },
+    { d: 'الثلاثاء ١٠ نوفمبر', c: 24, m: 6, l: 0 },
+    { d: 'الاثنين ٩ نوفمبر', c: 30, m: 0, l: 0 }
+  ];
+  var hs = document.getElementById('historyScreen');
+  var h = '';
+  days.forEach(function (x, idx) {
+    var pct = Math.round((x.c + x.l) / 30 * 100);
+    var full = x.c === 30;
+    h += '<div class="card"><div class="row between"><span class="t-title">' + x.d + '</span>' +
+      (full ? '<span class="chip st-completed"><span class="ms fill">verified</span>ختمة كاملة</span>' : '<span class="t-label" style="color:var(--primary)">' + ar(pct) + '٪</span>') +
+      '</div><div class="bar"><i style="width:' + pct + '%"></i></div><div class="row" style="flex-wrap:wrap;gap:var(--sp-xs)">' +
+      '<span class="chip st-completed"><span class="ms fill">check_circle</span>' + ar(x.c) + '</span>' +
+      (x.l ? '<span class="chip st-late"><span class="ms">history</span>متأخر ' + ar(x.l) + '</span>' : '') +
+      (x.m ? '<span class="chip st-missed"><span class="ms">cancel</span>فائت ' + ar(x.m) + '</span>' : '') +
+      '</div>' + (idx === 1 ? '<div class="t-caption muted">الفائت: الجزء ١٧ (يوسف حسن)، الجزء ٢٣ (عمر خالد)</div>' : '') + '</div>';
+  });
+  hs.innerHTML = h;
+
+  // Swatches
+  var tokens = [['primary', 'الأساسي'], ['primary-container', 'حاوية الأساسي'], ['accent', 'الذهبي (زخرفة فقط)'], ['background', 'الخلفية'],
+    ['surface', 'السطح'], ['surface-muted', 'سطح خافت'], ['ink', 'النص'], ['ink-muted', 'نص ثانوي'], ['border', 'الحدود'], ['danger', 'الخطر']];
+  var sw = document.getElementById('swatches');
+  tokens.forEach(function (t) {
+    sw.insertAdjacentHTML('beforeend', '<div class="sw"><i style="background:var(--' + t[0] + ')"></i><div><div class="t-label">' + t[1] + '</div><div class="spec">' + t[0] + '</div></div></div>');
+  });
+
+  // Spacing
+  var sp = [['xxs', 4], ['xs', 8], ['sm', 12], ['md', 16], ['lg', 24], ['xl', 32], ['xxl', 48]];
+  var spEl = document.getElementById('spacing');
+  sp.forEach(function (s) {
+    spEl.insertAdjacentHTML('beforeend', '<div class="row"><span class="spec" style="width:56px">' + s[0] + ' ' + s[1] + '</span><i style="display:block;height:12px;width:' + s[1] * 3 + 'px;background:var(--primary);border-radius:3px"></i></div>');
+  });
+})();
+</script>
+</body>
+</html>
