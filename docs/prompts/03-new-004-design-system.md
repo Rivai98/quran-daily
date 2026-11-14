@@ -21,10 +21,10 @@ and docs/design/design-system-mock.html (visual reference) first.
 Scope:
 1. Create lib/core/design_system/ with app_colors.dart (light + dark tokens
    exactly as in the constitution tables), app_typography.dart (the 8-step
-   type scale, IBM Plex Sans Arabic for UI, Amiri for quranLabel),
+   type scale, Cairo for UI, Amiri for quranLabel),
    app_spacing.dart, app_radius.dart, and app_theme.dart (Material 3 light and
    dark ThemeData built only from tokens; follows system theme).
-2. Bundle fonts as assets (IBM Plex Sans Arabic 400/500/600/700, Amiri
+2. Bundle fonts as assets (Cairo 400/500/600/700, Amiri
    400/700) and register them in pubspec.yaml. No runtime font downloading.
 3. Arabic-Indic numeral formatter in lib/core/localization/.
 4. Shared widgets in lib/core/design_system/widgets/: AppButton (primary,

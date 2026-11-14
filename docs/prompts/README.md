@@ -1,32 +1,27 @@
-# Spec Kit prompts - run order
+# Prompts - status and run order
 
-Ready-to-paste inputs for Spec Kit / Codex. Every agent must read
-`.specify/memory/constitution.md` (v2.2.0) first.
+Every agent must read `.specify/memory/constitution.md` (v2.4.0) first.
 
-| # | File | Spec | What it does |
-|---|------|------|--------------|
-| 1 | `01-amend-001-group-lifecycle.md` | 001 (update) | Anyone creates groups (max 3), 30 seats, automatic daily rotation, vacant seats with volunteering, invite links, owner/supervisor roles |
-| 2 | `03-new-004-design-system.md` | 004 (new) | Builds `lib/core/design_system/` and migrates current screens |
-| 3 | `02-new-003-mushaf.md` | 003 (new) | In-app Mushaf opening on today's juz, offline, verified source |
+| File | Status | Purpose |
+|------|--------|---------|
+| `zcode-implement-001.md` | **Ready - use next** | ZCode prompt to implement spec 001 (includes design system and spec 002 auth) |
+| `01-amend-001-group-lifecycle.md` | Done (2026-11-14) | Input used to amend spec 001; specify, clarify, plan, tasks, analyze completed |
+| `02-new-003-mushaf.md` | Pending | `/speckit-specify` input for spec 003 (Mushaf) |
+| `03-new-004-design-system.md` | Superseded | Design system foundation is now Phase 2A of spec 001 tasks; do not run |
 
-## Recommended order
+## Order
 
-1. **Specify all three** (docs only, cheap): 001 amend -> 004 -> 003.
-   Run `/speckit-clarify`, `/speckit-plan`, `/speckit-tasks`, `/speckit-analyze`
-   for each.
-2. **Implement** in this order:
-   1. 004 design system (every later screen depends on it)
-   2. 002 email/password auth (plan already exists; run `/speckit-tasks` first)
-   3. 001 groups, rotation, dashboard
-   4. 003 Mushaf
+1. Implement spec 001 with `zcode-implement-001.md` (Phases 1-5 = MVP, then 6-10).
+   - Phase 2A builds the design system (Principle VI).
+   - Phase 2B implements spec 002 (email/password auth); spec 002 has no separate tasks.md.
+2. Specify spec 003 (Mushaf) with `02-new-003-mushaf.md`, then clarify, plan, tasks, analyze.
+3. Implement spec 003.
 
-## Before implementing 003
+## Owner-provided files (agents must never create them)
 
-Download the Quran source files yourself from the official source chosen in
-the 003 plan, check the license, and place them under `assets/quran/` with
-`SOURCE.md`. Agents must never create these files themselves.
+- `assets/fonts/`: Cairo and Amiri TTF files (Google Fonts, OFL).
+- `assets/quran/`: Tanzil `quran-data.xml`, `SOURCE.md`, `checksums.sha256`.
 
 ## One feature per branch
 
-Create a branch per spec (`001-...`, `003-...`, `004-...`) so each one can be
-reviewed and merged separately.
+Each spec has its own branch (`001-...`, `003-...`) so it can be reviewed and merged separately.

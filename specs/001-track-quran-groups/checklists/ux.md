@@ -1,3 +1,5 @@
+> **Historical (pre-2026-11-14 amendment).** Superseded by constitution Principle VI and `contracts/ui-contract.md`; kept for reference only.
+
 # UX Requirements Quality Checklist: Quran Group Reading Tracker UI
 
 **Purpose**: Validate that the requirements fully specify UX completion, empty states, and Arabic UI error handling before implementation tasks are generated.

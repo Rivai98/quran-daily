@@ -66,7 +66,7 @@ DECISIONS (replace any conflicting requirement):
    - A juz whose seat is empty today is shown as "متاح" on the dashboard.
    - Any active member may tap "أتطوع بقراءته" to take that juz for today
      only. First volunteer wins; others see it as taken.
-   - If nobody reads it, history records it as "لم يُقرأ" (unassigned), which
+   - If nobody reads it, history records it as "لم يقرأه أحد" (unassigned), which
      is distinct from "فائت" (assigned member did not read).
 
 7. Joining
@@ -96,7 +96,7 @@ DECISIONS (replace any conflicting requirement):
 9. Statuses (canonical Arabic labels from the constitution)
    completed تمت القراءة, pending لم يُقرأ بعد, missed فائت,
    late قُرئ متأخرًا, plus new: available (vacant seat, today) متاح and
-   unread-unassigned (history) لم يُقرأ.
+   unread-unassigned (history) لم يقرأه أحد.
 
 10. Quran content
    - The "in-app Quran reader is out of scope" statement is now superseded:

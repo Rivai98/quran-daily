@@ -92,7 +92,7 @@ lib/
             `-- widgets/
 supabase/
 |-- migrations/
-|   `-- 002_email_password_auth.sql
+|   `-- 001_email_password_auth.sql   # first migration: spec 001's 002_core_schema references profiles
 `-- functions/
     |-- _shared/
     |-- admin-create-user/

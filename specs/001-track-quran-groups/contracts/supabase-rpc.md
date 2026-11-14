@@ -1,256 +1,99 @@
-# Contract: Supabase Database and Backend Functions
+# Contract: Supabase Database Functions (amended 2026-11-14)
 
-These contracts describe the backend operations the Flutter app depends on. Exact SQL and migration code are implementation tasks, but the function behavior, validation, and returned shapes are fixed by this plan.
+The Flutter app calls these functions with `supabase.rpc(name, params)`. Exact SQL is an implementation task; names, inputs, outputs, validation, and error codes are fixed here. Auth/profile/admin functions are defined in [spec 002 backend contract](../../002-email-password-auth/contracts/supabase-backend.md).
 
 ## Shared Rules
 
-- All functions require an authenticated Supabase user unless explicitly noted.
-- Row-level security must prevent users from reading private group data where they are not approved members.
-- Migrations must create concrete RLS policies for public discovery, approved-member reads, organizer-only writes, and non-member rejection; placeholders are not sufficient.
-- Public discovery returns only group name, short description, active member count, group timezone, and the current user's request status.
-- Organizer-only mutations must verify active organizer membership inside the database operation.
-- Critical write operations must be atomic and must not rely on client-only validation.
-- Returned timestamps are UTC; the app converts display dates using the group's timezone.
-- Assignment status values are `pending`, `completed`, `missed`, and `late`.
-- v1 has no push notification registration, device token storage, or notification delivery functions.
+- Every function requires `auth.uid()` (error `unauthenticated`), is `SECURITY DEFINER SET search_path = ''`, and checks roles internally.
+- RLS is enabled on every table. Direct client `insert/update/delete` on group tables is denied; `select` is allowed only for active members of the group (and own join requests / own memberships).
+- Errors are raised as `{ code }` with the stable codes listed; the app maps codes to Arabic copy.
+- Timestamps are UTC; group-local dates are `date` strings `YYYY-MM-DD`.
+- Rotation helper `juz_for_seat(seat int, start_juz int, day_index int) returns int` = `((start_juz - 1) + (seat - 1) + day_index) % 30 + 1`; immutable, covered by pgTAP.
+- Common errors: `unauthenticated`, `group_not_found`, `group_archived`, `not_member`, `forbidden` (role), `validation_failed`.
 
-## Function: `create_group`
+## Group lifecycle
 
-Creates a group and makes the current user an active organizer.
+### `create_group(name, short_description, timezone, day_start_time, visibility, join_mode)`
+→ `{ group_id, invite_code }`. Creator gets membership role `owner`, seat 1, status `forming`.
+Errors: `validation_failed` (name 3-60, description ≤ 200, timezone invalid), `owner_group_limit` (already owns 3 non-archived).
 
-**Input**
-- `name`: non-empty Arabic group name.
-- `short_description`: public short description.
-- `local_day_timezone`: timezone string.
-- `is_public`: whether users can discover and request to join the group.
+### `update_group_settings(group_id, name?, short_description?, timezone?, day_start_time?, visibility?, join_mode?)`
+Owner only. Timezone/start-time changes apply from the next group day. → updated `MyGroupSummary`.
 
-**Output**
-- `group_id`
-- `membership_id`
-- `role`: `organizer`
+### `start_khatma(group_id, start_juz default 1)`
+Owner only; group must be `forming`; ≥ 1 active member. Sets `status=active`, `start_juz`, `start_date = current group-local date`, creates today's `group_day` with 30 assignments. → `DashboardSnapshot`.
+Errors: `group_not_forming`, `validation_failed`.
 
-**Errors**
-- `invalid_group_name`
-- `invalid_description`
-- `invalid_timezone`
-- `unauthenticated`
+### `archive_group(group_id)` · `transfer_ownership(group_id, new_owner_membership_id)`
+Owner only. Transfer target must be an active member; previous owner becomes `member`.
 
-## Function: `search_public_groups`
+### `regenerate_invite(group_id)` → `{ invite_code }` (owner only; old code stops working).
 
-Returns minimal public group profiles for discovery.
+## Discovery and joining
 
-**Input**
-- `query`: optional text query.
-- `limit`
-- `offset`
+### `get_my_groups()` → `{ groups: MyGroupSummary[], pending_requests: PendingJoinRequest[] }`
+Active memberships plus the caller's own `pending` join requests (feeds S1 rows and "إلغاء الطلب").
 
-**Output**
-- Array of `{ group_id, name, short_description, active_member_count, local_day_timezone, current_user_request_status }`
+### `search_public_groups(query?, needs_members_only default true, limit, offset)`
+→ `PublicGroupProfile[]` for public, non-archived groups, sorted by empty seats ascending then `created_at`. Never returns members or progress.
 
-**Validation**
-- Only active public groups are returned.
-- Member lists, assignment rows, reading progress, and history are never returned to non-members.
+### `get_invite_preview(invite_code)` → `PublicGroupProfile` (works for private groups) · errors `invite_invalid`.
 
-## Function: `submit_join_request`
+### `join_group(group_id? , invite_code?, source)`
+Exactly one of `group_id` (public only) or `invite_code`. Logic per research R7.
+→ `{ result: 'joined' | 'pending', membership_id?, seat_number?, join_request_id? }`.
+Errors: `already_member`, `request_already_pending`, `group_full`, `group_not_public`, `invite_invalid`, `group_archived`.
 
-Creates a pending request for the current user to join a public group.
+### `join_any_group(device_timezone)` → same shape as `join_group` · error `no_group_available`.
 
-**Input**
-- `group_id`
+### `cancel_join_request(join_request_id)` (requester only).
 
-**Output**
-- `join_request_id`
-- `status`: `pending`
-- `pending_message_key`: `waiting_for_group_owner_approval`
+### `list_join_requests(group_id)` → `[{ join_request_id, user_display_name, requested_at, source }]` (owner/supervisor).
 
-**Validation**
-- Group must be active and public.
-- User must not already be an active member.
-- User must not already have a pending request for the same group.
+### `review_join_request(join_request_id, decision: 'approve'|'reject')`
+Owner/supervisor. Approve allocates the lowest free seat. Errors: `request_not_pending`, `group_full`.
 
-**Errors**
-- `group_not_public`
-- `already_active_member`
-- `join_request_already_pending`
-- `group_archived`
+## Membership and seats
 
-## Function: `review_join_request`
+### `get_group_members(group_id)` → `[{ membership_id, display_name, role, seat_number }]` + empty seats (members of the group).
 
-Approves or rejects a pending join request.
+### `move_member_seat(group_id, membership_id, target_seat)` (owner/supervisor)
+If target occupied, the two members swap seats. Takes effect from the next group day for active groups. Errors: `validation_failed`.
 
-**Input**
-- `join_request_id`
-- `decision`: `approve` or `reject`
-- Optional `decision_note`
+### `set_member_role(group_id, membership_id, role: 'supervisor'|'member')` (owner only).
 
-**Output**
-- `join_request_id`
-- `status`: `approved` or `rejected`
-- Optional `membership_id` when approved.
-- Updated `active_member_count`.
+### `remove_member(group_id, membership_id)` (owner only; cannot remove self). Frees seat; today's pending row becomes available.
 
-**Validation**
-- Caller must be active organizer of the target group.
-- Join request must be pending.
-- Approval requires fewer than 30 active members.
-- Rejection must not create a membership.
+### `leave_group(group_id)` · error `owner_must_transfer` for the owner.
 
-**Errors**
-- `not_organizer`
-- `join_request_not_pending`
-- `group_full`
-- `group_archived`
+## Daily khatma
 
-## Function: `get_user_groups`
+### `get_dashboard(group_id)`
+Calls `ensure_current_group_day(group_id)` first (idempotent). Members only. → `DashboardSnapshot` (see data-model). Forming groups return `{ status: 'forming', seats[30], active_member_count, invite_code }`. `invite_code` is returned to every active member in forming and active groups (UI-005, S9); only the Owner can regenerate it.
 
-Returns groups where the current user is an approved member.
+### `mark_assignment_complete(assignment_id, client_recorded_at, source: 'online'|'offline_sync')`
+Caller must be the reader. Open day → `completed`; grace → `late`; closed → `day_closed`. The decisive time is `now()` for `source='online'`; for `source='offline_sync'` it is `client_recorded_at` clamped to `[day.opens_at, now()]` (research R11). Idempotent. → `{ assignment_id, status, completed_at, day_counts }`.
+Errors: `not_reader`, `day_closed`, `assignment_not_found`.
 
-**Input**
-- None.
+### `undo_assignment_completion(assignment_id)`
+Reader only; open: `completed → pending`; grace: `late → missed`; closed → `day_closed`. → same shape.
 
-**Output**
-- Array of approved group summaries with user role and active status.
+### `volunteer_for_juz(assignment_id)` (any active member; open day only)
+Atomic conditional update (research R5). → updated assignment row. Errors: `juz_already_taken`, `day_not_open`.
 
-## Function: `publish_daily_cycle`
+### `override_assignment(assignment_id, membership_id)` (owner only; open day; target active member)
+Sets `kind='override'`, reader, `status='pending'` (keeps `completed` rows untouchable: error `already_completed`).
 
-Publishes a daily cycle with exactly 30 unique Quran part assignments.
+### `get_history(group_id, before_date?, limit default 30)` → `HistoryDaySummary[]` (members).
+### `get_history_day(group_id, group_date)` → detail; per-member rows only for owner/supervisor, own row for members.
 
-**Input**
-- `group_id`
-- `cycle_date`
-- `assignments`: array of `{ membership_id, part_number }`
+## Scheduled jobs (pg_cron, every minute)
 
-**Output**
-- `cycle_id`
-- `status`: `published`
-- `assignment_count`: `30`
+- `generate_due_group_days()`: for each active group whose current group-local date has no `group_day`, create it with 30 assignments from seats (occupied → `seat/pending`, empty → `unassigned/available`).
+- `advance_day_states()`: `open → grace` at `ends_at` (pending→missed, available→unread); `grace → closed` at `closes_at`; recompute counts and `full_khatma`.
 
-**Validation**
-- Caller must be active organizer.
-- Group must have exactly 30 active memberships.
-- Each active membership appears exactly once.
-- Each Quran part number 1-30 appears exactly once.
-- Cycle date is resolved using the group's timezone.
-- Cycle date must not already have a published cycle for the group.
+## Privacy guarantees (pgTAP)
 
-**Errors**
-- `not_organizer`
-- `group_requires_30_active_members`
-- `duplicate_part`
-- `duplicate_member`
-- `missing_active_member`
-- `cycle_already_exists`
-
-## Function: `swap_assignment_parts`
-
-Swaps Quran parts between two assignments before or after publishing when allowed by organizer rules.
-
-**Input**
-- `cycle_id`
-- `assignment_id_a`
-- `assignment_id_b`
-
-**Output**
-- Updated assignment summaries for both assignments.
-
-**Validation**
-- Caller must be active organizer.
-- Cycle must not be closed.
-- Swap must preserve one part per assignment and one assignment per member.
-
-## Function: `reassign_assignment`
-
-Moves a pending or missed assignment to another active member before cycle close.
-
-**Input**
-- `assignment_id`
-- `new_membership_id`
-
-**Output**
-- Updated assignment summary.
-
-**Validation**
-- Caller must be active organizer.
-- Assignment status must be `pending` or `missed`.
-- New membership must be active in the same group.
-- Reassignment must not give a member more than one assignment in the cycle.
-
-## Function: `mark_assignment_complete`
-
-Marks the current user's assignment complete.
-
-**Input**
-- `assignment_id`
-- `client_recorded_at`
-
-**Output**
-- `assignment_id`
-- `status`: `completed` or `late`
-- `completed_at`
-- Updated dashboard counts.
-
-**Validation**
-- Caller must own the assignment through active membership.
-- Cycle must be published and not closed.
-- Duplicate completion calls must be idempotent.
-- Completion after the group day cutoff is recorded as `late`.
-
-**Errors**
-- `not_assignment_owner`
-- `cycle_closed`
-- `assignment_not_found`
-
-## Function: `undo_assignment_completion`
-
-Returns a completed assignment to pending when the confirmation flow allows undo.
-
-**Input**
-- `assignment_id`
-
-**Output**
-- `assignment_id`
-- `status`: `pending`
-- Updated dashboard counts.
-
-**Validation**
-- Caller must own the assignment.
-- Cycle must not be closed.
-- Undo must create a completion record with action `undone`.
-
-## Function: `get_group_dashboard`
-
-Returns the current dashboard snapshot for one approved member group and date.
-
-**Input**
-- `group_id`
-- Optional `cycle_date`; defaults to the group's current local date.
-
-**Output**
-- Group summary.
-- Current cycle summary.
-- Current user's assignment summary.
-- Array of 30 assignment rows.
-- Counts by status.
-- Completion percentage.
-- `server_generated_at`.
-
-**Validation**
-- Caller must be active or recently inactive approved member of the group.
-- Non-members with pending/rejected requests cannot call this function successfully.
-
-## Function: `get_daily_history`
-
-Returns daily history summaries and optional details for a group.
-
-**Input**
-- `group_id`
-- `from_date`
-- `to_date`
-
-**Output**
-- Array of daily summaries with completed, pending, missed, late, and percentage values.
-- Optional assignment details when requesting one day.
-
-**Validation**
-- Caller must be an active organizer of the group.
-- Non-organizer approved members and non-members cannot read history summaries or details through this function.
+- Non-member cannot select from `group_memberships`, `group_days`, `assignments`, `completion_records` of a group.
+- `search_public_groups` / `get_invite_preview` never expose members or progress.
+- Member cannot call owner/supervisor functions (`forbidden`); supervisor cannot archive, transfer, set roles, override, or remove.

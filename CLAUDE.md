@@ -12,5 +12,5 @@ The constitution wins over any spec, plan, or existing code that conflicts with 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/002-email-password-auth/plan.md
+at specs/001-track-quran-groups/plan.md
 <!-- SPECKIT END -->

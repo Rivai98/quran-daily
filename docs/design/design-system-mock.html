@@ -23,7 +23,7 @@
   --shadow:0 8px 28px rgba(20,30,25,.14);
   --sp-xxs:4px; --sp-xs:8px; --sp-sm:12px; --sp-md:16px; --sp-lg:24px; --sp-xl:32px; --sp-xxl:48px;
   --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px;
-  --ui-font:'IBM Plex Sans Arabic';
+  --ui-font:'Cairo';
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -131,6 +131,8 @@ section.doc > p.lead { margin:0 0 var(--sp-md); color:var(--ink-muted); }
 .st-pending   { color:var(--st-pending-fg);   background:var(--st-pending-bg); }
 .st-missed    { color:var(--st-missed-fg);    background:var(--st-missed-bg); }
 .st-late      { color:var(--st-late-fg);      background:var(--st-late-bg); }
+.st-available { color:var(--primary);         background:var(--primary-container); }
+.st-unread    { color:var(--ink-muted);       background:var(--surface-muted); }
 
 .field label { display:block; font-size:14px; font-weight:600; margin-bottom:var(--sp-xxs); }
 .input { display:flex; align-items:center; gap:var(--sp-xs); min-height:52px; padding:0 var(--sp-md);
@@ -224,7 +226,7 @@ table.tk th { font-size:13px; color:var(--ink-muted); font-weight:600; backgroun
   <header class="topbar">
     <div>
       <h1 class="t-headline">نظام التصميم - ختمة يومية</h1>
-      <div class="t-caption muted">المرجع البصري للمبدأ السادس في الدستور (الإصدار ٢٫١٫٠). الدستور هو المرجع عند أي اختلاف.</div>
+      <div class="t-caption muted">المرجع البصري للمبدأ السادس في الدستور (الإصدار ٢٫٣٫٠). الدستور هو المرجع عند أي اختلاف.</div>
     </div>
     <div class="controls">
       <div class="seg" role="group" aria-label="السمة">
@@ -232,8 +234,8 @@ table.tk th { font-size:13px; color:var(--ink-muted); font-weight:600; backgroun
         <button data-theme-btn="dark" aria-pressed="false">داكن</button>
       </div>
       <div class="seg" role="group" aria-label="مقارنة الخط">
-        <button data-font="IBM Plex Sans Arabic" aria-pressed="true">IBM Plex</button>
-        <button data-font="Cairo" aria-pressed="false">Cairo</button>
+        <button data-font="Cairo" aria-pressed="true">Cairo</button>
+        <button data-font="IBM Plex Sans Arabic" aria-pressed="false">IBM Plex</button>
         <button data-font="Readex Pro" aria-pressed="false">Readex</button>
       </div>
     </div>
@@ -294,7 +296,7 @@ table.tk th { font-size:13px; color:var(--ink-muted); font-weight:600; backgroun
                 <span class="chip st-pending"><span class="ms">schedule</span>لم يُقرأ بعد</span>
               </div>
               <div class="t-quran">الجزء الخامس</div>
-              <div class="t-body muted">من «والمحصنات» النساء ٢٤ إلى «لا يحب الله» النساء ١٤٧</div>
+              <div class="t-body muted">من سورة النساء آية ٢٤ إلى سورة النساء آية ١٤٧</div>
               <button class="btn primary lg block"><span class="ms s20">check</span>سجّل إتمام الجزء</button>
             </div>
 
@@ -341,7 +343,7 @@ table.tk th { font-size:13px; color:var(--ink-muted); font-weight:600; backgroun
               <div class="pattern"></div>
               <span class="chip st-completed"><span class="ms fill">check_circle</span>تمت القراءة ٧:٤٠ ص</span>
               <div class="t-quran" style="font-size:24px;line-height:40px">الجزء الخامس</div>
-              <div class="t-body muted">من «والمحصنات» النساء ٢٤<br>إلى «لا يحب الله» النساء ١٤٧</div>
+              <div class="t-body muted">من سورة النساء آية ٢٤<br>إلى سورة النساء آية ١٤٧</div>
             </div>
             <div class="card">
               <div class="list-row"><span class="ms muted">calendar_today</span><span class="grow">التاريخ</span><span class="t-label">السبت ١٤ نوفمبر</span></div>
@@ -365,25 +367,29 @@ table.tk th { font-size:13px; color:var(--ink-muted); font-weight:600; backgroun
         <div class="phone-cap t-caption muted">تأكيد الإجراء العكسي في ورقة سفلية، والزر يذكر النتيجة</div>
       </div>
 
-      <!-- Organizer review -->
+      <!-- Forming group (owner) -->
       <div>
         <div class="phone">
           <div class="status-bar"><span>9:41</span><span>●●● ▮</span></div>
           <div class="appbar">
             <button class="btn icon" aria-label="رجوع"><span class="ms">arrow_forward</span></button>
-            <h2 class="t-title">مراجعة توزيع اليوم</h2>
-            <button class="btn icon" aria-label="توزيع عشوائي جديد"><span class="ms">shuffle</span></button>
+            <h2 class="t-title">حلقة الفجر</h2>
+            <button class="btn icon" aria-label="إعدادات المجموعة"><span class="ms">settings</span></button>
           </div>
           <div class="screen">
-            <div class="banner" style="background:var(--st-missed-bg);color:var(--st-missed-fg)"><span class="ms s20">group_off</span><p class="t-caption">يجب أن يكتمل عدد الأعضاء ٣٠ قبل النشر. العدد الحالي ٢٨، وهناك طلبا انضمام بانتظار المراجعة.</p></div>
+            <div class="card">
+              <div class="row between"><span class="chip st-pending"><span class="ms">hourglass_top</span>قيد التكوين</span><span class="t-title">٢٨ / ٣٠</span></div>
+              <div class="t-caption muted">ناقص عضوان. يمكنك بدء الختمة الآن، وتظهر أجزاء المقاعد الشاغرة «متاحة» للتطوع.</div>
+              <div class="row between"><span class="spec" style="font-size:16px;letter-spacing:2px">K7M4QX2P</span><button class="btn tonal"><span class="ms s20">share</span>شارك الدعوة</button></div>
+            </div>
             <button class="btn tonal block"><span class="ms s20">person_add</span>راجع طلبات الانضمام (٢)</button>
             <div class="card" id="reviewList"></div>
           </div>
           <div class="bottom-action">
-            <button class="btn primary lg block" disabled><span class="ms s20">publish</span>انشر التوزيع</button>
+            <button class="btn primary lg block"><span class="ms s20">play_arrow</span>ابدأ الختمة</button>
           </div>
         </div>
-        <div class="phone-cap t-caption muted">زر معطل مع سبب واضح وإجراء بديل</div>
+        <div class="phone-cap t-caption muted">مجموعة قيد التكوين: الدعوة والطلبات وبدء الختمة دون انتظار اكتمال ٣٠</div>
       </div>
 
       <!-- History -->
@@ -408,7 +414,7 @@ table.tk th { font-size:13px; color:var(--ink-muted); font-weight:600; backgroun
   <!-- ============ TYPOGRAPHY ============ -->
   <section class="doc">
     <h2 class="t-headline">الخطوط</h2>
-    <p class="lead t-body">خط الواجهة IBM Plex Sans Arabic، وخط أسماء الأجزاء والسور Amiri. جرّب أزرار المقارنة بالأعلى لرؤية Cairo وReadex Pro مكانه.</p>
+    <p class="lead t-body">خط الواجهة Cairo، وخط أسماء الأجزاء والسور Amiri. أزرار المقارنة بالأعلى تعرض IBM Plex وReadex Pro للمقارنة فقط.</p>
     <div class="card">
       <div class="row between"><span class="t-display">١٢ من ٣٠ جزءًا</span><span class="spec">display 28/40 · 700</span></div>
       <div class="row between"><span class="t-headline">حلقة الفجر</span><span class="spec">headline 22/32 · 700</span></div>
@@ -432,6 +438,8 @@ table.tk th { font-size:13px; color:var(--ink-muted); font-weight:600; backgroun
       <span class="chip st-pending"><span class="ms">schedule</span>لم يُقرأ بعد</span>
       <span class="chip st-missed"><span class="ms">cancel</span>فائت</span>
       <span class="chip st-late"><span class="ms">history</span>قُرئ متأخرًا</span>
+      <span class="chip st-available"><span class="ms">volunteer_activism</span>متاح</span>
+      <span class="chip st-unread"><span class="ms">remove_circle</span>لم يقرأه أحد</span>
     </div>
   </section>
 
@@ -447,7 +455,7 @@ table.tk th { font-size:13px; color:var(--ink-muted); font-weight:600; backgroun
       <div class="card"><div class="t-label">خطِر · داخل التأكيد فقط</div><button class="btn danger block">نعم، ارفض الطلب</button><div class="t-caption muted">خارج التأكيد يظهر بإطار أحمر فقط.</div></div>
       <div class="card"><div class="t-label">أيقونة · 48×48</div><div class="row"><button class="btn icon" aria-label="رجوع" title="رجوع"><span class="ms">arrow_forward</span></button><button class="btn icon" aria-label="الإعدادات" title="الإعدادات"><span class="ms">settings</span></button></div><div class="t-caption muted">مع تلميح ووصف للقارئ. سهم الرجوع معكوس في RTL.</div></div>
       <div class="card"><div class="t-label">تحميل</div><button class="btn primary lg block" disabled style="opacity:1"><span class="spinner"></span>جارٍ التسجيل</button><div class="t-caption muted">معطل، بنفس العرض، والضغط المتكرر يتجاهل.</div></div>
-      <div class="card"><div class="t-label">معطل + السبب</div><button class="btn primary lg block" disabled>انشر التوزيع</button><div class="t-caption" style="color:var(--danger)">يجب أن يكتمل عدد الأعضاء ٣٠ قبل النشر</div></div>
+      <div class="card"><div class="t-label">معطل + السبب</div><button class="btn primary lg block" disabled>انضم</button><div class="t-caption" style="color:var(--danger)">المجموعة مكتملة، لا توجد مقاعد شاغرة</div></div>
       <div class="card"><div class="t-label">زوج إجراءات</div><div class="row"><button class="btn primary grow">اقبل</button><button class="btn secondary grow">لاحقًا</button></div><div class="t-caption muted">التأكيد في البداية (يمينًا) والإلغاء في النهاية.</div></div>
     </div>
   </section>
@@ -535,7 +543,7 @@ table.tk th { font-size:13px; color:var(--ink-muted); font-weight:600; backgroun
 (function () {
   var AR = '٠١٢٣٤٥٦٧٨٩';
   function ar(n) { return String(n).replace(/\d/g, function (d) { return AR[d]; }); }
-  var ICON = { completed: 'check_circle', pending: 'schedule', missed: 'cancel', late: 'history' };
+  var ICON = { completed: 'check_circle', pending: 'schedule', missed: 'cancel', late: 'history', available: 'volunteer_activism', unread: 'remove_circle' };
 
   // Theme toggle
   var root = document.documentElement;
@@ -574,14 +582,13 @@ table.tk th { font-size:13px; color:var(--ink-muted); font-weight:600; backgroun
   // Organizer review list
   var names = ['أحمد سالم', 'مريم علي', 'يوسف حسن', 'سارة محمود', 'عمر خالد', 'هدى إبراهيم'];
   var rl = document.getElementById('reviewList');
-  var html = '<div class="row between"><span class="t-title">العضو والجزء</span><span class="t-caption muted">٢٨ / ٣٠</span></div>';
+  var html = '<div class="row between"><span class="t-title">المقاعد</span><span class="t-caption muted">٢٨ / ٣٠</span></div>';
   names.forEach(function (n, k) {
-    html += '<div class="list-row"><span class="avatar">' + n[0] + '</span><span class="grow"><span class="t-label">' + n + '</span>' +
-      (k === 0 ? ' <span class="chip st-completed" style="line-height:20px">المنظم</span>' : '') +
-      '</span><span class="t-quran" style="font-size:16px;line-height:24px">الجزء ' + ar(k + 1) + '</span>' +
-      '<button class="btn icon" aria-label="تبديل الجزء"><span class="ms s20">swap_vert</span></button></div>';
+    html += '<div class="list-row"><span class="t-label muted" style="width:28px">' + ar(k + 1) + '</span><span class="avatar">' + n[0] + '</span><span class="grow"><span class="t-label">' + n + '</span>' +
+      (k === 0 ? ' <span class="chip st-completed" style="line-height:20px">المالك</span>' : '') +
+      '</span><button class="btn icon" aria-label="نقل إلى مقعد آخر"><span class="ms s20">swap_vert</span></button></div>';
   });
-  html += '<div class="list-row"><span class="avatar" style="background:var(--st-missed-bg);color:var(--st-missed-fg)"><span class="ms s20">person_off</span></span><span class="grow t-label" style="color:var(--st-missed-fg)">مقعد شاغر</span><span class="t-quran" style="font-size:16px;line-height:24px">الجزء ٢٩</span></div>';
+  html += '<div class="list-row"><span class="t-label muted" style="width:28px">٢٩</span><span class="avatar" style="background:var(--surface-muted);color:var(--ink-muted)"><span class="ms s20">event_seat</span></span><span class="grow t-label muted">مقعد شاغر</span></div>';
   rl.innerHTML = html;
 
   // History

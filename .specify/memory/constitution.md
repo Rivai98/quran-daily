@@ -1,7 +1,18 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 2.1.0 -> 2.2.0
+Version change: 2.3.0 -> 2.4.0
+Bump type: MINOR - Principle VI status table gains `available` (متاح) and
+  `unread` (لم يقرأه أحد) for empty-seat juz (spec 001 amendment). Both reuse
+  existing color tokens; no new hex values. Button-rule examples updated to
+  the automatic-rotation flow (no daily publish). Mock updated in the same
+  change (status chips + icon map).
+
+Previous amendment (same day): 2.2.0 -> 2.3.0
+Bump type: MINOR - Principle VI UI font token changed from IBM Plex Sans
+  Arabic to Cairo (owner decision).
+
+Previous amendment (same day): 2.1.0 -> 2.2.0
 Bump type: MINOR - New binding principle VII. Quran Content Integrity (verified
   sources only, checksums, no authored Quranic text by any human or AI agent)
   and Agent Compliance rule 6.
@@ -181,12 +192,13 @@ font sizes, magic spacing numbers, or ad-hoc `BorderRadius` values.
 
 #### Typography
 
-- **UI font**: IBM Plex Sans Arabic (weights 400, 500, 600, 700), bundled under
+- **UI font**: Cairo (weights 400, 500, 600, 700), bundled under
   `assets/fonts/`. It is used for all interface text.
 - **Quran label font**: Amiri (400, 700), used ONLY for Quran part names, surah
   names, and reading-range labels. It MUST NOT be used for UI chrome.
-- Cairo is not used: its wide, display-oriented letterforms lose legibility in
-  dense lists and at small sizes compared with IBM Plex Sans Arabic.
+- Cairo was chosen by the project owner over IBM Plex Sans Arabic and Readex
+  Pro. Because Cairo is wide, dense rows MUST allow labels to wrap rather than
+  shrink below the type scale.
 - Type scale (size / line height / weight); no other sizes are permitted:
 
 | Token | Size | Line height | Weight | Use |
@@ -231,6 +243,12 @@ color + icon + Arabic label together; color alone is prohibited.
 | pending | لم يُقرأ بعد | `schedule` | `#8A5A00` / `#FBF0D9` | `#F2C063` / `#3A2E12` |
 | missed | فائت | `cancel` | `#B3261E` / `#FBE6E4` | `#FF8A80` / `#3D1A18` |
 | late | قُرئ متأخرًا | `history` | `#5B47B5` / `#ECE8FA` | `#B4A6FF` / `#2A2448` |
+| available | متاح | `volunteer_activism` | `primary` / `primaryContainer` | `primary` / `primaryContainer` |
+| unread | لم يقرأه أحد | `remove_circle` | `inkMuted` / `surfaceMuted` | `inkMuted` / `surfaceMuted` |
+
+`available` (current day, empty seat, nobody reading yet) and `unread` (closed
+day, empty seat nobody read) reuse the named color tokens above; they MUST NOT
+get their own hex values.
 
 #### Spacing, Radius, Elevation
 
@@ -258,13 +276,13 @@ Button rules:
 - At most ONE primary button is visible per screen. On action screens it is
   full width, pinned to the bottom safe area above the keyboard.
 - Labels are Arabic verbs, 1-3 words, describing the result
-  (`سجّل إتمام الجزء`, `انشر التوزيع`, `اطلب الانضمام`), never "موافق" for a
+  (`سجّل إتمام الجزء`, `ابدأ الختمة`, `اطلب الانضمام`), never "موافق" for a
   meaningful action, and never English.
 - Optional icon sits at the start (right in RTL) of the label, 20dp.
 - Loading: the button is disabled, keeps its width, and shows a 20dp progress
   indicator in place of the icon; repeated taps are ignored.
 - Disabled buttons use 38% opacity, and the screen MUST show the reason
-  (e.g. `يجب أن يكتمل عدد الأعضاء ٣٠ قبل النشر`).
+  (e.g. `لا يوجد مقعد شاغر في هذه المجموعة`).
 - Destructive or irreversible actions (undo completion, reject request, remove
   member, sign out) MUST pass through a confirmation bottom sheet whose
   confirm button states the consequence.
@@ -380,7 +398,7 @@ wins and the mock MUST be corrected in the same change.
   and Edge Functions for privileged or atomic operations)
 - **Local storage**: SQLite (`sqflite`) for cached assignments, Quran part
   metadata, and the sync queue; `shared_preferences` for user settings
-- **Fonts**: IBM Plex Sans Arabic + Amiri, bundled assets; Mushaf font from the
+- **Fonts**: Cairo + Amiri, bundled assets; Mushaf font from the
   verified Quran source (Principle VII)
 - **Quran data**: verified source files under `assets/quran/` with checksums
   (Principle VII)
@@ -446,4 +464,4 @@ for clarifications and wording.
 these principles. Reviewers are empowered to block merges for constitution
 violations.
 
-**Version**: 2.2.0 | **Ratified**: 2026-06-20 | **Last Amended**: 2026-11-14
+**Version**: 2.4.0 | **Ratified**: 2026-06-20 | **Last Amended**: 2026-11-14

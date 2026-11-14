@@ -1,7 +1,7 @@
-# Specification Quality Checklist: Quran Group Reading Tracker UI
+# Specification Quality Checklist: Quran Group Reading Tracker
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-06-20
+**Created**: 2026-06-21 | **Re-validated**: 2026-11-14 (amendment: lifecycle, rotation, vacant seats)
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -31,6 +31,8 @@
 
 ## Notes
 
-- Validation passed after initial review.
-- Reasonable defaults were documented in the Assumptions section, including exactly 30 active members per group for v1 and one Quran juz per member per daily cycle.
-- Optional post-spec hook available: `/speckit-agent-context-update`.
+- Rotation formula (FR-008) is a business rule, not an implementation detail.
+- References to constitution principles VI/VII and specs 002/003 are dependency
+  statements, not implementation details.
+- Ambiguities (late window, history visibility, volunteer limit, owner leaving,
+  matching rule) were resolved in Clarifications Session 2026-11-14.

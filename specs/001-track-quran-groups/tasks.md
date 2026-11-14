@@ -1,384 +1,260 @@
-# Tasks: Quran Group Reading Tracker UI
+# Tasks: Quran Group Reading Tracker (amended 2026-11-14)
 
-**Input**: Design documents from `specs/001-track-quran-groups/`
-**Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md`
-**Tests**: Required by the quran_daily constitution. Write tests first and confirm they fail before implementation.
-**Organization**: Tasks are grouped by user story to enable independent implementation and testing.
+**Input**: `specs/001-track-quran-groups/` – plan.md, spec.md, research.md, data-model.md, contracts/, quickstart.md
+**Also implements**: `specs/002-email-password-auth/` (Phase 2B) – read its plan.md and contracts/ before Phase 2B.
+**Binding rules**: `.specify/memory/constitution.md` v2.4.0 and `docs/design/design-system-mock.html`.
+**Tests**: REQUIRED (constitution III). Write each test task first, run it, confirm it fails, then implement.
 
 ## Format: `[ID] [P?] [Story] Description`
 
-- **[P]**: Can run in parallel with other [P] tasks in the same phase when files do not overlap.
-- **[Story]**: Maps to a user story from `spec.md`.
-- Every task includes exact file paths.
+- **[P]**: parallelizable (different files, no dependency on an unfinished task in the same phase).
+- **[USn]**: user story from spec.md. Story order: US2 → US1 → US3 → US4 → US5 → US6 → US7.
+- **OWNER-PROVIDED**: the project owner supplies these files. Agents MUST NOT create, download, or fabricate them; if missing, stop and report.
 
-## Phase 1: Setup (Shared Infrastructure)
+## Global rules for every task
 
-**Purpose**: Add the Flutter dependencies and create the feature-first project skeleton.
-
-- [X] T001 Add Flutter dependencies `flutter_bloc`, `equatable`, `supabase_flutter`, `google_sign_in`, `get_it`, `sqflite`, `path_provider`, `shared_preferences`, `bloc_test`, and `mocktail` to `pubspec.yaml`
-- [X] T002 Create the feature-first directory structure in `lib/app/`, `lib/core/`, `lib/features/auth/`, and `lib/features/quran_groups/`
-- [X] T003 [P] Create the test directory structure in `test/core/`, `test/features/auth/`, `test/features/quran_groups/`, and `integration_test/`
-- [X] T004 [P] Create Supabase workspace directories in `supabase/migrations/`, `supabase/functions/`, and `supabase/tests/`
-- [X] T005 Replace the default counter app entry with app bootstrap wiring in `lib/main.dart`
-- [X] T006 Create the root Flutter app shell in `lib/app/app.dart`
-- [X] T007 Create the app router skeleton for auth, group selection, discovery, dashboard, assignment, organizer, member management, history, and settings routes in `lib/app/router.dart`
-- [X] T008 Create application bootstrap initialization for dependencies and Supabase startup in `lib/app/bootstrap.dart`
-- [X] T009 [P] Configure reusable test fixtures and mock builders in `test/helpers/test_fixtures.dart`
-- [X] T010 [P] Configure widget test helpers with Arabic RTL `MaterialApp` wrappers in `test/helpers/widget_test_app.dart`
+- Feature code uses only `lib/core/design_system/` tokens and widgets; no `Color(0x…)`, `fontSize:`, or `BorderRadius.circular(` literals under `lib/features/`.
+- All user-facing strings go in `lib/core/localization/arabic_strings.dart`; numbers through `ArabicNumerals`.
+- Cubits never import `package:flutter/material.dart`; states are `Equatable` with a status enum and no Arabic copy.
+- Never type Quranic text, surah names, or juz ranges; read them via `QuranMetadataRepository`.
+- Every screen widget test runs in RTL, at 200% text scale, in dark theme, and at 320 dp width (helper in `test/helpers/widget_test_app.dart`); "all variants" in a task means these runs.
+- Every screen widget test covers the five constitution states: loading (skeleton), content, empty, error (`StatePanel` with next action), offline/stale (`OfflineBanner`).
+- Feature modules never import sibling features: auth is reached only via `lib/core/auth/session_gateway.dart`; settings storage via `lib/core/settings/`. Cubits never depend on other Cubits.
+- Legacy scaffold files under `lib/features/quran_groups/view/` and `lib/core/theme/` are replaced; delete a legacy file when its replacement lands, together with its legacy test.
 
 ---
 
-## Phase 2: Foundational (Blocking Prerequisites)
+## Phase 1: Setup
 
-**Purpose**: Core infrastructure that must be complete before any user story can be implemented.
-
-**CRITICAL**: No user story work can begin until this phase is complete.
-
-### Tests for Foundation
-
-- [ ] T011 [P] Write failing unit tests for typed failures and result handling in `test/core/errors/result_test.dart`
-- [ ] T012 [P] Write failing unit tests for Arabic copy keys and canonical status labels in `test/core/localization/arabic_strings_test.dart`
-- [ ] T013 [P] Write failing unit tests for app configuration validation in `test/core/config/app_config_test.dart`
-- [ ] T014 [P] Write failing unit tests for local database initialization and migrations in `test/core/storage/local_database_test.dart`
-- [ ] T015 [P] Write failing unit tests for dependency registration in `test/core/di/service_locator_test.dart`
-
-### Implementation for Foundation
-
-- [ ] T016 Implement typed result and failure classes in `lib/core/errors/result.dart` and `lib/core/errors/failures.dart`
-- [X] T017 Implement Arabic-first copy constants, canonical status labels, empty-state copy, and error copy in `lib/core/localization/arabic_strings.dart`
-- [ ] T018 Implement app configuration loading for Supabase URL and anon key in `lib/core/config/app_config.dart`
-- [ ] T019 Implement Supabase client initialization wrapper in `lib/core/network/supabase_client_provider.dart`
-- [ ] T020 Implement local SQLite database opening and migration registry in `lib/core/storage/local_database.dart`
-- [ ] T021 Implement shared sync operation primitives in `lib/core/sync/sync_operation.dart`
-- [ ] T022 Implement dependency injection registration in `lib/core/di/service_locator.dart`
-- [X] T023 Implement Arabic RTL app theme and status color tokens in `lib/core/theme/app_theme.dart`
-- [ ] T024 [P] Implement shared data entities `AppUser`, `Group`, `GroupMembership`, and `JoinRequest` in `lib/features/quran_groups/data/entities/group_entities.dart`
-- [ ] T025 [P] Implement shared data entities `QuranPart`, `DailyReadingCycle`, `Assignment`, and `CompletionRecord` in `lib/features/quran_groups/data/entities/reading_entities.dart`
-- [ ] T026 [P] Implement user settings entity in `lib/features/quran_groups/data/entities/user_settings.dart`
-- [ ] T027 [P] Implement Supabase DTO models and mappers for group/discovery data in `lib/features/quran_groups/data/models/group_models.dart`
-- [ ] T028 [P] Implement Supabase DTO models and mappers for dashboard/assignment/history data in `lib/features/quran_groups/data/models/reading_models.dart`
-- [ ] T029 Implement the repository interfaces from `contracts/repository-contracts.md` in `lib/features/auth/data/repositories/auth_repository.dart` and `lib/features/quran_groups/data/repositories/group_repository.dart`
-- [ ] T030 Implement Quran part repository interface and Arabic 30-juz label fixture in `lib/features/quran_groups/data/repositories/quran_part_repository.dart`
-- [ ] T031 Implement local cache repository interface in `lib/features/quran_groups/data/repositories/local_cache_repository.dart`
-- [ ] T032 Create the initial Supabase schema migration for users, groups, public profiles, join requests, memberships, Quran parts, cycles, assignments, completion records, and concrete RLS policies for public discovery, approved-member reads, organizer-only writes, and non-member rejection in `supabase/migrations/001_quran_groups_schema.sql`
-- [ ] T033 Create Supabase SQL tests for privacy boundaries and organizer/member permissions in `supabase/tests/001_quran_groups_rls_test.sql`
-- [ ] T034 [P] Write failing auth repository, AuthCubit, and Arabic Auth Entry widget tests for Google Sign-In, loading, failure, signed-in routing, and sign-out in `test/features/auth/data/auth_repository_test.dart`, `test/features/auth/cubit/auth_cubit_test.dart`, and `test/features/auth/view/auth_entry_screen_test.dart`
-- [ ] T035 Implement Supabase auth data source, `AuthRepositoryImpl`, `SignInWithGoogle` and `SignOut` use cases, AuthCubit/state, and Arabic Auth Entry screen in `lib/features/auth/data/data_sources/auth_remote_data_source.dart`, `lib/features/auth/data/repositories/auth_repository_impl.dart`, `lib/features/auth/data/use_cases/auth_use_cases.dart`, `lib/features/auth/cubit/auth_cubit.dart`, `lib/features/auth/cubit/auth_state.dart`, and `lib/features/auth/view/auth_entry_screen.dart`
-- [ ] T036 Implement the Auth Entry route and app-level route guard decisions for signed-out, pending request, approved member, and organizer states in `lib/app/router.dart`
-
-**Checkpoint**: Foundation ready. User story implementation can now begin.
+- [X] T001 Create the feature-first directory structure in `lib/app/`, `lib/core/`, `lib/features/auth/`, `lib/features/quran_groups/`
+- [X] T002 [P] Create test directory structure in `test/core/`, `test/features/`, `test/helpers/`, `integration_test/`
+- [X] T003 Replace the default counter app with bootstrap wiring in `lib/main.dart`, `lib/app/app.dart`, `lib/app/bootstrap.dart`
+- [ ] T004 Update `pubspec.yaml`: remove `google_sign_in`; add `intl`, `flutter_timezone`, `share_plus`, `app_links`, `connectivity_plus`; dev: `sqflite_common_ffi`; declare `assets/quran/` and font families `Cairo` (400/500/600/700) and `Amiri` (400/700) under `flutter: fonts:`; run `flutter pub get`
+- [ ] T005 [P] Initialize Supabase workspace: `supabase/config.toml` (via `supabase init`), empty `supabase/migrations/`, `supabase/functions/`, `supabase/tests/`. Extensions are not enabled in `config.toml`: `pg_cron` is created by `004_rotation_jobs.sql` (`create extension if not exists pg_cron`), and every pgTAP file starts with `create extension if not exists pgtap with schema extensions`. Migrations apply in filename order; `001_email_password_auth.sql` must precede `002_core_schema.sql`
+- [ ] T006 [P] Add `.env.example` with `SUPABASE_URL` and `SUPABASE_ANON_KEY` placeholders and document `--dart-define-from-file` usage in `README.md`; ensure `.env` is in `.gitignore`
+- [ ] T007 **OWNER-PROVIDED** Place Cairo (Regular, Medium, SemiBold, Bold) and Amiri (Regular, Bold) TTF files from Google Fonts in `assets/fonts/` with their OFL license files
+- [ ] T008 **OWNER-PROVIDED** Place Tanzil `quran-data.xml` in `assets/quran/`, write `assets/quran/SOURCE.md` (origin URL, edition/version copied from the file header, riwayah, license, download date; must match plan.md "Quran Content Source") and `assets/quran/checksums.sha256`
 
 ---
 
-## Phase 3: User Story 1 - View Today's Group Reading Progress (Priority: P1) MVP
+## Phase 2A: Design System Foundation (Principle VI) – blocks all screens
 
-**Goal**: Approved group members can open a selected group and immediately understand today's assignment, all 30 assignment statuses, completion counts, percentage, and stale/offline state.
+- [ ] T009 [P] Write failing tests for color tokens (light/dark values exactly as constitution tables, status fg/bg pairs) in `test/core/design_system/app_colors_test.dart`
+- [ ] T010 [P] Write failing tests for type scale (8 tokens: size/height/weight, Cairo vs Amiri, min size 13) in `test/core/design_system/app_typography_test.dart`
+- [ ] T011 [P] Write failing tests for `ArabicNumerals.format` (digits, percentages, `١٢ / ٣٠`) in `test/core/localization/arabic_numerals_test.dart`
+- [ ] T012 Implement `lib/core/design_system/app_colors.dart` (`AppColors.light`/`AppColors.dark` as `ThemeExtension` incl. status colors)
+- [ ] T013 Implement `lib/core/design_system/app_typography.dart`, `app_spacing.dart` (4-pt scale + gutters), `app_radius.dart` (sm/md/lg/xl/pill)
+- [ ] T014 Implement `lib/core/design_system/app_theme.dart` (Material 3 light + dark `ThemeData` from tokens: buttons, inputs, cards, chips, NavigationBar, AppBar)
+- [ ] T015 Implement `lib/core/localization/arabic_numerals.dart`
+- [ ] T016 [P] Write failing widget tests for `AppButton` (6 variants, heights 52/48, loading keeps width and ignores taps, disabled 38%, icon at start) in `test/core/design_system/widgets/app_button_test.dart`
+- [ ] T017 [P] Write failing widget tests for `StatusChip` and `PartTile` (6 statuses per constitution v2.4.0 status table, incl. `available`/`unread` on existing tokens, always render color + icon + Arabic label; `PartTile` semantics "الجزء ٥، …، جزؤك") in `test/core/design_system/widgets/status_widgets_test.dart`
+- [ ] T018 [P] Write failing widget tests for `StatePanel`, `OfflineBanner`, `ConfirmSheet`, `AppSnackBar`, `SkeletonBox`, `ProgressHeader`, `AppTextField`, `AppCard`, `AppSectionHeader` in `test/core/design_system/widgets/shared_widgets_test.dart`
+- [ ] T019 Implement `AppButton` in `lib/core/design_system/widgets/app_button.dart`
+- [ ] T020 Implement `StatusChip`, `PartTile` and the `AssignmentStatus` → label/icon mapping in `lib/core/design_system/widgets/status_chip.dart` and `part_tile.dart`
+- [ ] T021 Implement remaining shared widgets in `lib/core/design_system/widgets/` (`state_panel.dart`, `offline_banner.dart`, `confirm_sheet.dart`, `app_snack_bar.dart`, `skeleton.dart`, `progress_header.dart`, `app_text_field.dart`, `app_card.dart`, `app_section_header.dart`) and barrel `widgets.dart`
+- [ ] T022 Update `test/helpers/widget_test_app.dart` to pump with Arabic locale, RTL, light/dark, text scale, and screen size params; add `pumpAllVariants` helper (RTL, 200% text, dark, 320 dp width)
+- [ ] T023 Add design-lint test that scans `lib/features/**/*.dart` for `Color(0x`, `fontSize:`, `BorderRadius.circular(` and fails on any match in `test/core/design_system/design_lint_test.dart`
+- [ ] T024 Wire theme in `lib/app/app.dart` (light/dark follow system, `Locale('ar')`, RTL, `flutter_localizations` delegates); delete `lib/core/theme/`
 
-**Independent Test**: Open an approved 30-member group with a published daily cycle and verify the member can identify their assigned part, completed count, remaining count, percentage, and complete/pending/missed/late status groups without any organizer flow.
-
-### Tests for User Story 1
-
-- [ ] T037 [P] [US1] Write failing Supabase RPC tests for `get_user_groups` and `get_group_dashboard` in `supabase/tests/002_dashboard_rpc_test.sql`
-- [ ] T038 [P] [US1] Write failing repository tests for approved group loading, cached dashboard loading, stale flags, and privacy rejection for non-members in `test/features/quran_groups/data/group_repository_dashboard_test.dart`
-- [ ] T039 [P] [US1] Write failing Cubit tests for loading, cached refresh, fresh dashboard, offline stale, no published cycle, and dashboard error states in `test/features/quran_groups/cubit/dashboard/group_dashboard_cubit_test.dart`
-- [ ] T040 [P] [US1] Write failing widget tests for Arabic dashboard layout, 30-assignment status overview, no-reader boundary, and offline banner in `test/features/quran_groups/view/group_dashboard_screen_test.dart`
-- [ ] T041 [P] [US1] Write failing integration test for opening an approved group dashboard from group selection in `integration_test/us1_dashboard_flow_test.dart`
-
-### Implementation for User Story 1
-
-- [ ] T042 [US1] Implement Supabase `get_user_groups` and `get_group_dashboard` functions in `supabase/migrations/002_dashboard_functions.sql`
-- [ ] T043 [US1] Implement remote dashboard data source in `lib/features/quran_groups/data/data_sources/group_remote_data_source.dart`
-- [ ] T044 [US1] Implement local dashboard cache data source in `lib/features/quran_groups/data/data_sources/group_local_data_source.dart`
-- [ ] T045 [US1] Implement `LoadUserGroups`, `LoadGroupDashboard`, and `WatchCachedDashboard` use cases in `lib/features/quran_groups/data/use_cases/dashboard_use_cases.dart`
-- [ ] T046 [US1] Implement dashboard repository methods in `lib/features/quran_groups/data/repositories/group_repository_impl.dart`
-- [ ] T047 [US1] Implement GroupSelectionCubit and state, including selected group, approved group loading, create-group form state, timezone selection, and create failure state, in `lib/features/quran_groups/cubit/group_selection/group_selection_cubit.dart` and `lib/features/quran_groups/cubit/group_selection/group_selection_state.dart`
-- [ ] T048 [US1] Implement GroupDashboardCubit in `lib/features/quran_groups/cubit/dashboard/group_dashboard_cubit.dart`
-- [ ] T049 [US1] Implement dashboard state model and derived counts in `lib/features/quran_groups/cubit/dashboard/group_dashboard_state.dart`
-- [ ] T050 [US1] Implement Arabic group selection screen with approved groups, empty state, cached selected group, create-group form/action, and public discovery entry in `lib/features/quran_groups/view/screens/group_selection_screen.dart`
-- [ ] T051 [US1] Implement Arabic group dashboard screen in `lib/features/quran_groups/view/screens/group_dashboard_screen.dart`
-- [ ] T052 [P] [US1] Implement dashboard progress header widget in `lib/features/quran_groups/view/widgets/dashboard_progress_header.dart`
-- [ ] T053 [P] [US1] Implement 30-part status grid widget with non-color status indicators in `lib/features/quran_groups/view/widgets/assignment_status_grid.dart`
-- [ ] T054 [P] [US1] Implement assignment list widget with Arabic labels and member identity format in `lib/features/quran_groups/view/widgets/assignment_list.dart`
-- [ ] T055 [P] [US1] Implement offline/stale Arabic banner widget in `lib/features/quran_groups/view/widgets/offline_stale_banner.dart`
-- [ ] T056 [US1] Wire group selection and dashboard routes in `lib/app/router.dart`
-
-**Checkpoint**: MVP dashboard story is independently testable.
+**Checkpoint**: design system tests green; `flutter analyze` clean.
 
 ---
 
-## Phase 4: User Story 2 - Assign One Quran Part to Each Group Member (Priority: P2)
+## Phase 2B: Authentication (implements spec 002) – blocks all stories
 
-**Goal**: Organizers can create public groups, review public join requests, maintain 30 active members, generate/review/swap assignments, and publish a daily cycle with exactly one unique Quran part per active member.
+Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its `contracts/` first.
 
-**Independent Test**: Sign in as an organizer, create or open a group, approve join requests until there are 30 active members, generate assignments, swap two parts, and publish a cycle with no duplicate part and no duplicate member.
+- [ ] T025 Write pgTAP tests for profiles trigger, owner-only RLS, `app_admins`/audit protection in `supabase/tests/000_auth_test.sql`
+- [ ] T026 Create migration `supabase/migrations/001_email_password_auth.sql` per spec 002 supabase-backend contract (profiles, trigger, RLS, private.app_admins, private.admin_auth_audit)
+- [ ] T027 [P] Implement Edge Functions `supabase/functions/admin-create-user/index.ts`, `supabase/functions/admin-reset-password/index.ts`, shared auth/validation in `supabase/functions/_shared/` per spec 002 contract (service key from function secrets only)
+- [ ] T028 [P] Write failing tests for `AuthRepositoryImpl` (sign up, sign in, sign out, session restore, profile load, error mapping to non-revealing codes) in `test/features/auth/data/auth_repository_test.dart`
+- [ ] T029 [P] Write failing `bloc_test`s for `AuthCubit` (checking → unauthenticated/authenticated, profile failure, submit guards, sign-out, expiry event) in `test/features/auth/cubit/auth_cubit_test.dart`
+- [ ] T030 Implement `lib/features/auth/data/` (entities `AppUser`, `UserProfile`; `AuthRepository` interface; `SupabaseAuthDataSource`; `AuthRepositoryImpl`) per spec 002 repository contract; define `SessionGateway` (`currentUserId`, `signOut()`) in `lib/core/auth/session_gateway.dart` and have `AuthRepositoryImpl` implement it
+- [ ] T031 Implement `lib/features/auth/cubit/auth_cubit.dart` and `auth_state.dart`
+- [ ] T032 Write failing widget tests for Auth Entry (login/signup modes, validation on submit, LTR email field, password clear on failure, forgot-password guidance, no Google button) in `test/features/auth/view/auth_entry_screen_test.dart`
+- [ ] T033 Rebuild `lib/features/auth/view/auth_entry_screen.dart` with design-system widgets per spec 002 ui-contract
+- [ ] T034 Implement the auth startup gate in `lib/app/app.dart` and guarded routes in `lib/app/router.dart` (no private flash; back/deep link cannot bypass)
 
-### Tests for User Story 2
-
-- [ ] T057 [P] [US2] Write failing Supabase RPC tests for `create_group`, `search_public_groups`, `submit_join_request`, and `review_join_request` in `supabase/tests/003_discovery_join_requests_rpc_test.sql`
-- [ ] T058 [P] [US2] Write failing Supabase RPC tests for `publish_daily_cycle`, `swap_assignment_parts`, `reassign_assignment`, group-timezone cycle-date resolution, and day-cutoff validation in `supabase/tests/004_organizer_cycle_rpc_test.sql`
-- [ ] T059 [P] [US2] Write failing repository tests for public discovery, create group, join request submission, organizer review, group full, and publish validation in `test/features/quran_groups/data/group_repository_organizer_test.dart`
-- [ ] T060 [P] [US2] Write failing Cubit tests for discovery pending/rejected/approved states in `test/features/quran_groups/cubit/discovery/group_discovery_cubit_test.dart`
-- [ ] T061 [P] [US2] Write failing Cubit tests for organizer join request approval/rejection and group-full validation in `test/features/quran_groups/cubit/join_requests/join_requests_cubit_test.dart`
-- [ ] T062 [P] [US2] Write failing Cubit tests for assignment draft generation, duplicate warnings, swap, publish success, and publish failure in `test/features/quran_groups/cubit/organizer/organizer_cubit_test.dart`
-- [ ] T063 [P] [US2] Write failing widget tests for create group UI, public discovery, pending Arabic message, organizer join requests, member management, and assignment review screens in `test/features/quran_groups/view/organizer_and_discovery_screens_test.dart`
-- [ ] T064 [P] [US2] Write failing integration test for create group, discovery, join request, organizer approval, member management, and daily cycle publish in `integration_test/us2_organizer_flow_test.dart`
-
-### Implementation for User Story 2
-
-- [ ] T065 [US2] Implement Supabase functions `create_group`, `search_public_groups`, `submit_join_request`, and `review_join_request` in `supabase/migrations/003_discovery_join_request_functions.sql`
-- [ ] T066 [US2] Implement Supabase functions `publish_daily_cycle`, `swap_assignment_parts`, and `reassign_assignment` with group-timezone cycle date and day-cutoff rules in `supabase/migrations/004_organizer_cycle_functions.sql`
-- [ ] T067 [US2] Extend remote group data source with discovery, join request, organizer review, publish, swap, and reassign calls in `lib/features/quran_groups/data/data_sources/group_remote_data_source.dart`
-- [ ] T068 [US2] Extend local data source with public discovery cache and organizer draft cache in `lib/features/quran_groups/data/data_sources/group_local_data_source.dart`
-- [ ] T069 [US2] Implement `CreateGroup`, `SearchPublicGroups`, `SubmitJoinRequest`, `LoadOrganizerJoinRequests`, and `ReviewJoinRequest` use cases in `lib/features/quran_groups/data/use_cases/discovery_join_request_use_cases.dart`
-- [ ] T070 [US2] Implement `PublishDailyCycle`, `SwapAssignmentParts`, and `ReassignAssignment` use cases in `lib/features/quran_groups/data/use_cases/organizer_cycle_use_cases.dart`
-- [ ] T071 [US2] Extend repository implementation for discovery, join requests, member management, and publishing in `lib/features/quran_groups/data/repositories/group_repository_impl.dart`
-- [ ] T072 [US2] Implement GroupDiscoveryCubit and state in `lib/features/quran_groups/cubit/discovery/group_discovery_cubit.dart` and `lib/features/quran_groups/cubit/discovery/group_discovery_state.dart`
-- [ ] T073 [US2] Implement JoinRequestsCubit and state in `lib/features/quran_groups/cubit/join_requests/join_requests_cubit.dart` and `lib/features/quran_groups/cubit/join_requests/join_requests_state.dart`
-- [ ] T074 [US2] Implement OrganizerCubit and state in `lib/features/quran_groups/cubit/organizer/organizer_cubit.dart` and `lib/features/quran_groups/cubit/organizer/organizer_state.dart`
-- [ ] T075 [US2] Implement Arabic public discovery screen with no-results, cached results, submit error, and pending status in `lib/features/quran_groups/view/screens/public_group_discovery_screen.dart`
-- [ ] T076 [US2] Implement Arabic organizer join requests screen with empty, approve, reject, group full, and review failed states in `lib/features/quran_groups/view/screens/organizer_join_requests_screen.dart`
-- [ ] T077 [US2] Implement Arabic member management screen with active count, slot readiness, role labels, and pending-request entry in `lib/features/quran_groups/view/screens/member_management_screen.dart`
-- [ ] T078 [US2] Implement Arabic organizer assignment review screen with draft readiness, duplicate/missing warnings, swap, reassign, publish, and failure states in `lib/features/quran_groups/view/screens/organizer_assignment_review_screen.dart`
-- [ ] T079 [P] [US2] Implement reusable public group profile card widget in `lib/features/quran_groups/view/widgets/public_group_profile_card.dart`
-- [ ] T080 [P] [US2] Implement reusable join request tile widget in `lib/features/quran_groups/view/widgets/join_request_tile.dart`
-- [ ] T081 [P] [US2] Implement reusable member slot readiness widget in `lib/features/quran_groups/view/widgets/member_slot_readiness.dart`
-- [ ] T082 [P] [US2] Implement reusable assignment draft row widget in `lib/features/quran_groups/view/widgets/assignment_draft_row.dart`
-- [ ] T083 [US2] Wire public discovery, organizer join request, member management, and organizer assignment routes in `lib/app/router.dart`
-
-**Checkpoint**: Organizer and discovery story is independently testable.
+**Checkpoint**: user can sign up, sign in, restart with session, sign out.
 
 ---
 
-## Phase 5: User Story 3 - Mark Personal Reading Completion (Priority: P3)
+## Phase 2C: Core Data, Backend Schema, Quran Metadata – blocks all stories
 
-**Goal**: Members can open their assigned Quran part label/range, mark it complete, see completion reflected, undo through the confirmation flow, and queue completion offline.
+- [ ] T035 [P] Extend `lib/core/errors/failures.dart` with `FailureKind` (unauthenticated, forbidden, validation, network, offlineQueued, notFound, conflict, dayClosed, limitReached, unknown) and backend `code`; update `test/core/errors/result_test.dart`
+- [ ] T036 [P] Write failing tests for `AppConfig` (reads dart-defines, rejects missing values) and implement `lib/core/config/app_config.dart`; update `test/core/config/app_config_test.dart`
+- [ ] T037 [P] Implement `lib/core/network/supabase_client_provider.dart` and a `RpcClient` wrapper mapping Postgres error codes to `Failure` in `lib/core/network/rpc_client.dart` with tests in `test/core/network/rpc_client_test.dart`
+- [ ] T038 [P] Write failing tests (sqflite_common_ffi) for `LocalDatabase` v1 migrations and DAOs (`cached_snapshots`, `cached_groups`, `cached_history`, `sync_queue`) in `test/core/storage/local_database_test.dart`
+- [ ] T039 Implement `lib/core/storage/local_database.dart` and DAOs in `lib/core/storage/daos/`
+- [ ] T040 Implement `lib/core/sync/sync_operation.dart` (op types, statuses) and `lib/core/network/connectivity_service.dart` (connectivity_plus stream)
+- [ ] T041 Write failing tests for `QuranMetadataRepository` (30 juz; juz 1 starts at the first ayah of the first sura; juz 30 ends at the last ayah of the last sura per the file's ayah counts; every other end = one ayah before the next start, crossing sura boundaries via the file's ayah counts; ranges are contiguous and non-overlapping; sura names and counts read from file; checksum matches `assets/quran/checksums.sha256`, missing file throws) in `test/core/quran/quran_metadata_repository_test.dart` – compare only against values read from the file and structural invariants; never hard-code names
+- [ ] T042 Implement `lib/core/quran/quran_metadata_repository.dart` and `juz_info.dart` (depends on T008)
+- [ ] T043 Add juz ordinal names (الجزء الأول … الجزء الثلاثون), status labels, role markers, and error-code → copy map to `lib/core/localization/arabic_strings.dart`; update `test/core/localization/arabic_strings_test.dart`
+- [ ] T044 Write pgTAP tests for `juz_for_seat` (start 1/15/30, wrap, 30 distinct per day) and table constraints (seat uniqueness, ≤ 30 active, one owner, unique juz/seat per day) in `supabase/tests/001_schema_test.sql`; add test-only helper `supabase/tests/helpers/seed_members.sql` (direct inserts of profiles + active memberships as the test superuser) used by US2/US1/US3 tests until US4 join flows exist
+- [ ] T045 Create migration `supabase/migrations/002_core_schema.sql`: enums, tables `groups`, `group_memberships`, `join_requests`, `group_days`, `assignments`, `completion_records` per data-model, constraints, indexes, `juz_for_seat`, `group_local_date(group, ts)`, RLS enabling with member-select policies and deny-all writes
+- [ ] T046 Write pgTAP privacy tests (non-member cannot select any group table; member cannot write directly) in `supabase/tests/001_rls_test.sql`
+- [ ] T047 Implement shared entities in `lib/features/quran_groups/data/entities/` (`GroupSummary`, `MyGroupSummary`, `PendingJoinRequest`, `MyGroupsOverview`, `PublicGroupProfile`, `Membership`, `SeatMap`, `JoinOutcome`, `GroupDay`, `Assignment`, `AssignmentStatus`, `AssignmentKind`, `DashboardSnapshot`, `HistoryDaySummary`) as immutable `Equatable` classes
+- [ ] T048 [P] Implement JSON models/mappers in `lib/features/quran_groups/data/models/` with round-trip tests in `test/features/quran_groups/data/models_test.dart`
+- [ ] T049 Define `GroupsRepository` and `KhatmaRepository` interfaces in `lib/features/quran_groups/data/repositories/` per repository contract; `SettingsRepository` in `lib/core/settings/settings_repository.dart`
+- [ ] T050 Register dependencies in `lib/core/di/service_locator.dart` (config, Supabase, RpcClient, LocalDatabase, connectivity, Quran metadata, `SessionGateway`, repositories, use cases); update `test/core/di/service_locator_test.dart`
+- [ ] T051 Implement `SelectedGroupCubit` + `SettingsRepository` impl (shared_preferences, `lib/core/settings/`) with tests in `test/features/quran_groups/cubit/selected_group_cubit_test.dart`
+- [ ] T052 Replace legacy fixtures in `test/helpers/test_fixtures.dart` with builders for the new entities (groups, seat maps, 30-row snapshots, history)
 
-**Independent Test**: Sign in as a member with a pending assignment, open assignment detail, mark complete, see dashboard count update, prevent duplicate completion, undo when allowed, and queue completion while offline.
-
-### Tests for User Story 3
-
-- [ ] T084 [P] [US3] Write failing Supabase RPC tests for `mark_assignment_complete` and `undo_assignment_completion` in `supabase/tests/005_assignment_completion_rpc_test.sql`
-- [ ] T085 [P] [US3] Write failing repository tests for online completion, group-timezone late completion, undo, duplicate completion, closed cycle, and offline queueing in `test/features/quran_groups/data/group_repository_completion_test.dart`
-- [ ] T086 [P] [US3] Write failing Cubit tests for pending, completing, completed, group-timezone late, offline queued, undo available, undo failed, and completion error states in `test/features/quran_groups/cubit/assignment/assignment_cubit_test.dart`
-- [ ] T087 [P] [US3] Write failing widget tests for Arabic assignment detail, completion confirmation, undo copy, offline queued copy, no-reader controls, and enlarged text in `test/features/quran_groups/view/personal_assignment_detail_screen_test.dart`
-- [ ] T088 [P] [US3] Write failing integration test for mark-complete, duplicate prevention, undo, and offline queued completion in `integration_test/us3_completion_flow_test.dart`
-
-### Implementation for User Story 3
-
-- [ ] T089 [US3] Implement Supabase functions `mark_assignment_complete` and `undo_assignment_completion` in `supabase/migrations/005_assignment_completion_functions.sql`
-- [ ] T090 [US3] Extend remote data source with mark complete and undo completion calls in `lib/features/quran_groups/data/data_sources/group_remote_data_source.dart`
-- [ ] T091 [US3] Extend local data source with pending completion sync operation persistence in `lib/features/quran_groups/data/data_sources/group_local_data_source.dart`
-- [ ] T092 [US3] Implement `MarkAssignmentComplete`, `UndoAssignmentCompletion`, and `SyncPendingCompletionOperations` use cases in `lib/features/quran_groups/data/use_cases/completion_use_cases.dart`
-- [ ] T093 [US3] Extend repository implementation for online completion, undo, offline queueing, and dashboard cache update in `lib/features/quran_groups/data/repositories/group_repository_impl.dart`
-- [ ] T094 [US3] Implement AssignmentCubit and state in `lib/features/quran_groups/cubit/assignment/assignment_cubit.dart` and `lib/features/quran_groups/cubit/assignment/assignment_state.dart`
-- [ ] T095 [US3] Implement Arabic personal assignment detail screen in `lib/features/quran_groups/view/screens/personal_assignment_detail_screen.dart`
-- [ ] T096 [P] [US3] Implement reusable Arabic completion action panel widget in `lib/features/quran_groups/view/widgets/completion_action_panel.dart`
-- [ ] T097 [P] [US3] Implement reusable Arabic offline queued sync status widget in `lib/features/quran_groups/view/widgets/offline_completion_status.dart`
-- [ ] T098 [US3] Wire personal assignment route and dashboard completion refresh behavior in `lib/app/router.dart` and `lib/features/quran_groups/cubit/dashboard/group_dashboard_cubit.dart`
-
-**Checkpoint**: Personal completion story is independently testable.
+**Checkpoint**: foundation ready; `supabase test db` and `flutter test` green.
 
 ---
 
-## Phase 6: User Story 4 - Review Daily Group History (Priority: P4)
+## Phase 3: User Story 2 – Create a Group and Start the Khatma (P1)
 
-**Goal**: Organizers can review previous daily cycles, see completed/missed/late counts and percentages, and inspect missed or late assignments by member and Quran part.
+**Goal**: any user creates a group, members occupy seats, owner starts; days rotate automatically.
+**Independent test**: create group, add members with `supabase/tests/helpers/seed_members.sql` (real join flows arrive in US4), start at juz 1 → seat k juz k; next day seat k juz k+1; 30 wraps to 1.
 
-**Independent Test**: Open a group with at least seven previous daily cycles and verify the organizer can identify each day's completion percentage and missed or late member/part details.
+- [ ] T053 [P] [US2] pgTAP tests for `create_group` (validation, owner seat 1, 3-group limit), `start_khatma` (forming only, ≥ 1 member, creates 30 assignments, empty seats unassigned/available), `generate_due_group_days` (rotation +1, idempotent, timezone + day_start_time boundary) in `supabase/tests/001_us2_lifecycle_test.sql`
+- [ ] T054 [US2] Implement `create_group`, `update_group_settings`, `start_khatma`, `ensure_current_group_day`, `generate_due_group_days`, `get_my_groups` (groups + own pending requests), `regenerate_invite` (8-char code) in `supabase/migrations/003_group_lifecycle_functions.sql` `ensure_current_group_day` and `generate_due_group_days` MUST backfill every missing group-local date since the last existing day (rotation by date index, past states applied immediately) so history has no gaps; include a pgTAP case in T053. Also implement `move_member_seat` here for forming groups (US2 acceptance 5); US6 extends it to active groups.
+- [ ] T055 [US2] Schedule `generate_due_group_days()` every minute with `pg_cron` in `supabase/migrations/004_rotation_jobs.sql`
+- [ ] T056 [P] [US2] Failing tests for `GroupsRepositoryImpl` create/start/settings/myGroups (online, offline cache fallback, error mapping) in `test/features/quran_groups/data/groups_repository_test.dart`
+- [ ] T057 [US2] Implement `GroupsRepositoryImpl` (create, settings, start, myGroups, regenerateInvite) + `GroupsRemoteDataSource` in `lib/features/quran_groups/data/`
+- [ ] T058 [P] [US2] Failing `bloc_test`s for `GroupListCubit` and `CreateGroupCubit` (validation 3-60 / ≤ 200, submit guard, limit error, success navigates) in `test/features/quran_groups/cubit/group_list_cubit_test.dart` and `create_group_cubit_test.dart`
+- [ ] T059 [P] [US2] Failing `bloc_test`s for `GroupSettingsCubit` (start khatma with start juz, regenerate invite, owner-only actions) in `test/features/quran_groups/cubit/group_settings_cubit_test.dart`
+- [ ] T060 [US2] Implement `GroupListCubit`, `CreateGroupCubit`, `GroupSettingsCubit` in `lib/features/quran_groups/cubit/`
+- [ ] T061 [P] [US2] Failing widget tests (all variants) for S1 Group Selection (list, empty entry points, pending rows) and S4 Create Group in `test/features/quran_groups/view/group_selection_screen_test.dart` and `create_group_screen_test.dart`
+- [ ] T062 [US2] Rebuild S1 `lib/features/quran_groups/view/screens/group_selection_screen.dart` and build S4 `create_group_screen.dart` (timezone picker defaulting to `flutter_timezone`, time picker, visibility/join-mode segmented controls)
+- [ ] T063 [P] [US2] Failing widget tests for forming dashboard (N / ٣٠, ناقص X, seat list, invite share, owner "ابدأ الختمة" sheet) and S9 Group Settings in `test/features/quran_groups/view/forming_dashboard_test.dart` and `group_settings_screen_test.dart`
+- [ ] T064 [US2] Build forming state of S5 in `lib/features/quran_groups/view/widgets/forming_group_view.dart`, start-khatma sheet `start_khatma_sheet.dart`, and S9 `screens/group_settings_screen.dart` (share via `share_plus` text with code + `qurandaily://join/<code>`)
+- [ ] T065 [US2] Add routes `/groups`, `/groups/new`, `/g/:id`, `/g/:id/settings`, the in-group `NavigationBar` shell, and the non-member guard (redirect to `/groups` with "لست عضوًا في هذه المجموعة") in `lib/app/router.dart`; later stories add their routes: `/g/:id/assignment/:aid` (T081), `/discover` and `/join/:code` (T089), `/g/:id/members` and `/g/:id/requests` (T103), `/g/:id/history` (T109), `/settings` (T110)
 
-### Tests for User Story 4
-
-- [ ] T099 [P] [US4] Write failing Supabase RPC tests for `get_daily_history` organizer-only summary/detail access and non-organizer rejection in `supabase/tests/006_daily_history_rpc_test.sql`
-- [ ] T100 [P] [US4] Write failing repository tests for organizer-only history summary, history detail, offline cached history, and non-organizer rejection in `test/features/quran_groups/data/group_repository_history_test.dart`
-- [ ] T101 [P] [US4] Write failing Cubit tests for loading, available, empty, cached offline, selected-day detail, and error states in `test/features/quran_groups/cubit/history/history_cubit_test.dart`
-- [ ] T102 [P] [US4] Write failing widget tests for Arabic history summary, empty history, missed/late detail, and enlarged text behavior in `test/features/quran_groups/view/daily_history_screen_test.dart`
-- [ ] T103 [P] [US4] Write failing integration test for organizer history review flow in `integration_test/us4_history_flow_test.dart`
-
-### Implementation for User Story 4
-
-- [ ] T104 [US4] Implement Supabase function `get_daily_history` in `supabase/migrations/006_daily_history_function.sql`
-- [ ] T105 [US4] Extend remote data source with history summary and detail calls in `lib/features/quran_groups/data/data_sources/group_remote_data_source.dart`
-- [ ] T106 [US4] Extend local data source with cached history summaries and detail snapshots in `lib/features/quran_groups/data/data_sources/group_local_data_source.dart`
-- [ ] T107 [US4] Implement `LoadDailyHistory` use case in `lib/features/quran_groups/data/use_cases/history_use_cases.dart`
-- [ ] T108 [US4] Extend repository implementation for online and cached history loading in `lib/features/quran_groups/data/repositories/group_repository_impl.dart`
-- [ ] T109 [US4] Implement HistoryCubit and state in `lib/features/quran_groups/cubit/history/history_cubit.dart` and `lib/features/quran_groups/cubit/history/history_state.dart`
-- [ ] T110 [US4] Implement Arabic daily history screen in `lib/features/quran_groups/view/screens/daily_history_screen.dart`
-- [ ] T111 [P] [US4] Implement reusable history day summary widget in `lib/features/quran_groups/view/widgets/history_day_summary_tile.dart`
-- [ ] T112 [P] [US4] Implement reusable missed/late assignment detail widget in `lib/features/quran_groups/view/widgets/history_assignment_detail.dart`
-- [ ] T113 [US4] Wire daily history route for organizers only in `lib/app/router.dart`
-
-**Checkpoint**: Daily history story is independently testable.
+**Checkpoint**: US2 independently demoable (with seeded members).
 
 ---
 
-## Phase 7: Polish & Cross-Cutting Concerns
+## Phase 4: User Story 1 – View Today's Group Reading Progress (P1) – MVP view
 
-**Purpose**: Improve quality across all stories and prove the v1 boundaries.
+**Goal**: member sees own juz, 30 statuses, available juz, progress.
+**Independent test**: active group with empty seats → own juz visible without scrolling, counts and % correct, juz 30 note.
 
-- [ ] T114 [P] Add widget tests proving no notification permission prompt, reminder control, push settings, FCM setup, or disabled future-feature navigation item appears in v1 UI in `test/features/quran_groups/view/no_notification_surface_test.dart`
-- [ ] T115 [P] Add widget tests proving no full Quran reader, bookmark, reading-position, Quran text navigation, audio, chat, contact import, donation, analytics, or public directory ranking entry point appears in v1 UI in `test/features/quran_groups/view/no_quran_reader_surface_test.dart`
-- [ ] T116 [P] Audit and complete Arabic empty-state copy for all v1 screens in `lib/core/localization/arabic_strings.dart`
-- [ ] T117 [P] Audit and complete Arabic error-message copy for auth, discovery, join requests, publishing, completion, history, and offline states in `lib/core/localization/arabic_strings.dart`
-- [ ] T118 [P] Implement settings Cubit and screen for Quran label/range text size in `lib/features/quran_groups/cubit/settings/settings_cubit.dart` and `lib/features/quran_groups/view/screens/settings_screen.dart`
-- [ ] T119 [P] Add widget tests for settings text-size behavior and Arabic RTL layout stability in `test/features/quran_groups/view/settings_screen_test.dart`
-- [X] T120 [P] Update generated UX checklist findings and mark resolved requirement-quality items in `specs/001-track-quran-groups/checklists/ux.md`
-- [ ] T121 [P] Update quickstart validation notes with any final command or setup changes in `specs/001-track-quran-groups/quickstart.md`
-- [ ] T122 Run `flutter analyze` and fix all lint issues found in `analysis_options.yaml`
-- [ ] T123 Run `flutter test` and fix all failing unit and widget tests referenced under `test/`
-- [ ] T124 Run `flutter test integration_test` and fix all failing flows referenced under `integration_test/`
+- [ ] T066 [P] [US1] pgTAP tests for `get_dashboard` (members only, calls ensure day, 30 rows, `is_me`, counts, forming shape) in `supabase/tests/001_us1_dashboard_test.sql`
+- [ ] T067 [US1] Implement `get_dashboard` in `supabase/migrations/005_dashboard_functions.sql`
+- [ ] T068 [P] [US1] Failing tests for `KhatmaRepositoryImpl.getDashboard`/`watchCachedDashboard` (cache on success, stale fallback with `cachedAt`, no cache → network failure) in `test/features/quran_groups/data/khatma_repository_dashboard_test.dart`
+- [ ] T069 [US1] Implement `KhatmaRepositoryImpl` dashboard methods + `KhatmaRemoteDataSource` + snapshot cache in `lib/features/quran_groups/data/`
+- [ ] T070 [P] [US1] Failing `bloc_test`s for `DashboardCubit` (loading → success/empty/offline-stale/failure, refresh, resume refresh, day rollover detection) in `test/features/quran_groups/cubit/dashboard_cubit_test.dart`
+- [ ] T071 [US1] Implement `DashboardCubit` in `lib/features/quran_groups/cubit/dashboard/`
+- [ ] T072 [P] [US1] Failing widget tests for active S5 (my juz card above the fold at 360×640, `ProgressHeader`, 30 `PartTile`s with semantics, available list, juz-30 دعاء الختم note, full-khatma banner, offline banner, all variants) in `test/features/quran_groups/view/group_dashboard_screen_test.dart` (replace legacy test)
+- [ ] T073 [US1] Rebuild S5 `lib/features/quran_groups/view/screens/group_dashboard_screen.dart` with widgets `my_juz_card.dart`, `juz_grid.dart`, `available_juz_list.dart` (juz names/ranges from `QuranMetadataRepository`); delete superseded legacy widgets and their tests
+
+**Checkpoint**: MVP read path (US2 + US1).
 
 ---
 
-## Phase 8: UI Convergence - Professional Visual Upgrade
+## Phase 5: User Story 3 – Mark Personal Reading Completion (P1)
 
-**Purpose**: Close the gap between the current placeholder UI and the expected polished Arabic mobile experience. Current views rely heavily on default `Card`/`ListTile` layouts, placeholder data, weak hierarchy, and repeated unstructured panels. This phase keeps the v1 scope unchanged while making the app feel production-ready, calm, readable, and attractive for daily Quran group tracking.
+**Goal**: complete/undo with confirmation, offline queue, late in grace, closed rejection.
+**Independent test**: complete → +1; undo → −1; offline complete syncs; grace → late; closed → rejected.
 
-### Tests for UI Convergence
+- [ ] T074 [P] [US3] pgTAP tests for `mark_assignment_complete`/`undo_assignment_completion` (reader only, idempotent, open/grace/closed rules, online uses server time, offline_sync uses `client_recorded_at` clamped to `[opens_at, now()]`, counts, full_khatma incl. late) and `advance_day_states` (pending→missed, available→unread, close) in `supabase/tests/001_us3_completion_test.sql`
+- [ ] T075 [US3] Implement completion functions and `advance_day_states` in `supabase/migrations/006_completion_functions.sql`; schedule `advance_day_states()` every minute in the same migration
+- [ ] T076 [P] [US3] Failing tests for `MarkAssignmentComplete`, `UndoAssignmentCompletion`, `SyncPendingCompletions` use cases (optimistic cache update, enqueue on network failure, replay order, day_closed → failed) in `test/features/quran_groups/data/use_cases/completion_use_cases_test.dart`
+- [ ] T077 [US3] Implement completion methods in `KhatmaRepositoryImpl` and use cases in `lib/features/quran_groups/data/use_cases/`; trigger sync on connectivity regained, app resume, dashboard refresh (wire in `lib/app/app.dart` lifecycle observer)
+- [ ] T078 [P] [US3] Failing `bloc_test`s for `AssignmentCubit` (complete, undo after confirm, queued offline state, failed sync with retry, duplicate tap ignored) in `test/features/quran_groups/cubit/assignment_cubit_test.dart`
+- [ ] T079 [US3] Implement `AssignmentCubit` in `lib/features/quran_groups/cubit/assignment/`
+- [ ] T080 [P] [US3] Failing widget tests for S6 Personal Assignment (primary action, completed state, undo `ConfirmSheet`, queued/failed states, hidden "اقرأ الآن" slot) and dashboard grace banner in `test/features/quran_groups/view/personal_assignment_screen_test.dart`
+- [ ] T081 [US3] Rebuild S6 `lib/features/quran_groups/view/screens/personal_assignment_screen.dart` (replace `personal_assignment_detail_screen.dart`), connect my-juz card primary action, add grace banner; add `kMushafEnabled = false` flag in `lib/core/config/feature_flags.dart`
 
-- [X] T125 [P] Write failing widget tests for polished dashboard hierarchy, 30-status grid stability, organizer entry visibility, and no RenderFlex overflow at 320px, 360px, and enlarged text sizes in `test/features/quran_groups/view/group_dashboard_screen_test.dart` and `test/features/quran_groups/view/widgets/assignment_status_grid_test.dart`
-- [X] T126 [P] Write failing widget tests for professional empty, loading, error, offline, and validation panels across group selection, discovery, join requests, member management, assignment review, history, and settings in `test/features/quran_groups/view/professional_state_panels_test.dart`
-- [X] T127 [P] Write failing widget tests proving all visible v1 view copy comes from UTF-8 Arabic strings or localized constants, with no mojibake placeholder text in `test/core/localization/arabic_strings_test.dart` and `test/features/quran_groups/view/arabic_copy_integrity_test.dart`
-- [X] T128 [P] Write failing widget tests for text fitting and responsive row behavior in dense member, assignment, join request, and history lists at narrow phone widths in `test/features/quran_groups/view/dense_list_layout_test.dart`
+**Checkpoint**: P1 complete (US2 + US1 + US3), validated with seeded members. First real-user release also needs US4 (joining).
 
-### Implementation for UI Convergence
+---
 
-- [X] T129 Build a coherent app visual foundation with spacing, typography, status colors, container surfaces, input styling, chip styling, and button hierarchy in `lib/core/theme/app_theme.dart` and `lib/core/theme/app_spacing.dart`
-- [X] T130 Create reusable professional state and layout widgets for section headers, metric cards, empty/error/offline panels, validation banners, action rows, and dense list rows in `lib/features/quran_groups/view/widgets/app_section_header.dart`, `lib/features/quran_groups/view/widgets/metric_card.dart`, `lib/features/quran_groups/view/widgets/state_panel.dart`, `lib/features/quran_groups/view/widgets/validation_banner.dart`, and `lib/features/quran_groups/view/widgets/dense_info_row.dart`
-- [X] T131 Rework the group dashboard into a polished daily tracking surface with a clear progress summary, highlighted personal assignment, status legend, stable 30-part overview, readable member list, and role-aware organizer actions in `lib/features/quran_groups/view/screens/group_dashboard_screen.dart`, `lib/features/quran_groups/view/widgets/dashboard_progress_header.dart`, `lib/features/quran_groups/view/widgets/assignment_status_grid.dart`, `lib/features/quran_groups/view/widgets/assignment_list.dart`, and `lib/features/quran_groups/view/widgets/offline_stale_banner.dart`
-- [X] T132 Rework group selection and public discovery with polished approved-group cards, public discovery search, member-count/timezone metadata, pending status treatment, and clear empty states in `lib/features/quran_groups/view/screens/group_selection_screen.dart`, `lib/features/quran_groups/view/screens/public_group_discovery_screen.dart`, and `lib/features/quran_groups/view/widgets/public_group_profile_card.dart`
-- [X] T133 Rework the personal assignment detail screen with a prominent Quran part/range panel, status-aware completion area, confirmation/undo affordances, no-reader boundary, and offline queued sync treatment in `lib/features/quran_groups/view/screens/personal_assignment_detail_screen.dart`, `lib/features/quran_groups/view/widgets/completion_action_panel.dart`, and `lib/features/quran_groups/view/widgets/offline_completion_status.dart`
-- [X] T134 Rework organizer workflows with professional 30-member readiness, join-request review cards, assignment draft rows, duplicate/missing warnings, swap/reassign controls, and publish validation in `lib/features/quran_groups/view/screens/organizer_join_requests_screen.dart`, `lib/features/quran_groups/view/screens/member_management_screen.dart`, `lib/features/quran_groups/view/screens/organizer_assignment_review_screen.dart`, `lib/features/quran_groups/view/widgets/join_request_tile.dart`, `lib/features/quran_groups/view/widgets/member_slot_readiness.dart`, and `lib/features/quran_groups/view/widgets/assignment_draft_row.dart`
-- [X] T135 Rework daily history and settings into polished utility screens with summary timeline rows, missed/late detail treatment, readable text-size preview, cache timestamp panel, and no notification settings in `lib/features/quran_groups/view/screens/daily_history_screen.dart`, `lib/features/quran_groups/view/screens/settings_screen.dart`, `lib/features/quran_groups/view/widgets/history_day_summary_tile.dart`, and `lib/features/quran_groups/view/widgets/history_assignment_detail.dart`
-- [X] T136 Replace hardcoded placeholder view copy and mojibake strings with centralized Arabic constants, status labels, section labels, validation messages, and action labels in `lib/core/localization/arabic_strings.dart` and all Dart files under `lib/features/quran_groups/view/`
-- [X] T137 Update visual QA and validation notes with the professional UI acceptance checklist, tested phone widths, text-scale checks, and final Flutter commands in `specs/001-track-quran-groups/quickstart.md`
-- [ ] T138 Run `flutter analyze`, `flutter test test/features/quran_groups/view`, and `flutter test test/core/localization` after the UI convergence implementation and fix every lint, layout, and copy-integrity failure reported from `analysis_options.yaml`, `test/features/quran_groups/view/`, and `test/core/localization/`
+## Phase 6: User Story 4 – Discover and Join Groups (P2)
 
-**Checkpoint**: v1 UI feels production-ready while preserving the approved feature scope: Arabic-first, phone-first, no Quran reader, no notifications, no unsupported future features, and stable dense layouts for all 30 assignments.
+**Goal**: discovery, auto-accept/approval join, join-any, invite codes/links.
+**Independent test**: see quickstart scenario 6.
+
+- [ ] T082 [P] [US4] pgTAP tests for `search_public_groups` (no members/progress, sort, private hidden), `get_invite_preview`, `join_group` (auto-accept lowest seat, approval pending, removed → pending, full, already member, mid-day seat takeover unless volunteered), `join_any_group` (filter + order), `cancel_join_request`, pending request listed by `get_my_groups` and `my_join_request_id` in previews in `supabase/tests/001_us4_join_test.sql`
+- [ ] T083 [US4] Implement join/discovery functions in `supabase/migrations/007_join_functions.sql`
+- [ ] T084 [P] [US4] Failing repository tests for discovery/join methods in `test/features/quran_groups/data/groups_repository_join_test.dart`
+- [ ] T085 [US4] Implement discovery/join methods in `GroupsRepositoryImpl`
+- [ ] T086 [P] [US4] Failing `bloc_test`s for `DiscoveryCubit` (search debounce, paging, per-card join state) and `JoinCubit` (code validation, preview, join, join-any no-group case, pending) in `test/features/quran_groups/cubit/discovery_cubit_test.dart` and `join_cubit_test.dart`
+- [ ] T087 [US4] Implement `DiscoveryCubit` and `JoinCubit` in `lib/features/quran_groups/cubit/`
+- [ ] T088 [P] [US4] Failing widget tests for S2 Discovery and S3 Invite Join (all variants) in `test/features/quran_groups/view/discovery_screen_test.dart` and `invite_join_screen_test.dart`
+- [ ] T089 [US4] Rebuild S2 `screens/discovery_screen.dart` (replace `public_group_discovery_screen.dart`) with `widgets/public_group_card.dart`; build S3 `screens/invite_join_screen.dart`
+- [ ] T090 [US4] Handle `qurandaily://join/<code>` via `app_links` in `lib/app/router.dart` (deferred until signed in); configure Android intent filter in `android/app/src/main/AndroidManifest.xml` and iOS URL type in `ios/Runner/Info.plist`
+
+---
+
+## Phase 7: User Story 5 – Volunteer for an Available Juz (P2)
+
+**Independent test**: volunteer once → assigned to me today; concurrent volunteer → exactly one wins; not carried next day; unread at grace.
+
+- [ ] T091 [P] [US5] pgTAP tests for `volunteer_for_juz` (open only, active member, multiple juz allowed, concurrent conflict via two sessions, next-day reset) in `supabase/tests/001_us5_volunteer_test.sql`
+- [ ] T092 [US5] Implement `volunteer_for_juz` in `supabase/migrations/008_volunteer_functions.sql`
+- [ ] T093 [P] [US5] Failing tests for `KhatmaRepositoryImpl.volunteer` and `DashboardCubit.volunteer` (success updates snapshot, `juz_already_taken` → conflict message + refresh, offline → network failure) in `test/features/quran_groups/cubit/dashboard_volunteer_test.dart`
+- [ ] T094 [US5] Implement volunteer in repository and `DashboardCubit`; volunteered juz render as extra cards in `my_juz_card.dart` area
+- [ ] T095 [US5] Widget tests + UI for "أتطوع بقراءته" action and taken state in `test/features/quran_groups/view/available_juz_list_test.dart` and `widgets/available_juz_list.dart`
+
+---
+
+## Phase 8: User Story 6 – Manage Members and Requests (P2)
+
+**Independent test**: quickstart scenario 8.
+
+- [ ] T096 [P] [US6] pgTAP tests for `list_join_requests`, `review_join_request` (seat allocation, group full), `get_group_members`, `move_member_seat` (swap, next-day effect), `set_member_role`, `remove_member` (today pending → available), `leave_group` (owner blocked), `transfer_ownership`, `archive_group`, `override_assignment`, supervisor limits in `supabase/tests/001_us6_manage_test.sql` Include: leaving/removal frees ALL of today's non-completed rows read by that member (seat, volunteer, override), not only the seat row.
+- [ ] T097 [US6] Implement management functions in `supabase/migrations/009_management_functions.sql`
+- [ ] T098 [P] [US6] Failing repository tests for management methods in `test/features/quran_groups/data/groups_repository_manage_test.dart`
+- [ ] T099 [US6] Implement management methods in `GroupsRepositoryImpl` and `KhatmaRepositoryImpl.overrideAssignment`
+- [ ] T100 [P] [US6] Failing `bloc_test`s for `MembersCubit` and `JoinRequestsCubit` (role-based actions, confirmations, group full, owner leave blocked) in `test/features/quran_groups/cubit/members_cubit_test.dart` and `join_requests_cubit_test.dart`
+- [ ] T101 [US6] Implement `MembersCubit` and `JoinRequestsCubit` in `lib/features/quran_groups/cubit/`
+- [ ] T102 [P] [US6] Failing widget tests for S7 Members & Seats and S8 Join Requests (owner vs supervisor vs member views, all variants) in `test/features/quran_groups/view/members_screen_test.dart` and `join_requests_screen_test.dart`
+- [ ] T103 [US6] Rebuild S7 `screens/members_screen.dart` (replace `member_management_screen.dart`), S8 `screens/join_requests_screen.dart` (replace `organizer_join_requests_screen.dart`), owner override sheet from dashboard `widgets/override_assignment_sheet.dart`; add archive/transfer/regenerate confirmations to S9; delete `organizer_assignment_review_screen.dart` and `assignment_draft_row.dart` (daily publish removed)
+
+---
+
+## Phase 9: User Story 7 – Review Daily Group History (P3)
+
+**Independent test**: quickstart scenario 9.
+
+- [ ] T104 [P] [US7] pgTAP tests for `get_history` and `get_history_day` (members summary + own row only; owner/supervisor per-seat detail; full khatma with late) in `supabase/tests/001_us7_history_test.sql`
+- [ ] T105 [US7] Implement history functions in `supabase/migrations/010_history_functions.sql`
+- [ ] T106 [P] [US7] Failing tests for history repository methods (cache last page) and `HistoryCubit` (paging, detail by role) in `test/features/quran_groups/cubit/history_cubit_test.dart`
+- [ ] T107 [US7] Implement history in `KhatmaRepositoryImpl` and `HistoryCubit` in `lib/features/quran_groups/cubit/history/`
+- [ ] T108 [P] [US7] Failing widget tests for S10 History list and day detail (all variants) in `test/features/quran_groups/view/history_screen_test.dart`
+- [ ] T109 [US7] Rebuild S10 `screens/history_screen.dart` (replace `daily_history_screen.dart`) with `widgets/history_day_card.dart` and `widgets/history_day_detail.dart`
+
+---
+
+## Phase 10: Polish & Cross-Cutting
+
+- [ ] T110 [P] App settings S11: `SettingsCubit` (depends on `SettingsRepository` + `SessionGateway`, not `AuthCubit`) + tests + `lib/features/settings/view/settings_screen.dart` (text scale 0.85-1.6 applied to `quranLabel`, sign-out with confirm); remove `lib/features/quran_groups/view/screens/settings_screen.dart`
+- [ ] T111 [P] Integration test `integration_test/group_flow_test.dart`: sign up → create → invite second user → start → complete → undo → history (local Supabase)
+- [ ] T112 [P] Integration test `integration_test/offline_completion_test.dart`: cached dashboard offline → complete → reconnect → synced
+- [ ] T113 Remove remaining legacy files under `lib/features/quran_groups/view/` and legacy tests not replaced; ensure `test/widget_test.dart` is a real smoke test or deleted
+- [ ] T114 Design system compliance review (constitution Principle VI): no raw colors/sizes/radii in features, shared components used, RTL + 200% text scale + dark theme verified on every screen
+- [ ] T115 Quran integrity review (Principle VII): grep code, tests, fixtures for any Arabic ayah text; only metadata repository reads Quran data; checksum test green
+- [ ] T116 Run `flutter analyze`, `flutter test`, `supabase test db`, and all `quickstart.md` scenarios on Android emulator and iOS simulator; record results in `specs/001-track-quran-groups/quickstart.md` "Validation log" section
 
 ---
 
 ## Dependencies & Execution Order
 
-### Phase Dependencies
+- Phase 1 → 2A → 2B → 2C (2A and 2B may overlap after T004/T005; 2B UI needs 2A widgets).
+- T008 (owner) blocks T041-T042 and every screen that shows juz ranges (T073+). T007 (owner) blocks visual verification only; tests use the theme without real font files if absent, but T114 needs them.
+- US2 → US1 → US3 (sequential; US1 needs a started group, US3 needs the dashboard).
+- US4, US5, US6 depend on US1; they can proceed in parallel with each other after US3 (different files except `GroupsRepositoryImpl`, which US4 and US6 must edit sequentially).
+- US7 depends on US3 (needs closed days).
+- Polish after all desired stories.
 
-- **Phase 1 Setup**: No dependencies.
-- **Phase 2 Foundational**: Depends on Phase 1 and blocks all user stories.
-- **Phase 3 User Story 1**: Depends on Phase 2. This is the MVP.
-- **Phase 4 User Story 2**: Depends on Phase 2. Can run in parallel with US1 after foundation, but publishing works best after shared dashboard entities exist.
-- **Phase 5 User Story 3**: Depends on Phase 2. Integrates most naturally after US1 because dashboard refresh behavior is reused.
-- **Phase 6 User Story 4**: Depends on Phase 2. Can run after history schema and shared entities are ready.
-- **Phase 7 Polish**: Depends on all selected stories being complete.
+### Within each story
 
-### User Story Dependencies
+pgTAP test → migration → repository test → repository → cubit test → cubit → widget test → screen. Tests must fail before implementation.
 
-- **US1 View Today's Group Reading Progress**: MVP; no dependency on other user stories after foundation.
-- **US2 Assign One Quran Part to Each Group Member**: Independent after foundation, but validates against shared group/member/cycle entities.
-- **US3 Mark Personal Reading Completion**: Independent after foundation, but uses dashboard cache and assignment entities from US1 when implemented sequentially.
-- **US4 Review Daily Group History**: Independent after foundation, but uses cycle/assignment entities shared with US1 and US2.
+## Parallel Examples
 
-### Within Each User Story
-
-- Tests must be written first and confirmed failing before implementation.
-- Supabase RPC tests before SQL functions.
-- Repository tests before repository implementation.
-- Cubit tests before Cubit implementation.
-- Widget/integration tests before screen wiring.
-- Entities and models before repositories.
-- Repositories and use cases before Cubits.
-- Cubits before View screens.
-- Screens before route wiring.
-
----
-
-## Parallel Opportunities
-
-- Setup tasks T003, T004, T009, and T010 can run in parallel.
-- Foundation tests T011 through T015 can run in parallel.
-- Foundation entity/model tasks T024 through T028 can run in parallel after T016 through T023.
-- US1 test tasks T037 through T041 can run in parallel.
-- US1 widget tasks T052 through T055 can run in parallel after T051.
-- US2 test tasks T057 through T064 can run in parallel.
-- US2 widget tasks T079 through T082 can run in parallel after T075 through T078.
-- US3 test tasks T084 through T088 can run in parallel.
-- US3 widget tasks T096 and T097 can run in parallel after T095.
-- US4 test tasks T099 through T103 can run in parallel.
-- US4 widget tasks T111 and T112 can run in parallel after T110.
-- Polish tasks T114 through T121 can run in parallel after all selected stories are complete.
-
----
-
-## Parallel Example: User Story 1
-
-```text
-Task: "T037 Write failing Supabase RPC tests for get_user_groups and get_group_dashboard in supabase/tests/002_dashboard_rpc_test.sql"
-Task: "T038 Write failing repository tests for approved group loading, cached dashboard loading, stale flags, and privacy rejection for non-members in test/features/quran_groups/data/group_repository_dashboard_test.dart"
-Task: "T039 Write failing Cubit tests for loading, cached refresh, fresh dashboard, offline stale, no published cycle, and dashboard error states in test/features/quran_groups/cubit/dashboard/group_dashboard_cubit_test.dart"
-Task: "T040 Write failing widget tests for Arabic dashboard layout, 30-assignment status overview, no-reader boundary, and offline banner in test/features/quran_groups/view/group_dashboard_screen_test.dart"
-Task: "T041 Write failing integration test for opening an approved group dashboard from group selection in integration_test/us1_dashboard_flow_test.dart"
-```
-
-## Parallel Example: User Story 2
-
-```text
-Task: "T057 Write failing Supabase RPC tests for create_group, search_public_groups, submit_join_request, and review_join_request in supabase/tests/003_discovery_join_requests_rpc_test.sql"
-Task: "T059 Write failing repository tests for public discovery, join request submission, organizer review, group full, and publish validation in test/features/quran_groups/data/group_repository_organizer_test.dart"
-Task: "T060 Write failing Cubit tests for discovery pending/rejected/approved states in test/features/quran_groups/cubit/discovery/group_discovery_cubit_test.dart"
-Task: "T061 Write failing Cubit tests for organizer join request approval/rejection and group-full validation in test/features/quran_groups/cubit/join_requests/join_requests_cubit_test.dart"
-```
-
-## Parallel Example: User Story 3
-
-```text
-Task: "T084 Write failing Supabase RPC tests for mark_assignment_complete and undo_assignment_completion in supabase/tests/005_assignment_completion_rpc_test.sql"
-Task: "T085 Write failing repository tests for online completion, group-timezone late completion, undo, duplicate completion, closed cycle, and offline queueing in test/features/quran_groups/data/group_repository_completion_test.dart"
-Task: "T086 Write failing Cubit tests for pending, completing, completed, group-timezone late, offline queued, undo available, undo failed, and completion error states in test/features/quran_groups/cubit/assignment/assignment_cubit_test.dart"
-Task: "T087 Write failing widget tests for Arabic assignment detail, completion confirmation, undo copy, offline queued copy, no-reader controls, and enlarged text in test/features/quran_groups/view/personal_assignment_detail_screen_test.dart"
-```
-
-## Parallel Example: User Story 4
-
-```text
-Task: "T099 Write failing Supabase RPC tests for get_daily_history organizer-only summary/detail access and non-organizer rejection in supabase/tests/006_daily_history_rpc_test.sql"
-Task: "T100 Write failing repository tests for organizer-only history summary, history detail, offline cached history, and non-organizer rejection in test/features/quran_groups/data/group_repository_history_test.dart"
-Task: "T101 Write failing Cubit tests for loading, available, empty, cached offline, selected-day detail, and error states in test/features/quran_groups/cubit/history/history_cubit_test.dart"
-Task: "T102 Write failing widget tests for Arabic history summary, empty history, missed/late detail, and enlarged text behavior in test/features/quran_groups/view/daily_history_screen_test.dart"
-```
-
----
+- Phase 2A: T009, T010, T011 together; then T016, T017, T018 together.
+- US2: T053 (SQL) with T056/T058/T059 (Dart tests) – different files.
+- US4: T082, T084, T086, T088 together; then implement in order.
+- US6: T096, T098, T100, T102 together.
 
 ## Implementation Strategy
 
-### MVP First (User Story 1 Only)
-
-1. Complete Phase 1: Setup.
-2. Complete Phase 2: Foundational.
-3. Complete Phase 3: User Story 1.
-4. Stop and validate US1 independently with the dashboard tests and quickstart Scenario 5.
-5. Demo the approved-member dashboard before adding organizer, completion, and history flows.
-
-### Incremental Delivery
-
-1. Setup + Foundation: app shell, Arabic/RTL infrastructure, Supabase/local cache boundaries, shared entities, and repository contracts.
-2. US1: approved member dashboard MVP.
-3. US2: public discovery, join requests, organizer member management, and assignment publishing.
-4. US3: personal completion and offline queued completion.
-5. US4: daily history review.
-6. Polish: no-notification/no-reader boundaries, Arabic empty/error copy, settings, analyze, and full tests.
-
-### Parallel Team Strategy
-
-1. Team completes Phase 1 and Phase 2 together.
-2. After foundation:
-   - Developer A: US1 dashboard flow.
-   - Developer B: US2 discovery, join requests, and organizer publishing.
-   - Developer C: US3 completion flow.
-   - Developer D: US4 history flow.
-3. Integrate only through repository interfaces, Cubit contracts, and route wiring defined in this task list.
-
-## Notes
-
-- [P] tasks use different files and can be done in parallel when dependencies are satisfied.
-- [US1], [US2], [US3], and [US4] labels map directly to user stories in `spec.md`.
-- Keep all user-facing copy Arabic-first.
-- Do not add `firebase_messaging`, notification prompts, Quran reader controls, audio, chat, contact import, or public directory ranking in v1.
-- Commit after each task or small logical group.
+1. **MVP** = Phases 1-5 (setup, foundations, US2 + US1 + US3): users create a group, start the khatma, see the dashboard, and mark completion with offline support. Validate quickstart scenarios 2-5 with seeded members (scenario 1 needs US4).
+2. Increment 2 (first real-user release): US4 (joining) + US5 (volunteering); then run scenario 1 end to end.
+3. Increment 3: US6 (management) + US7 (history).
+4. Polish, then hand over to spec 003 (Mushaf) which enables `kMushafEnabled`.

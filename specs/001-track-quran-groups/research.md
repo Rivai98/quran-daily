@@ -1,111 +1,101 @@
-# Research: Quran Group Reading Tracker UI
+# Research: Quran Group Reading Tracker (amended 2026-11-14)
 
-## Decision: Use feature-first MVVM with Cubit as ViewModel
+Each entry: Decision, Rationale, Alternatives considered. Decisions from the 2026-06-21 research that remain valid (MVVM + Cubit, Supabase Postgres as source of truth, SQLite cache, `get_it`, no FCM) are restated briefly.
 
-**Rationale**: The project constitution requires `data/`, `cubit/`, and `view/` per feature. Cubit gives a small, testable ViewModel layer for discovery, join requests, dashboard, assignment, organizer, and history state. It also keeps widgets free of business rules.
+## R1. Rotation is a pure function of seat, start juz, and day index
 
-**Alternatives considered**:
-- Plain `setState`: rejected because business state would move into widgets and violate the constitution.
-- Full Bloc event/state pairs: rejected for v1 because Cubit is simpler and the approved stack explicitly chooses Cubit.
-- Riverpod or Provider: rejected because the approved stack and constitution require Cubit.
+**Decision**: `juz(seat, day) = ((start_juz - 1) + (seat - 1) + day_index) mod 30 + 1`, where `day_index` = number of group days since the start day (start day = 0). Implemented once in SQL (`juz_for_seat`) and mirrored in Dart only for tests and offline display of the already-cached day.
 
-## Decision: Keep v1 UI focused on Quran group tracking, not Quran reading
+**Rationale**: Deterministic, testable, matches the WhatsApp practice (seat k on day d+1 reads one juz further), and never drifts even if days are skipped by the scheduler, because the index comes from dates, not from yesterday's row.
 
-**Rationale**: Clarification resolved that v1 shows Quran part labels and reading ranges only. The first valuable slice is coordinating 30 people and tracking completion, not rendering full Quran text, bookmarks, or reading position.
+**Alternatives**: Copy yesterday's assignments +1 (drifts after a failed job); random daily distribution (not how the group works).
 
-**Alternatives considered**:
-- Basic assigned-part reader: rejected because it adds text rendering, reading-position state, and Quran content validation outside this feature's core tracking goal.
-- Full Quran reader/navigation: rejected because it would turn v1 into a separate reader product.
+## R2. Group-local date and rollover
 
-## Decision: Make the app Arabic-first in v1
+**Decision**: Each group stores an IANA `timezone` and a `day_start_time` (local time, default 00:00). The group-local date of instant `t` is `date((t AT TIME ZONE tz) - day_start_time)`. Day `d` is open from its rollover until the next rollover, then in **grace** for one more group day (late completions), then **closed**.
 
-**Rationale**: The user clarified the app is fully Arabic. User-facing copy, join-request pending status, Quran labels, status labels, and validation messages must be Arabic-first, with RTL-aware layouts.
+**Rationale**: Matches spec FR-010/FR-016; a "day after Fajr" group sets e.g. 05:00. Timezone/start-time changes apply from the next date because past days store their own date and are never recomputed.
 
-**Alternatives considered**:
-- Bilingual Arabic/English v1: rejected because it increases copy, layout, and QA scope without being requested for the first release.
-- English internal placeholders in UI: rejected because the spec requires all v1 user-facing interface copy in Arabic.
+**Alternatives**: Member device timezone (inconsistent statuses); fixed Makkah time (communities differ).
 
-## Decision: Use Supabase Auth with Google Sign-In
+**Timezone/start-time change (U1)**: the current day keeps its stored `ends_at`. The next day opens exactly at that `ends_at` and ends at the first rollover under the new settings that is at least 12 hours later, so no gap or overlap ever occurs; all later days follow the new settings.
 
-**Rationale**: The approved stack requires Supabase Auth with Google Sign-In. Supabase session identity maps directly to public discovery requests, memberships, organizer permissions, assignment completion records, and row-level security.
+## R3. Materialize days with pg_cron plus a lazy fallback
 
-**Alternatives considered**:
-- Anonymous auth: rejected because join requests, organizer approvals, memberships, and auditability require stable identity.
-- Custom auth server: rejected because Supabase Auth is already approved and avoids extra backend ownership.
-- Email/password first: deferred because the approved sign-in method is Google.
+**Decision**: `pg_cron` runs `generate_due_group_days()` and `advance_day_states()` every minute. `get_dashboard` also calls `ensure_current_group_day(group_id)` (idempotent, unique on `(group_id, group_date)`) so a member opening the app never waits for the job.
 
-## Decision: Use public group discovery with organizer-approved join requests
+**Rationale**: Guarantees SC-012 (≤ 1 min) and keeps history complete for groups nobody opens; idempotency makes double execution safe.
 
-**Rationale**: The clarified join flow requires users to find public groups and request membership. Non-members see only a minimal public profile: group name, short description, member count, and timezone. Member lists and reading progress remain private until approval.
+**Alternatives**: Edge Function cron (extra moving part); purely lazy creation (gaps for unopened days, missed/unread never recorded).
 
-**Alternatives considered**:
-- Private invite code/link: rejected by clarification.
-- Contact import invitations: rejected because contact import is out of scope.
-- Public group search with direct join: rejected because organizers need control over the exactly-30-active-member model.
+## R4. Assignment rows carry kind and reader
 
-## Decision: Use one group-level timezone chosen by organizer
+**Decision**: Each group day has exactly 30 `assignments` (one per juz, unique `(group_day_id, juz)` and `(group_day_id, seat_number)`). Columns: `kind` (`seat`, `override`, `volunteer`, `unassigned`), `reader_membership_id` (nullable), `status`. Empty seat → `kind = unassigned`, `status = available`.
 
-**Rationale**: A shared 30-person daily reading cycle needs one shared day boundary so pending, missed, completed, and late statuses are consistent for every member.
+**Rationale**: One row per juz keeps "all 30 juz exactly once" a database constraint, and volunteering/overrides become single-row updates.
 
-**Alternatives considered**:
-- Each member's device timezone: rejected because the same assignment could become missed/late at different times for different users.
-- Fixed Makkah timezone: rejected because groups may operate around a local community schedule.
-- Organizer's current device timezone: rejected because travel/device changes should not silently move the group cutoff.
+**Alternatives**: Separate volunteer table (two sources of truth for who reads a juz).
 
-## Decision: Use Supabase PostgreSQL as server source of truth
+## R5. Volunteering race safety
 
-**Rationale**: Public discovery, join request approval, group membership, exactly-30-member validation, assignment uniqueness, completion state, and history need transactional guarantees. PostgreSQL constraints and database functions can enforce one assignment per active member and one Quran part per daily cycle.
+**Decision**: `volunteer_for_juz` does `UPDATE assignments SET kind='volunteer', reader_membership_id=me, status='pending' WHERE id=$1 AND kind='unassigned' AND status='available' AND day is open RETURNING *`; zero rows → `juz_already_taken`.
 
-**Alternatives considered**:
-- Client-only local database: rejected because it cannot coordinate shared group truth.
-- Firebase Firestore as primary database: rejected because the approved stack selects Supabase PostgreSQL.
+**Rationale**: Single conditional update is atomic in Postgres; exactly one concurrent caller wins (SC-006).
 
-## Decision: Put critical mutations behind Supabase database functions or backend functions
+**Alternatives**: Advisory locks / SELECT FOR UPDATE (more code, same result).
 
-**Rationale**: Requesting to join, approving/rejecting requests, publishing cycles, swapping assignments, reassigning parts, marking completion, undoing completion, and late/missed transitions must be validated atomically. Central functions prevent clients from bypassing organizer rules, group capacity rules, privacy boundaries, or duplicate assignment constraints.
+## R6. Status transitions owned by the server
 
-**Alternatives considered**:
-- Direct table writes from the Flutter app: rejected because client-side validation alone cannot guarantee uniqueness, approval, privacy, and role rules.
-- Edge functions for every read/write: rejected because database functions are simpler for transactional database-bound operations.
+**Decision**: Open day: `pending ↔ completed` (complete/undo), `available → pending` (volunteer/override). On entering grace: `pending → missed`, `available → unread`. In grace: `missed → late` (complete), `late → missed` (undo). On close: no further changes. `full_khatma` = all 30 in (`completed`, `late`), recomputed on every change.
 
-## Decision: Use local SQLite cache plus a small sync queue
+**Rationale**: Encodes FR-015..FR-018 and FR-017a in one place; clients render statuses, never derive them.
 
-**Rationale**: The constitution and spec require users to see today's assignment offline after opening the group and to queue personal completion state. SQLite stores the dashboard snapshot, today's assignment, Quran part metadata, recent history, public discovery cache, and pending personal completion operations.
+## R7. Join flows and seat allocation
 
-**Alternatives considered**:
-- `shared_preferences` for all local state: rejected because relational assignment/history data needs structured queries.
-- No offline queue: rejected because personal completion must remain usable offline.
-- Full offline conflict system: rejected for v1; only personal completion queueing is required.
+**Decision**: `join_group(group_id | invite_code)` decides: removed user → pending request; approval group → pending request; auto-accept with free seat → active membership in the **lowest free seat number**; no seat → `group_full`. Approving a request uses the same seat allocation. `join_any_group()` picks per spec clarification (public, auto-accept, has seat; device timezone match first, then fewest empty seats, then oldest group) and calls the same path. Joining an active group sets today's `unassigned` row of that seat to `kind=seat, reader=new member, status=pending` **only if** nobody volunteered for it; otherwise the volunteer keeps it for today.
 
-## Decision: Use Repository Pattern and use cases between Cubits and data sources
+**Rationale**: One allocation code path; deterministic seat choice; volunteers are never displaced mid-day.
 
-**Rationale**: Cubits should not know whether data came from Supabase, local SQLite, or cache. Repositories provide the data contract, while use cases encode operations like search public groups, submit join request, approve request, publish cycle, mark complete, reassign part, and load dashboard.
+**Alternatives**: Let the user pick a seat (extra UI, no user value).
 
-**Alternatives considered**:
-- Cubits call Supabase clients directly: rejected because it couples UI state to backend details and makes offline behavior harder to test.
-- Repository without use cases: rejected because the approved stack calls for use cases and the feature has business operations worth naming.
+**Backfill (U2)**: if the scheduler was down, `generate_due_group_days()` and `ensure_current_group_day()` create every missing date since the last existing day, apply grace/closed states for past dates immediately, and compute rotation from the date index, so history never has gaps.
 
-## Decision: Use `get_it` for dependency injection
+## R8. Leaving, removal, and seat moves
 
-**Rationale**: `get_it` is lightweight for a Flutter app and avoids introducing code generation before there is a strong need. It can register Supabase clients, local databases, repositories, use cases, and Cubits in predictable app bootstrap code.
+**Decision**: Leave/remove sets membership status `left`/`removed`, frees the seat; every non-completed row of today read by that member (own seat, volunteer, or override) becomes `unassigned/available`; completed rows stay. Seat moves update `seat_number`; because today's rows are already materialized, moves naturally take effect next day (FR-007). Owner cannot leave without `transfer_ownership` or `archive_group`.
 
-**Alternatives considered**:
-- Manual constructor wiring everywhere: rejected because route and Cubit creation become noisy as features grow.
-- `injectable` code generation: deferred until dependency graph complexity justifies generated setup.
+## R9. Invite codes and links
 
-## Decision: Defer Firebase Cloud Messaging and push notifications
+**Decision**: 8-character code from an unambiguous alphabet (no 0/O/1/I), unique among non-archived groups, regenerable by the Owner. Shared as Arabic text containing the code and `qurandaily://join/<CODE>`; the app handles the scheme via `app_links` and also offers manual code entry. HTTPS universal/app links are deferred (need a domain).
 
-**Rationale**: Clarification resolved that v1 has no notification work. The app must not request notification permissions, register device tokens, send reminders, or expose notification settings in this feature.
+**Alternatives**: Universal links now (domain + platform association files; not available yet).
 
-**Alternatives considered**:
-- Register FCM tokens only: rejected because it adds unused platform setup and privacy prompts without v1 behavior.
-- Send assignment reminders: rejected because notifications are explicitly later scope.
-- Keep Firebase dependency in v1: rejected because no v1 requirement uses it.
+## R10. Authorization model
 
-## Decision: Use Material mobile UI with Arabic/RTL and adjustable Quran label text size
+**Decision**: RLS on every table: members read their group's rows; non-members read nothing except via `search_public_groups` / `get_invite_preview` (return public profile only). All writes go through `SECURITY DEFINER SET search_path = ''` functions that check `auth.uid()` and role. Roles: `owner` (exactly one per group), `supervisor`, `member`. Group roles are independent of spec 002 `app_admins`.
 
-**Rationale**: Flutter Material gives a robust mobile UI baseline. The devotional context needs calm, readable Arabic screens with clear status semantics, RTL layout support, and user-controlled text size for Quran part labels/ranges.
+## R11. Offline personal loop
 
-**Alternatives considered**:
-- Heavy custom visual system first: rejected because core usability and readability matter more than custom decoration in v1.
-- LTR-only UI: rejected by the spec and constitution.
+**Decision**: Cache `DashboardSnapshot` JSON per group in SQLite after every successful load. Complete/undo update the cached snapshot optimistically and enqueue a `sync_queue` row (`mark_complete` / `undo_completion`, assignment id, client timestamp). Sync runs on connectivity regained, app resume, and dashboard refresh; for `offline_sync` the server applies `client_recorded_at`, clamped to `[opens_at, server receipt time]`, to decide on-time vs late (rejecting if the day is closed → shown as failed with Arabic explanation). Online calls always use server time. Trusting the device clock for offline completions is an accepted trade-off: the worst case is a member's own late completion shown as on-time, which affects only their own record. Volunteering, joining, and management require network.
+
+## R12. Verified juz metadata (Principle VII)
+
+**Decision**: Use Tanzil's `quran-data.xml` (juz start sura/aya and Arabic surah names). The project owner downloads it from the official Tanzil metadata page, records origin/version/license in `assets/quran/SOURCE.md`, and commits `assets/quran/checksums.sha256`. `QuranMetadataRepository` parses juz starts and sura ayah counts; a juz ends one ayah before the next juz starts (crossing to the previous sura's last ayah, using that sura's ayah count from the file), and juz 30 ends at the last ayah of the last sura as given by the file. No boundary, sura name, or ayah count is typed in code or tests. Exact source, edition, riwayah, version, and license are fixed in plan.md "Quran Content Source". Range label: "من سورة {name} آية {n} إلى سورة {name} آية {m}" with Arabic-Indic digits. Juz ordinal names (الجزء الأول ... الجزء الثلاثون) are UI copy in `arabic_strings.dart`. No ayah text is shown in this feature.
+
+**Rationale**: Keeps every Quran-derived value sourced and checksummed; avoids reproducing ayah text before the Mushaf feature exists.
+
+**Alternatives**: Hand-typed range table (forbidden); Quran API at runtime (breaks offline).
+
+## R13. Design system delivery
+
+**Decision**: Build `lib/core/design_system/` (tokens + widgets) and bundle fonts before any screen; delete `lib/core/theme/` after migration. A test scans `lib/features/**` for `Color(0x`, `fontSize:` and `BorderRadius.circular(` literals.
+
+## R14. State management details
+
+**Decision**: Cubits per screen-level unit; states are `Equatable` with a `status` enum (`initial, loading, success, empty, failure, offline`) plus data; failures carry a `FailureKind`, mapped to Arabic copy in the View. Global `AuthCubit` (spec 002) and `SelectedGroupCubit` provided at app root by `lib/app/`. Feature modules never import each other (Principle IV): `quran_groups` and `settings` use the core `SessionGateway` interface (`currentUserId`, `signOut()`), implemented by `AuthRepositoryImpl` in `features/auth` and registered in DI; `AuthCubit` reacts to the resulting auth-state event. `SettingsRepository` lives in `lib/core/settings/`.
+
+## R15. No Realtime in v1
+
+**Decision**: Dashboard refreshes on open, app resume, pull-to-refresh, and after own mutations. Supabase Realtime deferred.
+
+**Rationale**: YAGNI; daily reading does not need second-level freshness, and Realtime complicates offline/stale semantics.

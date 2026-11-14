@@ -1,34 +1,50 @@
-# Implementation Plan: Quran Group Reading Tracker UI
+# Implementation Plan: Quran Group Reading Tracker
 
-**Branch**: `001-track-quran-groups` feature directory; no Git branch detected | **Date**: 2026-06-21 | **Spec**: [spec.md](./spec.md)
+**Branch**: `001-track-quran-groups` | **Date**: 2026-11-14 | **Spec**: [spec.md](./spec.md)
 
-**Input**: Clarified feature specification from `specs/001-track-quran-groups/spec.md`. Approved implementation direction: Flutter and Dart, MVVM, Cubit as ViewModel/state management, feature-first structure, Repository Pattern, use cases, dependency injection, Supabase Auth with Google Sign-In, Supabase PostgreSQL, and Supabase backend/database functions for critical operations. Firebase Cloud Messaging and push notifications are explicitly deferred outside v1.
+**Input**: Amended feature specification from `specs/001-track-quran-groups/spec.md` (Clarifications Session 2026-11-14). Constitution v2.4.0.
 
 ## Summary
 
-Build the first Quran group reading tracker as an Arabic-first Flutter mobile feature. Users sign in, discover public Quran groups, request to join, wait for organizer approval, and then use one selected group dashboard to track a daily 30-juz reading cycle. Organizers approve join requests, manage the exactly-30-active-member group, publish daily assignments, review/reassign parts, and inspect history. v1 shows Quran part labels and reading ranges only; it does not include an in-app Quran reader, audio, chat, reminders, notification setup, or multi-group dashboard.
+Build the Arabic-first Flutter app core: any signed-in user creates a group with 30 seats, members join through public discovery, one-tap matching, or invite codes, and the Owner starts a khatma. From then on the backend materializes one group day per group-local date where every seat advances one juz (30 wraps to 1). Members mark their juz complete (offline-capable), volunteer for juz of empty seats, and review history. Owner/Supervisors manage requests, seats, roles, and today-only overrides.
 
-The implementation uses feature-first MVVM. Cubits act as ViewModels, repositories hide Supabase/local-cache details, use cases hold business operations, and the View layer renders Arabic phone-first screens with clear offline/stale states.
+This plan also delivers, as blocking foundations:
+1. **Design system foundation** (constitution Principle VI) in `lib/core/design_system/`, because 001 is the first UI feature.
+2. **Email/password authentication** exactly as designed in [specs/002-email-password-auth/plan.md](../002-email-password-auth/plan.md) and its contracts, because every 001 flow needs a signed-in user. 002 has no separate `tasks.md`; its implementation is tracked in this feature's Phase 2B.
+3. **Verified juz metadata** (Principle VII) loaded from an owner-provided Tanzil file (see Quran Content Source below).
+
+## Quran Content Source (Principle VII)
+
+| Item | Value |
+|------|-------|
+| Source | Tanzil.net, "Quran Metadata" page (`https://tanzil.net/docs/quran_metadata`) |
+| File | `quran-data.xml` (juz starts as sura/aya, sura names and ayah counts) |
+| Edition / version | Tanzil Quran Metadata v1.0 (the version string in the file header MUST be copied verbatim into `assets/quran/SOURCE.md`) |
+| Riwayah / numbering | Hafs 'an 'Asim, Kufan ayah count (6236 ayat), standard Madani juz boundaries |
+| License | Creative Commons Attribution 3.0, as stated in the file header; attribution to Tanzil.net in `SOURCE.md` and the app's about/licenses page |
+| Content used | Juz start sura/aya, sura Arabic names, sura ayah counts only. No ayah text. |
+
+If the downloaded file's header shows a different version or license, the owner updates this table in the same PR that adds the file. Agents never create, edit, or reformat the file.
 
 ## Technical Context
 
-**Language/Version**: Dart SDK `^3.10.4` from `pubspec.yaml`; Flutter mobile app.
+**Language/Version**: Dart SDK `^3.10.4` (Flutter stable); SQL/PLpgSQL for Supabase migrations; TypeScript (Deno) for the two admin Edge Functions from spec 002.
 
-**Primary Dependencies**: Flutter Material widgets, `flutter_bloc` Cubit, `equatable` for value states, `supabase_flutter`, `google_sign_in`, `get_it` for dependency injection, `sqflite` plus `path_provider` for local cache, and `shared_preferences` for lightweight settings. Do not add `firebase_messaging` in v1.
+**Primary Dependencies**: `flutter_bloc`, `equatable`, `get_it`, `supabase_flutter`, `sqflite`, `path_provider`, `shared_preferences`, `flutter_localizations`, `intl`, `flutter_timezone` (device timezone for matching/defaults), `share_plus` (share invite), `app_links` (open `qurandaily://join/<code>`), `connectivity_plus` (offline detection). Dev: `flutter_test`, `bloc_test`, `mocktail`, `integration_test`, `sqflite_common_ffi` (DB tests on host). **Remove** `google_sign_in`.
 
-**Storage**: Supabase PostgreSQL is the server source of truth for users, public group profiles, join requests, memberships, cycles, assignments, and completion records. Local SQLite cache stores the selected group dashboard, today's assignment, history summaries, Quran part metadata, pending personal completion operations, and cached public discovery results. `shared_preferences` stores text-size and selected-group settings.
+**Storage**: Supabase PostgreSQL is the source of truth (groups, memberships, join requests, invites, group days, assignments, completion records, profiles). `pg_cron` runs rollover/close jobs every minute. Local SQLite caches dashboard snapshots, history summaries, my groups, and the personal sync queue; `shared_preferences` stores selected group and Quran text scale.
 
-**Testing**: `flutter_test` for unit and widget tests, `bloc_test` for Cubit tests, `mocktail` or equivalent mocks for repository/use-case tests, and `integration_test` for end-to-end mobile journeys. Tests must be written before implementation for business logic and widget behavior.
+**Testing**: TDD per constitution III. Cubit tests (`bloc_test`), repository tests (mocktail), widget tests (RTL + 200% text scale + dark theme for every screen), SQL tests with pgTAP via `supabase test db` against local Supabase, `integration_test` journeys on Android emulator and iOS simulator.
 
-**Target Platform**: iOS 15+ and Android API 26+ as primary targets. Web, desktop, and server-rendered UI are out of scope for v1.
+**Target Platform**: iOS 15+, Android API 26+. Web/desktop out of scope (platform folders may remain but are not built or tested).
 
-**Project Type**: Mobile app with Supabase backend services. Push notifications and Firebase Cloud Messaging are out of scope for v1.
+**Project Type**: Mobile app + Supabase backend (versioned under `supabase/`).
 
-**Performance Goals**: Cached group dashboard renders in under 1 second after app launch on a mid-range mobile device; network refresh completes in under 3 seconds on normal mobile connectivity; member completion action updates local UI in under 300 ms; public discovery search returns usable results within 3 seconds; dashboard scrolling and progress grid remain at 60 fps for 30 assignments.
+**Performance Goals**: Cached dashboard visible < 1 s after launch; network refresh < 3 s; completion tap updates UI < 300 ms (optimistic); new group day visible ≤ 1 min after rollover (SC-012); 30-cell grid at 60 fps.
 
-**Constraints**: Arabic-first user-facing interface; RTL presentation for Arabic labels; offline-first viewing for previously opened daily assignments; personal completion can be queued offline and synced later; public discovery must not expose member list or reading progress to non-members; shared group progress may be stale offline and must be labeled clearly; organizer-only operations must be enforced in both UI and backend contracts; each published cycle has exactly 30 active member assignments; group timezone determines daily cutoff and late status.
+**Constraints**: Arabic-only RTL UI; design tokens only (no raw colors/sizes in features); fonts bundled; offline personal loop; all management and rotation rules enforced server-side (RLS + `SECURITY DEFINER` functions); no Quranic text authored by agents; no notifications.
 
-**Scale/Scope**: v1 focuses on public group discovery, join request approval, one selected group at a time, exactly 30 active members per daily cycle, all 30 Quran juz assignments, current-day dashboard, personal completion, organizer assignment review, member management, and daily history. The data model supports multiple groups per user, but multi-group dashboards are deferred.
+**Scale/Scope**: ≤ 30 active members per group, unlimited groups (owner cap 3), target 10k users / 1k active groups for v1; ~12 screens, 12 Cubits (plus `AuthCubit` from spec 002), ~25 RPC functions.
 
 ## Constitution Check
 
@@ -36,19 +52,27 @@ The implementation uses feature-first MVVM. Cubits act as ViewModels, repositori
 
 ### Pre-Research Gate
 
-- **I. Offline-Resilient Core**: PASS. The personal assignment loop remains usable from local cache after a group/day has been opened. Supabase Auth, public discovery, join requests, membership approval, assignment publishing, and shared progress sync are network-backed shared coordination operations allowed by the constitution.
-- **II. Mobile-First UX & Accessibility**: PASS. Plan targets phone-first iOS/Android layouts, Arabic-first copy, RTL support, adjustable Quran label/range text size, and contrast-sensitive visual states.
-- **III. Test-First**: PASS. The plan requires Cubit, repository/use-case, widget, and integration tests before implementation.
-- **IV. MVVM Architecture with Cubit**: PASS. Feature folders use `data/`, `cubit/`, and `view/`; Cubits act as ViewModels; Views call Cubit methods and render state.
-- **V. Simplicity & YAGNI**: PASS. Scope is limited to Quran group discovery/requesting and daily tracking. Notifications, reader, audio, chat, advanced public directory ranking, and multi-group dashboards are excluded from v1.
+| Gate | Status | Evidence |
+|------|--------|----------|
+| I. Offline-Resilient Core | PASS | Today's assignment, own status, and queued complete/undo work offline from SQLite; discovery, joining, volunteering, management require network (allowed shared coordination). Fonts bundled. |
+| II. Mobile-First, Arabic-First UX | PASS | Arabic-only RTL root, Arabic-Indic numerals formatter, 320 dp / 200% text scale, dark theme, 48 dp targets. |
+| III. Test-First | PASS | Every task group starts with failing tests; widget tests include RTL/200%/dark runs; pgTAP for RLS and rotation. |
+| IV. MVVM with Cubit | PASS | `data/` → `cubit/` → `view/` per feature; repositories behind interfaces; DI via `get_it` + `BlocProvider`. No sibling-feature imports: `SettingsRepository` lives in `lib/core/settings/`, and `quran_groups`/`settings` reach auth only through the core `SessionGateway` interface (implemented by `features/auth`). Cubits never depend on other Cubits. |
+| V. Simplicity & YAGNI | PASS | Rotation is computed by one SQL function; no Realtime subscriptions (refresh on open/resume/pull and after mutations); use cases only where logic exists (sync queue, optimistic completion). |
+| VI. Design System | PASS | Foundation built in Phase 2A before any screen; screens use shared widgets only. |
+| VII. Quran Content Integrity | PASS | Juz ranges and surah names read from owner-provided Tanzil `quran-data.xml` under `assets/quran/` with SHA-256 test; ordinal juz names are UI copy, not Quran text; no ayah text in this feature. |
 
 ### Post-Design Gate
 
-- **I. Offline-Resilient Core**: PASS. `data-model.md`, `supabase-rpc.md`, and `repository-contracts.md` include local cache and sync queue boundaries for offline assignment viewing and queued completion. Network-backed shared operations are limited to auth, discovery, join requests, organizer approvals, publishing, and shared sync.
-- **II. Mobile-First UX & Accessibility**: PASS. `ui-contract.md` defines Arabic-first phone screens, RTL handling, offline/stale states, public discovery privacy, join-request pending copy, and text-size settings.
-- **III. Test-First**: PASS. `quickstart.md` defines unit, Cubit, widget, and integration validation paths.
-- **IV. MVVM Architecture with Cubit**: PASS. Project structure, contracts, and quickstart preserve Model/ViewModel/View separation.
-- **V. Simplicity & YAGNI**: PASS. Contracts avoid push notifications, in-app Quran reader, chat, audio, advanced reminders, analytics, and multi-group dashboard behavior.
+| Gate | Status | Evidence |
+|------|--------|----------|
+| I | PASS | [data-model.md](./data-model.md) local tables + sync queue; [repository-contracts.md](./contracts/repository-contracts.md) offline rules. |
+| II | PASS | [ui-contract.md](./contracts/ui-contract.md) global rules, states, copy keys. |
+| III | PASS | [quickstart.md](./quickstart.md) red-green validation per layer. |
+| IV | PASS | Cubit/repository boundaries fixed in repository contracts. |
+| V | PASS | No Realtime, no pause, no custom portions, no admin console. |
+| VI | PASS | UI contract references only Principle VI tokens/components. |
+| VII | PASS | `QuranMetadataRepository` reads verified file; checksum test; tasks forbid authoring data. |
 
 ## Project Structure
 
@@ -61,73 +85,66 @@ specs/001-track-quran-groups/
 |-- data-model.md
 |-- quickstart.md
 |-- contracts/
-|   |-- repository-contracts.md
 |   |-- supabase-rpc.md
+|   |-- repository-contracts.md
 |   `-- ui-contract.md
 |-- checklists/
-|   `-- requirements.md
-`-- tasks.md              # Created later by /speckit-tasks
+|   |-- requirements.md
+|   `-- ux.md               # historical (pre-amendment), superseded by constitution VI
+`-- tasks.md
 ```
 
 ### Source Code (repository root)
 
 ```text
+assets/
+|-- fonts/                  # Cairo, Amiri (owner downloads, OFL)
+`-- quran/                  # quran-data.xml (Tanzil), SOURCE.md, checksums.sha256 (owner provides)
 lib/
 |-- main.dart
-|-- app/
-|   |-- app.dart
-|   |-- router.dart
-|   `-- bootstrap.dart
+|-- app/                    # app.dart (auth gate), bootstrap.dart, router.dart
 |-- core/
-|   |-- config/
-|   |-- di/
-|   |-- errors/
-|   |-- localization/
-|   |-- network/
-|   |-- storage/
-|   |-- sync/
-|   `-- theme/
-|-- features/
-|   |-- auth/
-|   |   |-- data/
-|   |   |   |-- data_sources/
-|   |   |   |-- entities/
-|   |   |   |-- repositories/
-|   |   |   `-- use_cases/
-|   |   |-- cubit/
-|   |   `-- view/
-|   `-- quran_groups/
-|       |-- data/
-|       |   |-- data_sources/
-|       |   |-- entities/
-|       |   |-- models/
-|       |   |-- repositories/
-|       |   `-- use_cases/
-|       |-- cubit/
-|       |   |-- assignment/
-|       |   |-- dashboard/
-|       |   |-- discovery/
-|       |   |-- history/
-|       |   |-- join_requests/
-|       |   `-- organizer/
-|       `-- view/
-|           |-- screens/
-|           `-- widgets/
+|   |-- config/  di/  errors/  network/  storage/  sync/
+|   |-- auth/               # session_gateway.dart (interface; impl in features/auth)
+|   |-- settings/           # SettingsRepository (selected group, Quran text scale)
+|   |-- localization/       # arabic_strings.dart, arabic_numerals.dart
+|   |-- design_system/      # app_colors, app_typography, app_spacing, app_radius, app_theme
+|   |   `-- widgets/        # AppButton, StatusChip, PartTile, StatePanel, ...
+|   `-- quran/              # QuranMetadataRepository (reads assets/quran)
+`-- features/
+    |-- auth/               # spec 002 (data/, cubit/, view/)
+    `-- quran_groups/
+        |-- data/           # entities/, models/, data_sources/, repositories/, use_cases/
+        |-- cubit/          # selected_group/, group_list/, create_group/, discovery/, join/,
+        |                   # dashboard/, assignment/, members/, join_requests/,
+        |                   # group_settings/, history/
+        `-- view/           # screens/, widgets/
+lib/features/settings/      # SettingsCubit + screen (text size, sign-out via SessionGateway)
 supabase/
-|-- migrations/
-`-- functions/
-test/
-|-- core/
-|-- features/
-|   |-- auth/
-|   `-- quran_groups/
-`-- widget_test.dart
+|-- config.toml
+|-- migrations/             # applied in filename order; auth first because groups reference profiles:
+|                           # 001_email_password_auth, 002_core_schema, 003_group_lifecycle_functions,
+|                           # 004_rotation_jobs (enables pg_cron), 005_dashboard_functions,
+|                           # 006_completion_functions, 007_join_functions, 008_volunteer_functions,
+|                           # 009_management_functions, 010_history_functions
+|-- functions/              # admin-create-user/, admin-reset-password/, _shared/ (spec 002)
+`-- tests/                  # pgTAP: rls, rotation, joins, volunteering, history
+test/                       # mirrors lib/
 integration_test/
-`-- quran_group_flow_test.dart
 ```
 
-**Structure Decision**: Use one Flutter app with feature-first MVVM modules. `features/auth` is a minimal support feature for Supabase Google Sign-In. `features/quran_groups` owns public discovery, join requests, organizer membership management, assignment publishing, dashboard tracking, personal completion, and history. Cross-feature infrastructure lives in `core/`; feature modules do not import sibling feature modules. Supabase migrations/functions live under `supabase/` so backend contracts and critical operations are versioned with the app.
+**Structure Decision**: One Flutter app, feature-first MVVM. `features/auth` follows spec 002. `features/quran_groups` owns all group behavior. `features/settings` is tiny but separate so `quran_groups` does not own sign-out. Shared Quran metadata lives in `core/quran` because spec 003 (Mushaf) will reuse it. Existing scaffolded screens under `lib/features/quran_groups/view/` predate the amendment and design system; they are rebuilt, not patched.
+
+## Implementation Order (dependency summary)
+
+1. Phase 1 Setup → Phase 2A Design system → Phase 2B Auth (spec 002) → Phase 2C Core data + backend schema + metadata.
+2. P1 stories: US2 (create + start) → US1 (dashboard) → US3 (completion). US2 first because there is no dashboard without a started group.
+3. P2: US4 join → US5 volunteer → US6 manage. P3: US7 history.
+4. Until US4 lands, US2/US1/US3 are validated with members inserted by a test-only SQL seed helper (`supabase/tests/helpers/seed_members.sql`); the first real-user release therefore includes US4 (a group with only its Owner is not a useful release).
 
 ## Complexity Tracking
 
-No active constitution violations. Supabase-backed auth and group coordination are treated as permitted network-backed shared coordination under the Offline-Resilient Core principle.
+| Item | Why Needed | Simpler Alternative Rejected Because |
+|------|------------|-------------------------------------|
+| `pg_cron` jobs | Days must exist and close at each group's local rollover (SC-012) | Client-side creation: absent clients would leave days missing and allow tampering. A lazy `ensure_current_day` call is kept as a fallback. |
+| Auth implemented inside 001 tasks | 001 cannot be tested without sign-in | Separate 002 tasks first: duplicates setup and delays the first usable slice. |
