@@ -81,6 +81,47 @@ Repository map (current state):
 - Upgrade supabase_flutter to the latest 2.x in T004 (publishable keys).
 
 ====================================================================
+2b. USE YOUR SKILLS AND MCP TOOLS
+====================================================================
+Before Phase 1, list the skills and MCP tools available to you and write
+the list at the top of your first report. Then use them actively:
+
+Skills (use whenever one matches the task):
+- Flutter / Dart skills: widget structure, state management with
+  flutter_bloc/Cubit, testing (flutter_test, bloc_test, mocktail),
+  golden/widget tests, performance, accessibility, RTL.
+- UI / design skills: apply them to build screens that match
+  docs/design/design-system-mock.html and constitution Principle VI.
+  Skills never override the design tokens, Cairo/Amiri fonts, colors,
+  spacing, or the one-primary-button rule; if a skill suggests a different
+  style, follow the constitution.
+- Testing / code-review / clean-code skills: run them on each task group
+  before committing.
+
+MCP tools (use when available):
+- Documentation MCP (e.g. Context7 or similar): look up current APIs for
+  Flutter, flutter_bloc, supabase_flutter, sqflite, app_links,
+  connectivity_plus, pg_cron, pgTAP before using them. Prefer this over
+  guessing APIs from memory.
+- Dart / Flutter MCP (if present): analyze, run tests, hot reload,
+  inspect widget trees.
+- Supabase MCP (if present): READ-ONLY use only - inspect tables, RLS
+  policies, function definitions, logs, and advisors (security and
+  performance) on project zwkvijapswwutwozbvgy after each `db push`.
+  NEVER apply migrations, run DDL, change auth/dashboard settings, create
+  branches/projects, or read/print secret keys through MCP. All schema
+  changes go through files in supabase/migrations + the Supabase CLI.
+- GitHub MCP (if present): read-only (view the repo/branches). Do not open
+  PRs, push, or merge; the owner does that.
+- Browser / screenshot MCP (if present): compare running screens with
+  docs/design/design-system-mock.html.
+- Never use any MCP or skill to generate, fetch, or "verify" Quranic text;
+  Rule 1 below still applies.
+
+If a skill or MCP tool you expected is not available, say so in the report
+and continue with the CLI and the docs.
+
+====================================================================
 3. HOW TO WORK
 ====================================================================
 - Execute tasks.md strictly in order, phase by phase. [P] tasks in the same
