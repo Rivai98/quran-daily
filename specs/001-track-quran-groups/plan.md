@@ -34,7 +34,7 @@ If the downloaded file's header shows a different version or license, the owner 
 
 **Storage**: Supabase PostgreSQL is the source of truth (groups, memberships, join requests, invites, group days, assignments, completion records, profiles). `pg_cron` runs rollover/close jobs every minute. Local SQLite caches dashboard snapshots, history summaries, my groups, and the personal sync queue; `shared_preferences` stores selected group and Quran text scale.
 
-**Testing**: TDD per constitution III. Cubit tests (`bloc_test`), repository tests (mocktail), widget tests (RTL + 200% text scale + dark theme for every screen), SQL tests with pgTAP via `supabase test db` against local Supabase, `integration_test` journeys on Android emulator and iOS simulator.
+**Testing**: TDD per constitution III. Cubit tests (`bloc_test`), repository tests (mocktail), widget tests (RTL + 200% text scale + dark theme for every screen), SQL tests with pgTAP via `supabase test db --remote` against the linked hosted dev project (no Docker; research R16), `integration_test` journeys on Android emulator and iOS simulator.
 
 **Target Platform**: iOS 15+, Android API 26+. Web/desktop out of scope (platform folders may remain but are not built or tested).
 

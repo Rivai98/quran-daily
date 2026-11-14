@@ -99,3 +99,13 @@ Each entry: Decision, Rationale, Alternatives considered. Decisions from the 202
 **Decision**: Dashboard refreshes on open, app resume, pull-to-refresh, and after own mutations. Supabase Realtime deferred.
 
 **Rationale**: YAGNI; daily reading does not need second-level freshness, and Realtime complicates offline/stale semantics.
+
+## R16. Docker-free backend workflow
+
+**Decision**: No Docker and no local Supabase stack. The hosted project `quran-daily` (ref `zwkvijapswwutwozbvgy`) is the development database until real users exist. Supabase CLI v3 commands used: `supabase db push --remote` (apply migrations), `supabase test db --remote` (pgTAP), `supabase functions deploy <name> --use-api` (bundle server-side), `supabase db reset --remote` only while the project has no real users.
+
+**Rationale**: The owner develops a mobile-only app on Windows and does not want Docker. CLI v3 supports all needed operations against a linked remote project.
+
+**Consequence**: Before public release, create a separate dev project (free plan allows two active projects) and keep `quran-daily` for production; from then on `db reset --remote` is forbidden on production.
+
+**Alternatives**: Local stack via Docker (`supabase start`) — rejected by owner.

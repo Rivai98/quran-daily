@@ -30,7 +30,7 @@
 - [X] T002 [P] Create test directory structure in `test/core/`, `test/features/`, `test/helpers/`, `integration_test/`
 - [X] T003 Replace the default counter app with bootstrap wiring in `lib/main.dart`, `lib/app/app.dart`, `lib/app/bootstrap.dart`
 - [ ] T004 Update `pubspec.yaml`: remove `google_sign_in`; add `intl`, `flutter_timezone`, `share_plus`, `app_links`, `connectivity_plus`; dev: `sqflite_common_ffi`; declare `assets/quran/` and font families `Cairo` (400/500/600/700) and `Amiri` (400/700) under `flutter: fonts:`; run `flutter pub get`
-- [ ] T005 [P] Initialize Supabase workspace: `supabase/config.toml` (via `supabase init`), empty `supabase/migrations/`, `supabase/functions/`, `supabase/tests/`. Extensions are not enabled in `config.toml`: `pg_cron` is created by `004_rotation_jobs.sql` (`create extension if not exists pg_cron`), and every pgTAP file starts with `create extension if not exists pgtap with schema extensions`. Migrations apply in filename order; `001_email_password_auth.sql` must precede `002_core_schema.sql`
+- [ ] T005 [P] Initialize Supabase workspace (no Docker; research R16): `supabase/config.toml` (via `supabase init`; the project is already linked to `zwkvijapswwutwozbvgy` by the owner), empty `supabase/migrations/`, `supabase/functions/`, `supabase/tests/`. Extensions are not enabled in `config.toml`: `pg_cron` is created by `004_rotation_jobs.sql` (`create extension if not exists pg_cron`), and every pgTAP file starts with `create extension if not exists pgtap with schema extensions`. Migrations apply in filename order; `001_email_password_auth.sql` must precede `002_core_schema.sql`
 - [ ] T006 [P] Add `.env.example` with `SUPABASE_URL` and `SUPABASE_ANON_KEY` placeholders and document `--dart-define-from-file` usage in `README.md`; ensure `.env` is in `.gitignore`
 - [ ] T007 **OWNER-PROVIDED** Place Cairo (Regular, Medium, SemiBold, Bold) and Amiri (Regular, Bold) TTF files from Google Fonts in `assets/fonts/` with their OFL license files
 - [ ] T008 **OWNER-PROVIDED** Place Tanzil `quran-data.xml` in `assets/quran/`, write `assets/quran/SOURCE.md` (origin URL, edition/version copied from the file header, riwayah, license, download date; must match plan.md "Quran Content Source") and `assets/quran/checksums.sha256`
@@ -100,7 +100,7 @@ Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its 
 - [ ] T051 Implement `SelectedGroupCubit` + `SettingsRepository` impl (shared_preferences, `lib/core/settings/`) with tests in `test/features/quran_groups/cubit/selected_group_cubit_test.dart`
 - [ ] T052 Replace legacy fixtures in `test/helpers/test_fixtures.dart` with builders for the new entities (groups, seat maps, 30-row snapshots, history)
 
-**Checkpoint**: foundation ready; `supabase test db` and `flutter test` green.
+**Checkpoint**: foundation ready; `supabase db push --remote`, `supabase test db --remote` and `flutter test` green.
 
 ---
 
@@ -223,12 +223,12 @@ Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its 
 ## Phase 10: Polish & Cross-Cutting
 
 - [ ] T110 [P] App settings S11: `SettingsCubit` (depends on `SettingsRepository` + `SessionGateway`, not `AuthCubit`) + tests + `lib/features/settings/view/settings_screen.dart` (text scale 0.85-1.6 applied to `quranLabel`, sign-out with confirm); remove `lib/features/quran_groups/view/screens/settings_screen.dart`
-- [ ] T111 [P] Integration test `integration_test/group_flow_test.dart`: sign up → create → invite second user → start → complete → undo → history (local Supabase)
+- [ ] T111 [P] Integration test `integration_test/group_flow_test.dart`: sign up → create → invite second user → start → complete → undo → history (hosted dev project via .env)
 - [ ] T112 [P] Integration test `integration_test/offline_completion_test.dart`: cached dashboard offline → complete → reconnect → synced
 - [ ] T113 Remove remaining legacy files under `lib/features/quran_groups/view/` and legacy tests not replaced; ensure `test/widget_test.dart` is a real smoke test or deleted
 - [ ] T114 Design system compliance review (constitution Principle VI): no raw colors/sizes/radii in features, shared components used, RTL + 200% text scale + dark theme verified on every screen
 - [ ] T115 Quran integrity review (Principle VII): grep code, tests, fixtures for any Arabic ayah text; only metadata repository reads Quran data; checksum test green
-- [ ] T116 Run `flutter analyze`, `flutter test`, `supabase test db`, and all `quickstart.md` scenarios on Android emulator and iOS simulator; record results in `specs/001-track-quran-groups/quickstart.md` "Validation log" section
+- [ ] T116 Run `flutter analyze`, `flutter test`, `supabase test db --remote`, and all `quickstart.md` scenarios on Android emulator and iOS simulator; record results in `specs/001-track-quran-groups/quickstart.md` "Validation log" section
 
 ---
 

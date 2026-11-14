@@ -5,7 +5,7 @@ Validation/run guide only; implementation lives in `tasks.md`.
 ## Prerequisites
 
 - Flutter stable (Dart `^3.10.4`), Android emulator (API 26+), iOS simulator (iOS 15+, macOS only).
-- Docker + Supabase CLI for local backend (`supabase start`).
+- Supabase CLI v3 (installed at `%LOCALAPPDATA%\supabase-cli`, on PATH). No Docker. Owner has run `supabase login` and `supabase link --project-ref zwkvijapswwutwozbvgy` once (research R16).
 - Owner-provided assets (agents must not create them):
   - `assets/fonts/` Cairo (400/500/600/700) and Amiri (400/700) TTF files (OFL, from Google Fonts).
   - `assets/quran/quran-data.xml` (Tanzil metadata), `assets/quran/SOURCE.md`, `assets/quran/checksums.sha256`.
@@ -14,9 +14,8 @@ Validation/run guide only; implementation lives in `tasks.md`.
 ## Commands
 
 ```bash
-supabase start
-supabase db reset          # applies supabase/migrations
-supabase test db           # pgTAP: rotation, RLS, joins, volunteering, history
+supabase db push --remote  # applies supabase/migrations to the hosted dev project
+supabase test db --remote  # pgTAP: rotation, RLS, joins, volunteering, history
 flutter pub get
 flutter analyze
 flutter test
