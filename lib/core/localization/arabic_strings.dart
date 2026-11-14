@@ -108,6 +108,27 @@ class ArabicStrings {
   static const checkingSession = 'جارٍ التحقق من جلستك';
   static const profileLoadTitle = 'تعذر تحميل ملفك الشخصي';
 
+  // --- Group lifecycle copy (S1/S4/S9/S5-forming) ---
+  static const nameLengthError = 'اسم المجموعة من ٣ إلى ٦٠ حرفًا';
+  static const descriptionLengthError = 'الوصف حتى ٢٠٠ حرف';
+  static const ownerGroupLimitCopy =
+      'يمتلك حسابك ٣ مجموعات بالفعل. أرشف مجموعة أولًا لإنشاء مجموعة جديدة.';
+  static const groupsNeedMembersEntry = 'مجموعات تحتاج أعضاء';
+  static const joinAnyGroupAction = 'انضم لأي مجموعة ناقصة';
+  static const iHaveInviteLink = 'عندي رابط دعوة';
+  static const searchGroupAction = 'ابحث عن مجموعة';
+  static const createTheGroup = 'أنشئ المجموعة';
+  static const formingLabel = 'قيد التكوين';
+  static const activeLabel = 'نشطة';
+  static const startKhatmaAction = 'ابدأ الختمة';
+  static const shareInviteAction = 'شارك الدعوة';
+  static const inviteCodeLabel = 'رمز الدعوة';
+  static const startJuzChoice = 'اختر جزء البداية للمقعد ١';
+  static const settingsApplyTomorrowNote =
+      'تغييرات التوقيت تُطبق من يوم المجموعة التالي';
+  static const archiveGroupAction = 'أرشف المجموعة';
+  static const missingX = 'ناقص';
+
   // Field-level validation copy.
   static const invalidEmailError = 'أدخل بريدًا إلكترونيًا صحيحًا';
   static const shortPasswordError = 'كلمة المرور ٨ أحرف على الأقل';

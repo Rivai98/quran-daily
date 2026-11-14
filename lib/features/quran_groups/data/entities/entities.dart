@@ -5,7 +5,7 @@ import 'package:equatable/equatable.dart';
 
 enum GroupStatus { forming, active, archived }
 
-enum Visibility { public, private }
+enum GroupVisibility { public, private }
 
 enum JoinMode { autoAccept, approval }
 

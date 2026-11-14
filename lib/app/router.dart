@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../features/quran_groups/view/screens/daily_history_screen.dart';
 import '../features/quran_groups/view/screens/group_dashboard_screen.dart';
+import '../features/quran_groups/view/screens/create_group_screen.dart';
 import '../features/quran_groups/view/screens/group_selection_screen.dart';
 import '../features/quran_groups/view/screens/member_management_screen.dart';
 import '../features/quran_groups/view/screens/organizer_assignment_review_screen.dart';
@@ -34,6 +35,7 @@ class AppRoutes {
     // deliberately absent from this table.
     return {
       groups: (_) => const GroupSelectionScreen(),
+      '/groups/new': (_) => const CreateGroupScreen(),
       discovery: (_) => const PublicGroupDiscoveryScreen(),
       dashboard: (_) => const GroupDashboardScreen(),
       assignment: (_) => const PersonalAssignmentDetailScreen(),

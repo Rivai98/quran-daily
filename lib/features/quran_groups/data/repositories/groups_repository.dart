@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 import '../../../../core/errors/result.dart';
 import '../entities/entities.dart';
 import '../models/models.dart';
@@ -16,7 +18,7 @@ class CreateGroupInput extends EquatableInput {
   final String? shortDescription;
   final String timezone;
   final String dayStartTime;
-  final Visibility visibility;
+  final GroupVisibility visibility;
   final JoinMode joinMode;
 
   @override
@@ -49,7 +51,7 @@ class GroupSettingsPatch extends EquatableInput {
   final String? shortDescription;
   final String? timezone;
   final String? dayStartTime;
-  final Visibility? visibility;
+  final GroupVisibility? visibility;
   final JoinMode? joinMode;
 
   bool get isEmpty =>
@@ -66,11 +68,9 @@ class GroupSettingsPatch extends EquatableInput {
       ];
 }
 
-/// Non-generic Equatable base for inputs.
-abstract class EquatableInput {
+/// Non-generic base for inputs (keeps signatures simple).
+abstract class EquatableInput extends Equatable {
   const EquatableInput();
-
-  List<Object?> get props;
 }
 
 /// Groups/joining/management repository (repository contract). Network-only
