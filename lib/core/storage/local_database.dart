@@ -1,123 +1,105 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:sqflite/sqflite.dart';
 
+/// Local SQLite cache (data-model v1): dashboard snapshots, my groups,
+/// history pages, and the personal sync queue. Used only by repositories.
 class LocalDatabase {
-  const LocalDatabase({this.databasePath});
+  LocalDatabase({this.databasePath});
 
   static const databaseName = 'quran_daily.db';
   static const schemaVersion = 1;
 
-  static const dashboardSnapshotsTable = 'dashboard_snapshots';
-  static const publicGroupProfilesTable = 'public_group_profiles';
-  static const historySummariesTable = 'history_summaries';
-  static const quranPartsTable = 'quran_parts';
-  static const userSettingsTable = 'user_settings';
-  static const syncOperationsTable = 'sync_operations';
-
   final String? databasePath;
 
-  Future<Database> open() async {
-    final resolvedPath =
-        databasePath ?? '${await getDatabasesPath()}${Platform.pathSeparator}$databaseName';
+  Database? _db;
 
-    return openDatabase(
-      resolvedPath,
-      version: schemaVersion,
-      onCreate: (database, version) async {
-        for (final migration in LocalDatabaseMigration.all) {
-          if (migration.version <= version) {
-            await migration.apply(database);
-          }
-        }
-      },
-      onUpgrade: (database, oldVersion, newVersion) async {
-        for (final migration in LocalDatabaseMigration.all) {
-          if (migration.version > oldVersion && migration.version <= newVersion) {
-            await migration.apply(database);
-          }
-        }
-      },
-    );
-  }
-}
+  /// Opens (or creates) the database; [inMemory] is for tests.
+  Future<Database> open({bool inMemory = false}) async {
+    if (_db != null && _db!.isOpen) return _db!;
 
-class LocalDatabaseMigration {
-  const LocalDatabaseMigration({
-    required this.version,
-    required this.statements,
-  });
-
-  final int version;
-  final List<String> statements;
-
-  static List<LocalDatabaseMigration> get all => [version1()];
-
-  static LocalDatabaseMigration version1() {
-    return const LocalDatabaseMigration(
-      version: 1,
-      statements: [
-        '''
-CREATE TABLE IF NOT EXISTS dashboard_snapshots (
-  group_id TEXT PRIMARY KEY,
-  payload TEXT NOT NULL,
-  cached_at TEXT NOT NULL,
-  is_stale INTEGER NOT NULL DEFAULT 0
-)
-''',
-        '''
-CREATE TABLE IF NOT EXISTS public_group_profiles (
-  cache_key TEXT NOT NULL,
-  group_id TEXT NOT NULL,
-  payload TEXT NOT NULL,
-  cached_at TEXT NOT NULL,
-  PRIMARY KEY (cache_key, group_id)
-)
-''',
-        '''
-CREATE TABLE IF NOT EXISTS history_summaries (
-  group_id TEXT NOT NULL,
-  cycle_date TEXT NOT NULL,
-  payload TEXT NOT NULL,
-  cached_at TEXT NOT NULL,
-  PRIMARY KEY (group_id, cycle_date)
-)
-''',
-        '''
-CREATE TABLE IF NOT EXISTS quran_parts (
-  part_number INTEGER PRIMARY KEY,
-  display_label TEXT NOT NULL,
-  reading_range_label TEXT NOT NULL,
-  sort_order INTEGER NOT NULL
-)
-''',
-        '''
-CREATE TABLE IF NOT EXISTS user_settings (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
-  selected_group_id TEXT,
-  quran_text_scale REAL NOT NULL DEFAULT 1.0,
-  preferred_locale TEXT NOT NULL DEFAULT 'ar',
-  last_dashboard_cache_at TEXT
-)
-''',
-        '''
-CREATE TABLE IF NOT EXISTS sync_operations (
-  id TEXT PRIMARY KEY,
-  operation_type TEXT NOT NULL,
-  assignment_id TEXT NOT NULL,
-  payload TEXT NOT NULL,
-  created_at TEXT NOT NULL,
-  sync_status TEXT NOT NULL,
-  last_error TEXT
-)
-''',
-      ],
-    );
-  }
-
-  Future<void> apply(Database database) async {
-    for (final statement in statements) {
-      await database.execute(statement);
+    if (inMemory) {
+      _db = await databaseFactory.openDatabase(
+        inMemoryDatabasePath,
+        options: OpenDatabaseOptions(
+          version: schemaVersion,
+          onCreate: _onCreate,
+        ),
+      );
+      return _db!;
     }
+
+    final dir = databasePath ??
+        '${await getDatabasesPath()}${Platform.pathSeparator}$databaseName';
+    _db = await openDatabase(
+      dir,
+      version: schemaVersion,
+      onCreate: _onCreate,
+    );
+    return _db!;
+  }
+
+  Future<void> _onCreate(Database db, int version) async {
+    await db.execute('''
+      create table cached_snapshots (
+        group_id text primary key,
+        json text not null,
+        cached_at integer not null
+      )
+    ''');
+    await db.execute('''
+      create table cached_groups (
+        user_id text primary key,
+        json text not null,
+        cached_at integer not null
+      )
+    ''');
+    await db.execute('''
+      create table cached_history (
+        group_id text primary key,
+        json text not null,
+        cached_at integer not null
+      )
+    ''');
+    await db.execute('''
+      create table sync_queue (
+        id text primary key,
+        op text not null,
+        assignment_id text not null,
+        client_recorded_at integer not null,
+        status text not null default 'pending',
+        attempts integer not null default 0,
+        last_error_kind text,
+        created_at integer not null
+      )
+    ''');
+  }
+
+  /// Raw access for DAOs.
+  Future<Database> get database async {
+    if (_db == null || !_db!.isOpen) {
+      await open();
+    }
+    return _db!;
+  }
+
+  Future<List<String>> tableNames() async {
+    final db = await database;
+    final rows = await db.rawQuery(
+      "select name from sqlite_master where type = 'table' and name not like 'sqlite_%'",
+    );
+    return rows.map((r) => r['name']! as String).toList();
+  }
+
+  Future<void> close() async {
+    await _db?.close();
+    _db = null;
   }
 }
+
+/// Convenience: encode/decode the JSON column safely.
+Map<String, Object?> decodeJson(String raw) =>
+    (jsonDecode(raw) as Map).cast<String, Object?>();
+
+String encodeJson(Map<String, Object?> value) => jsonEncode(value);

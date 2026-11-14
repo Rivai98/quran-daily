@@ -79,4 +79,38 @@ void main() {
       );
     });
   });
+
+  group('FailureKind mapping (repository contract)', () {
+    test('backend codes map to their stable kinds', () {
+      const cases = <String, FailureKind>{
+        'unauthenticated': FailureKind.unauthenticated,
+        'forbidden': FailureKind.forbidden,
+        'not_member': FailureKind.forbidden,
+        'validation_failed': FailureKind.validation,
+        'network': FailureKind.network,
+        'group_not_found': FailureKind.notFound,
+        'juz_already_taken': FailureKind.conflict,
+        'group_full': FailureKind.conflict,
+        'day_closed': FailureKind.dayClosed,
+        'owner_group_limit': FailureKind.limitReached,
+      };
+      for (final entry in cases.entries) {
+        final failure = UnknownFailure(message: 'm', code: entry.key);
+        expect(failure.kind, entry.value, reason: entry.key);
+      }
+    });
+
+    test('unknown codes fall back to the failure category', () {
+      const failure = NetworkFailure(message: 'm', code: 'some_new_code');
+      expect(failure.kind, FailureKind.network);
+    });
+
+    test('offline queued failures keep their kind', () {
+      const failure = OfflineQueuedFailure(
+        message: 'queued',
+        code: 'offline_queued',
+      );
+      expect(failure.kind, FailureKind.offlineQueued);
+    });
+  });
 }

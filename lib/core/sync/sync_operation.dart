@@ -1,51 +1,56 @@
 import 'package:equatable/equatable.dart';
 
+/// Queued personal completion operations (data-model `sync_queue`).
 enum SyncOperationType { markComplete, undoCompletion }
 
-enum SyncOperationStatus { pending, syncing, synced, failed }
+enum SyncOperationStatus { pending, syncing, failed }
 
-class LocalSyncOperation extends Equatable {
-  const LocalSyncOperation({
+class SyncOperation extends Equatable {
+  const SyncOperation({
     required this.id,
-    required this.operationType,
+    required this.type,
     required this.assignmentId,
-    required this.payload,
-    required this.createdAt,
+    required this.clientRecordedAt,
     this.status = SyncOperationStatus.pending,
-    this.lastError,
+    this.attempts = 0,
+    this.lastErrorKind,
+    this.createdAt,
   });
 
   final String id;
-  final SyncOperationType operationType;
+  final SyncOperationType type;
   final String assignmentId;
-  final Map<String, Object?> payload;
-  final DateTime createdAt;
+  final DateTime clientRecordedAt;
   final SyncOperationStatus status;
-  final String? lastError;
+  final int attempts;
+  final String? lastErrorKind;
+  final DateTime? createdAt;
 
-  LocalSyncOperation copyWith({
+  SyncOperation copyWith({
     SyncOperationStatus? status,
-    String? lastError,
+    int? attempts,
+    String? lastErrorKind,
   }) {
-    return LocalSyncOperation(
+    return SyncOperation(
       id: id,
-      operationType: operationType,
+      type: type,
       assignmentId: assignmentId,
-      payload: payload,
-      createdAt: createdAt,
+      clientRecordedAt: clientRecordedAt,
       status: status ?? this.status,
-      lastError: lastError ?? this.lastError,
+      attempts: attempts ?? this.attempts,
+      lastErrorKind: lastErrorKind ?? this.lastErrorKind,
+      createdAt: createdAt,
     );
   }
 
   @override
   List<Object?> get props => [
         id,
-        operationType,
+        type,
         assignmentId,
-        payload,
-        createdAt,
+        clientRecordedAt,
         status,
-        lastError,
+        attempts,
+        lastErrorKind,
       ];
 }

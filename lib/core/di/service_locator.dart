@@ -2,9 +2,14 @@ import 'package:get_it/get_it.dart';
 
 import '../auth/session_gateway.dart';
 import '../config/app_config.dart';
+import '../network/connectivity_service.dart';
 import '../network/supabase_client_provider.dart';
+import '../quran/quran_metadata_repository.dart';
+import '../settings/settings_repository.dart';
+import '../settings/settings_repository_impl.dart';
 import '../storage/local_database.dart';
 import '../../features/auth/cubit/auth_cubit.dart';
+import '../../features/quran_groups/cubit/selected_group/selected_group_cubit.dart';
 import '../../features/auth/data/data_sources/supabase_auth_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -26,6 +31,21 @@ void configureServiceLocator({
 
   if (!locator.isRegistered<LocalDatabase>()) {
     locator.registerLazySingleton<LocalDatabase>(LocalDatabase.new);
+  }
+
+  if (!locator.isRegistered<SettingsRepository>()) {
+    locator.registerLazySingleton<SettingsRepository>(
+        SettingsRepositoryImpl.new);
+  }
+
+  if (!locator.isRegistered<QuranMetadataRepository>()) {
+    locator.registerLazySingleton<QuranMetadataRepository>(
+        QuranMetadataRepository.new);
+  }
+
+  if (!locator.isRegistered<ConnectivityService>()) {
+    locator.registerLazySingleton<ConnectivityService>(
+        ConnectivityServiceImpl.new);
   }
 
   if (withSupabase) {
@@ -59,6 +79,15 @@ void configureServiceLocator({
     if (!locator.isRegistered<AuthCubit>()) {
       locator.registerLazySingleton<AuthCubit>(
         () => AuthCubit(repository: locator<AuthRepository>()),
+      );
+    }
+
+    if (!locator.isRegistered<SelectedGroupCubit>()) {
+      locator.registerFactory<SelectedGroupCubit>(
+        () => SelectedGroupCubit(
+          settingsRepository: locator<SettingsRepository>(),
+          sessionGateway: locator<SessionGateway>(),
+        ),
       );
     }
   }

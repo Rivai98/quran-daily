@@ -11,6 +11,43 @@ void main() {
     expect(ArabicStrings.unread, 'لم يقرأه أحد');
   });
 
+  test('provides 30 ordinal juz names in order', () {
+    expect(ArabicStrings.juzOrdinals.length, 30);
+    expect(ArabicStrings.juzName(1), 'الجزء الأول');
+    expect(ArabicStrings.juzName(5), 'الجزء الخامس');
+    expect(ArabicStrings.juzName(20), 'الجزء العشرون');
+    expect(ArabicStrings.juzName(30), 'الجزء الثلاثون');
+    expect(() => ArabicStrings.juzName(0), throwsRangeError);
+    expect(() => ArabicStrings.juzName(31), throwsRangeError);
+  });
+
+  test('formats the reading range with Arabic-Indic digits', () {
+    expect(
+      ArabicStrings.juzRange(
+        startSura: 'النساء',
+        startAya: 24,
+        endSura: 'النساء',
+        endAya: 147,
+      ),
+      'من سورة النساء آية ٢٤ إلى سورة النساء آية ١٤٧',
+    );
+    expect(
+      ArabicStrings.juzRange(
+        startSura: 'البقرة',
+        startAya: 142,
+        endSura: 'آل عمران',
+        endAya: 200,
+      ),
+      'من سورة البقرة آية ١٤٢ إلى سورة آل عمران آية ٢٠٠',
+    );
+  });
+
+  test('role markers are Arabic-only', () {
+    expect(ArabicStrings.roleOwner, 'المالك');
+    expect(ArabicStrings.roleSupervisor, 'مشرف');
+    expect(ArabicStrings.roleMember, 'عضو');
+  });
+
   test('keeps critical user-facing copy valid UTF-8 Arabic', () {
     final criticalCopy = [
       ArabicStrings.appName,

@@ -55,6 +55,46 @@ class ArabicStrings {
   static const showPassword = 'إظهار كلمة المرور';
   static const hidePassword = 'إخفاء كلمة المرور';
 
+  // --- Juz ordinal names (UI copy, not Quran text; T043) ---
+  static const List<String> juzOrdinals = [
+    'الجزء الأول', 'الجزء الثاني', 'الجزء الثالث', 'الجزء الرابع',
+    'الجزء الخامس', 'الجزء السادس', 'الجزء السابع', 'الجزء الثامن',
+    'الجزء التاسع', 'الجزء العاشر', 'الجزء الحادي عشر',
+    'الجزء الثاني عشر', 'الجزء الثالث عشر', 'الجزء الرابع عشر',
+    'الجزء الخامس عشر', 'الجزء السادس عشر', 'الجزء السابع عشر',
+    'الجزء الثامن عشر', 'الجزء التاسع عشر', 'الجزء العشرون',
+    'الجزء الحادي والعشرون', 'الجزء الثاني والعشرون',
+    'الجزء الثالث والعشرون', 'الجزء الرابع والعشرون',
+    'الجزء الخامس والعشرون', 'الجزء السادس والعشرون',
+    'الجزء السابع والعشرون', 'الجزء الثامن والعشرون',
+    'الجزء التاسع والعشرون', 'الجزء الثلاثون',
+  ];
+
+  /// الاسم الترتيبي للجزء (١..٣٠).
+  static String juzName(int n) => juzOrdinals[n - 1];
+
+  /// نطاق القراءة: "من سورة {س} آية {ن} إلى سورة {م} آية {ك}".
+  static String juzRange({
+    required String startSura,
+    required int startAya,
+    required String endSura,
+    required int endAya,
+  }) {
+    return 'من سورة $startSura آية ${_num(startAya)}'
+        ' إلى سورة $endSura آية ${_num(endAya)}';
+  }
+
+  static String _num(int n) {
+    const digits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    return n.toString().split('').map((c) => digits[int.parse(c)]).join();
+  }
+
+  // --- Role markers ---
+  static const roleOwner = 'المالك';
+  static const roleSupervisor = 'مشرف';
+  static const roleMember = 'عضو';
+
+
   // --- Auth entry screen (spec 002) ---
   static const signInTitle = 'تسجيل الدخول';
   static const createAccountTitle = 'إنشاء حساب';
