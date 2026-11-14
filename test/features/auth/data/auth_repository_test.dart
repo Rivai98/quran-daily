@@ -114,6 +114,37 @@ void main() {
           ));
     });
 
+    test('falls back to sign-in when signup returns no session', () async {
+      when(() => dataSource.signUp(
+            email: 'sara@test.local',
+            password: 'password123',
+            displayName: 'سارة',
+          )).thenAnswer((_) async => null);
+
+      // No session right after signup; the fallback sign-in establishes it.
+      var currentUserIdCalls = 0;
+      when(() => dataSource.currentUserId()).thenAnswer(
+          (_) => currentUserIdCalls++ == 0 ? null : user.id);
+      when(() => dataSource.signIn(
+            email: 'sara@test.local',
+            password: 'password123',
+          )).thenAnswer((_) async => 'signed-in-after-signup');
+      when(() => dataSource.selectProfile(user.id))
+          .thenAnswer((_) async => profileRow);
+
+      final result = await repository.signUp(
+        displayName: 'سارة',
+        email: 'sara@test.local',
+        password: 'password123',
+      );
+
+      expect(result.isSuccess, isTrue);
+      verify(() => dataSource.signIn(
+            email: 'sara@test.local',
+            password: 'password123',
+          )).called(1);
+    });
+
     test('maps duplicate email to a stable non-revealing code', () async {
       when(() => dataSource.signUp(
             email: 'sara@test.local',

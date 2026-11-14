@@ -36,11 +36,17 @@ class AuthRepositoryImpl implements AuthRepository {
     }
 
     try {
-      await dataSource.signUp(
+      final session = await dataSource.signUp(
         email: normalized.$2,
         password: password,
         displayName: normalized.$1,
       );
+      // Some hosted configurations create the account already confirmed but
+      // return no session at signup; fall back to a password sign-in so the
+      // user lands authenticated either way.
+      if (session == null && dataSource.currentUserId() == null) {
+        await dataSource.signIn(email: normalized.$2, password: password);
+      }
       return _authenticatedResult(email: normalized.$2);
     } catch (error) {
       return FailureResult(_mapError(error));
