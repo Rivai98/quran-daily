@@ -53,3 +53,4 @@ android/.gradle/
 # CocoaPods build artifacts
 ios/Pods/
 macos/Pods/
+!.env.example

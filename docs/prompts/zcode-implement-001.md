@@ -26,6 +26,33 @@ PHASE: 1 through 5 (MVP). Stop after Phase 5 and report.
 9. specs/002-email-password-auth/ (spec, plan, data-model, research, contracts) before Phase 2B
 10. specs/001-track-quran-groups/tasks.md   (your work list)
 
+## Supabase project (already created and configured by the owner)
+- Hosted project ref: zwkvijapswwutwozbvgy (region eu-north-1).
+- .env at repo root already contains SUPABASE_URL and SUPABASE_ANON_KEY
+  (a publishable key "sb_publishable_..."). Run the app with
+  --dart-define-from-file=.env. .env is gitignored; .env.example is tracked.
+  Never commit .env, never print the key in logs or docs.
+- Auth is already configured on the hosted project: email provider only,
+  signups enabled, email confirmation OFF, minimum password length 8,
+  magic links/OTP OFF. Do not change dashboard settings.
+- Use a supabase_flutter version that supports publishable keys
+  (upgrade from ^2.9.1 to the latest 2.x in T004) and pass the key as anonKey.
+- Development and tests run against LOCAL Supabase (supabase start, Docker).
+  Never run destructive commands against the hosted project.
+- Deploying to the hosted project is done by the owner. At each phase
+  checkpoint that adds migrations, list in your report the exact commands:
+    supabase login
+    supabase link --project-ref zwkvijapswwutwozbvgy
+    supabase db push
+    supabase functions deploy admin-create-user
+    supabase functions deploy admin-reset-password
+  Do not run them yourself unless the owner explicitly asks.
+- Migrations must be idempotent-safe for hosted Postgres: create extensions
+  with "create extension if not exists pg_cron" / pgtap only in tests, and
+  explicitly "grant execute" on every RPC function to the authenticated role.
+- Edge Functions read the service key from the built-in
+  SUPABASE_SERVICE_ROLE_KEY env var; never hard-code or commit any secret key.
+
 ## How to work
 - Execute tasks.md strictly in order, phase by phase. Respect [P] only for
   tasks in the same phase that touch different files.
@@ -111,4 +138,6 @@ Change the `PHASE:` line to one of these and keep the rest:
    `assets/quran/`, write `SOURCE.md` matching the "Quran Content Source" table in
    `specs/001-track-quran-groups/plan.md`, and generate `checksums.sha256` (T008).
 3. Install Docker Desktop and the Supabase CLI for `supabase start` / `supabase test db`.
-4. Create `.env` from `.env.example` with your Supabase URL and anon key.
+4. Done already: hosted Supabase project `quran-daily` (ref `zwkvijapswwutwozbvgy`) is
+   created, auth is configured, and `.env` holds its URL and publishable key.
+   Keep your database password safe; you'll need it for `supabase link` / `supabase db push`.
