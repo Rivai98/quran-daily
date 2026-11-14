@@ -22,7 +22,7 @@ class PublicGroupProfileCard extends StatelessWidget {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.12),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(Icons.groups, color: theme.colorScheme.primary),
@@ -80,7 +80,7 @@ class PublicGroupProfileCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(AppSpacing.xs),
                     decoration: BoxDecoration(
-                      color: AppTheme.pendingColor.withOpacity(0.1),
+                      color: AppTheme.pendingColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(

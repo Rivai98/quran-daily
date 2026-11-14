@@ -26,8 +26,8 @@ class StatusChip extends StatelessWidget {
     return Chip(
       avatar: Icon(_icon, size: 16, color: color),
       label: Text(label),
-      backgroundColor: color.withOpacity(0.1),
-      side: BorderSide(color: color.withOpacity(0.32)),
+      backgroundColor: color.withValues(alpha: 0.1),
+      side: BorderSide(color: color.withValues(alpha: 0.32)),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       labelStyle: TextStyle(color: color, fontWeight: FontWeight.w700),
       visualDensity: VisualDensity.compact,

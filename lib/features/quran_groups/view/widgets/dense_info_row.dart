@@ -36,7 +36,7 @@ class DenseInfoRow extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.11),
+                  color: color.withValues(alpha: 0.11),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -66,7 +66,7 @@ class DenseInfoRow extends StatelessWidget {
               ),
               if (trailing != null) ...[
                 const SizedBox(width: AppSpacing.xs),
-                trailing!,
+                Flexible(child: trailing!),
               ],
             ],
           ),

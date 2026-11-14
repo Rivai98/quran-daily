@@ -12,7 +12,8 @@ class SupabaseClientProvider {
     if (!_initialized) {
       await Supabase.initialize(
         url: config.supabaseUrl.toString(),
-        anonKey: config.supabaseAnonKey,
+        // 2.x publishable key (sb_publishable_...); anonKey is deprecated.
+        publishableKey: config.supabaseAnonKey,
       );
       _initialized = true;
     }

@@ -16,10 +16,10 @@ void main() {
 
     await tester.pumpWidget(
       buildArabicTestApp(
-        const Scaffold(
+        Scaffold(
           body: ListView(
-            padding: EdgeInsets.all(16),
-            children: [AssignmentStatusGrid()],
+            padding: const EdgeInsets.all(16),
+            children: const [AssignmentStatusGrid()],
           ),
         ),
       ),

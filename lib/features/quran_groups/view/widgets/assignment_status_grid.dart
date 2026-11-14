@@ -47,8 +47,8 @@ class AssignmentStatusGrid extends StatelessWidget {
             };
             return DecoratedBox(
               decoration: BoxDecoration(
-                color: color.withOpacity(0.08),
-                border: Border.all(color: color.withOpacity(0.28)),
+                color: color.withValues(alpha: 0.08),
+                border: Border.all(color: color.withValues(alpha: 0.28)),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Padding(

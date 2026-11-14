@@ -34,7 +34,7 @@ class StatePanel extends StatelessWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: tone.withOpacity(0.12),
+                color: tone.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: tone),

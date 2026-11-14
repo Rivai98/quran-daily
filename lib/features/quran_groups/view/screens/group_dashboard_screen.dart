@@ -28,9 +28,11 @@ class GroupDashboardScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: AppSpacing.screen,
-        children: [
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
           const OfflineStaleBanner(),
           const SizedBox(height: AppSpacing.sm),
           const DashboardProgressHeader(),
@@ -86,7 +88,8 @@ class GroupDashboardScreen extends StatelessWidget {
             onTap: () => Navigator.pushNamed(context, AppRoutes.history),
             trailing: const Icon(Icons.chevron_left),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -112,7 +115,7 @@ class _PersonalAssignmentCard extends StatelessWidget {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.12),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -139,9 +142,11 @@ class _PersonalAssignmentCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const StatusChip(
-                  label: ArabicStrings.pending,
-                  status: ReadingStatus.pending,
+                const Flexible(
+                  child: StatusChip(
+                    label: ArabicStrings.pending,
+                    status: ReadingStatus.pending,
+                  ),
                 ),
               ],
             ),
