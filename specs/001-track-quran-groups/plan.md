@@ -21,7 +21,7 @@ This plan also delivers, as blocking foundations:
 | File | `quran-data.xml` (juz starts as sura/aya, sura names and ayah counts) |
 | Edition / version | Tanzil Quran Metadata v1.0 (the version string in the file header MUST be copied verbatim into `assets/quran/SOURCE.md`) |
 | Riwayah / numbering | Hafs 'an 'Asim, Kufan ayah count (6236 ayat), standard Madani juz boundaries |
-| License | Creative Commons Attribution 3.0, as stated in the file header; attribution to Tanzil.net in `SOURCE.md` and the app's about/licenses page |
+| License | `cc-by` (Creative Commons Attribution), as stated in the file header `license="cc-by"`; attribution to Tanzil.net in `SOURCE.md` and the app's licenses page |
 | Content used | Juz start sura/aya, sura Arabic names, sura ayah counts only. No ayah text. |
 
 If the downloaded file's header shows a different version or license, the owner updates this table in the same PR that adds the file. Agents never create, edit, or reformat the file.

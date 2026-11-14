@@ -46,7 +46,7 @@ Repository map (current state):
 - .env (gitignored)                       SUPABASE_URL + SUPABASE_ANON_KEY (publishable)
 - .env.example                            tracked template
 - supabase/                               does not exist yet (T005 creates it)
-- assets/fonts/, assets/quran/            OWNER-PROVIDED (see rule 2)
+- assets/fonts/, assets/quran/            provided, read-only (see rule 2)
 - android/, ios/                          the only platforms to build
 
 ====================================================================
@@ -113,10 +113,12 @@ Repository map (current state):
    fixtures, comments, or docs. Read them only via QuranMetadataRepository
    from assets/quran/quran-data.xml. Tests assert structure and values read
    from the file, never hard-coded names or boundaries.
-2. OWNER-PROVIDED files: T007 (Cairo + Amiri fonts) and T008 (Tanzil
-   quran-data.xml, SOURCE.md, checksums.sha256). Do NOT create, download, or
-   fake them. If missing, skip only the tasks that need them, continue the
-   rest, and list what is blocked.
+2. OWNER-PROVIDED files are already in place (T007, T008 are [X]):
+   assets/fonts/cairo/Cairo-Variable.ttf (variable font; set fontWeight AND
+   FontVariation('wght', w)), assets/fonts/amiri/Amiri-{Regular,Bold}.ttf,
+   assets/quran/quran-data.xml + SOURCE.md + checksums.sha256. Never modify,
+   re-download, reformat, or replace any file under assets/quran/ or
+   assets/fonts/. .gitattributes keeps them byte-exact.
 3. DESIGN SYSTEM: no Color(0x...), fontSize:, or BorderRadius.circular( in
    lib/features/**. Use lib/core/design_system tokens and shared widgets.
    UI font Cairo; Amiri only for quranLabel. One primary button per screen.
@@ -158,7 +160,7 @@ Change the `PHASE:` line to one of these and keep the rest:
 
 | PHASE | Tasks | Done when |
 |-------|-------|-----------|
-| `1` | T001-T008 | deps updated, `supabase/` initialized (T007/T008 are yours) |
+| `1` | T001-T008 | deps updated, `supabase/` folders ready (T007/T008 already done) |
 | `2A` | T009-T024 | design system tests green |
 | `2B` | T025-T034 | sign up / sign in / sign out work against the hosted project |
 | `2C` | T035-T052 | schema + metadata + DI green |
@@ -168,11 +170,9 @@ Change the `PHASE:` line to one of these and keep the rest:
 | `6-8` | US4, US5, US6 | joining, volunteering, management |
 | `9-10` | US7 + polish | history, settings, integration tests |
 
-## Before you start ZCode (your part, once)
+## Before you start ZCode
 
-1. Fonts: Cairo (Regular/Medium/SemiBold/Bold) and Amiri (Regular/Bold) TTF from Google Fonts into `assets/fonts/` (T007).
-2. Quran metadata: Tanzil `quran-data.xml` into `assets/quran/` + `SOURCE.md` matching the "Quran Content Source" table in `plan.md` + `checksums.sha256` (T008).
-3. In a terminal at `H:\quran_daily` (new terminal so PATH includes the CLI):
-   - `supabase login` (opens the browser; approve)
-   - `supabase link --project-ref zwkvijapswwutwozbvgy` (asks for the database password)
-4. No Docker needed. Supabase CLI 3.1.0 is already installed.
+Everything is done: fonts and Quran metadata are in `assets/` (T007, T008),
+Supabase CLI 3.1.0 is installed, logged in, and linked to `zwkvijapswwutwozbvgy`,
+`.env` holds the URL and publishable key. No Docker. Just paste the prompt.
+Only remaining owner action: review `assets/quran/SOURCE.md` before release.

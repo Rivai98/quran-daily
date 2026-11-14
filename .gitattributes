@@ -1,0 +1,4 @@
+# Byte-exact assets (Principle VII checksums): never convert line endings
+assets/quran/** -text
+assets/fonts/** -text
+*.ttf binary

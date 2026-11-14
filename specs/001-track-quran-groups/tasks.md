@@ -29,11 +29,11 @@
 - [X] T001 Create the feature-first directory structure in `lib/app/`, `lib/core/`, `lib/features/auth/`, `lib/features/quran_groups/`
 - [X] T002 [P] Create test directory structure in `test/core/`, `test/features/`, `test/helpers/`, `integration_test/`
 - [X] T003 Replace the default counter app with bootstrap wiring in `lib/main.dart`, `lib/app/app.dart`, `lib/app/bootstrap.dart`
-- [ ] T004 Update `pubspec.yaml`: remove `google_sign_in`; add `intl`, `flutter_timezone`, `share_plus`, `app_links`, `connectivity_plus`; dev: `sqflite_common_ffi`; declare `assets/quran/` and font families `Cairo` (400/500/600/700) and `Amiri` (400/700) under `flutter: fonts:`; run `flutter pub get`
+- [ ] T004 Update `pubspec.yaml`: remove `google_sign_in`; add `intl`, `flutter_timezone`, `share_plus`, `app_links`, `connectivity_plus`; dev: `sqflite_common_ffi`; declare `assets/quran/` and font families under `flutter: fonts:`: `Cairo` = single variable font `assets/fonts/cairo/Cairo-Variable.ttf` (weight axis 200-1000), `Amiri` = `assets/fonts/amiri/Amiri-Regular.ttf` (400) and `Amiri-Bold.ttf` (700); run `flutter pub get`
 - [ ] T005 [P] Initialize Supabase workspace (no Docker; research R16): `supabase/config.toml` (via `supabase init`; the project is already linked to `zwkvijapswwutwozbvgy` by the owner), empty `supabase/migrations/`, `supabase/functions/`, `supabase/tests/`. Extensions are not enabled in `config.toml`: `pg_cron` is created by `004_rotation_jobs.sql` (`create extension if not exists pg_cron`), and every pgTAP file starts with `create extension if not exists pgtap with schema extensions`. Migrations apply in filename order; `001_email_password_auth.sql` must precede `002_core_schema.sql`
 - [ ] T006 [P] Add `.env.example` with `SUPABASE_URL` and `SUPABASE_ANON_KEY` placeholders and document `--dart-define-from-file` usage in `README.md`; ensure `.env` is in `.gitignore`
-- [ ] T007 **OWNER-PROVIDED** Place Cairo (Regular, Medium, SemiBold, Bold) and Amiri (Regular, Bold) TTF files from Google Fonts in `assets/fonts/` with their OFL license files
-- [ ] T008 **OWNER-PROVIDED** Place Tanzil `quran-data.xml` in `assets/quran/`, write `assets/quran/SOURCE.md` (origin URL, edition/version copied from the file header, riwayah, license, download date; must match plan.md "Quran Content Source") and `assets/quran/checksums.sha256`
+- [X] T007 **OWNER-PROVIDED** (done 2026-11-14 at owner's request) Fonts in `assets/fonts/`: `cairo/Cairo-Variable.ttf` (Google Fonts variable font) + `cairo/OFL.txt`, `amiri/Amiri-Regular.ttf`, `amiri/Amiri-Bold.ttf` + `amiri/OFL.txt`, `checksums.sha256`
+- [X] T008 **OWNER-PROVIDED** (done 2026-11-14 at owner's request) `assets/quran/quran-data.xml` (Tanzil metadata v1.0, byte-exact), `assets/quran/SOURCE.md`, `assets/quran/checksums.sha256` (format `<sha256> *<file>`); `.gitattributes` keeps these files byte-exact
 
 ---
 
@@ -43,7 +43,7 @@
 - [ ] T010 [P] Write failing tests for type scale (8 tokens: size/height/weight, Cairo vs Amiri, min size 13) in `test/core/design_system/app_typography_test.dart`
 - [ ] T011 [P] Write failing tests for `ArabicNumerals.format` (digits, percentages, `١٢ / ٣٠`) in `test/core/localization/arabic_numerals_test.dart`
 - [ ] T012 Implement `lib/core/design_system/app_colors.dart` (`AppColors.light`/`AppColors.dark` as `ThemeExtension` incl. status colors)
-- [ ] T013 Implement `lib/core/design_system/app_typography.dart`, `app_spacing.dart` (4-pt scale + gutters), `app_radius.dart` (sm/md/lg/xl/pill)
+- [ ] T013 Implement `lib/core/design_system/app_typography.dart` (Cairo is a variable font: every Cairo `TextStyle` sets both `fontWeight` and `fontVariations: [FontVariation('wght', <same weight>)]` so weights render correctly), `app_spacing.dart` (4-pt scale + gutters), `app_radius.dart` (sm/md/lg/xl/pill)
 - [ ] T014 Implement `lib/core/design_system/app_theme.dart` (Material 3 light + dark `ThemeData` from tokens: buttons, inputs, cards, chips, NavigationBar, AppBar)
 - [ ] T015 Implement `lib/core/localization/arabic_numerals.dart`
 - [ ] T016 [P] Write failing widget tests for `AppButton` (6 variants, heights 52/48, loading keeps width and ignores taps, disabled 38%, icon at start) in `test/core/design_system/widgets/app_button_test.dart`
