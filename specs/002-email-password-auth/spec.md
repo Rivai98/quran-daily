@@ -4,11 +4,17 @@
 
 **Created**: 2026-08-13
 
-**Status**: Draft
+**Status**: Ready for implementation (tasks tracked in `specs/001-track-quran-groups/tasks.md` Phase 2B, T025-T034)
 
 **Input**: User description: "Make login using email and password, store accounts in the database using Supabase, and explain what is needed to set up accounts and the database."
 
 ## Clarifications
+
+### Session 2026-11-14
+
+- Q: Where is this feature implemented and tracked? → A: Inside spec 001 Phase 2B (T025-T034); this folder has no separate executable task list.
+- Q: Which backend project? → A: Hosted Supabase project `quran-daily` (ref `zwkvijapswwutwozbvgy`), used as the development project until real users exist; auth already configured (email only, signups on, email confirmation off, minimum password length 8, magic link/OTP off).
+- Q: How is the first administrator created? → A: The owner inserts their own user id into `private.app_admins` once via the Supabase dashboard SQL editor after signing up in the app; no app or agent path grants admin rights.
 
 ### Session 2026-08-13
 

@@ -1,6 +1,8 @@
 # Implementation Plan: Email and Password Authentication
 
-**Branch**: No Git branch detected; feature directory `002-email-password-auth` | **Date**: 2026-08-13 | **Spec**: [spec.md](./spec.md)
+**Branch**: implemented on `001-track-quran-groups` (or a dedicated `002-email-password-auth` branch when executed separately) | **Date**: 2026-08-13, updated 2026-11-14 | **Spec**: [spec.md](./spec.md)
+
+**Tasks**: tracked in [specs/001-track-quran-groups/tasks.md](../001-track-quran-groups/tasks.md) Phase 2B (T025-T034); see [tasks.md](./tasks.md) for the mapping. **Constitution**: v2.4.0 (Cairo UI font, design system, Quran integrity). **Backend**: hosted project `zwkvijapswwutwozbvgy`, no Docker (spec 001 research R16).
 
 **Input**: Feature specification from `specs/002-email-password-auth/spec.md`
 
@@ -64,7 +66,7 @@ specs/002-email-password-auth/
 |   `-- ui-contract.md
 |-- checklists/
 |   `-- requirements.md
-`-- tasks.md                 # Created later by /speckit-tasks
+`-- tasks.md                 # Mapping to spec 001 Phase 2B (T025-T034)
 ```
 
 ### Source Code (repository root)

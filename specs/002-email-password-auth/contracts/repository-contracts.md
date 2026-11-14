@@ -20,6 +20,10 @@ The repository is the boundary between AuthCubit and Supabase Auth/profile stora
 - Map provider-specific errors to stable categories: validation, invalid credentials, duplicate email, network, rate limited, missing profile, permission, and unknown.
 - Login errors shown to unauthenticated users remain non-revealing.
 - Only one mutation may be in flight per AuthCubit.
+- `AuthRepositoryImpl` also implements the core interface `SessionGateway`
+  (`lib/core/auth/session_gateway.dart`: `currentUserId`, `signOut()`), so other
+  features (quran_groups, settings) depend on `lib/core` instead of importing
+  `features/auth` (constitution Principle IV; spec 001 repository contracts).
 
 ## AuthCubit
 

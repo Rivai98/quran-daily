@@ -14,7 +14,6 @@ void main() {
   test('keeps critical user-facing copy valid UTF-8 Arabic', () {
     final criticalCopy = [
       ArabicStrings.appName,
-      ArabicStrings.signInWithGoogle,
       ArabicStrings.pendingApproval,
       ArabicStrings.groupSelectionTitle,
       ArabicStrings.dashboardTitle,

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../features/auth/view/auth_entry_screen.dart';
 import '../features/quran_groups/view/screens/daily_history_screen.dart';
 import '../features/quran_groups/view/screens/group_dashboard_screen.dart';
 import '../features/quran_groups/view/screens/group_selection_screen.dart';
@@ -10,6 +9,11 @@ import '../features/quran_groups/view/screens/organizer_join_requests_screen.dar
 import '../features/quran_groups/view/screens/personal_assignment_detail_screen.dart';
 import '../features/quran_groups/view/screens/public_group_discovery_screen.dart';
 import '../features/quran_groups/view/screens/settings_screen.dart';
+
+/// Global navigator key so the auth gate can clear any pushed private
+/// routes when the session ends (sign-out/expiry): back navigation and
+/// deep links must never rebuild private content while unauthenticated.
+final navigatorKey = GlobalKey<NavigatorState>();
 
 class AppRoutes {
   const AppRoutes._();
@@ -26,8 +30,9 @@ class AppRoutes {
   static const settings = '/settings';
 
   static Map<String, WidgetBuilder> get routes {
+    // The root "/" is owned by the auth gate in app.dart (home), so it is
+    // deliberately absent from this table.
     return {
-      auth: (_) => const AuthEntryScreen(),
       groups: (_) => const GroupSelectionScreen(),
       discovery: (_) => const PublicGroupDiscoveryScreen(),
       dashboard: (_) => const GroupDashboardScreen(),
@@ -39,4 +44,9 @@ class AppRoutes {
       settings: (_) => const SettingsScreen(),
     };
   }
+}
+
+/// Clears every route above the gate (which re-decides auth vs private).
+void resetToGate() {
+  navigatorKey.currentState?.popUntil((route) => route.isFirst);
 }

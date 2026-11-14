@@ -3,11 +3,11 @@
 ## Prerequisites
 
 - Flutter SDK compatible with Dart `^3.10.4`.
-- A disposable local/test Supabase project; never run destructive auth tests against production.
+- Hosted Supabase dev project `quran-daily` (ref `zwkvijapswwutwozbvgy`), linked with Supabase CLI v3; no Docker or local stack. Never run destructive auth tests once real users exist (then use a separate dev project).
 - Project URL and publishable/anonymous key supplied through `SUPABASE_URL` and `SUPABASE_ANON_KEY` dart defines.
 - Server-side service secret configured only for Edge Functions.
-- Email/password enabled and email confirmation disabled in the test project.
-- One test administrator seeded in the protected administrator table.
+- Email/password enabled, email confirmation disabled, minimum password length 8, magic link/OTP disabled (already configured on `quran-daily`).
+- One test administrator: after signing up in the app, the owner runs once in the dashboard SQL editor: `insert into private.app_admins (user_id) values ('<your auth user id>');`
 
 ## Setup
 
@@ -20,7 +20,7 @@ flutter test
 Run the app with test-project public configuration:
 
 ```powershell
-flutter run --dart-define=SUPABASE_URL=<test-url> --dart-define=SUPABASE_ANON_KEY=<test-publishable-key>
+flutter run --dart-define-from-file=.env
 ```
 
 Do not place a service-role/secret key in this command.
@@ -91,12 +91,22 @@ Validate against [supabase-backend.md](contracts/supabase-backend.md):
 - Authorized reset makes the previous password fail and replacement password succeed.
 - Responses, logs, and audit records contain no password, token, or service secret.
 
+## Backend Commands (no Docker)
+
+```powershell
+supabase db push --remote
+supabase test db --remote
+supabase functions deploy admin-create-user --use-api
+supabase functions deploy admin-reset-password --use-api
+```
+
 ## Final Verification
 
 ```powershell
 flutter analyze
 flutter test
-flutter test integration_test
+flutter test integration_test --dart-define-from-file=.env
+supabase test db --remote
 ```
 
 Run device integration journeys on both an iOS 15+ simulator and Android API 26+ emulator/device. Record evidence for the measurable outcomes in [spec.md](spec.md), especially route blocking, profile cardinality, password replacement, session restoration, and the three-second normal-connectivity target.

@@ -3,8 +3,6 @@ class ArabicStrings {
 
   static const appName =
       '\u{648}\u{631}\u{62f} \u{627}\u{644}\u{62c}\u{645}\u{627}\u{639}\u{629}';
-  static const signInWithGoogle =
-      '\u{62a}\u{633}\u{62c}\u{64a}\u{644} \u{627}\u{644}\u{62f}\u{62e}\u{648}\u{644} \u{628}\u{62c}\u{648}\u{62c}\u{644}';
   static const signInHint =
       '\u{62a}\u{627}\u{628}\u{639} \u{648}\u{631}\u{62f}\u{643} \u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a} \u{645}\u{639} \u{645}\u{62c}\u{645}\u{648}\u{639}\u{62a}\u{643} \u{645}\u{646} \u{634}\u{627}\u{634}\u{629} \u{639}\u{631}\u{628}\u{64a}\u{629} \u{648}\u{627}\u{636}\u{62d}\u{629}.';
   static const signInError =
@@ -56,6 +54,49 @@ class ArabicStrings {
 
   static const showPassword = 'إظهار كلمة المرور';
   static const hidePassword = 'إخفاء كلمة المرور';
+
+  // --- Auth entry screen (spec 002) ---
+  static const signInTitle = 'تسجيل الدخول';
+  static const createAccountTitle = 'إنشاء حساب';
+  static const emailLabel = 'البريد الإلكتروني';
+  static const passwordLabel = 'كلمة المرور';
+  static const confirmPasswordLabel = 'تأكيد كلمة المرور';
+  static const displayNameLabel = 'الاسم الظاهر';
+  static const passwordHint = '٨ أحرف على الأقل';
+  static const forgotPasswordGuidance =
+      'نسيت كلمة المرور؟ تواصل مع مسؤول التطبيق لتعيين كلمة جديدة.';
+  static const checkingSession = 'جارٍ التحقق من جلستك';
+  static const profileLoadTitle = 'تعذر تحميل ملفك الشخصي';
+
+  // Field-level validation copy.
+  static const invalidEmailError = 'أدخل بريدًا إلكترونيًا صحيحًا';
+  static const shortPasswordError = 'كلمة المرور ٨ أحرف على الأقل';
+  static const passwordMismatchError = 'كلمتا المرور غير متطابقتين';
+  static const displayNameError = 'أدخل اسمًا ظاهرًا (حتى ١٠٠ حرف)';
+  static const requiredFieldError = 'هذا الحقل مطلوب';
+
+  /// Maps backend/stable error codes to non-revealing Arabic copy that
+  /// names the next action (spec 002 error contract).
+  static String authError(String code) {
+    switch (code) {
+      case 'invalid_credentials':
+        return 'تحقق من البريد الإلكتروني وكلمة المرور، أو تواصل مع مسؤول التطبيق.';
+      case 'email_exists':
+        return 'هذا البريد مسجل بالفعل. سجّل الدخول أو تواصل مع مسؤول التطبيق.';
+      case 'network':
+        return 'تعذر الاتصال بالخدمة. تحقق من الإنترنت وأعد المحاولة.';
+      case 'rate_limited':
+        return 'محاولات كثيرة، انتظر قليلًا ثم أعد المحاولة.';
+      case 'missing_profile':
+        return 'تعذر تحميل ملفك الشخصي. أعد المحاولة أو تواصل مع مسؤول التطبيق.';
+      case 'validation_failed':
+        return 'تحقق من البيانات المدخلة ثم أعد المحاولة.';
+      case 'password_mismatch':
+        return passwordMismatchError;
+      default:
+        return 'حدث خطأ غير متوقع. أعد المحاولة، وإن تكرر تواصل مع مسؤول التطبيق.';
+    }
+  }
   static const completeAction =
       '\u{62a}\u{623}\u{643}\u{64a}\u{62f} \u{625}\u{62a}\u{645}\u{627}\u{645} \u{627}\u{644}\u{62c}\u{632}\u{621}';
   static const undoAction =

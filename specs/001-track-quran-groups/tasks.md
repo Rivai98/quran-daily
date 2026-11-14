@@ -64,16 +64,16 @@
 
 Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its `contracts/` first.
 
-- [ ] T025 Write pgTAP tests for profiles trigger, owner-only RLS, `app_admins`/audit protection in `supabase/tests/000_auth_test.sql`
-- [ ] T026 Create migration `supabase/migrations/001_email_password_auth.sql` per spec 002 supabase-backend contract (profiles, trigger, RLS, private.app_admins, private.admin_auth_audit)
-- [ ] T027 [P] Implement Edge Functions `supabase/functions/admin-create-user/index.ts`, `supabase/functions/admin-reset-password/index.ts`, shared auth/validation in `supabase/functions/_shared/` per spec 002 contract (service key from function secrets only)
-- [ ] T028 [P] Write failing tests for `AuthRepositoryImpl` (sign up, sign in, sign out, session restore, profile load, error mapping to non-revealing codes) in `test/features/auth/data/auth_repository_test.dart`
-- [ ] T029 [P] Write failing `bloc_test`s for `AuthCubit` (checking → unauthenticated/authenticated, profile failure, submit guards, sign-out, expiry event) in `test/features/auth/cubit/auth_cubit_test.dart`
-- [ ] T030 Implement `lib/features/auth/data/` (entities `AppUser`, `UserProfile`; `AuthRepository` interface; `SupabaseAuthDataSource`; `AuthRepositoryImpl`) per spec 002 repository contract; define `SessionGateway` (`currentUserId`, `signOut()`) in `lib/core/auth/session_gateway.dart` and have `AuthRepositoryImpl` implement it
-- [ ] T031 Implement `lib/features/auth/cubit/auth_cubit.dart` and `auth_state.dart`
-- [ ] T032 Write failing widget tests for Auth Entry (login/signup modes, validation on submit, LTR email field, password clear on failure, forgot-password guidance, no Google button) in `test/features/auth/view/auth_entry_screen_test.dart`
-- [ ] T033 Rebuild `lib/features/auth/view/auth_entry_screen.dart` with design-system widgets per spec 002 ui-contract
-- [ ] T034 Implement the auth startup gate in `lib/app/app.dart` and guarded routes in `lib/app/router.dart` (no private flash; back/deep link cannot bypass)
+- [X] T025 Write pgTAP tests for profiles trigger, owner-only RLS, `app_admins`/audit protection in `supabase/tests/000_auth_test.sql`
+- [X] T026 Create migration `supabase/migrations/001_email_password_auth.sql` per spec 002 supabase-backend contract (profiles, trigger, RLS, private.app_admins, private.admin_auth_audit)
+- [X] T027 [P] Implement Edge Functions `supabase/functions/admin-create-user/index.ts`, `supabase/functions/admin-reset-password/index.ts`, shared auth/validation in `supabase/functions/_shared/` per spec 002 contract (service key from function secrets only)
+- [X] T028 [P] Write failing tests for `AuthRepositoryImpl` (sign up, sign in, sign out, session restore, profile load, error mapping to non-revealing codes) in `test/features/auth/data/auth_repository_test.dart`
+- [X] T029 [P] Write failing `bloc_test`s for `AuthCubit` (checking → unauthenticated/authenticated, profile failure, submit guards, sign-out, expiry event) in `test/features/auth/cubit/auth_cubit_test.dart`
+- [X] T030 Implement `lib/features/auth/data/` (entities `AppUser`, `UserProfile`; `AuthRepository` interface; `SupabaseAuthDataSource`; `AuthRepositoryImpl`) per spec 002 repository contract; define `SessionGateway` (`currentUserId`, `signOut()`) in `lib/core/auth/session_gateway.dart` and have `AuthRepositoryImpl` implement it
+- [X] T031 Implement `lib/features/auth/cubit/auth_cubit.dart` and `auth_state.dart`
+- [X] T032 Write failing widget tests for Auth Entry (login/signup modes, validation on submit, LTR email field, password clear on failure, forgot-password guidance, no Google button) in `test/features/auth/view/auth_entry_screen_test.dart`
+- [X] T033 Rebuild `lib/features/auth/view/auth_entry_screen.dart` with design-system widgets per spec 002 ui-contract
+- [X] T034 Implement the auth startup gate in `lib/app/app.dart` and guarded routes in `lib/app/router.dart` (no private flash; back/deep link cannot bypass)
 
 **Checkpoint**: user can sign up, sign in, restart with session, sign out.
 
