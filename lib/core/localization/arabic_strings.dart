@@ -4,9 +4,36 @@ import '../quran/portion_unit.dart';
 class ArabicStrings {
   const ArabicStrings._();
 
+  // --- 003 mushaf ---
+  static const mushafTitle = 'المصحف';
+  static const readNowAction = 'اقرأ الآن';
+  static const assignmentDetailsAction = 'تفاصيل الورد';
+  static const completeReadingAction = 'تمت القراءة';
+  static const mushafIndexAction = 'الفهرس';
+  static const surahsTab = 'السور';
+  static const ajzaaTab = 'الأجزاء';
+  static const ahzabTab = 'الأحزاب';
+  static const pagesTab = 'الصفحات';
+  static const bookmarksTitle = 'العلامات';
+  static const bookmarksEmpty = 'لا توجد علامات محفوظة بعد';
+  static const addBookmarkAction = 'إضافة علامة';
+  static const bookmarkNoteHint = 'ملاحظة اختيارية';
+  static const bookmarkSaved = 'أضيفت العلامة';
+  static const mushafLoadError = 'تعذر تحميل المصحف';
+  static const mushafIntegrityError = 'تعذر التحقق من ملفات المصحف';
+  static const surahSearchHint = 'ابحث عن سورة';
+  static const pageNumberLabel = 'الصفحة';
+  static const juzLabel = 'الجزء';
+  static const mushafLicensesTitle = 'مصادر المصحف والتراخيص';
+  static const kfgqpcAttribution =
+      'النص والخط: مجمع الملك فهد لطباعة المصحف الشريف (KFGQPC).';
+  static const tanzilAttribution = 'بيانات الصفحات والأجزاء: Tanzil.';
+  static const khatmDuaTitle = 'دعاء ختم القرآن';
+
   // --- spec 002 Google sign-in ---
   static const googleSignIn = 'تسجيل الدخول باستخدام Google';
-  static const googleSignInHint = 'إذا كنت مسجلاً عبر Google فاستخدم زر Google.';
+  static const googleSignInHint =
+      'إذا كنت مسجلاً عبر Google فاستخدم زر Google.';
   static const or = 'أو';
 
   // --- US1 dashboard ---

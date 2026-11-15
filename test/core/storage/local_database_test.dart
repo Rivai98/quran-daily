@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/core/storage/daos/daos.dart';
 import 'package:quran_daily/core/sync/sync_operation.dart';
+import 'package:quran_daily/features/mushaf/data/reader_storage.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
@@ -26,14 +27,41 @@ void main() {
     await db.close();
   });
 
-  test('v1 creates exactly the four contracted tables', () async {
+  test('v2 creates cache, sync, and Mushaf persistence tables', () async {
     final tables = await db.tableNames();
     expect(tables, containsAll(<String>[
       'cached_snapshots',
       'cached_groups',
       'cached_history',
       'sync_queue',
+      'reading_positions',
+      'bookmarks',
+      'mushaf_sync_queue',
     ]));
+  });
+
+  test('reader position and bookmarks persist locally and queue sync changes',
+      () async {
+    final reader = SqfliteReaderStorage(database: db, userId: 'user-1');
+    await reader.savePage(250);
+    expect(await reader.lastPage(), 250);
+    final bookmark = ReaderBookmark(id: 'bookmark-1', page: 250, note: 'note');
+    await reader.addBookmark(bookmark);
+    final stored = await reader.bookmarks();
+    expect(stored, hasLength(1));
+    expect(stored.single.id, bookmark.id);
+    expect(stored.single.note, bookmark.note);
+    final queued = await reader.pendingSyncOperations();
+    expect(queued, hasLength(2));
+    expect(queued.last.operation, 'bookmark_upsert');
+    await reader.removeBookmark(bookmark.id);
+    expect(await reader.bookmarks(), isEmpty);
+    final rows = await (await db.database).query('mushaf_sync_queue');
+    expect(rows.map((row) => row['operation']), [
+      'position_upsert',
+      'bookmark_upsert',
+      'bookmark_delete',
+    ]);
   });
 
   group('cached_snapshots', () {

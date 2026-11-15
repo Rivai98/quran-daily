@@ -84,8 +84,14 @@ flutter:
   # byte-exact; never modify. Fonts below are bundled (no runtime download).
   assets:
     - assets/quran/
+    - assets/quran/hafs/
+    - assets/text/
 
   fonts:
+    # Quran content uses only the matching KFGQPC QPC Hafs font.
+    - family: KfgqpcHafs
+      fonts:
+        - asset: assets/fonts/kfgqpc_hafs/UthmanicHafs_V22.ttf
     # UI font (constitution Principle VI). Single variable font, wght axis
     # 200-1000; TextStyles must set fontWeight AND FontVariation('wght', w).
     - family: Cairo

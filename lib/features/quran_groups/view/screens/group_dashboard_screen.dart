@@ -44,6 +44,11 @@ class GroupDashboardScreen extends StatelessWidget {
           appBar: AppBar(
             title: Text(snapshot?.groupName ?? ArabicStrings.dashboardTitle),
             actions: [
+              IconButton(
+                tooltip: ArabicStrings.mushafTitle,
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.mushaf),
+                icon: const Icon(Icons.menu_book),
+              ),
               if (snapshot != null) ..._groupActions(context, snapshot),
               IconButton(
                 tooltip: ArabicStrings.settingsTitle,
