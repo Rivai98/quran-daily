@@ -5,6 +5,8 @@ import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/assignment_status.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
 import '../../../../core/design_system/widgets/status_chip.dart';
+import '../../../../core/design_system/widgets/skeleton.dart';
+import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/quran/portion_unit.dart';
@@ -29,7 +31,9 @@ class _LogDayDetailScreenState extends State<LogDayDetailScreen> {
       (serviceLocator.isRegistered<QuranMetadataRepository>()
           ? serviceLocator<QuranMetadataRepository>()
           : QuranMetadataRepository());
-  late final Future<void> _load = _metadata.load();
+  late Future<void> _load = _metadata.load();
+
+  void _retryLoad() => setState(() => _load = _metadata.load());
 
   PortionUnit _unit(String value) => switch (value) {
     'half_juz' => PortionUnit.halfJuz,
@@ -54,10 +58,24 @@ class _LogDayDetailScreenState extends State<LogDayDetailScreen> {
       future: _load,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return ListView(
+            padding: AppSpacing.screenContent,
+            children: const [
+              SkeletonBox(height: 144),
+              SizedBox(height: AppSpacing.md),
+              SkeletonBox(height: 144),
+            ],
+          );
         }
         if (snapshot.hasError) {
-          return Center(child: Text(ArabicStrings.logErrorMessage));
+          return StatePanel(
+            icon: Icons.error_outline_rounded,
+            title: ArabicStrings.logErrorTitle,
+            message: ArabicStrings.logErrorMessage,
+            actionLabel: ArabicStrings.retryAction,
+            onAction: _retryLoad,
+            isError: true,
+          );
         }
         return ListView(
           padding: AppSpacing.screenContent,

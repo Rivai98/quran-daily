@@ -12,6 +12,7 @@ import '../../../helpers/widget_test_app.dart';
 class _AdminRepository extends Mock implements AdminRepository {}
 
 void main() {
+  setUpAll(loadDesignSystemFonts);
   late _AdminRepository repository;
 
   setUp(() async {
@@ -123,6 +124,64 @@ void main() {
       });
     },
   );
+
+  testWidgets('admin console renders at 360x800 in both themes', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final screens = <(String, Widget)>[
+      ('overview', const AdminOverviewScreen()),
+      ('groups', const AdminGroupsScreen()),
+      ('users', const AdminUsersScreen()),
+      ('audit', const AdminAuditScreen()),
+    ];
+    for (final (name, screen) in screens) {
+      for (final dark in [false, true]) {
+        await tester.pumpWidget(
+          buildArabicTestApp(screen, dark: dark, size: const Size(360, 800)),
+        );
+        await tester.pumpAndSettle();
+        await expectLater(
+          find.byType(screen.runtimeType),
+          matchesGoldenFile(
+            'goldens/admin_${name}_${dark ? 'dark' : 'light'}.png',
+          ),
+        );
+        await tester.pumpWidget(const SizedBox.shrink());
+      }
+    }
+  });
+
+  testWidgets('admin search is debounced and keeps current rows visible', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildArabicTestApp(const AdminGroupsScreen()));
+    await tester.pumpAndSettle();
+    expect(find.byType(ListTile), findsOneWidget);
+
+    const query = '\u0627\u0644\u0646\u0648\u0631';
+    await tester.enterText(find.byType(TextField), query);
+    await tester.pump();
+    expect(find.byType(ListTile), findsOneWidget);
+    verifyNever(
+      () => repository.groups(
+        query: query,
+        status: any(named: 'status'),
+      ),
+    );
+
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+    verify(
+      () => repository.groups(
+        query: query,
+        status: any(named: 'status'),
+      ),
+    ).called(1);
+  });
 
   testWidgets(
     'groups, users, details and audit render across required variants',

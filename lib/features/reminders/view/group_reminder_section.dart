@@ -5,6 +5,7 @@ import '../../../core/design_system/app_button.dart';
 import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/widgets/app_card.dart';
+import '../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../core/localization/arabic_numerals.dart';
 import '../../../core/localization/arabic_strings.dart';
 import '../cubit/reminders_cubit.dart';
@@ -68,7 +69,20 @@ class _GroupReminderSectionState extends State<GroupReminderSection> {
   Widget build(
     BuildContext context,
   ) => BlocConsumer<RemindersCubit, RemindersState>(
+    listenWhen: (previous, current) =>
+        previous.groupSchedule != current.groupSchedule ||
+        (current.status == RemindersStatus.failure &&
+            previous.status != RemindersStatus.failure),
     listener: (context, state) {
+      if (state.status == RemindersStatus.failure) {
+        AppSnackBar.show(
+          context,
+          state.failureMessage == 'load'
+              ? ArabicStrings.reminderLoadFailed
+              : ArabicStrings.reminderSaveFailed,
+        );
+        return;
+      }
       final schedule = state.groupSchedule;
       if (widget.isOwner && schedule != null) {
         setState(() => _applySchedule(schedule));

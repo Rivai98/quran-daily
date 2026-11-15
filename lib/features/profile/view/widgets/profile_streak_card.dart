@@ -31,7 +31,7 @@ class ProfileStreakCard extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.local_fire_department,
+              Icons.local_fire_department_rounded,
               color: colors.primary,
               size: 28,
             ),

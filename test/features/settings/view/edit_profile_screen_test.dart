@@ -12,6 +12,7 @@ import '../../../helpers/widget_test_app.dart';
 class _MockGroupsRepository extends Mock implements GroupsRepository {}
 
 void main() {
+  setUpAll(loadDesignSystemFonts);
   late _MockGroupsRepository repository;
 
   setUp(() {
@@ -66,6 +67,22 @@ void main() {
         find.widgetWithText(FilledButton, ArabicStrings.saveChanges),
       );
       expect(save.onPressed, isNull);
+    });
+
+    testWidgets('profile editor supports accessibility variants', (
+      tester,
+    ) async {
+      await pumpAllVariants(
+        tester,
+        EditProfileScreen(
+          initialDisplayName: 'Sample Name',
+          initialBio: 'Sample bio',
+          repository: repository,
+        ),
+        (tester, variant) async {
+          expect(tester.takeException(), isNull, reason: variant);
+        },
+      );
     });
 
     testWidgets('validates short display name (< 2 chars)', (tester) async {

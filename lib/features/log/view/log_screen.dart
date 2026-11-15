@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/errors/result.dart';
 import '../../../../core/design_system/app_button.dart';
@@ -9,6 +10,7 @@ import '../../../../core/design_system/widgets/islamic_ornament.dart';
 import '../../../../core/design_system/widgets/skeleton.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/localization/arabic_numerals.dart';
 import '../cubit/log_cubit.dart';
 import '../cubit/log_state.dart';
 import '../data/entities/log_entities.dart';
@@ -143,7 +145,17 @@ class _LogViewState extends State<_LogView> {
                     bottom: AppSpacing.sm,
                   ),
                   child: Text(
-                    ArabicStrings.logWeekLabel,
+                    ArabicStrings.logWeekBeginning(
+                      ArabicNumerals.format(
+                        DateFormat('d MMMM', 'ar').format(
+                          days.first.date.subtract(
+                            Duration(
+                              days: days.first.date.weekday - DateTime.monday,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                 ),

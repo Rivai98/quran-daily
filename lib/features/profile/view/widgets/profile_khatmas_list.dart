@@ -8,10 +8,7 @@ import '../../../../core/localization/arabic_strings.dart';
 import '../../data/entities/profile_entities.dart';
 
 class ProfileKhatmasList extends StatelessWidget {
-  const ProfileKhatmasList({
-    super.key,
-    required this.khatmas,
-  });
+  const ProfileKhatmasList({super.key, required this.khatmas});
 
   final List<ProfileKhatma> khatmas;
 
@@ -25,8 +22,11 @@ class ProfileKhatmasList extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
           child: Row(
             children: [
-              Icon(Icons.check_circle_outline,
-                  color: colors.inkMuted, size: 24),
+              Icon(
+                Icons.check_circle_outline_rounded,
+                color: colors.inkMuted,
+                size: 24,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
@@ -47,13 +47,10 @@ class ProfileKhatmasList extends StatelessWidget {
           AppCard(
             child: Row(
               children: [
-                Icon(Icons.groups_outlined, color: colors.primary, size: 24),
+                Icon(Icons.groups_rounded, color: colors.primary, size: 24),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
-                  child: Text(
-                    khatmas[i].groupName,
-                    style: AppTypography.title,
-                  ),
+                  child: Text(khatmas[i].groupName, style: AppTypography.title),
                 ),
                 Text(
                   ArabicStrings.khatmasCount(khatmas[i].completed),

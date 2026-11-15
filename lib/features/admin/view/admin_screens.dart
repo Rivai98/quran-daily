@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
 import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_button.dart';
@@ -12,6 +15,7 @@ import '../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../core/design_system/widgets/state_panel.dart';
 import '../../../core/di/service_locator.dart';
 import '../../../core/localization/arabic_numerals.dart';
+import '../../../core/localization/arabic_formatting.dart';
 import '../../../core/localization/arabic_strings.dart';
 import '../cubit/admin_cubit.dart';
 import '../cubit/admin_state.dart';
@@ -35,8 +39,9 @@ class _AdminOverviewView extends StatelessWidget {
     appBar: AppBar(title: const Text(ArabicStrings.adminTitle)),
     body: BlocBuilder<AdminCubit, AdminState>(
       builder: (context, state) {
-        if (state.status == AdminStatus.loading ||
-            state.status == AdminStatus.initial) {
+        if ((state.status == AdminStatus.loading ||
+                state.status == AdminStatus.initial) &&
+            state.data == null) {
           return const _AdminLoading();
         }
         if (state.status == AdminStatus.offline ||
@@ -65,6 +70,8 @@ class _AdminOverviewView extends StatelessWidget {
           child: ListView(
             padding: AppSpacing.screenContent,
             children: [
+              if (state.status == AdminStatus.loading)
+                const LinearProgressIndicator(),
               Wrap(
                 spacing: AppSpacing.sm,
                 runSpacing: AppSpacing.sm,
@@ -155,7 +162,11 @@ class _AdminOverviewView extends StatelessWidget {
           Text(label, style: AppTypography.caption),
           const SizedBox(height: AppSpacing.xxs),
           Text(
-            '${ArabicNumerals.format(int.tryParse('$value') ?? 0)}$suffix',
+            ArabicFormatting.isolate(
+              suffix == '٪'
+                  ? ArabicNumerals.percent(int.tryParse('$value') ?? 0)
+                  : ArabicNumerals.format(int.tryParse('$value') ?? 0),
+            ),
             style: AppTypography.display,
           ),
         ],
@@ -241,9 +252,11 @@ class _AdminListScreen extends StatefulWidget {
 
 class _AdminListScreenState extends State<_AdminListScreen> {
   final _search = TextEditingController();
+  Timer? _searchTimer;
   String? _status;
   @override
   void dispose() {
+    _searchTimer?.cancel();
     _search.dispose();
     super.dispose();
   }
@@ -269,8 +282,9 @@ class _AdminListScreenState extends State<_AdminListScreen> {
     ),
     body: BlocBuilder<AdminCubit, AdminState>(
       builder: (context, state) {
-        if (state.status == AdminStatus.loading ||
-            state.status == AdminStatus.initial) {
+        if ((state.status == AdminStatus.loading ||
+                state.status == AdminStatus.initial) &&
+            state.data == null) {
           return const _AdminLoading();
         }
         if (state.status == AdminStatus.offline ||
@@ -295,6 +309,8 @@ class _AdminListScreenState extends State<_AdminListScreen> {
           child: ListView(
             padding: AppSpacing.screenContent,
             children: [
+              if (state.status == AdminStatus.loading)
+                const LinearProgressIndicator(),
               TextField(
                 controller: _search,
                 textInputAction: TextInputAction.search,
@@ -302,7 +318,17 @@ class _AdminListScreenState extends State<_AdminListScreen> {
                   hintText: ArabicStrings.adminSearch,
                   prefixIcon: Icon(Icons.search),
                 ),
-                onSubmitted: (_) => _load(),
+                onChanged: (_) {
+                  _searchTimer?.cancel();
+                  _searchTimer = Timer(
+                    const Duration(milliseconds: 350),
+                    _load,
+                  );
+                },
+                onSubmitted: (_) {
+                  _searchTimer?.cancel();
+                  _load();
+                },
               ),
               const SizedBox(height: AppSpacing.sm),
               DropdownButtonFormField<String?>(
@@ -336,22 +362,30 @@ class _AdminListScreenState extends State<_AdminListScreen> {
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: AppCard(
                     child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer,
+                        foregroundColor: Theme.of(context).colorScheme.primary,
+                        child: Icon(
+                          widget.groups
+                              ? Icons.groups_rounded
+                              : Icons.person_rounded,
+                        ),
+                      ),
                       title: Text(
                         '${item[widget.groups ? 'name' : 'display_name'] ?? ''}',
                         style: AppTypography.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      subtitle: Text(
-                        widget.groups
-                            ? '${item['owner_name'] ?? ''} · ${ArabicNumerals.format(int.tryParse('${item['member_count']}') ?? 0)} · ${_groupStatus(item['status'])} · ${_portionUnit(item['portion_unit'])} · ${item['created_at'] ?? ''}'
-                            : '${item['email'] ?? ''} · ${ArabicNumerals.format(int.tryParse('${item['groups_count']}') ?? 0)} · ${_userStatus(item['status'] == 'suspended', item['is_admin'] == true)} · ${item['last_activity_at'] ?? ''}',
-                        textDirection: widget.groups ? null : TextDirection.ltr,
-                      ),
+                      subtitle: _adminSubtitle(item),
                       trailing: Icon(
                         widget.groups
-                            ? Icons.groups
+                            ? Icons.groups_rounded
                             : (item['status'] == 'suspended'
-                                  ? Icons.block
-                                  : Icons.person),
+                                  ? Icons.block_rounded
+                                  : Icons.person_rounded),
                       ),
                       onTap: () => Navigator.pushNamed(
                         context,
@@ -440,6 +474,66 @@ class _AdminListScreenState extends State<_AdminListScreen> {
     'admin' => ArabicStrings.adminEntry,
     _ => ArabicStrings.adminAllStatuses,
   };
+
+  Widget _adminSubtitle(Map item) {
+    if (widget.groups) return Text(_groupMeta(item));
+    final email = '${item['email'] ?? ''}'.trim();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (email.isNotEmpty)
+          Text(
+            email,
+            textDirection: TextDirection.ltr,
+            textAlign: TextAlign.start,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        Text(_userMeta(item)),
+      ],
+    );
+  }
+
+  String _groupMeta(Map item) {
+    final details = <String>[];
+    final owner = '${item['owner_name'] ?? ''}'.trim();
+    if (owner.isNotEmpty) details.add(owner);
+    final members = int.tryParse('${item['member_count']}');
+    if (members != null) {
+      details.add(ArabicFormatting.membersProgress(members, total: 30));
+    }
+    final status = _groupStatus(item['status']);
+    if (status != null) details.add(status);
+    if (item['portion_unit'] != null) {
+      details.add(_portionUnit(item['portion_unit']));
+    }
+    final created = _dateLabel(item['created_at']);
+    if (created.isNotEmpty) details.add(created);
+    return details.join(' · ');
+  }
+
+  String _userMeta(Map item) {
+    final details = <String>[];
+    final groupCount = int.tryParse('${item['groups_count']}');
+    if (groupCount != null) {
+      details.add(
+        'المجموعات ${ArabicFormatting.isolate(ArabicNumerals.format(groupCount))}',
+      );
+    }
+    details.add(
+      _userStatus(item['status'] == 'suspended', item['is_admin'] == true),
+    );
+    final activity = _dateLabel(item['last_activity_at']);
+    if (activity.isNotEmpty) details.add('آخر نشاط $activity');
+    return details.join(' · ');
+  }
+
+  String _dateLabel(Object? value) {
+    final date = DateTime.tryParse('$value');
+    if (date == null) return '';
+    final formatted = DateFormat('d MMMM yyyy', 'ar').format(date);
+    return ArabicNumerals.format(formatted);
+  }
 }
 
 class AdminGroupDetailScreen extends StatelessWidget {
@@ -476,8 +570,9 @@ class _DetailView extends StatelessWidget {
     ),
     body: BlocBuilder<AdminCubit, AdminState>(
       builder: (context, state) {
-        if (state.status == AdminStatus.loading ||
-            state.status == AdminStatus.initial) {
+        if ((state.status == AdminStatus.loading ||
+                state.status == AdminStatus.initial) &&
+            state.data == null) {
           return const _AdminLoading();
         }
         if (state.status == AdminStatus.offline ||
@@ -504,6 +599,8 @@ class _DetailView extends StatelessWidget {
           child: ListView(
             padding: AppSpacing.screenContent,
             children: [
+              if (state.status == AdminStatus.loading)
+                const LinearProgressIndicator(),
               AppCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -866,8 +963,9 @@ class _AuditViewState extends State<_AuditView> {
     appBar: AppBar(title: const Text(ArabicStrings.adminAudit)),
     body: BlocBuilder<AdminCubit, AdminState>(
       builder: (context, state) {
-        if (state.status == AdminStatus.loading ||
-            state.status == AdminStatus.initial) {
+        if ((state.status == AdminStatus.loading ||
+                state.status == AdminStatus.initial) &&
+            state.data == null) {
           return const _AdminLoading();
         }
         if (state.status == AdminStatus.offline ||
@@ -890,6 +988,8 @@ class _AuditViewState extends State<_AuditView> {
           child: ListView(
             padding: AppSpacing.screenContent,
             children: [
+              if (state.status == AdminStatus.loading)
+                const LinearProgressIndicator(),
               DropdownButtonFormField<String?>(
                 isExpanded: true,
                 initialValue: _action,
@@ -954,11 +1054,11 @@ class _AuditViewState extends State<_AuditView> {
   );
 }
 
-String _groupStatus(Object? status) => switch (status) {
+String? _groupStatus(Object? status) => switch (status) {
   'forming' => ArabicStrings.formingLabel,
   'active' => ArabicStrings.activeLabel,
   'archived' => ArabicStrings.groupArchivedLabel,
-  _ => ArabicStrings.adminLoadError,
+  _ => null,
 };
 
 String _userStatus(bool suspended, bool admin) => suspended

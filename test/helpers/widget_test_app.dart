@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:quran_daily/core/design_system/app_theme.dart';
+
+Future<void> loadDesignSystemFonts() async {
+  final cairo = FontLoader('Cairo')
+    ..addFont(rootBundle.load('assets/fonts/cairo/Cairo-Variable.ttf'));
+  final amiri = FontLoader('Amiri')
+    ..addFont(rootBundle.load('assets/fonts/amiri/Amiri-Regular.ttf'))
+    ..addFont(rootBundle.load('assets/fonts/amiri/Amiri-Bold.ttf'));
+  final materialIcons = FontLoader('MaterialIcons')
+    ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
+  await Future.wait([cairo.load(), amiri.load(), materialIcons.load()]);
+}
 
 /// Pumps [child] inside the real app theme: Arabic locale, RTL, Material 3
 /// design-system ThemeData (with the [AppColors] ThemeExtension), optionally

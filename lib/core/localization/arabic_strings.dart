@@ -121,6 +121,8 @@ class ArabicStrings {
   static const reminderLocationExplanation =
       'يُستخدم موقعك لحساب مواقيت الصلاة على جهازك فقط.';
   static const reminderSave = 'حفظ التذكيرات';
+  static const reminderLoadFailed = 'تعذر تحميل التذكيرات. أعد المحاولة.';
+  static const reminderSaveFailed = 'لم تُحفظ التذكيرات. حاول مرة أخرى.';
   static const reminderOwnerOnly = 'يمكن لمالك المجموعة تعديل هذا الجدول.';
   static const reminderMessageLimit = 'حتى ٨٠ حرفًا';
 
@@ -785,7 +787,7 @@ class ArabicStrings {
   static const logErrorMessage =
       'حدث خلل أثناء تحميل السجل. تحقق من الاتصال وأعد المحاولة.';
   static const logDayDetails = 'تفاصيل الورد';
-  static const logWeekLabel = 'هذا الأسبوع';
+  static String logWeekBeginning(String date) => 'الأسبوع الذي يبدأ في $date';
   static const logGroupHistoryAction = 'عرض سجل المجموعة';
   static const membershipLimitMessage = 'أنت في مجموعتين بالفعل (الحد الأقصى).';
   static const membershipLimitNextStep =
