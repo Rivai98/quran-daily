@@ -51,8 +51,8 @@ void main() {
       const c = AppColors.light;
       expect(c.statusFg(AssignmentStatus.completed), const Color(0xFF1B7A47));
       expect(c.statusBg(AssignmentStatus.completed), const Color(0xFFE3F3EA));
-      expect(c.statusFg(AssignmentStatus.pending), const Color(0xFF8A5A00));
-      expect(c.statusBg(AssignmentStatus.pending), const Color(0xFFFBF0D9));
+      expect(c.statusFg(AssignmentStatus.pending), c.infoFg);
+      expect(c.statusBg(AssignmentStatus.pending), c.infoBg);
       expect(c.statusFg(AssignmentStatus.missed), const Color(0xFFB3261E));
       expect(c.statusBg(AssignmentStatus.missed), const Color(0xFFFBE6E4));
       expect(c.statusFg(AssignmentStatus.late), const Color(0xFF5B47B5));
@@ -63,8 +63,8 @@ void main() {
       const c = AppColors.dark;
       expect(c.statusFg(AssignmentStatus.completed), const Color(0xFF6FD39C));
       expect(c.statusBg(AssignmentStatus.completed), const Color(0xFF173A28));
-      expect(c.statusFg(AssignmentStatus.pending), const Color(0xFFF2C063));
-      expect(c.statusBg(AssignmentStatus.pending), const Color(0xFF3A2E12));
+      expect(c.statusFg(AssignmentStatus.pending), c.infoFg);
+      expect(c.statusBg(AssignmentStatus.pending), c.infoBg);
       expect(c.statusFg(AssignmentStatus.missed), const Color(0xFFFF8A80));
       expect(c.statusBg(AssignmentStatus.missed), const Color(0xFF3D1A18));
       expect(c.statusFg(AssignmentStatus.late), const Color(0xFFB4A6FF));

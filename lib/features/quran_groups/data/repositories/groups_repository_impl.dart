@@ -143,7 +143,7 @@ class GroupsRepositoryImpl implements GroupsRepository {
 
   @override
   Future<Result<DashboardSnapshot>> startKhatma(
-      String groupId, int startJuz) async {
+      String groupId, int startPortion) async {
     if (!await _online) {
       return const FailureResult(
         NetworkFailure(message: 'offline', code: 'network'),
@@ -151,9 +151,16 @@ class GroupsRepositoryImpl implements GroupsRepository {
     }
     final result = await _rpc.call<dynamic>(
       'start_khatma',
-      GroupsParams.startKhatma(groupId, startJuz),
+      GroupsParams.startKhatma(groupId, startPortion),
     );
-    return result.when(
+    if (result.isFailure) return FailureResult(result.failureOrNull!);
+    // start_khatma returns a summary ({today: true, status, ...}), not the
+    // dashboard read model, so load the fresh dashboard after starting.
+    final dashboard = await _rpc.call<dynamic>(
+      'get_dashboard',
+      {'p_group_id': groupId},
+    );
+    return dashboard.when(
       success: (payload) {
         final json = (payload! as Map).cast<String, Object?>();
         return Success(dashboardSnapshotFromJson(json));

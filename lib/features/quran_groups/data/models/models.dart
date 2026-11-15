@@ -1,12 +1,36 @@
 import '../entities/entities.dart';
+import '../../../../core/quran/portion_unit.dart';
+
+PortionUnit portionUnitOf(Object? raw) {
+  switch (raw) {
+    case 'half_juz':
+      return PortionUnit.halfJuz;
+    case 'hizb':
+      return PortionUnit.hizb;
+    case 'quarter':
+      return PortionUnit.quarter;
+    case 'page':
+      return PortionUnit.page;
+    default:
+      return PortionUnit.juz;
+  }
+}
+
+String portionUnitName(PortionUnit unit) => switch (unit) {
+  PortionUnit.juz => 'juz',
+  PortionUnit.halfJuz => 'half_juz',
+  PortionUnit.hizb => 'hizb',
+  PortionUnit.quarter => 'quarter',
+  PortionUnit.page => 'page',
+};
 
 /// JSON mappers for the RPC read models (snake_case from Postgres).
 /// Round-trip safety is tested in models_test.dart.
 
 GroupStatus groupStatusOf(String raw) => GroupStatus.values.firstWhere(
-      (v) => v.name == raw || _statusAliases[raw] == v,
-      orElse: () => throw ArgumentError('unknown group status: $raw'),
-    );
+  (v) => v.name == raw || _statusAliases[raw] == v,
+  orElse: () => throw ArgumentError('unknown group status: $raw'),
+);
 
 const _statusAliases = <String, GroupStatus>{
   'forming': GroupStatus.forming,
@@ -14,9 +38,8 @@ const _statusAliases = <String, GroupStatus>{
   'archived': GroupStatus.archived,
 };
 
-JoinMode joinModeOf(String raw) => raw == 'auto_accept'
-    ? JoinMode.autoAccept
-    : JoinMode.approval;
+JoinMode joinModeOf(String raw) =>
+    raw == 'auto_accept' ? JoinMode.autoAccept : JoinMode.approval;
 
 String joinModeName(JoinMode mode) =>
     mode == JoinMode.autoAccept ? 'auto_accept' : 'approval';
@@ -43,8 +66,10 @@ String groupRoleName(GroupRole role) {
   }
 }
 
-DayState dayStateOf(String raw) => DayState.values
-    .firstWhere((v) => v.name == raw, orElse: () => DayState.open);
+DayState dayStateOf(String raw) => DayState.values.firstWhere(
+  (v) => v.name == raw,
+  orElse: () => DayState.open,
+);
 
 AssignmentKind assignmentKindOf(String raw) {
   switch (raw) {
@@ -93,22 +118,29 @@ MyGroupSummary myGroupSummaryFromJson(Map<String, Object?> json) {
         ? null
         : assignmentStatusOf(today['status']! as String),
     todayMyAssignmentId: today?['assignment_id'] as String?,
+    portionUnit: portionUnitOf(json['portion_unit']),
+    pendingPortionUnit: json['pending_portion_unit'] == null
+        ? null
+        : portionUnitOf(json['pending_portion_unit']),
   );
 }
 
 Map<String, Object?> myGroupSummaryToJson(MyGroupSummary g) => {
-      'group_id': g.groupId,
-      'name': g.name,
-      'status': g.status.name,
-      'my_role': groupRoleName(g.myRole),
-      'active_member_count': g.activeMemberCount,
-      if (g.todayMyAssignmentId != null)
-        'today_my_assignment': {
-          'assignment_id': g.todayMyAssignmentId,
-          'juz': g.todayMyJuz,
-          'status': assignmentStatusName(g.todayMyStatus!),
-        },
-    };
+  'group_id': g.groupId,
+  'name': g.name,
+  'status': g.status.name,
+  'my_role': groupRoleName(g.myRole),
+  'active_member_count': g.activeMemberCount,
+  'portion_unit': portionUnitName(g.portionUnit),
+  if (g.pendingPortionUnit != null)
+    'pending_portion_unit': portionUnitName(g.pendingPortionUnit!),
+  if (g.todayMyAssignmentId != null)
+    'today_my_assignment': {
+      'assignment_id': g.todayMyAssignmentId,
+      'juz': g.todayMyJuz,
+      'status': assignmentStatusName(g.todayMyStatus!),
+    },
+};
 
 PendingJoinRequest pendingJoinRequestFromJson(Map<String, Object?> json) {
   return PendingJoinRequest(
@@ -119,18 +151,18 @@ PendingJoinRequest pendingJoinRequestFromJson(Map<String, Object?> json) {
     source: (json['source']! as String) == 'invite'
         ? JoinSource.invite
         : ((json['source']! as String) == 'match'
-            ? JoinSource.match
-            : JoinSource.discovery),
+              ? JoinSource.match
+              : JoinSource.discovery),
   );
 }
 
 Map<String, Object?> pendingJoinRequestToJson(PendingJoinRequest r) => {
-      'join_request_id': r.joinRequestId,
-      'group_id': r.groupId,
-      'group_name': r.groupName,
-      'requested_at': r.requestedAt.toIso8601String(),
-      'source': r.source.name,
-    };
+  'join_request_id': r.joinRequestId,
+  'group_id': r.groupId,
+  'group_name': r.groupName,
+  'requested_at': r.requestedAt.toIso8601String(),
+  'source': r.source.name,
+};
 
 PublicGroupProfile publicGroupProfileFromJson(Map<String, Object?> json) {
   return PublicGroupProfile(
@@ -140,10 +172,12 @@ PublicGroupProfile publicGroupProfileFromJson(Map<String, Object?> json) {
     status: groupStatusOf(json['status']! as String),
     activeMemberCount: (json['active_member_count'] as num?)?.toInt() ?? 0,
     timezone: json['timezone']! as String,
-    joinMode:
-        json['join_mode'] == null ? null : joinModeOf(json['join_mode']! as String),
+    joinMode: json['join_mode'] == null
+        ? null
+        : joinModeOf(json['join_mode']! as String),
     myRequestStatus: json['my_request_status'] as String?,
     myJoinRequestId: json['my_join_request_id'] as String?,
+    portionUnit: portionUnitOf(json['portion_unit']),
   );
 }
 
@@ -158,13 +192,15 @@ class PublicGroupProfile extends GroupSummary {
     super.joinMode,
     super.myRequestStatus,
     super.myJoinRequestId,
+    super.portionUnit,
   });
 }
 
 Assignment assignmentFromJson(Map<String, Object?> json) {
   return Assignment(
     assignmentId: json['assignment_id']! as String,
-    juz: (json['juz']! as num).toInt(),
+    juz: ((json['juz'] ?? json['portion_index']) as num).toInt(),
+    portionIndex: (json['portion_index'] as num?)?.toInt(),
     seatNumber: (json['seat_number']! as num).toInt(),
     kind: assignmentKindOf(json['kind']! as String),
     status: assignmentStatusOf(json['status']! as String),
@@ -177,17 +213,16 @@ Assignment assignmentFromJson(Map<String, Object?> json) {
 }
 
 Map<String, Object?> assignmentToJson(Assignment a) => {
-      'assignment_id': a.assignmentId,
-      'juz': a.juz,
-      'seat_number': a.seatNumber,
-      'kind': assignmentKindName(a.kind),
-      'status': assignmentStatusName(a.status),
-      if (a.readerDisplayName != null)
-        'reader_display_name': a.readerDisplayName,
-      'is_me': a.isMe,
-      if (a.completedAt != null)
-        'completed_at': a.completedAt!.toIso8601String(),
-    };
+  'assignment_id': a.assignmentId,
+  'juz': a.juz,
+  'portion_index': a.portionIndex,
+  'seat_number': a.seatNumber,
+  'kind': assignmentKindName(a.kind),
+  'status': assignmentStatusName(a.status),
+  if (a.readerDisplayName != null) 'reader_display_name': a.readerDisplayName,
+  'is_me': a.isMe,
+  if (a.completedAt != null) 'completed_at': a.completedAt!.toIso8601String(),
+};
 
 GroupDayInfo groupDayInfoFromJson(Map<String, Object?> json) {
   return GroupDayInfo(
@@ -205,17 +240,36 @@ GroupDayInfo groupDayInfoFromJson(Map<String, Object?> json) {
 }
 
 Map<String, Object?> groupDayInfoToJson(GroupDayInfo d) => {
-      'group_date': d.groupDate,
-      'state': d.state.name,
-      'completed_count': d.completedCount,
-      'late_count': d.lateCount,
-      'missed_count': d.missedCount,
-      'unread_count': d.unreadCount,
-      'pending_count': d.pendingCount,
-      'available_count': d.availableCount,
-      'full_khatma': d.fullKhatma,
-      'ends_at': d.endsAt.toIso8601String(),
-    };
+  'group_date': d.groupDate,
+  'state': d.state.name,
+  'completed_count': d.completedCount,
+  'late_count': d.lateCount,
+  'missed_count': d.missedCount,
+  'unread_count': d.unreadCount,
+  'pending_count': d.pendingCount,
+  'available_count': d.availableCount,
+  'full_khatma': d.fullKhatma,
+  'ends_at': d.endsAt.toIso8601String(),
+};
+
+CycleInfo cycleInfoFromJson(Map<String, Object?> json) => CycleInfo(
+  number: ((json['number'] ?? json['cycle_number']) as num?)?.toInt() ?? 1,
+  day: ((json['day'] ?? json['cycle_day']) as num?)?.toInt() ?? 1,
+  length: ((json['length'] ?? json['cycle_length']) as num?)?.toInt() ?? 1,
+  completed:
+      ((json['completed'] ?? json['cycle_completed_count']) as num?)?.toInt() ??
+      0,
+  total:
+      ((json['total'] ?? json['cycle_portion_count']) as num?)?.toInt() ?? 30,
+);
+
+Map<String, Object?> cycleInfoToJson(CycleInfo cycle) => {
+  'number': cycle.number,
+  'day': cycle.day,
+  'length': cycle.length,
+  'completed': cycle.completed,
+  'total': cycle.total,
+};
 
 SeatMember seatMemberFromJson(Map<String, Object?> json) {
   return SeatMember(
@@ -246,66 +300,77 @@ DashboardSnapshot dashboardSnapshotFromJson(
   final seats = json['seats'] == null
       ? null
       : seatMapFromJson((json['seats']! as Map).cast<String, Object?>());
+  final todayJson = json['today'] == null
+      ? null
+      : (json['today']! as Map).cast<String, Object?>();
+  final cycleJson = json['cycle'] == null
+      ? (todayJson?.containsKey('cycle_number') == true ? todayJson : null)
+      : (json['cycle']! as Map).cast<String, Object?>();
   return DashboardSnapshot(
     groupId: json['group_id']! as String,
     groupName: json['group_name']! as String,
     myRole: groupRoleOf(json['my_role']! as String),
     status: status,
-    serverGeneratedAt:
-        DateTime.parse(json['server_generated_at']! as String),
-    today: json['today'] == null
-        ? null
-        : groupDayInfoFromJson(
-            (json['today']! as Map).cast<String, Object?>()),
+    serverGeneratedAt: DateTime.parse(json['server_generated_at']! as String),
+    today: todayJson == null ? null : groupDayInfoFromJson(todayJson),
     myAssignments: ((json['my_assignments'] ?? const []) as List)
-        .map((e) =>
-            assignmentFromJson((e as Map).cast<String, Object?>()))
+        .map((e) => assignmentFromJson((e as Map).cast<String, Object?>()))
         .toList(),
     assignments: ((json['assignments'] ?? const []) as List)
-        .map((e) =>
-            assignmentFromJson((e as Map).cast<String, Object?>()))
+        .map((e) => assignmentFromJson((e as Map).cast<String, Object?>()))
         .toList(),
     seats: seats,
     activeMemberCount: (json['active_member_count'] as num?)?.toInt() ?? 0,
     inviteCode: json['invite_code'] as String?,
+    portionUnit: portionUnitOf(json['portion_unit']),
+    pendingPortionUnit: json['pending_portion_unit'] == null
+        ? null
+        : portionUnitOf(json['pending_portion_unit']),
+    cycle: cycleJson == null ? null : cycleInfoFromJson(cycleJson),
     isStale: isStale,
     cachedAt: cachedAt,
   );
 }
 
 Map<String, Object?> dashboardSnapshotToJson(DashboardSnapshot s) => {
-      'group_id': s.groupId,
-      'group_name': s.groupName,
-      'my_role': groupRoleName(s.myRole),
-      'status': s.status.name,
-      'server_generated_at': s.serverGeneratedAt.toIso8601String(),
-      if (s.today != null) 'today': groupDayInfoToJson(s.today!),
-      'my_assignments': s.myAssignments.map(assignmentToJson).toList(),
-      'assignments': s.assignments.map(assignmentToJson).toList(),
-      if (s.seats != null)
-        'seats': {
-          'group_id': s.seats!.groupId,
-          'active_member_count': s.seats!.activeMemberCount,
-          'invite_code': s.seats!.inviteCode,
-          'members': s.seats!.members
-              .map((m) => {
-                    'membership_id': m.membershipId,
-                    'display_name': m.displayName,
-                    'role': groupRoleName(m.role),
-                    'seat_number': m.seatNumber,
-                  })
-              .toList(),
-        },
-      'active_member_count': s.activeMemberCount,
-      if (s.inviteCode != null) 'invite_code': s.inviteCode,
-    };
+  'group_id': s.groupId,
+  'group_name': s.groupName,
+  'my_role': groupRoleName(s.myRole),
+  'status': s.status.name,
+  'server_generated_at': s.serverGeneratedAt.toIso8601String(),
+  if (s.today != null) 'today': groupDayInfoToJson(s.today!),
+  'my_assignments': s.myAssignments.map(assignmentToJson).toList(),
+  'assignments': s.assignments.map(assignmentToJson).toList(),
+  if (s.seats != null)
+    'seats': {
+      'group_id': s.seats!.groupId,
+      'active_member_count': s.seats!.activeMemberCount,
+      'invite_code': s.seats!.inviteCode,
+      'members': s.seats!.members
+          .map(
+            (m) => {
+              'membership_id': m.membershipId,
+              'display_name': m.displayName,
+              'role': groupRoleName(m.role),
+              'seat_number': m.seatNumber,
+            },
+          )
+          .toList(),
+    },
+  'active_member_count': s.activeMemberCount,
+  'portion_unit': portionUnitName(s.portionUnit),
+  if (s.pendingPortionUnit != null)
+    'pending_portion_unit': portionUnitName(s.pendingPortionUnit!),
+  if (s.cycle != null) 'cycle': cycleInfoToJson(s.cycle!),
+  if (s.inviteCode != null) 'invite_code': s.inviteCode,
+};
 
 HistoryDaySummary historyDaySummaryFromJson(Map<String, Object?> json) {
   final perJuz = json['per_juz'] == null
       ? null
       : ((json['per_juz']!) as List)
-          .map((e) => assignmentFromJson((e as Map).cast<String, Object?>()))
-          .toList();
+            .map((e) => assignmentFromJson((e as Map).cast<String, Object?>()))
+            .toList();
   return HistoryDaySummary(
     groupDate: json['group_date']! as String,
     completedCount: (json['completed_count'] as num?)?.toInt() ?? 0,
@@ -316,23 +381,29 @@ HistoryDaySummary historyDaySummaryFromJson(Map<String, Object?> json) {
     myResult: json['my_result'] == null
         ? null
         : assignmentFromJson(
-            (json['my_result']! as Map).cast<String, Object?>()),
+            (json['my_result']! as Map).cast<String, Object?>(),
+          ),
     perJuz: perJuz,
+    cycleNumber: (json['cycle_number'] as num?)?.toInt(),
+    cycleDay: (json['cycle_day'] as num?)?.toInt(),
+    portionUnit: portionUnitOf(json['portion_unit']),
   );
 }
 
 Map<String, Object?> historyDaySummaryToJson(HistoryDaySummary h) => {
-      'group_date': h.groupDate,
-      'completed_count': h.completedCount,
-      'late_count': h.lateCount,
-      'missed_count': h.missedCount,
-      'unread_count': h.unreadCount,
-      'full_khatma': h.fullKhatma,
-      if (h.myResult != null)
-        'my_result': assignmentToJson(h.myResult!),
-      if (h.perJuz != null)
-        'per_juz': h.perJuz!.map(assignmentToJson).toList(),
-    };
+  'group_date': h.groupDate,
+  'completed_count': h.completedCount,
+  'late_count': h.lateCount,
+  'missed_count': h.missedCount,
+  'unread_count': h.unreadCount,
+  'full_khatma': h.fullKhatma,
+  if (h.cycleNumber != null) 'cycle_number': h.cycleNumber,
+  if (h.cycleDay != null) 'cycle_day': h.cycleDay,
+  if (h.portionUnit != PortionUnit.juz)
+    'portion_unit': portionUnitName(h.portionUnit),
+  if (h.myResult != null) 'my_result': assignmentToJson(h.myResult!),
+  if (h.perJuz != null) 'per_juz': h.perJuz!.map(assignmentToJson).toList(),
+};
 
 JoinOutcome joinOutcomeFromJson(Map<String, Object?> json) {
   return JoinOutcome(
