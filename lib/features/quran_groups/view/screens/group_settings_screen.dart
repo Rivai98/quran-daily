@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/design_system/app_button.dart';
 import '../../../../core/design_system/app_colors.dart';
+import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
@@ -93,20 +94,19 @@ class _SettingsForm extends StatelessWidget {
         if (failure != null) ...[
           Container(
             padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
             decoration: ShapeDecoration(
               color: colors.missedBg,
               shape: RoundedRectangleBorder(
-                borderRadius:
-                    const BorderRadius.all(Radius.circular(12)),
-                side: BorderSide(
-                    color: colors.danger.withValues(alpha: 0.3)),
+                borderRadius: AppRadius.mdBR,
+                side: BorderSide(color: colors.danger.withValues(alpha: 0.3)),
               ),
             ),
             child: Text(
               ArabicStrings.authError(failure!.code),
-              style:
-                  AppTypography.caption.copyWith(color: colors.danger),
+              style: AppTypography.caption.copyWith(color: colors.danger),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -133,7 +133,8 @@ class _SettingsForm extends StatelessWidget {
                       variant: AppButtonVariant.tonal,
                       onPressed: () => SharePlus.instance.share(
                         ShareParams(
-                          text: 'انضم إلى مجموعتي في ختمة يومية! رمز الدعوة: $inviteCode'
+                          text:
+                              '${ArabicStrings.inviteShareMessage}$inviteCode'
                               ' — qurandaily://join/$inviteCode',
                         ),
                       ),
@@ -143,18 +144,17 @@ class _SettingsForm extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 AppButton(
-                  label: 'توليد رمز جديد',
+                  label: ArabicStrings.regenerateInviteAction,
                   variant: AppButtonVariant.secondary,
                   onPressed: submitting
                       ? null
                       : () => ConfirmSheet.show(
-                            context,
-                            title: 'توليد رمز دعوة جديد؟',
-                            message:
-                                'سيتوقف عمل رمز الدعوة القديم ولن يعود رابط الدعوة السابق.',
-                            confirmLabel: 'نعم، ولّد رمزًا جديدًا',
-                            onConfirm: () => cubit.regenerateInvite(),
-                          ),
+                          context,
+                          title: ArabicStrings.regenerateInviteTitle,
+                          message: ArabicStrings.regenerateInviteMessage,
+                          confirmLabel: ArabicStrings.regenerateInviteConfirm,
+                          onConfirm: () => cubit.regenerateInvite(),
+                        ),
                 ),
               ],
             ),
@@ -164,16 +164,22 @@ class _SettingsForm extends StatelessWidget {
         AppSectionHeader(title: ArabicStrings.settingsTitle),
         TextField(
           controller: nameController,
-          decoration: const InputDecoration(labelText: 'اسم المجموعة'),
+          decoration: const InputDecoration(
+            labelText: ArabicStrings.groupNameLabel,
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
         TextField(
           controller: descriptionController,
-          decoration: const InputDecoration(labelText: 'وصف مختصر'),
+          decoration: const InputDecoration(
+            labelText: ArabicStrings.shortDescriptionLabel,
+          ),
         ),
         const SizedBox(height: AppSpacing.xs),
-        Text(ArabicStrings.settingsApplyTomorrowNote,
-            style: AppTypography.caption),
+        Text(
+          ArabicStrings.settingsApplyTomorrowNote,
+          style: AppTypography.caption,
+        ),
         const SizedBox(height: AppSpacing.md),
         AppButton(
           label: ArabicStrings.save,
@@ -183,13 +189,13 @@ class _SettingsForm extends StatelessWidget {
           onPressed: submitting
               ? null
               : () => cubit.saveSettings(
-                    name: nameController.text.trim().isEmpty
-                        ? null
-                        : nameController.text.trim(),
-                    shortDescription: descriptionController.text.trim().isEmpty
-                        ? null
-                        : descriptionController.text.trim(),
-                  ),
+                  name: nameController.text.trim().isEmpty
+                      ? null
+                      : nameController.text.trim(),
+                  shortDescription: descriptionController.text.trim().isEmpty
+                      ? null
+                      : descriptionController.text.trim(),
+                ),
         ),
         const SizedBox(height: AppSpacing.lg),
         AppButton(
@@ -199,13 +205,12 @@ class _SettingsForm extends StatelessWidget {
           onPressed: submitting
               ? null
               : () => ConfirmSheet.show(
-                    context,
-                    title: 'أرشف المجموعة؟',
-                    message:
-                        'لن تُقبل انضمامات جديدة ولن تتولد أيام جديدة للمجموعة.',
-                    confirmLabel: 'نعم، أرشف',
-                    onConfirm: () => cubit.archiveGroup(),
-                  ),
+                  context,
+                  title: ArabicStrings.archiveGroupTitle,
+                  message: ArabicStrings.archiveGroupMessage,
+                  confirmLabel: ArabicStrings.archiveGroupConfirm,
+                  onConfirm: () => cubit.archiveGroup(),
+                ),
           icon: const Icon(Icons.archive_outlined),
         ),
         const SizedBox(height: AppSpacing.lg),

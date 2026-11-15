@@ -11,8 +11,8 @@ import '../../../../core/localization/arabic_numerals.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../data/entities/entities.dart';
 
-/// Forming state of S5 (ui-contract): "N / ٣٠ · ناقص X", seat list, invite
-/// code + share, owner "ابدأ الختمة". Data comes from the dashboard
+/// Forming state of S5 (ui-contract): member ratio, missing seats, invite
+/// code + share, and the owner's start action. Data comes from the dashboard
 /// snapshot's [SeatMap]; starting flows through [onStartKhatma] (wired to
 /// GroupSettingsCubit by the dashboard screen).
 class FormingGroupView extends StatelessWidget {
@@ -44,7 +44,7 @@ class FormingGroupView extends StatelessWidget {
     if (code == null) return;
     AppSnackBar.show(
       context,
-      'رمز الدعوة: $code — qurandaily://join/$code',
+      '${ArabicStrings.formingInviteSnack}$code — qurandaily://join/$code',
     );
   }
 
@@ -66,9 +66,12 @@ class FormingGroupView extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Flexible(
-                      child: Text(ArabicStrings.formingLabel,
-                          style: AppTypography.caption
-                              .copyWith(color: colors.pendingFg)),
+                      child: Text(
+                        ArabicStrings.formingLabel,
+                        style: AppTypography.caption.copyWith(
+                          color: colors.pendingFg,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
@@ -83,9 +86,8 @@ class FormingGroupView extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'يمكنك بدء الختمة الآن، وتظهر أجزاء المقاعد الشاغرة «متاحة» للتطوع.',
-                  style:
-                      AppTypography.caption.copyWith(color: colors.inkMuted),
+                  ArabicStrings.formingStartHint,
+                  style: AppTypography.caption.copyWith(color: colors.inkMuted),
                 ),
                 if (inviteCode != null) ...[
                   const SizedBox(height: AppSpacing.md),
@@ -144,8 +146,10 @@ class FormingGroupView extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(ArabicStrings.startKhatmaAction,
-                      style: AppTypography.title),
+                  Text(
+                    ArabicStrings.startKhatmaAction,
+                    style: AppTypography.title,
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(ArabicStrings.startJuzChoice, style: AppTypography.body),
                   const SizedBox(height: AppSpacing.md),
@@ -157,7 +161,8 @@ class FormingGroupView extends StatelessWidget {
                         ChoiceChip(
                           label: Text(ArabicNumerals.format(juz)),
                           selected: startJuz == juz,
-                          onSelected: (_) => setSheetState(() => startJuz = juz),
+                          onSelected: (_) =>
+                              setSheetState(() => startJuz = juz),
                         ),
                     ],
                   ),
@@ -222,20 +227,31 @@ class _SeatList extends StatelessWidget {
                   children: [
                     SizedBox(
                       width: 28,
-                      child: Text(ArabicNumerals.format(member.seatNumber),
-                          style: AppTypography.label),
+                      child: Text(
+                        ArabicNumerals.format(member.seatNumber),
+                        style: AppTypography.label,
+                      ),
                     ),
                     Expanded(
-                      child: Text(member.displayName, style: AppTypography.body),
+                      child: Text(
+                        member.displayName,
+                        style: AppTypography.body,
+                      ),
                     ),
                     if (member.role == GroupRole.owner)
-                      Text(ArabicStrings.roleOwner,
-                          style: AppTypography.caption
-                              .copyWith(color: colors.primary)),
+                      Text(
+                        ArabicStrings.roleOwner,
+                        style: AppTypography.caption.copyWith(
+                          color: colors.primary,
+                        ),
+                      ),
                     if (member.role == GroupRole.supervisor)
-                      Text(ArabicStrings.roleSupervisor,
-                          style: AppTypography.caption
-                              .copyWith(color: colors.primary)),
+                      Text(
+                        ArabicStrings.roleSupervisor,
+                        style: AppTypography.caption.copyWith(
+                          color: colors.primary,
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -246,14 +262,17 @@ class _SeatList extends StatelessWidget {
                   children: [
                     SizedBox(
                       width: 28,
-                      child: Text(ArabicNumerals.format(seat),
-                          style: AppTypography.label),
+                      child: Text(
+                        ArabicNumerals.format(seat),
+                        style: AppTypography.label,
+                      ),
                     ),
                     Expanded(
                       child: Text(
-                        'مقعد شاغر',
-                        style: AppTypography.caption
-                            .copyWith(color: colors.inkMuted),
+                        ArabicStrings.vacantSeat,
+                        style: AppTypography.caption.copyWith(
+                          color: colors.inkMuted,
+                        ),
                       ),
                     ),
                   ],
@@ -261,7 +280,8 @@ class _SeatList extends StatelessWidget {
               ),
             if (emptySeats.length > 5)
               Text(
-                '+ ${ArabicNumerals.format(emptySeats.length - 5)} مقاعد شاغرة أخرى',
+                '+ ${ArabicNumerals.format(emptySeats.length - 5)} '
+                '${ArabicStrings.moreVacantSeats}',
                 style: AppTypography.caption.copyWith(color: colors.inkMuted),
               ),
           ],

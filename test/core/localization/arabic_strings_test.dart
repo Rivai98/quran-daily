@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
+import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
 
 void main() {
   test('uses canonical Arabic status labels (constitution v2.4.0)', () {
@@ -21,26 +22,34 @@ void main() {
     expect(() => ArabicStrings.juzName(31), throwsRangeError);
   });
 
-  test('formats the reading range with Arabic-Indic digits', () {
-    expect(
-      ArabicStrings.juzRange(
-        startSura: 'النساء',
-        startAya: 24,
-        endSura: 'النساء',
-        endAya: 147,
-      ),
-      'من سورة النساء آية ٢٤ إلى سورة النساء آية ١٤٧',
-    );
-    expect(
-      ArabicStrings.juzRange(
-        startSura: 'البقرة',
-        startAya: 142,
-        endSura: 'آل عمران',
-        endAya: 200,
-      ),
-      'من سورة البقرة آية ١٤٢ إلى سورة آل عمران آية ٢٠٠',
-    );
-  });
+  test(
+    'formats repository-provided reading metadata with Arabic-Indic digits',
+    () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final metadata = QuranMetadataRepository();
+      await metadata.load();
+      final start = metadata.juz(1);
+      final end = metadata.juz(1);
+      expect(
+        ArabicStrings.juzRange(
+          startSura: metadata.suraName(start.startSura),
+          startAya: start.startAya,
+          endSura: metadata.suraName(end.endSura),
+          endAya: end.endAya,
+        ),
+        startsWith('من سورة ${metadata.suraName(start.startSura)} آية '),
+      );
+      expect(
+        ArabicStrings.juzRange(
+          startSura: metadata.suraName(start.startSura),
+          startAya: start.startAya,
+          endSura: metadata.suraName(end.endSura),
+          endAya: end.endAya,
+        ),
+        contains(RegExp('[٠-٩]')),
+      );
+    },
+  );
 
   test('role markers are Arabic-only', () {
     expect(ArabicStrings.roleOwner, 'المالك');

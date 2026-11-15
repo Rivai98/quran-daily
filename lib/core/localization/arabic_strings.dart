@@ -161,6 +161,28 @@ class ArabicStrings {
   static const archiveGroupAction = 'أرشف المجموعة';
   static const missingX = 'ناقص';
 
+  // --- T114 design-system compliance: group lifecycle screens ---
+  static const publicVisibility = 'عامة';
+  static const privateVisibility = 'خاصة';
+  static const autoAcceptJoinMode = 'قبول تلقائي';
+  static const ownerApprovalJoinMode = 'بموافقة المالك';
+  static const inviteShareMessage =
+      'انضم إلى مجموعتي في ختمة يومية! رمز الدعوة: ';
+  static const regenerateInviteAction = 'توليد رمز جديد';
+  static const regenerateInviteTitle = 'توليد رمز دعوة جديد؟';
+  static const regenerateInviteMessage =
+      'سيتوقف عمل رمز الدعوة القديم ولن يعود رابط الدعوة السابق.';
+  static const regenerateInviteConfirm = 'نعم، ولّد رمزًا جديدًا';
+  static const archiveGroupTitle = 'أرشف المجموعة؟';
+  static const archiveGroupMessage =
+      'لن تُقبل انضمامات جديدة ولن تتولد أيام جديدة للمجموعة.';
+  static const archiveGroupConfirm = 'نعم، أرشف';
+  static const formingInviteSnack = 'رمز الدعوة: ';
+  static const formingStartHint =
+      'يمكنك بدء الختمة الآن، وتظهر أجزاء المقاعد الشاغرة «متاحة» للتطوع.';
+  static const vacantSeat = 'مقعد شاغر';
+  static const moreVacantSeats = 'مقاعد شاغرة أخرى';
+
   // --- US4 discovery and invitation screens ---
   static const discoveryScreenTitle =
       '\u{627}\u{643}\u{62a}\u{634}\u{627}\u{641} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{627}\u{62a}';
@@ -254,8 +276,6 @@ class ArabicStrings {
   static const yourAssignment =
       '\u{648}\u{631}\u{62f}\u{643} \u{627}\u{644}\u{64a}\u{648}\u{645}';
   static const part2 = '\u{62c}\u{632}\u{621} 2';
-  static const partRange2 =
-      '\u{627}\u{644}\u{628}\u{642}\u{631}\u{629} 142 \u{625}\u{644}\u{649} \u{627}\u{644}\u{628}\u{642}\u{631}\u{629} 252';
   static const partsStatusTitle =
       '\u{62d}\u{627}\u{644}\u{629} \u{627}\u{644}\u{623}\u{62c}\u{632}\u{627}\u{621}';
   static const partsStatusSubtitle =
@@ -419,7 +439,8 @@ class ArabicStrings {
   static const emptyHistoryTitle = 'لا يوجد سجل سابق';
   static const emptyHistoryDesc = 'لم تكتمل أي أيام سابقة في هذه المجموعة بعد.';
   static const historyErrorTitle = 'تعذر تحميل السجل';
-  static const historyErrorDesc = 'حدث خطأ أثناء تحميل السجل. يرجى إعادة المحاولة.';
+  static const historyErrorDesc =
+      'حدث خطأ أثناء تحميل السجل. يرجى إعادة المحاولة.';
   static const retryAction = 'إعادة المحاولة';
   static const fullKhatmaBadge = 'ختمة كاملة';
   static const myResultSectionTitle = 'وردك في هذا اليوم';

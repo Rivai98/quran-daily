@@ -38,3 +38,10 @@ All must be green before a story is marked done.
 10. **Privacy** (SC-010): non-member cannot read members/progress via any RPC or table select.
 11. **Design/a11y** (SC-011): every screen passes widget tests in RTL, 200% text, dark theme; no raw colors/sizes in `lib/features` (lint test).
 12. **Quran metadata** (Principle VII): `SOURCE.md` matches plan.md "Quran Content Source"; checksum test passes; altering one byte of `quran-data.xml` fails the test.
+
+## Compliance review
+
+| Check | Found | Fixed |
+|---|---|---|
+| T114 design system, Arabic copy, and screen variants | No forbidden raw color, font size, radius, physical left/right inset, or alignment literals. Hard-coded screen copy existed in create group, group settings, and forming group views. Member, join-request, and group-settings screens lacked full variant coverage. | Moved copy to `ArabicStrings`; added RTL, 200% text, dark, and 320dp coverage. Existing shared design-system components and one-primary-action screen patterns remain in use. |
+| T115 Quran content integrity and source access | Static surah/range examples existed in a localization test and the design mock; `QuranMetadataRepository` is the only application code that reads Quran metadata. The checksum test verifies the bundled XML bytes. | Replaced examples with repository-driven test data and neutral mock placeholders. Kept Quran source files unchanged; checksum test passes. |
