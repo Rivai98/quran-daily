@@ -199,7 +199,7 @@ Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its 
 - [X] T096 [P] [US6] pgTAP tests for `list_join_requests`, `review_join_request` (seat allocation, group full), `get_group_members`, `move_member_seat` (swap, next-day effect), `set_member_role`, `remove_member` (today pending → available), `leave_group` (owner blocked), `transfer_ownership`, `archive_group`, `override_assignment`, supervisor limits in `supabase/tests/001_us6_manage_test.sql` Include: leaving/removal frees ALL of today's non-completed rows read by that member (seat, volunteer, override), not only the seat row.
 - [X] T097 [US6] Implement management functions in `supabase/migrations/009_management_functions.sql`
 - [X] T098 [P] [US6] Failing repository tests for management methods in `test/features/quran_groups/data/groups_repository_manage_test.dart`
-- [ ] T099 [US6] Implement management methods in `GroupsRepositoryImpl` and `KhatmaRepositoryImpl.overrideAssignment`
+- [X] T099 [US6] Implement management methods in `GroupsRepositoryImpl` and `KhatmaRepositoryImpl.overrideAssignment`
 - [X] T100 [P] [US6] Failing `bloc_test`s for `MembersCubit` and `JoinRequestsCubit` (role-based actions, confirmations, group full, owner leave blocked) in `test/features/quran_groups/cubit/members_cubit_test.dart` and `join_requests_cubit_test.dart`
 - [X] T101 [US6] Implement `MembersCubit` and `JoinRequestsCubit` in `lib/features/quran_groups/cubit/`
 - [X] T102 [P] [US6] Failing widget tests for S7 Members & Seats and S8 Join Requests (owner vs supervisor vs member views, all variants) in `test/features/quran_groups/view/members_screen_test.dart` and `join_requests_screen_test.dart`
@@ -224,7 +224,7 @@ Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its 
 
 - [X] T110 [P] App settings S11: `SettingsCubit` (depends on `SettingsRepository` + `SessionGateway`, not `AuthCubit`) + tests + `lib/features/settings/view/settings_screen.dart` (text scale 0.85-1.6 applied to `quranLabel`, sign-out with confirm); remove `lib/features/quran_groups/view/screens/settings_screen.dart`
 - [ ] T111 [P] Integration test `integration_test/group_flow_test.dart`: sign up → create → invite second user → start → complete → undo → history (hosted dev project via .env)
-- [ ] T112 [P] Integration test `integration_test/offline_completion_test.dart`: cached dashboard offline → complete → reconnect → synced
+- [X] T112 [P] Integration test `integration_test/offline_completion_test.dart`: cached dashboard offline → complete → reconnect → synced (host-runnable; device command documented in `integration_test/README.md`)
 - [ ] T113 Remove remaining legacy files under `lib/features/quran_groups/view/` and legacy tests not replaced; ensure `test/widget_test.dart` is a real smoke test or deleted
 - [ ] T114 Design system compliance review (constitution Principle VI): no raw colors/sizes/radii in features, shared components used, RTL + 200% text scale + dark theme verified on every screen
 - [ ] T115 Quran integrity review (Principle VII): grep code, tests, fixtures for any Arabic ayah text; only metadata repository reads Quran data; checksum test green

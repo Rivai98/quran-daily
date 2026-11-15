@@ -2,21 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:quran_daily/core/design_system/widgets/part_tile.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
 import 'package:quran_daily/features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/khatma_repository.dart';
+import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
+import 'package:quran_daily/core/errors/result.dart';
+import 'package:quran_daily/core/design_system/widgets/part_tile.dart';
+import 'package:quran_daily/features/quran_groups/view/widgets/override_assignment_sheet.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/group_dashboard_screen.dart';
 
 import '../../../helpers/widget_test_app.dart';
 
 class _Repository extends Mock implements KhatmaRepository {}
 
+class _GroupsRepository extends Mock implements GroupsRepository {}
+
 DashboardSnapshot _snapshot({
   bool full = false,
   bool stale = false,
+  GroupRole role = GroupRole.member,
   DayState dayState = DayState.open,
 }) {
   final assignments = List.generate(
@@ -37,7 +43,7 @@ DashboardSnapshot _snapshot({
   return DashboardSnapshot(
     groupId: 'g1',
     groupName: 'مجموعة',
-    myRole: GroupRole.member,
+    myRole: role,
     status: GroupStatus.active,
     serverGeneratedAt: DateTime.parse('2026-11-15T10:00:00Z'),
     today: GroupDayInfo(
@@ -59,6 +65,94 @@ DashboardSnapshot _snapshot({
 }
 
 void main() {
+  testWidgets('non-owner juz tiles do not open the override flow', (
+    tester,
+  ) async {
+    final groups = _GroupsRepository();
+    final cubit = DashboardCubit(
+      repository: _Repository(),
+      groupsRepository: groups,
+      groupId: 'g1',
+      initialState: DashboardState(
+        status: DashboardStatus.success,
+        snapshot: _snapshot(role: GroupRole.member),
+      ),
+    );
+    addTearDown(cubit.close);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: GroupDashboardScreen(
+            metadataRepository: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(PartTile).first);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(OverrideAssignmentSheet), findsNothing);
+    verifyNever(() => groups.getMembers('g1'));
+  });
+
+  testWidgets('owner opens override sheet from a juz tile and submits', (
+    tester,
+  ) async {
+    final repository = _Repository();
+    final groups = _GroupsRepository();
+    when(() => groups.getMembers('g1')).thenAnswer(
+      (_) async => Success(
+        const SeatMap(
+          groupId: 'g1',
+          activeMemberCount: 2,
+          members: [
+            SeatMember(
+              membershipId: 'm1',
+              displayName: ArabicStrings.memberRole,
+              role: GroupRole.member,
+              seatNumber: 2,
+            ),
+          ],
+        ),
+      ),
+    );
+    when(
+      () => repository.overrideAssignment('a0', 'm1'),
+    ).thenAnswer((_) async => Success(_snapshot(role: GroupRole.owner)));
+    final cubit = DashboardCubit(
+      repository: repository,
+      groupsRepository: groups,
+      groupId: 'g1',
+      initialState: DashboardState(
+        status: DashboardStatus.success,
+        snapshot: _snapshot(role: GroupRole.owner),
+      ),
+    );
+    addTearDown(cubit.close);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: GroupDashboardScreen(
+            metadataRepository: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byType(PartTile).first);
+    await tester.pumpAndSettle();
+    expect(find.byType(OverrideAssignmentSheet), findsOneWidget);
+    await tester.tap(find.text(ArabicStrings.memberRole));
+    await tester.pump();
+    await tester.tap(find.byType(FilledButton).last);
+    await tester.pumpAndSettle();
+    verify(() => repository.overrideAssignment('a0', 'm1')).called(1);
+    expect(find.byType(OverrideAssignmentSheet), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('grace day banner is visible on dashboard', (tester) async {
     final snapshot = _snapshot(dayState: DayState.grace);
     final cubit = DashboardCubit(

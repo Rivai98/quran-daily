@@ -5,33 +5,29 @@ import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../data/entities/entities.dart';
-import '../../data/repositories/khatma_repository.dart';
+import '../../../../core/errors/result.dart';
 
-/// Standalone owner tool. Dashboard wiring is intentionally left to the shell.
+/// Owner-only assignment change sheet; mutations are routed through the Cubit.
 class OverrideAssignmentSheet extends StatefulWidget {
   const OverrideAssignmentSheet({
     super.key,
-    required this.assignmentId,
     required this.members,
-    required this.repository,
+    required this.onSubmit,
   });
-  final String assignmentId;
   final List<SeatMember> members;
-  final KhatmaRepository repository;
+  final Future<Result<DashboardSnapshot>> Function(String membershipId)
+  onSubmit;
 
   static Future<void> show(
     BuildContext context, {
-    required String assignmentId,
     required List<SeatMember> members,
-    required KhatmaRepository repository,
+    required Future<Result<DashboardSnapshot>> Function(String membershipId)
+    onSubmit,
   }) => showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    builder: (_) => OverrideAssignmentSheet(
-      assignmentId: assignmentId,
-      members: members,
-      repository: repository,
-    ),
+    builder: (_) =>
+        OverrideAssignmentSheet(members: members, onSubmit: onSubmit),
   );
 
   @override
@@ -89,10 +85,7 @@ class _OverrideAssignmentSheetState extends State<OverrideAssignmentSheet> {
       submitting = true;
       error = null;
     });
-    final result = await widget.repository.overrideAssignment(
-      widget.assignmentId,
-      selected!,
-    );
+    final result = await widget.onSubmit(selected!);
     if (!mounted) return;
     result.when(
       success: (_) => Navigator.pop(context),

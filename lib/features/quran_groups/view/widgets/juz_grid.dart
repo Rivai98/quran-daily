@@ -6,9 +6,10 @@ import '../../../../core/design_system/widgets/part_tile.dart';
 import '../../data/entities/entities.dart';
 
 class JuzGrid extends StatelessWidget {
-  const JuzGrid({super.key, required this.assignments});
+  const JuzGrid({super.key, required this.assignments, this.onAssignmentTap});
 
   final List<Assignment> assignments;
+  final ValueChanged<Assignment>? onAssignmentTap;
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +26,13 @@ class JuzGrid extends StatelessWidget {
         for (final assignment in ordered)
           PartTile(
             juz: assignment.juz,
-            status: design.AssignmentStatus.values.byName(assignment.status.name),
+            status: design.AssignmentStatus.values.byName(
+              assignment.status.name,
+            ),
             isMine: assignment.isMe,
+            onTap: onAssignmentTap == null
+                ? null
+                : () => onAssignmentTap!(assignment),
           ),
       ],
     );

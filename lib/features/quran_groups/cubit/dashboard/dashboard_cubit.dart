@@ -4,9 +4,11 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/result.dart';
 import '../../../../core/network/connectivity_service.dart';
 import '../../data/entities/entities.dart';
 import '../../data/repositories/khatma_repository.dart';
+import '../../data/repositories/groups_repository.dart';
 import '../../data/use_cases/completion_use_cases.dart';
 
 enum DashboardStatus { initial, loading, success, empty, offline, failure }
@@ -43,6 +45,7 @@ class DashboardCubit extends Cubit<DashboardState> {
   DashboardCubit({
     required KhatmaRepository repository,
     required this.groupId,
+    this.groupsRepository,
     SyncPendingCompletions? syncPending,
     ConnectivityService? connectivityService,
     DashboardState initialState = const DashboardState(),
@@ -55,6 +58,7 @@ class DashboardCubit extends Cubit<DashboardState> {
   final KhatmaRepository _repository;
   final SyncPendingCompletions? _syncPending;
   final String groupId;
+  final GroupsRepository? groupsRepository;
   StreamSubscription<bool>? _connectivitySubscription;
 
   void observeConnectivity(ConnectivityService connectivityService) {
@@ -160,6 +164,47 @@ class DashboardCubit extends Cubit<DashboardState> {
   }
 
   Future<void> onResumed() => refresh();
+
+  Future<SeatMap?> getActiveMembers() async {
+    if (state.snapshot?.myRole != GroupRole.owner) return null;
+    final groups = groupsRepository;
+    if (groups == null) return null;
+    final result = await groups.getMembers(groupId);
+    return result.valueOrNull;
+  }
+
+  Future<Result<DashboardSnapshot>> overrideAssignment(
+    String assignmentId,
+    String membershipId,
+  ) async {
+    if (state.snapshot?.myRole != GroupRole.owner) {
+      return const FailureResult(
+        PermissionFailure(message: 'owner only', code: 'forbidden'),
+      );
+    }
+    final result = await _repository.overrideAssignment(
+      assignmentId,
+      membershipId,
+    );
+    result.when(
+      success: (snapshot) => emit(
+        DashboardState(
+          status: snapshot.isStale
+              ? DashboardStatus.offline
+              : DashboardStatus.success,
+          snapshot: snapshot,
+        ),
+      ),
+      failure: (failure) => emit(
+        DashboardState(
+          status: DashboardStatus.failure,
+          snapshot: state.snapshot,
+          failure: failure,
+        ),
+      ),
+    );
+    return result;
+  }
 
   @override
   Future<void> close() async {

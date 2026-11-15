@@ -17,6 +17,7 @@ import '../widgets/available_juz_list.dart';
 import '../widgets/juz_grid.dart';
 import '../widgets/my_juz_card.dart';
 import '../widgets/offline_stale_banner.dart';
+import '../widgets/override_assignment_sheet.dart';
 import '../widgets/validation_banner.dart';
 
 class GroupDashboardScreen extends StatelessWidget {
@@ -160,7 +161,12 @@ class GroupDashboardScreen extends StatelessWidget {
               caption: ArabicStrings.assignmentGroupDate,
             ),
             const SizedBox(height: AppSpacing.lg),
-            JuzGrid(assignments: snapshot.assignments),
+            JuzGrid(
+              assignments: snapshot.assignments,
+              onAssignmentTap: snapshot.myRole == GroupRole.owner
+                  ? (assignment) => _openOverride(context, assignment)
+                  : null,
+            ),
             if (snapshot.assignments.any(
               (assignment) =>
                   assignment.juz == 30 &&
@@ -181,6 +187,21 @@ class GroupDashboardScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _openOverride(
+    BuildContext context,
+    Assignment assignment,
+  ) async {
+    final cubit = context.read<DashboardCubit>();
+    final seats = await cubit.getActiveMembers();
+    if (!context.mounted || seats == null || seats.members.isEmpty) return;
+    await OverrideAssignmentSheet.show(
+      context,
+      members: seats.members,
+      onSubmit: (membershipId) =>
+          cubit.overrideAssignment(assignment.assignmentId, membershipId),
     );
   }
 
