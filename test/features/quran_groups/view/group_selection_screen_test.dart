@@ -49,6 +49,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(ArabicStrings.noApprovedGroups), findsOneWidget);
+    expect(find.text(ArabicStrings.joinAnyGroupAction), findsOneWidget);
+    expect(find.text(ArabicStrings.searchGroupAction), findsOneWidget);
+    expect(find.text(ArabicStrings.createGroup), findsOneWidget);
+    expect(find.text(ArabicStrings.iHaveInviteLink), findsOneWidget);
   });
 
   testWidgets('pending rows show the pending chip and cancel action',

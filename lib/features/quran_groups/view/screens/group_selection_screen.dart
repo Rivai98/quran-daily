@@ -84,13 +84,43 @@ class _EmptyEntryPoints extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StatePanel(
-      icon: Icons.groups,
-      title: ArabicStrings.noApprovedGroups,
-      message: ArabicStrings.groupsNeedMembersEntry,
-      actionLabel: ArabicStrings.joinAnyGroupAction,
-      onAction: () => Navigator.pushNamed(context, '/discover'),
-      actionVariant: AppButtonVariant.primary,
+    Widget secondary(String label, IconData icon, String route) => Padding(
+      padding: const EdgeInsetsDirectional.only(top: AppSpacing.sm),
+      child: AppButton(
+        label: label,
+        variant: AppButtonVariant.secondary,
+        expanded: true,
+        icon: Icon(icon),
+        onPressed: () async {
+          await Navigator.pushNamed(context, route);
+          if (context.mounted) await context.read<GroupListCubit>().refresh();
+        },
+      ),
+    );
+
+    // S1 empty state (ui-contract): join-any is the one primary action.
+    return ListView(
+      padding: AppSpacing.screen,
+      children: [
+        StatePanel(
+          icon: Icons.groups,
+          title: ArabicStrings.noApprovedGroups,
+          message: ArabicStrings.groupsNeedMembersEntry,
+          actionLabel: ArabicStrings.joinAnyGroupAction,
+          onAction: () async {
+            await Navigator.pushNamed(context, '/join-any');
+            if (context.mounted) await context.read<GroupListCubit>().refresh();
+          },
+          actionVariant: AppButtonVariant.primary,
+        ),
+        secondary(ArabicStrings.searchGroupAction, Icons.search, '/discover'),
+        secondary(
+          ArabicStrings.createGroup,
+          Icons.add_circle_outline,
+          '/groups/new',
+        ),
+        secondary(ArabicStrings.iHaveInviteLink, Icons.link, '/join'),
+      ],
     );
   }
 }
@@ -123,7 +153,10 @@ class _GroupList extends StatelessWidget {
           label: ArabicStrings.createGroup,
           variant: AppButtonVariant.tonal,
           expanded: true,
-          onPressed: () => Navigator.pushNamed(context, '/groups/new'),
+          onPressed: () async {
+            await Navigator.pushNamed(context, '/groups/new');
+            if (context.mounted) await context.read<GroupListCubit>().refresh();
+          },
           icon: const Icon(Icons.add_circle_outline),
         ),
       ],
@@ -148,11 +181,14 @@ class _MyGroupRow extends StatelessWidget {
     return AppCard(
       child: InkWell(
         borderRadius: AppRadius.lgBR,
-        onTap: () => Navigator.pushNamed(
-          context,
-          AppRoutes.dashboard,
-          arguments: group.groupId,
-        ),
+        onTap: () async {
+          await Navigator.pushNamed(
+            context,
+            AppRoutes.dashboard,
+            arguments: group.groupId,
+          );
+          if (context.mounted) await context.read<GroupListCubit>().refresh();
+        },
         child: Padding(
           padding: AppSpacing.card,
           child: Column(

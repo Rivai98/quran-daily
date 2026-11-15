@@ -10,6 +10,9 @@
 // Uses unique it-<timestamp>@test.local accounts; the dev DB keeps them.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quran_daily/features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
+import 'package:quran_daily/features/quran_groups/view/screens/group_dashboard_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:quran_daily/app/bootstrap.dart';
@@ -30,7 +33,13 @@ Future<void> pumpUntil(
     await tester.pump(const Duration(milliseconds: 250));
     if (finder.evaluate().isNotEmpty) return;
   }
-  throw TestFailure('Timed out waiting for $finder');
+  final visible = find
+      .byType(Text)
+      .evaluate()
+      .map((e) => (e.widget as Text).data)
+      .whereType<String>()
+      .join(' | ');
+  throw TestFailure('Timed out waiting for $finder. On screen: $visible');
 }
 
 Future<void> tapAndSettle(WidgetTester tester, Finder finder) async {
@@ -94,7 +103,19 @@ void main() {
     // 3. Open the new (forming) group.
     await pumpUntil(tester, find.text(groupName));
     await tapAndSettle(tester, find.text(groupName).first);
-    await pumpUntil(tester, find.byType(FormingGroupView));
+    try {
+      await pumpUntil(tester, find.byType(FormingGroupView));
+    } on TestFailure {
+      final screen = find.byType(GroupDashboardScreen);
+      if (screen.evaluate().isNotEmpty) {
+        final state = tester.element(screen).read<DashboardCubit>().state;
+        debugPrint('DASHBOARD STATE: ${state.status} failure=${state.failure} '
+            'snapshotStatus=${state.snapshot?.status}');
+      } else {
+        debugPrint('DASHBOARD SCREEN NOT FOUND');
+      }
+      rethrow;
+    }
 
     // 4. A second user joins with the invite code (separate client).
     final ownerClient = Supabase.instance.client;

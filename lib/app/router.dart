@@ -14,6 +14,7 @@ import '../features/quran_groups/data/repositories/khatma_repository.dart';
 import '../features/quran_groups/view/screens/history_screen.dart';
 import '../features/quran_groups/view/screens/group_dashboard_screen.dart';
 import '../features/quran_groups/view/screens/create_group_screen.dart';
+import '../features/quran_groups/cubit/create_group/create_group_cubit.dart';
 import '../features/quran_groups/view/screens/group_selection_screen.dart';
 import '../features/quran_groups/cubit/join_requests/join_requests_cubit.dart';
 import '../features/quran_groups/cubit/members/members_cubit.dart';
@@ -63,7 +64,10 @@ class AppRoutes {
     // deliberately absent from this table.
     return {
       groups: (_) => const GroupSelectionScreen(),
-      '/groups/new': (_) => const CreateGroupScreen(),
+      '/groups/new': (_) => BlocProvider(
+        create: (_) => serviceLocator<CreateGroupCubit>(),
+        child: const CreateGroupScreen(),
+      ),
       discovery: (_) => BlocProvider(
         create: (_) => serviceLocator<DiscoveryCubit>()..load(),
         child: const DiscoveryScreen(),

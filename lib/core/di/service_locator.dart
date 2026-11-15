@@ -26,6 +26,7 @@ import '../../features/quran_groups/data/repositories/groups_repository_impl.dar
 import '../../features/quran_groups/cubit/discovery/discovery_cubit.dart';
 import '../../features/quran_groups/cubit/join/join_cubit.dart';
 import '../../features/quran_groups/cubit/group_settings/group_settings_cubit.dart';
+import '../../features/quran_groups/cubit/create_group/create_group_cubit.dart';
 import '../../features/quran_groups/cubit/members/members_cubit.dart';
 import '../../features/quran_groups/cubit/join_requests/join_requests_cubit.dart';
 import '../../features/quran_groups/cubit/group_list/group_list_cubit.dart';
@@ -188,6 +189,12 @@ void configureServiceLocator({
     if (!locator.isRegistered<GroupListCubit>()) {
       locator.registerFactory<GroupListCubit>(
         () => GroupListCubit(repository: locator<GroupsRepository>()),
+      );
+    }
+
+    if (!locator.isRegistered<CreateGroupCubit>()) {
+      locator.registerFactory<CreateGroupCubit>(
+        () => CreateGroupCubit(repository: locator<GroupsRepository>()),
       );
     }
 
