@@ -18,6 +18,8 @@ import '../../features/quran_groups/data/repositories/khatma_repository.dart';
 import '../../features/quran_groups/data/repositories/khatma_repository_impl.dart';
 import '../../features/quran_groups/data/use_cases/completion_use_cases.dart';
 import '../storage/daos/daos.dart';
+import '../../features/mushaf/data/mushaf_remote_data_source.dart';
+import '../../features/mushaf/data/mushaf_sync_repository.dart';
 import '../../features/mushaf/data/reader_storage.dart';
 import '../../features/auth/data/data_sources/supabase_auth_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
@@ -84,11 +86,37 @@ void configureServiceLocator({
       );
     }
 
-    if (withSupabase && !locator.isRegistered<ReaderStorage>()) {
+    if (!locator.isRegistered<MushafRemoteDataSource>()) {
+      locator.registerLazySingleton<MushafRemoteDataSource>(
+        () => SupabaseMushafRemoteDataSource(
+          () => locator<SupabaseClientProvider>().client,
+        ),
+      );
+    }
+
+    if (!locator.isRegistered<MushafSyncRepository>()) {
+      locator.registerLazySingleton<MushafSyncRepository>(
+        () => MushafSyncRepository(
+          remote: locator<MushafRemoteDataSource>(),
+          storeFor: (userId) => SqfliteReaderStorage(
+            database: locator<LocalDatabase>(),
+            userId: userId,
+          ),
+          currentUserId: () => locator<SessionGateway>().currentUserId,
+        ),
+        dispose: (sync) => sync.dispose(),
+      );
+    }
+
+    // Local-first: writes land in SQLite, then a background sync is queued.
+    if (!locator.isRegistered<ReaderStorage>()) {
       locator.registerFactory<ReaderStorage>(
-        () => SqfliteReaderStorage(
-          database: locator<LocalDatabase>(),
-          userId: locator<SessionGateway>().currentUserId!,
+        () => SyncingReaderStorage(
+          SqfliteReaderStorage(
+            database: locator<LocalDatabase>(),
+            userId: locator<SessionGateway>().currentUserId!,
+          ),
+          onLocalChange: locator<MushafSyncRepository>().schedule,
         ),
       );
     }

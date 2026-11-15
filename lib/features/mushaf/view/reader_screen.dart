@@ -34,16 +34,13 @@ class ReaderScreen extends StatefulWidget {
 }
 
 class _ReaderScreenState extends State<ReaderScreen> {
-  late final PageController _pages;
+  PageController? _pages;
   final GlobalKey _startAyahKey = GlobalKey();
   String? _dua;
 
   @override
   void initState() {
     super.initState();
-    _pages = PageController(
-      initialPage: (context.read<ReaderCubit>().state.page?.number ?? 1) - 1,
-    );
     _loadDua();
     widget.metadata.load().then((_) {
       if (mounted) setState(() {});
@@ -63,7 +60,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
   @override
   void dispose() {
-    _pages.dispose();
+    _pages?.dispose();
     super.dispose();
   }
 
@@ -75,7 +72,18 @@ class _ReaderScreenState extends State<ReaderScreen> {
           previous.page?.number != current.page?.number,
       listener: (context, state) {
         final page = state.page?.number;
-        if (page != null && _pages.hasClients) _pages.jumpToPage(page - 1);
+        // The PageView only exists in the content state, so it may not be
+        // attached yet when the first page arrives: jump after the frame.
+        if (page != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final pages = _pages;
+            if (pages != null &&
+                pages.hasClients &&
+                pages.page?.round() != page - 1) {
+              pages.jumpToPage(page - 1);
+            }
+          });
+        }
         if (state.isStartPage) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             final ayahContext = _startAyahKey.currentContext;
@@ -139,8 +147,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     pageNumber: page!.number,
                     surahName: _surahName(page.firstSurah),
                     juz: page.juz,
-                    onBookmark: () =>
-                        _addBookmark(context, page.number, null, null),
+                    onBookmark: () => _addBookmark(
+                      context,
+                      page.number,
+                      page.firstSurah,
+                      null,
+                    ),
                   ),
                   if (state.isPortion)
                     Padding(
@@ -176,7 +188,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   Expanded(
                     child: PageView.builder(
                       key: const ValueKey('mushaf-page-view'),
-                      controller: _pages,
+                      controller: _pages ??= PageController(
+                        initialPage: page.number - 1,
+                      ),
                       reverse: true,
                       itemCount: widget.repository.pageCount,
                       onPageChanged: (index) =>
@@ -289,6 +303,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           ),
           minLines: 1,
           maxLines: 3,
+          maxLength: 200,
         ),
         actions: [
           TextButton(
@@ -305,7 +320,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     if (save == true) {
       await widget.storage.addBookmark(
         ReaderBookmark(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
+          id: ReaderBookmark.newId(),
           page: page,
           surah: surah,
           ayah: ayah,

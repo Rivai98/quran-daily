@@ -3,6 +3,7 @@ import 'package:quran_daily/core/quran/mushaf/mushaf_models.dart';
 import 'package:quran_daily/core/quran/mushaf/mushaf_repository.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/features/mushaf/cubit/reader_cubit.dart';
+import 'package:quran_daily/features/mushaf/data/mushaf_sync_repository.dart';
 import 'package:quran_daily/features/mushaf/data/reader_storage.dart';
 import '../mushaf_test_fixtures.dart';
 
@@ -80,6 +81,50 @@ void main() {
       expect(cubit.state.isOffline, isTrue);
     },
   );
+
+  group('with a syncing storage', () {
+    late int scheduled;
+    late ReaderCubit syncingCubit;
+
+    setUp(() {
+      scheduled = 0;
+      syncingCubit = ReaderCubit(
+        repository: repository,
+        storage: SyncingReaderStorage(
+          storage,
+          onLocalChange: () => scheduled++,
+        ),
+      );
+    });
+
+    tearDown(() => syncingCubit.close());
+
+    test('free reading queues a sync for each saved position', () async {
+      await syncingCubit.openPage(1);
+      await syncingCubit.turnTo(2);
+      expect(storage.savedPage, 2);
+      expect(scheduled, 2);
+    });
+
+    test('opens the last position pulled into local storage', () async {
+      storage.savedPage = 2;
+      await syncingCubit.openLastPosition();
+      expect(syncingCubit.state.page?.number, 2);
+    });
+
+    test('portion reading does not overwrite the free-reading position',
+        () async {
+      storage.savedPage = 1;
+      await syncingCubit.openPortion(
+        PortionUnit.juz,
+        1,
+        assignmentId: 'assignment',
+      );
+      await syncingCubit.turnTo(1);
+      expect(storage.savedPage, 1);
+      expect(scheduled, 0);
+    });
+  });
 }
 
 class _Repository implements MushafRepository {

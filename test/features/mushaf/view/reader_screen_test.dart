@@ -87,6 +87,39 @@ void main() {
     tester.view.resetPhysicalSize();
     tester.view.resetDevicePixelRatio();
   });
+
+  testWidgets('shows the page the cubit opened, not the first page', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 740);
+    tester.view.devicePixelRatio = 1;
+    final repo = _Repository();
+    final storage = _Storage();
+    final cubit = ReaderCubit(repository: repo, storage: storage);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: ReaderScreen(
+            repository: repo,
+            storage: storage,
+            metadata: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await cubit.openPage(2);
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
+    final view = tester.widget<PageView>(
+      find.byKey(const ValueKey('mushaf-page-view')),
+    );
+    expect(view.controller!.page, 1);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await cubit.close();
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
 }
 
 class _Repository implements MushafRepository {

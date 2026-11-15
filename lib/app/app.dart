@@ -11,6 +11,7 @@ import '../core/localization/arabic_strings.dart';
 import '../core/design_system/app_theme.dart';
 import '../features/auth/cubit/auth_cubit.dart';
 import '../features/auth/view/auth_entry_screen.dart';
+import '../features/mushaf/data/mushaf_sync_repository.dart';
 import '../features/quran_groups/view/screens/group_selection_screen.dart';
 import '../features/quran_groups/cubit/group_list/group_list_cubit.dart';
 import '../features/quran_groups/data/repositories/khatma_repository.dart';
@@ -90,6 +91,18 @@ class _QuranDailyAppState extends State<QuranDailyApp>
         serviceLocator.isRegistered<SessionGateway>() &&
         serviceLocator<SessionGateway>().currentUserId != null) {
       unawaited(_syncPendingSafely());
+      unawaited(_syncMushafSafely());
+    }
+  }
+
+  /// Pushes queued last-position/bookmark writes, then pulls the account's
+  /// copy (sign-in, app start with a saved session, and resume).
+  Future<void> _syncMushafSafely() async {
+    if (!serviceLocator.isRegistered<MushafSyncRepository>()) return;
+    try {
+      await serviceLocator<MushafSyncRepository>().sync();
+    } catch (_) {
+      // Reading stays local-first; the queue is retried on the next trigger.
     }
   }
 
@@ -116,6 +129,7 @@ class _QuranDailyAppState extends State<QuranDailyApp>
             }
             if (state.status == AuthStatus.authenticated) {
               _openPendingInvite();
+              unawaited(_syncMushafSafely());
             }
           },
           child: MaterialApp(

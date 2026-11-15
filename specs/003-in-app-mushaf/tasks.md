@@ -25,13 +25,13 @@
 - [X] T012 Reader screen: RTL PageView, page header, ayah rendering in KFGQPC font, highlights, portion banner, "تمت القراءة" on end page, 200% text scroll, dark mode
 - [X] T013 [P] Widget tests for the reader (RTL, dark, 320dp, 200%)
 - [X] T014 Index screen (surahs / juz / hizb / pages, search) + tests
-- [ ] T015 Last position + bookmarks: sqflite + sync, long-press "إضافة علامة", bookmarks list + tests
+- [X] T015 Last position + bookmarks: sqflite + sync, long-press "إضافة علامة", bookmarks list + tests
 - [X] T016 Enable "اقرأ الآن" entry points (assignment card, personal assignment) and "المصحف" app-bar action + tests
 - [X] T017 Khatm dua sheet behind the asset flag + tests
 - [X] T018 Licenses page attribution (KFGQPC, Tanzil)
 
 ## Phase 4: Validation (orchestrator)
-- [ ] T019 Integration test `integration_test/mushaf_flow_test.dart`: hizb group → "اقرأ الآن" → start page → end page → "تمت القراءة" → dashboard completed
+- [X] T019 Integration test `integration_test/mushaf_flow_test.dart`: hizb group → "اقرأ الآن" → start page → end page → "تمت القراءة" → dashboard completed
 - [ ] T020 analyze 0, all tests green, pgTAP 0 failed, phone check; validation log; merge to main
 
 ## Validation log
