@@ -6,10 +6,10 @@ begin;
 select plan(14);
 
 -- Story-owned c1 identifiers keep this test isolated from parallel worktrees.
-select tests_seed_user('c1000000-0000-0000-0000-000000000001', 'us1-owner@test.local', 'Ù…Ø§Ù„Ùƒ ÙŠÙˆ1');
-select tests_seed_user('c1000000-0000-0000-0000-000000000002', 'us1-m2@test.local', 'Ø¹Ø¶Ùˆ ÙŠÙˆ1');
-select tests_seed_user('c1000000-0000-0000-0000-000000000003', 'us1-out@test.local', 'Ø®Ø§Ø±Ø¬ÙŠ');
-select tests_seed_group('c1000000-0000-0000-0000-000000000011', 'Ø­Ù„Ù‚Ø© ÙŠÙˆ1',
+select tests_seed_user('c1000000-0000-0000-0000-000000000001', 'us1-owner@test.local', 'مالك يو1');
+select tests_seed_user('c1000000-0000-0000-0000-000000000002', 'us1-m2@test.local', 'عضو يو1');
+select tests_seed_user('c1000000-0000-0000-0000-000000000003', 'us1-out@test.local', 'خارجي');
+select tests_seed_group('c1000000-0000-0000-0000-000000000011', 'حلقة يو1',
                         'c1000000-0000-0000-0000-000000000001', 'Africa/Cairo', 'US2ABCD2');
 select tests_seed_member('c1000000-0000-0000-0000-000000000011',
                          'c1000000-0000-0000-0000-000000000001', 1::smallint, 'owner'::public.group_role);
@@ -78,19 +78,19 @@ select throws_ok(
 -- Forming groups return the seat map instead of daily assignments.
 select set_config('request.jwt.claims',
   json_build_object('sub', 'c1000000-0000-0000-0000-000000000001', 'role', 'authenticated')::text, true);
-select public.create_group('Ø­Ù„Ù‚Ø© ØªØ´ÙƒÙŠÙ„', '', 'Africa/Cairo', '00:00'::time,
+select public.create_group('حلقة تشكيل', '', 'Africa/Cairo', '00:00'::time,
                            'private'::public.group_visibility, 'approval'::public.join_mode);
 select is(
-  (public.get_dashboard((select id from public.groups where name = 'Ø­Ù„Ù‚Ø© ØªØ´ÙƒÙŠÙ„'))->>'status'),
+  (public.get_dashboard((select id from public.groups where name = 'حلقة تشكيل'))->>'status'),
   'forming',
   'forming dashboard reports forming status');
 select is(
   (select count(*)::int from jsonb_array_elements(public.get_dashboard(
-    (select id from public.groups where name = 'Ø­Ù„Ù‚Ø© ØªØ´ÙƒÙŠÙ„')->'seats'->'members'))),
+    (select id from public.groups where name = 'حلقة تشكيل'))->'seats'->'members')),
   1,
   'forming dashboard returns the active member seat map');
 select is(
-  (public.get_dashboard((select id from public.groups where name = 'Ø­Ù„Ù‚Ø© ØªØ´ÙƒÙŠÙ„'))->>'active_member_count')::int,
+  (public.get_dashboard((select id from public.groups where name = 'حلقة تشكيل'))->>'active_member_count')::int,
   1,
   'forming dashboard includes active member count');
 
