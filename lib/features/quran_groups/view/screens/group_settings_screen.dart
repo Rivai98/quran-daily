@@ -91,6 +91,7 @@ class GroupSettingsScreen extends StatelessWidget {
             isActive: isActive,
             submitting: state.status == GroupSettingsStatus.submitting,
             failure: state.failure,
+            description: state.description,
           );
         },
       ),
@@ -107,8 +108,10 @@ class _SettingsForm extends StatefulWidget {
     required this.failure,
     required this.portionUnit,
     required this.isActive,
+    this.description,
   });
 
+  final String? description;
   final String groupId;
   final String groupName;
   final String? inviteCode;
@@ -139,7 +142,22 @@ class _SettingsFormState extends State<_SettingsForm> {
     nameController = TextEditingController(
       text: groupName == groupId ? '' : groupName,
     );
-    descriptionController = TextEditingController();
+    descriptionController = TextEditingController(
+      text: widget.description ?? '',
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _SettingsForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The current description arrives after the first frame; prefill it
+    // unless the owner has already started typing.
+    final description = widget.description;
+    if (description != null &&
+        description != oldWidget.description &&
+        descriptionController.text.trim().isEmpty) {
+      descriptionController.text = description;
+    }
   }
 
   @override

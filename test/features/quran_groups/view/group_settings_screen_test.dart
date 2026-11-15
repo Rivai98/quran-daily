@@ -7,6 +7,8 @@ import 'package:quran_daily/core/design_system/widgets/app_text_field.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/features/quran_groups/cubit/group_settings/group_settings_cubit.dart';
+import 'package:quran_daily/core/errors/result.dart';
+import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/group_settings_screen.dart';
 
@@ -79,6 +81,52 @@ void main() {
         expect(tester.takeException(), isNull, reason: variant);
       },
     );
+  });
+
+  testWidgets('description field starts with the current description', (
+    tester,
+  ) async {
+    final repository = _MockGroupsRepository();
+    when(() => repository.getGroupInfo('group')).thenAnswer(
+      (_) async => Success(
+        GroupInfo(
+          groupId: 'group',
+          name: 'حلقة تجريبية',
+          description: 'ورد بعد الفجر',
+          status: GroupStatus.active,
+          visibility: GroupVisibility.public,
+          joinMode: JoinMode.autoAccept,
+          timezone: 'Africa/Cairo',
+          createdAt: DateTime(2026),
+          myRole: GroupRole.owner,
+          memberCount: 1,
+        ),
+      ),
+    );
+    final cubit = GroupSettingsCubit(repository: repository);
+    addTearDown(cubit.close);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: const GroupSettingsScreen(
+            groupId: 'group',
+            isOwner: true,
+            groupName: 'حلقة تجريبية',
+            onKhatmaStarted: _noop,
+          ),
+        ),
+      ),
+    );
+    // The details arrive after the first frame.
+    await cubit.load(groupId: 'group');
+    await tester.pumpAndSettle();
+    final fields = tester
+        .widgetList<TextField>(find.byType(TextField))
+        .map((field) => field.controller?.text)
+        .toList();
+    expect(fields, contains('ورد بعد الفجر'));
+    expect(fields, contains('حلقة تجريبية'));
   });
 
   testWidgets('owner settings use shared fields and separate sections', (
