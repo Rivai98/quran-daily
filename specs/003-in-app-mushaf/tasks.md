@@ -32,7 +32,12 @@
 
 ## Phase 4: Validation (orchestrator)
 - [X] T019 Integration test `integration_test/mushaf_flow_test.dart`: hizb group → "اقرأ الآن" → start page → end page → "تمت القراءة" → dashboard completed
-- [ ] T020 analyze 0, all tests green, pgTAP 0 failed, phone check; validation log; merge to main
+- [X] T020 analyze 0, all tests green, pgTAP 0 failed, phone check; validation log; merge to main
 
 ## Validation log
-_(filled at T020)_
+2026-11-15:
+- flutter analyze: 0 issues; flutter test: 355 passed.
+- pgTAP: 13 files, 0 failed (003_mushaf_sync 27/27).
+- Integration test mushaf_flow_test.dart on the Android emulator: passed (hizb group → اقرأ الآن opens portionRange start page → swipe to end page → تمت القراءة → get_dashboard completed; bookmark synced to the server).
+- Bugs fixed during validation: reader stuck on page 1; bookmark ids not uuid; page bookmarks without surah; note length cap.
+- Not done: khatm dua (hidden until the owner provides an approved text, T000b); iOS (no macOS); license confirmation for KFGQPC files before store release.
