@@ -215,8 +215,8 @@ Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its 
 - [X] T105 [US7] Implement history functions in `supabase/migrations/010_history_functions.sql`
 - [X] T106 [P] [US7] Failing tests for history repository methods (cache last page) and `HistoryCubit` (paging, detail by role) in `test/features/quran_groups/cubit/history_cubit_test.dart`
 - [X] T107 [US7] Implement history in `KhatmaRepositoryImpl` and `HistoryCubit` in `lib/features/quran_groups/cubit/history/`
-- [ ] T108 [P] [US7] Failing widget tests for S10 History list and day detail (all variants) in `test/features/quran_groups/view/history_screen_test.dart`
-- [ ] T109 [US7] Rebuild S10 `screens/history_screen.dart` (replace `daily_history_screen.dart`) with `widgets/history_day_card.dart` and `widgets/history_day_detail.dart`
+- [X] T108 [P] [US7] Failing widget tests for S10 History list and day detail (all variants) in `test/features/quran_groups/view/history_screen_test.dart`
+- [X] T109 [US7] Rebuild S10 `screens/history_screen.dart` (replace `daily_history_screen.dart`) with `widgets/history_day_card.dart` and `widgets/history_day_detail.dart`
 
 ---
 

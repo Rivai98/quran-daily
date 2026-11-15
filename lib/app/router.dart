@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../features/quran_groups/view/screens/daily_history_screen.dart';
+import '../features/quran_groups/view/screens/history_screen.dart';
 import '../features/quran_groups/view/screens/group_dashboard_screen.dart';
 import '../features/quran_groups/view/screens/create_group_screen.dart';
 import '../features/quran_groups/view/screens/group_selection_screen.dart';
@@ -42,7 +42,7 @@ class AppRoutes {
       organizerReview: (_) => const OrganizerAssignmentReviewScreen(),
       joinRequests: (_) => const OrganizerJoinRequestsScreen(),
       members: (_) => const MemberManagementScreen(),
-      history: (_) => const DailyHistoryScreen(),
+      history: (_) => const HistoryScreen(),
       settings: (_) => const SettingsScreen(),
     };
   }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quran_daily/features/quran_groups/view/screens/daily_history_screen.dart';
+import 'package:quran_daily/features/quran_groups/view/screens/history_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/member_management_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/organizer_assignment_review_screen.dart';
 
@@ -18,7 +18,7 @@ void main() {
     final screens = [
       const MemberManagementScreen(),
       const OrganizerAssignmentReviewScreen(),
-      const DailyHistoryScreen(),
+      const HistoryScreen(),
     ];
 
     for (final screen in screens) {

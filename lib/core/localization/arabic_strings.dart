@@ -288,4 +288,18 @@ class ArabicStrings {
       '\u{62d}\u{627}\u{644}\u{629} \u{627}\u{644}\u{62d}\u{641}\u{638} \u{627}\u{644}\u{645}\u{62d}\u{644}\u{64a}';
   static const rtlStatus =
       '\u{627}\u{644}\u{639}\u{631}\u{636} \u{627}\u{644}\u{62d}\u{627}\u{644}\u{64a} \u{639}\u{631}\u{628}\u{64a} \u{645}\u{646} \u{627}\u{644}\u{64a}\u{645}\u{64a}\u{646} \u{625}\u{644}\u{649} \u{627}\u{644}\u{64a}\u{633}\u{627}\u{631}';
+
+  // --- US7: Daily History strings ---
+  static const historyScreenTitle = 'سجل الختمات';
+  static const emptyHistoryTitle = 'لا يوجد سجل سابق';
+  static const emptyHistoryDesc = 'لم تكتمل أي أيام سابقة في هذه المجموعة بعد.';
+  static const historyErrorTitle = 'تعذر تحميل السجل';
+  static const historyErrorDesc = 'حدث خطأ أثناء تحميل السجل. يرجى إعادة المحاولة.';
+  static const retryAction = 'إعادة المحاولة';
+  static const fullKhatmaBadge = 'ختمة كاملة';
+  static const myResultSectionTitle = 'وردك في هذا اليوم';
+  static const allMembersDetailTitle = 'تفاصيل الأجزاء والمقاعد';
+  static const closeDetailAction = 'إغلاق التفاصيل';
+  static const loadMoreHistory = 'عرض أيام سابقة';
+  static const unassignedSeat = 'مقعد شاغر';
 }
