@@ -8,15 +8,21 @@ import '../../../../core/design_system/widgets/widgets.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../cubit/discovery/discovery_cubit.dart';
 import '../widgets/public_group_card.dart';
+import '../../../../core/quran/quran_metadata_repository.dart';
 
 class DiscoveryScreen extends StatefulWidget {
-  const DiscoveryScreen({super.key});
+  const DiscoveryScreen({super.key, this.metadataRepository});
+  final QuranMetadataRepository? metadataRepository;
 
   @override
   State<DiscoveryScreen> createState() => _DiscoveryScreenState();
 }
 
 class _DiscoveryScreenState extends State<DiscoveryScreen> {
+  late final QuranMetadataRepository _fallbackMetadata =
+      QuranMetadataRepository();
+  QuranMetadataRepository get _metadataRepository =>
+      widget.metadataRepository ?? _fallbackMetadata;
   late final ScrollController _scrollController;
 
   @override
@@ -112,6 +118,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 for (final group in state.groups) ...[
                   PublicGroupCard(
                     group: group,
+                    metadataRepository: _metadataRepository,
                     joinState: state.joinStates[group.groupId],
                     onJoin: () => context.read<DiscoveryCubit>().join(group),
                   ),

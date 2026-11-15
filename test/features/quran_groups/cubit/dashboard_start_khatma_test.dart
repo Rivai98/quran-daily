@@ -50,19 +50,25 @@ void main() {
   );
 
   blocTest<DashboardCubit, DashboardState>(
-    'startKhatma shows progress then the active dashboard',
-    setUp: () => when(
-      () => groups.startKhatma('g1', 7),
-    ).thenAnswer((_) async => Success(_active())),
+    'startKhatma reloads the dashboard through the caching repository',
+    setUp: () {
+      when(
+        () => groups.startKhatma('g1', 7),
+      ).thenAnswer((_) async => Success(_active()));
+      when(
+        () => khatma.getDashboard('g1'),
+      ).thenAnswer((_) async => Success(_active()));
+    },
     build: build,
     act: (cubit) => cubit.startKhatma(7),
-    expect: () => [
-      isA<DashboardState>().having((s) => s.startingKhatma, 'starting', true),
-      isA<DashboardState>()
-          .having((s) => s.startingKhatma, 'starting', false)
-          .having((s) => s.status, 'status', DashboardStatus.success)
-          .having((s) => s.snapshot?.status, 'group', GroupStatus.active),
-    ],
+    verify: (cubit) {
+      // KhatmaRepository.getDashboard caches the snapshot, so completion can
+      // find today's assignments afterwards (T111 regression).
+      verify(() => khatma.getDashboard('g1')).called(1);
+      expect(cubit.state.startingKhatma, false);
+      expect(cubit.state.status, DashboardStatus.success);
+      expect(cubit.state.snapshot?.status, GroupStatus.active);
+    },
   );
 
   blocTest<DashboardCubit, DashboardState>(
@@ -85,9 +91,14 @@ void main() {
 
   blocTest<DashboardCubit, DashboardState>(
     'duplicate startKhatma while starting is ignored',
-    setUp: () => when(
-      () => groups.startKhatma('g1', 1),
-    ).thenAnswer((_) async => Success(_active())),
+    setUp: () {
+      when(
+        () => groups.startKhatma('g1', 1),
+      ).thenAnswer((_) async => Success(_active()));
+      when(
+        () => khatma.getDashboard('g1'),
+      ).thenAnswer((_) async => Success(_active()));
+    },
     build: build,
     act: (cubit) async {
       final first = cubit.startKhatma(1);

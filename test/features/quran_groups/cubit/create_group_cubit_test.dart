@@ -6,6 +6,7 @@ import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/features/quran_groups/cubit/create_group/create_group_cubit.dart';
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
+import 'package:quran_daily/core/quran/portion_unit.dart';
 
 class _MockRepo extends Mock implements GroupsRepository {}
 
@@ -14,12 +15,14 @@ void main() {
 
   setUp(() {
     repo = _MockRepo();
-    registerFallbackValue(const CreateGroupInput(
-      name: 'x',
-      timezone: 'Africa/Cairo',
-      visibility: GroupVisibility.private,
-      joinMode: JoinMode.approval,
-    ));
+    registerFallbackValue(
+      const CreateGroupInput(
+        name: 'x',
+        timezone: 'Africa/Cairo',
+        visibility: GroupVisibility.private,
+        joinMode: JoinMode.approval,
+      ),
+    );
   });
 
   CreateGroupCubit build() => CreateGroupCubit(repository: repo);
@@ -99,8 +102,10 @@ void main() {
       'owner_group_limit surfaces as limitReached',
       build: build,
       setUp: () => when(() => repo.createGroup(any())).thenAnswer(
-          (_) async => const FailureResult(
-              AuthFailure(message: 'owner_group_limit', code: 'owner_group_limit'))),
+        (_) async => const FailureResult(
+          AuthFailure(message: 'owner_group_limit', code: 'owner_group_limit'),
+        ),
+      ),
       act: (cubit) => cubit.submit(
         name: 'حلقة صالحة',
         timezone: 'Africa/Cairo',
@@ -118,11 +123,56 @@ void main() {
 
   group('success navigates (T058)', () {
     blocTest<CreateGroupCubit, CreateGroupState>(
+      'selected portion unit is submitted and retained in state',
+      build: build,
+      setUp: () => when(() => repo.createGroup(any())).thenAnswer(
+        (_) async =>
+            const Success(CreatedGroup(groupId: 'g9', inviteCode: 'AB23CD45')),
+      ),
+      act: (cubit) async {
+        cubit.selectPortionUnit(PortionUnit.hizb);
+        await cubit.submit(
+          name: 'حلقة صالحة',
+          timezone: 'Africa/Cairo',
+          visibility: GroupVisibility.public,
+          joinMode: JoinMode.approval,
+        );
+      },
+      expect: () => [
+        isA<CreateGroupState>().having(
+          (s) => s.portionUnit,
+          'unit',
+          PortionUnit.hizb,
+        ),
+        isA<CreateGroupState>().having(
+          (s) => s.status,
+          'status',
+          CreateGroupStatus.submitting,
+        ),
+        isA<CreateGroupState>()
+            .having((s) => s.status, 'status', CreateGroupStatus.success)
+            .having((s) => s.portionUnit, 'unit', PortionUnit.hizb),
+      ],
+      verify: (_) => verify(
+        () => repo.createGroup(
+          any(
+            that: isA<CreateGroupInput>().having(
+              (i) => i.portionUnit,
+              'unit',
+              PortionUnit.hizb,
+            ),
+          ),
+        ),
+      ).called(1),
+    );
+
+    blocTest<CreateGroupCubit, CreateGroupState>(
       'successful creation ends success with the created group',
       build: build,
       setUp: () => when(() => repo.createGroup(any())).thenAnswer(
-          (_) async => const Success(CreatedGroup(
-              groupId: 'g9', inviteCode: 'AB23CD45'))),
+        (_) async =>
+            const Success(CreatedGroup(groupId: 'g9', inviteCode: 'AB23CD45')),
+      ),
       act: (cubit) => cubit.submit(
         name: 'حلقة صالحة',
         timezone: 'Africa/Cairo',

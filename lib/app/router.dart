@@ -6,6 +6,7 @@ import 'package:quran_daily/features/quran_groups/cubit/join/join_cubit.dart';
 import '../core/di/service_locator.dart';
 import '../core/localization/arabic_strings.dart';
 import '../core/quran/quran_metadata_repository.dart';
+import '../core/quran/portion_unit.dart';
 import '../core/design_system/widgets/state_panel.dart';
 import '../features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
 import '../features/quran_groups/cubit/assignment/assignment_cubit.dart';
@@ -44,6 +45,11 @@ String? inviteCodeFromDeepLink(Uri uri) {
 /// deep links must never rebuild private content while unauthenticated.
 final navigatorKey = GlobalKey<NavigatorState>();
 
+QuranMetadataRepository _metadataRepository() =>
+    serviceLocator.isRegistered<QuranMetadataRepository>()
+    ? serviceLocator<QuranMetadataRepository>()
+    : QuranMetadataRepository();
+
 class AppRoutes {
   const AppRoutes._();
 
@@ -63,22 +69,23 @@ class AppRoutes {
     // The root "/" is owned by the auth gate in app.dart (home), so it is
     // deliberately absent from this table.
     return {
-      groups: (_) => const GroupSelectionScreen(),
+      groups: (_) =>
+          GroupSelectionScreen(metadataRepository: _metadataRepository()),
       '/groups/new': (_) => BlocProvider(
         create: (_) => serviceLocator<CreateGroupCubit>(),
-        child: const CreateGroupScreen(),
+        child: CreateGroupScreen(metadataRepository: _metadataRepository()),
       ),
       discovery: (_) => BlocProvider(
         create: (_) => serviceLocator<DiscoveryCubit>()..load(),
-        child: const DiscoveryScreen(),
+        child: DiscoveryScreen(metadataRepository: _metadataRepository()),
       ),
       '/groups/discovery': (_) => BlocProvider(
         create: (_) => serviceLocator<DiscoveryCubit>()..load(),
-        child: const DiscoveryScreen(),
+        child: DiscoveryScreen(metadataRepository: _metadataRepository()),
       ),
       '/join': (_) => BlocProvider(
         create: (_) => serviceLocator<JoinCubit>(),
-        child: const InviteJoinScreen(),
+        child: InviteJoinScreen(metadataRepository: _metadataRepository()),
       ),
       '/join-any': (_) => BlocProvider(
         create: (_) => serviceLocator<JoinCubit>(),
@@ -99,7 +106,7 @@ class AppRoutes {
           create: (_) =>
               serviceLocator<DashboardCubit>(param1: groupId)..refresh(),
           child: GroupDashboardScreen(
-            metadataRepository: serviceLocator<QuranMetadataRepository>(),
+            metadataRepository: _metadataRepository(),
           ),
         );
       },
@@ -127,7 +134,7 @@ class AppRoutes {
           ),
           child: PersonalAssignmentScreen(
             snapshot: snapshot,
-            metadataRepository: serviceLocator<QuranMetadataRepository>(),
+            metadataRepository: _metadataRepository(),
           ),
         );
       },
@@ -140,7 +147,8 @@ class AppRoutes {
         return given != null
             ? BlocProvider.value(value: given, child: screen)
             : BlocProvider(
-                create: (_) => serviceLocator<JoinRequestsCubit>()..load(groupId),
+                create: (_) =>
+                    serviceLocator<JoinRequestsCubit>()..load(groupId),
                 child: screen,
               );
       },
@@ -167,12 +175,15 @@ class AppRoutes {
         final groupId = args['groupId']! as String;
         final inviteCode = args['inviteCode'] as String?;
         return BlocProvider(
-          create: (_) => serviceLocator<GroupSettingsCubit>()
-            ..load(groupId: groupId, inviteCode: inviteCode),
+          create: (_) =>
+              serviceLocator<GroupSettingsCubit>()
+                ..load(groupId: groupId, inviteCode: inviteCode),
           child: GroupSettingsScreen(
             groupId: groupId,
             isOwner: args['isOwner'] == true,
             inviteCode: inviteCode,
+            portionUnit: args['portionUnit'] as PortionUnit? ?? PortionUnit.juz,
+            isActive: args['isActive'] == true,
             onKhatmaStarted: () => Navigator.of(context).pop(),
           ),
         );

@@ -14,6 +14,7 @@ import '../../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/localization/arabic_numerals.dart';
+import '../../../../core/quran/portion_unit.dart';
 import '../../cubit/group_settings/group_settings_cubit.dart';
 
 /// S9 group settings (ui-contract): edit fields (owner), timezone/start
@@ -25,12 +26,16 @@ class GroupSettingsScreen extends StatelessWidget {
     required this.groupId,
     required this.isOwner,
     this.inviteCode,
+    this.portionUnit = PortionUnit.juz,
+    this.isActive = true,
     required this.onKhatmaStarted,
   });
 
   final String groupId;
   final bool isOwner;
   final String? inviteCode;
+  final PortionUnit portionUnit;
+  final bool isActive;
   final VoidCallback onKhatmaStarted;
 
   @override
@@ -59,6 +64,8 @@ class GroupSettingsScreen extends StatelessWidget {
           return _SettingsForm(
             groupId: groupId,
             inviteCode: code,
+            portionUnit: portionUnit,
+            isActive: isActive,
             submitting: state.status == GroupSettingsStatus.submitting,
             failure: state.failure,
           );
@@ -74,12 +81,16 @@ class _SettingsForm extends StatelessWidget {
     required this.inviteCode,
     required this.submitting,
     required this.failure,
+    required this.portionUnit,
+    required this.isActive,
   });
 
   final String groupId;
   final String? inviteCode;
   final bool submitting;
   final AppFailure? failure;
+  final PortionUnit portionUnit;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -192,6 +203,12 @@ class _SettingsForm extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
+        _PortionUnitSetting(
+          current: portionUnit,
+          isActive: isActive,
+          submitting: submitting,
+        ),
+        const SizedBox(height: AppSpacing.md),
         AppButton(
           label: ArabicStrings.save,
           variant: AppButtonVariant.primary,
@@ -228,4 +245,69 @@ class _SettingsForm extends StatelessWidget {
       ],
     );
   }
+}
+
+class _PortionUnitSetting extends StatefulWidget {
+  const _PortionUnitSetting({
+    required this.current,
+    required this.isActive,
+    required this.submitting,
+  });
+  final PortionUnit current;
+  final bool isActive;
+  final bool submitting;
+  @override
+  State<_PortionUnitSetting> createState() => _PortionUnitSettingState();
+}
+
+class _PortionUnitSettingState extends State<_PortionUnitSetting> {
+  late PortionUnit _selected = widget.current;
+  @override
+  void didUpdateWidget(covariant _PortionUnitSetting oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.current != widget.current) _selected = widget.current;
+  }
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      DropdownButtonFormField<PortionUnit>(
+        initialValue: _selected,
+        decoration: InputDecoration(
+          labelText: ArabicStrings.portionSelectorTitle,
+        ),
+        items: [
+          for (final unit in PortionUnit.values)
+            DropdownMenuItem(
+              value: unit,
+              child: Text(ArabicStrings.portionUnitName(unit)),
+            ),
+        ],
+        onChanged: widget.submitting
+            ? null
+            : (value) {
+                if (value != null) setState(() => _selected = value);
+              },
+      ),
+      const SizedBox(height: AppSpacing.xs),
+      AppButton(
+        label: ArabicStrings.confirmPortionChange,
+        variant: AppButtonVariant.tonal,
+        onPressed: widget.submitting || _selected == widget.current
+            ? null
+            : () => ConfirmSheet.show(
+                context,
+                title: ArabicStrings.confirmPortionChange,
+                message: widget.isActive
+                    ? ArabicStrings.portionChangeAppliesNextCycle
+                    : ArabicStrings.portionChangeAppliesImmediately,
+                confirmLabel: ArabicStrings.confirmPortionChange,
+                onConfirm: () => context
+                    .read<GroupSettingsCubit>()
+                    .saveSettings(portionUnit: _selected),
+              ),
+      ),
+    ],
+  );
 }

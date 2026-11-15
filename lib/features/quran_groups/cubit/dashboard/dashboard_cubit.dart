@@ -181,11 +181,11 @@ class DashboardCubit extends Cubit<DashboardState> {
       ),
     );
     final result = await groups.startKhatma(groupId, startJuz);
-    result.when(
-      success: (snapshot) => emit(
-        DashboardState(status: DashboardStatus.success, snapshot: snapshot),
-      ),
-      failure: (failure) => emit(
+    await result.when(
+      // Reload through KhatmaRepository so the active snapshot is cached;
+      // completion looks today's assignments up in that cache.
+      success: (_) => refresh(),
+      failure: (failure) async => emit(
         DashboardState(
           status: before.status,
           snapshot: before.snapshot,

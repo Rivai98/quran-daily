@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/app_radius.dart';
+import '../../../../core/design_system/app_typography.dart';
 
 enum ReadingStatus { pending, completed, missed, late }
 
@@ -31,7 +32,7 @@ class StatusChip extends StatelessWidget {
       backgroundColor: color.withValues(alpha: 0.1),
       side: BorderSide(color: color.withValues(alpha: 0.32)),
       shape: RoundedRectangleBorder(borderRadius: AppRadius.smBR),
-      labelStyle: TextStyle(color: color, fontWeight: FontWeight.w700),
+      labelStyle: AppTypography.label.copyWith(color: color),
       visualDensity: VisualDensity.compact,
     );
   }

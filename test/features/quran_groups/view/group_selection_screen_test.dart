@@ -27,6 +27,7 @@ void main() {
         child: child,
       );
 
+
   testWidgets('content: lists my groups with name and role marker',
       (tester) async {
     when(() => repo.getMyGroups()).thenAnswer((_) async =>
@@ -39,6 +40,26 @@ void main() {
 
     expect(find.text(TestFixtures.groupName), findsOneWidget);
     expect(find.text(ArabicStrings.roleOwner), findsOneWidget);
+  });
+
+  testWidgets('golden: S1 at 360x800 light and dark', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(360, 800);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    when(() => repo.getMyGroups()).thenAnswer((_) async => Success(
+      TestFixtures.overview(groups: [TestFixtures.myGroup(status: GroupStatus.forming)]),
+    ));
+    await tester.pumpWidget(buildArabicTestApp(
+      pump(const GroupSelectionScreen()), size: const Size(360, 800),
+    ));
+    await tester.pumpAndSettle();
+    await expectLater(find.byType(MaterialApp), matchesGoldenFile('../../../goldens/design_c_s1_light.png'));
+    await tester.pumpWidget(buildArabicTestApp(
+      pump(const GroupSelectionScreen()), dark: true, size: const Size(360, 800),
+    ));
+    await tester.pumpAndSettle();
+    await expectLater(find.byType(MaterialApp), matchesGoldenFile('../../../goldens/design_c_s1_dark.png'));
   });
 
   testWidgets('empty: StatePanel with the four entry points', (tester) async {

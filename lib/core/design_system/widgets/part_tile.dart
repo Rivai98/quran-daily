@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../localization/arabic_numerals.dart';
 import '../../localization/arabic_strings.dart';
+import '../../quran/portion_unit.dart';
 import '../app_colors.dart';
 import '../app_typography.dart';
 import '../assignment_status.dart';
@@ -15,20 +16,24 @@ class PartTile extends StatelessWidget {
     super.key,
     required this.juz,
     required this.status,
+    this.unit = PortionUnit.juz,
+    this.portionIndex,
     this.isMine = false,
     this.onTap,
   });
 
   final int juz;
+  final PortionUnit unit;
+  final int? portionIndex;
   final AssignmentStatus status;
   final bool isMine;
   final VoidCallback? onTap;
 
   String get _semanticLabel {
-    final buffer = StringBuffer(
-      '${ArabicStrings.partLabel} ${ArabicNumerals.format(juz)}'
-      '، ${status.label}',
-    );
+    final name = unit == PortionUnit.juz
+        ? '${ArabicStrings.partLabel} ${ArabicNumerals.format(juz)}'
+        : ArabicStrings.portionName(unit, portionIndex ?? juz);
+    final buffer = StringBuffer('$name، ${status.label}');
     if (isMine) {
       buffer.write('، ${ArabicStrings.mineSuffix}');
     }
@@ -66,7 +71,7 @@ class PartTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  ArabicNumerals.format(juz),
+                  ArabicNumerals.format(portionIndex ?? juz),
                   style: AppTypography.label.copyWith(
                     color: fg,
                     fontWeight: FontWeight.w700,

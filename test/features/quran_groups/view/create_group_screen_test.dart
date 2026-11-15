@@ -10,31 +10,39 @@ import 'package:quran_daily/features/quran_groups/cubit/create_group/create_grou
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/create_group_screen.dart';
+import 'package:quran_daily/core/quran/portion_unit.dart';
+import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
+import '../../../helpers/quran_metadata_test_asset_bundle.dart';
 
 import '../../../helpers/widget_test_app.dart';
 
 class _MockRepo extends Mock implements GroupsRepository {}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   late _MockRepo repo;
 
   setUp(() {
     repo = _MockRepo();
-    registerFallbackValue(const CreateGroupInput(
-      name: 'x',
-      timezone: 'Africa/Cairo',
-      visibility: GroupVisibility.private,
-      joinMode: JoinMode.approval,
-    ));
+    registerFallbackValue(
+      const CreateGroupInput(
+        name: 'x',
+        timezone: 'Africa/Cairo',
+        visibility: GroupVisibility.private,
+        joinMode: JoinMode.approval,
+      ),
+    );
   });
 
-  Widget pump() => BlocProvider<CreateGroupCubit>(
+  Widget pump({QuranMetadataRepository? metadataRepository}) =>
+      BlocProvider<CreateGroupCubit>(
         create: (_) => CreateGroupCubit(repository: repo),
-        child: const CreateGroupScreen(),
+        child: CreateGroupScreen(metadataRepository: metadataRepository),
       );
 
-  testWidgets('renders name, description, visibility and join-mode controls',
-      (tester) async {
+  testWidgets('renders name, description, visibility and join-mode controls', (
+    tester,
+  ) async {
     await tester.pumpWidget(buildArabicTestApp(pump()));
 
     expect(find.text(ArabicStrings.createGroup), findsAtLeastNWidgets(1));
@@ -43,6 +51,30 @@ void main() {
     expect(find.text(ArabicStrings.groupNameLabel), findsOneWidget);
     expect(find.text(ArabicStrings.shortDescriptionLabel), findsOneWidget);
     expect(find.text(ArabicStrings.groupSelectionTitle), findsNothing);
+  });
+
+  testWidgets('shows metadata-derived unit options and cycle lengths', (
+    tester,
+  ) async {
+    final metadataRepository = QuranMetadataRepository(
+      bundle: QuranMetadataTestAssetBundle(),
+    );
+    await tester.runAsync(metadataRepository.load);
+    await tester.pumpWidget(
+      buildArabicTestApp(pump(metadataRepository: metadataRepository)),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text(ArabicStrings.portionUnitName(PortionUnit.juz)),
+      findsOneWidget,
+    );
+    expect(
+      find.text(ArabicStrings.portionUnitName(PortionUnit.hizb)),
+      findsOneWidget,
+    );
+    expect(find.text(ArabicStrings.khatmaDays(2)), findsAtLeastNWidgets(1));
+    expect(find.text(ArabicStrings.khatmaDays(8)), findsOneWidget);
+    expect(find.text(ArabicStrings.khatmaDays(21)), findsOneWidget);
   });
 
   testWidgets('submitting invalid name shows Arabic validation error and '
@@ -63,11 +95,14 @@ void main() {
     );
   });
 
-  testWidgets('limit error surfaces the 3-group cap explanation',
-      (tester) async {
+  testWidgets('limit error surfaces the 3-group cap explanation', (
+    tester,
+  ) async {
     when(() => repo.createGroup(any())).thenAnswer(
-        (_) async => const FailureResult(
-            AuthFailure(message: 'owner_group_limit', code: 'owner_group_limit')));
+      (_) async => const FailureResult(
+        AuthFailure(message: 'owner_group_limit', code: 'owner_group_limit'),
+      ),
+    );
 
     await tester.pumpWidget(buildArabicTestApp(pump()));
 
@@ -80,8 +115,9 @@ void main() {
     expect(find.text(ArabicStrings.ownerGroupLimitCopy), findsOneWidget);
   });
 
-  testWidgets('renders in all constitution variants without overflow',
-      (tester) async {
+  testWidgets('renders in all constitution variants without overflow', (
+    tester,
+  ) async {
     await pumpAllVariants(tester, pump(), (tester, variant) async {
       expect(tester.takeException(), isNull, reason: variant);
     });
