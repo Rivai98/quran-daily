@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/design_system/app_button.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
+import '../../../../core/localization/arabic_numerals.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../data/entities/entities.dart';
 import '../../../../core/errors/result.dart';
@@ -44,38 +45,57 @@ class _OverrideAssignmentSheetState extends State<OverrideAssignmentSheet> {
   Widget build(BuildContext context) => SafeArea(
     child: Padding(
       padding: AppSpacing.screen,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            ArabicStrings.overrideAssignmentTitle,
-            style: AppTypography.title,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          for (final member in widget.members)
-            ListTile(
-              selected: selected == member.membershipId,
-              onTap: submitting
-                  ? null
-                  : () => setState(() => selected = member.membershipId),
-              leading: Icon(
-                selected == member.membershipId
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
-              ),
-              title: Text(member.displayName),
-              subtitle: Text('${ArabicStrings.seatLabel} ${member.seatNumber}'),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.82,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              ArabicStrings.overrideAssignmentTitle,
+              style: AppTypography.title,
             ),
-          if (error != null)
-            Text(ArabicStrings.operationFailed, style: AppTypography.body),
-          const SizedBox(height: AppSpacing.sm),
-          AppButton(
-            label: ArabicStrings.overrideAssignmentAction,
-            loading: submitting,
-            onPressed: selected == null || submitting ? null : _submit,
-          ),
-        ],
+            const SizedBox(height: AppSpacing.sm),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: widget.members.length,
+                itemBuilder: (context, index) {
+                  final member = widget.members[index];
+                  return ListTile(
+                    selected: selected == member.membershipId,
+                    onTap: submitting
+                        ? null
+                        : () => setState(() => selected = member.membershipId),
+                    leading: Icon(
+                      selected == member.membershipId
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_unchecked,
+                    ),
+                    title: Text(
+                      member.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      '${ArabicStrings.seatLabel} ${ArabicNumerals.format(member.seatNumber)}',
+                    ),
+                  );
+                },
+              ),
+            ),
+            if (error != null)
+              Text(ArabicStrings.operationFailed, style: AppTypography.body),
+            const SizedBox(height: AppSpacing.sm),
+            AppButton(
+              label: ArabicStrings.overrideAssignmentAction,
+              loading: submitting,
+              onPressed: selected == null || submitting ? null : _submit,
+            ),
+          ],
+        ),
       ),
     ),
   );
