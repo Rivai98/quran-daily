@@ -18,7 +18,7 @@ Test-first (constitution III): write each test task before its implementation.
 
 ## Phase 2: Shell + Home (codex-2) — US1, US1b, US2
 
-- [ ] T011 [P] [US2] Widget tests `test/features/shell/home_shell_test.dart`: 3 tabs with icon + label, Home selected after sign-in, tab switch keeps each stack, back inside مجموعاتي returns to the list, RTL, 48dp, 320dp, 200% text
+- [ ] T011 [P] [US2] Widget tests `test/features/shell/home_shell_test.dart`: 4 tabs (الرئيسية، مجموعاتي، المصحف، حسابي) with icon + label, Home selected after sign-in, tab switch keeps each stack, back inside مجموعاتي returns to the list, RTL, 48dp, 320dp, 200% text
 - [ ] T012 [US2] `lib/features/shell/` HomeShell (IndexedStack + 3 nested Navigators reusing `AppRoutes.onGenerateRoute`), ShellCubit, AppTabBar from design tokens; auth gate opens HomeShell; deep link join still opens above the tabs; sign-out clears stacks
 - [ ] T013 [P] [US1] Entities + JSON parsing tests `test/features/home/data/today_parsing_test.dart` for the `get_my_today` contract
 - [ ] T014 [US1] `lib/features/home/data/`: TodayRemoteDataSource, TodayRepository(+Impl) with sqflite cache of the last payload, offline fallback
@@ -45,9 +45,18 @@ Test-first (constitution III): write each test task before its implementation.
 - [ ] T032 [US4] Golden/contrast tests for the new visuals (light + dark)
 - [ ] T033 DI (marked block) and strings (marked block)
 
+## Phase 3b: Profile tab حسابي (agy) — FR-011
+- [ ] T038 [P] pgTAP `supabase/tests/005_my_profile_test.sql`: streak/best streak, totals, khatmas per group, badges (first_khatma, streak_7/30/100, portions_100) from fixture history; only the caller's data
+- [ ] T039 Migration `supabase/migrations/20261115100005_get_my_profile.sql`: `get_my_profile()` per plan; apply to DEV
+- [ ] T040 [P] Parsing + cubit tests `test/features/profile/`
+- [ ] T041 `lib/features/profile/` data (remote + sqflite cache), ProfileCubit
+- [ ] T042 ProfileScreen: header (avatar initials, name, member since), streak card, totals, khatmas list, badges grid (earned vs locked), entry rows to السجل (LogScreen) and الإعدادات (SettingsScreen); calm, no shaming
+- [ ] T043 [P] Widget tests (RTL, dark, 320dp, 200% text)
+- [ ] T044 Strings block `// --- 005 profile ---`, DI block
+
 ## Phase 4: Integration + validation (orchestrator)
 
-- [ ] T034 Merge agent branches into `005-home-today`; resolve shared-file blocks
+- [ ] T034 Merge agent branches into `005-home-today`; mount Mushaf index (spec 003) as المصحف tab and ProfileScreen as حسابي tab; resolve shared-file blocks
 - [ ] T035 Integration test `integration_test/home_flow_test.dart`: sign up, create group, start, Home hero shows portion, mark complete from Home, Log shows today after refresh, 3rd group creation refused
 - [ ] T036 Update spec 001 T111 / spec 004 T016 integration tests for the new shell navigation
 - [ ] T037 Final validation: `flutter analyze` 0, `flutter test` all green, pgTAP all files 0 failed, integration tests on Android; record results below

@@ -2,7 +2,7 @@
 
 **Feature Branch**: `005-home-today`
 **Created**: 2026-11-15
-**Status**: Clarified (2026-11-15)
+**Status**: Clarified (2026-11-15); plan/tasks need an update for the 4-tab + profile change before resuming
 **Depends on**: spec 001 (implemented), spec 004 (implemented)
 **Input**: Owner feedback after using the app on a phone (2026-11-15): "The
 user should not see only 'مجموعاتي'. Show their group or their wird for today
@@ -16,9 +16,11 @@ log. Put icons on the cards. Make it feel more spiritual."
 - Q: What is the first screen after sign-in? → A: A "Today" home that lists
   the user's portions for today across all their active groups, each with a
   direct open action and a mark-complete action.
-- Q: Which tabs? → A: Three bottom tabs: الرئيسية (Home/Today), مجموعاتي
-  (My groups), السجل (Log). Settings (profile, sign-out) opens from a settings
-  icon in the Home app bar (owner choice 2026-11-15).
+- Q: Which tabs? → A: Four bottom tabs: الرئيسية (Home/Today), مجموعاتي
+  (My groups), المصحف (Mushaf index, bookmarks, last position from spec 003),
+  حسابي (profile: achievements, streak, khatmas joined, badges, and the
+  personal daily log). Settings opens from حسابي. (Owner 2026-11-15, replacing
+  the earlier 3-tab decision; the reference app was inspiration only.)
 - Q: What does the home tab show versus "مجموعاتي"? → A: The home tab
   ("الرئيسية/اليوم") shows the user's MAIN group first (a large card: photo,
   name, today's progress, their portion with open/complete actions), then
@@ -99,7 +101,7 @@ shows B as the hero card and A, C as compact cards.
 
 ### User Story 2 - Bottom tabs navigation (Priority: P1)
 
-A persistent bottom navigation with three tabs (الرئيسية، مجموعاتي، السجل)
+A persistent bottom navigation with four tabs (الرئيسية، مجموعاتي، المصحف، حسابي)
 replaces the current
 group-list-first flow. Each tab keeps its own navigation stack; group
 dashboards open inside "مجموعاتي".
@@ -110,8 +112,8 @@ back from a group dashboard returns to "مجموعاتي".
 **Acceptance Scenarios**:
 
 1. **Given** the signed-in app, **When** it opens, **Then** the "الرئيسية" tab is
-   selected and three tabs are visible with icon + Arabic label; a settings
-   icon in the Home app bar opens Settings.
+   selected and four tabs are visible with icon + Arabic label; Settings
+   opens from حسابي.
 2. **Given** a deep link `qurandaily://join/<code>`, **When** it opens,
    **Then** the join screen opens above the tabs (spec 001 behavior).
 3. **Given** RTL, **When** the tabs render, **Then** order and icons follow
@@ -170,8 +172,12 @@ contrast checks pass in light and dark.
   current day of each active group (seat, volunteer, override).
 - **FR-003**: Each Today card MUST offer open and mark-complete/undo actions
   with spec 001 rules (grace, offline queue, undo confirmation).
-- **FR-004**: The app MUST provide three bottom tabs (Home, My groups, Log)
-  with independent navigation stacks; Settings opens from the Home app bar.
+- **FR-004**: The app MUST provide four bottom tabs (Home, My groups, Mushaf,
+  My account) with independent navigation stacks; the personal log and
+  Settings live inside My account.
+- **FR-011**: "حسابي" MUST motivate the user: current and best streak, total
+  portions read, khatmas completed with each group, and earned badges (e.g.
+  first khatma, 7/30/100-day streak), computed server-side from the log.
 - **FR-004a**: The home tab MUST show the user's main group as a hero card
   (photo/avatar, name, today's progress, the user's portion with actions),
   followed by today's portions in other groups; "مجموعاتي" is a separate tab.

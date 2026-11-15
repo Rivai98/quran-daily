@@ -4,6 +4,11 @@ import '../quran/portion_unit.dart';
 class ArabicStrings {
   const ArabicStrings._();
 
+  // --- spec 002 Google sign-in ---
+  static const googleSignIn = 'تسجيل الدخول باستخدام Google';
+  static const googleSignInHint = 'إذا كنت مسجلاً عبر Google فاستخدم زر Google.';
+  static const or = 'أو';
+
   // --- US1 dashboard ---
   static const myWirdToday = 'وردك اليوم';
   static const availableJuzTitle = 'أجزاء متاحة للتطوع';
@@ -230,7 +235,9 @@ class ArabicStrings {
   static String authError(String code) {
     switch (code) {
       case 'invalid_credentials':
-        return 'تحقق من البريد الإلكتروني وكلمة المرور، أو تواصل مع مسؤول التطبيق.';
+        return 'تحقق من البريد الإلكتروني وكلمة المرور، أو تواصل مع مسؤول التطبيق. $googleSignInHint';
+      case 'google_auth_failed':
+        return 'تعذر تسجيل الدخول باستخدام Google. أعد المحاولة أو استخدم البريد الإلكتروني.';
       case 'email_exists':
         return 'هذا البريد مسجل بالفعل. سجّل الدخول أو تواصل مع مسؤول التطبيق.';
       case 'network':
