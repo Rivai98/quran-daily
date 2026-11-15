@@ -55,3 +55,6 @@ ios/Pods/
 macos/Pods/
 !.env.example
 __pycache__/
+
+# local demo login (not committed)
+.demo-account.local
