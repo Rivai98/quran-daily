@@ -2,8 +2,8 @@
 
 **Feature Branch**: `005-home-today`
 **Created**: 2026-11-15
-**Status**: Draft (needs `/speckit-clarify` before planning)
-**Depends on**: spec 001 (implemented), spec 004 (portion units; in progress)
+**Status**: Clarified (2026-11-15)
+**Depends on**: spec 001 (implemented), spec 004 (implemented)
 **Input**: Owner feedback after using the app on a phone (2026-11-15): "The
 user should not see only 'مجموعاتي'. Show their group or their wird for today
 so they can open it directly (quick access). Add the bottom tabs. Add a daily
@@ -16,8 +16,9 @@ log. Put icons on the cards. Make it feel more spiritual."
 - Q: What is the first screen after sign-in? → A: A "Today" home that lists
   the user's portions for today across all their active groups, each with a
   direct open action and a mark-complete action.
-- Q: Which tabs? → A: Four bottom tabs: اليوم (Today), مجموعاتي (My groups),
-  السجل (Log), الإعدادات (Settings). (To confirm in clarify.)
+- Q: Which tabs? → A: Three bottom tabs: الرئيسية (Home/Today), مجموعاتي
+  (My groups), السجل (Log). Settings (profile, sign-out) opens from a settings
+  icon in the Home app bar (owner choice 2026-11-15).
 - Q: What does the home tab show versus "مجموعاتي"? → A: The home tab
   ("الرئيسية/اليوم") shows the user's MAIN group first (a large card: photo,
   name, today's progress, their portion with open/complete actions), then
@@ -32,12 +33,20 @@ log. Put icons on the cards. Make it feel more spiritual."
   join or create more until they are below 2.
 - Q: What is the daily log? → A: A personal history across all groups: per
   day, the portions the user read (on time / late), missed, and volunteered.
+- Q: Does a late completion keep the streak? → A: Yes. A day counts toward
+  the streak when every portion assigned to the user that day was completed
+  (on time or late, including within grace). Only a missed portion breaks the
+  streak. Late items still show their own "متأخر" status. Days with no
+  assignment (no active group, rest day) neither extend nor break the streak.
+- Q: Hijri date on Home? → A: Show both: Hijri then Gregorian (e.g. "الأحد
+  ٢٥ جمادى الأولى ١٤٤٨ · ١٥ نوفمبر ٢٠٢٦"), computed by a tested library
+  (Umm al-Qura); a ±1 day difference from local sighting is acceptable.
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Today home with quick access (Priority: P1)
 
-After sign-in the user lands on "اليوم". It greets them, shows today's date
+After sign-in the user lands on "الرئيسية". It greets them, shows today's date
 (Gregorian and Hijri), and one card per portion assigned to them today across
 all active groups (seat portion, volunteered portions, overrides). Each card
 shows the group name, the portion name and range (from the metadata), the
@@ -90,7 +99,8 @@ shows B as the hero card and A, C as compact cards.
 
 ### User Story 2 - Bottom tabs navigation (Priority: P1)
 
-A persistent bottom navigation with four tabs replaces the current
+A persistent bottom navigation with three tabs (الرئيسية، مجموعاتي، السجل)
+replaces the current
 group-list-first flow. Each tab keeps its own navigation stack; group
 dashboards open inside "مجموعاتي".
 
@@ -99,8 +109,9 @@ back from a group dashboard returns to "مجموعاتي".
 
 **Acceptance Scenarios**:
 
-1. **Given** the signed-in app, **When** it opens, **Then** the "اليوم" tab is
-   selected and four tabs are visible with icon + Arabic label.
+1. **Given** the signed-in app, **When** it opens, **Then** the "الرئيسية" tab is
+   selected and three tabs are visible with icon + Arabic label; a settings
+   icon in the Home app bar opens Settings.
 2. **Given** a deep link `qurandaily://join/<code>`, **When** it opens,
    **Then** the join screen opens above the tabs (spec 001 behavior).
 3. **Given** RTL, **When** the tabs render, **Then** order and icons follow
@@ -159,8 +170,8 @@ contrast checks pass in light and dark.
   current day of each active group (seat, volunteer, override).
 - **FR-003**: Each Today card MUST offer open and mark-complete/undo actions
   with spec 001 rules (grace, offline queue, undo confirmation).
-- **FR-004**: The app MUST provide four bottom tabs (Today, My groups, Log,
-  Settings) with independent navigation stacks.
+- **FR-004**: The app MUST provide three bottom tabs (Home, My groups, Log)
+  with independent navigation stacks; Settings opens from the Home app bar.
 - **FR-004a**: The home tab MUST show the user's main group as a hero card
   (photo/avatar, name, today's progress, the user's portion with actions),
   followed by today's portions in other groups; "مجموعاتي" is a separate tab.
@@ -175,8 +186,12 @@ contrast checks pass in light and dark.
   per-portion status, a streak, and a monthly summary.
 - **FR-006**: Portion names/ranges MUST come from the metadata repository
   (constitution Principle VII); no Quran text is shown.
-- **FR-007**: Hijri date display MUST use a tested conversion library or the
-  platform calendar, not hand-written tables. (To confirm in clarify.)
+- **FR-007**: Home MUST show the Hijri date then the Gregorian date. Hijri
+  MUST come from a tested Umm al-Qura conversion library, not hand-written
+  tables.
+- **FR-010**: The streak MUST count consecutive days (newest backwards) where
+  every portion assigned to the user was completed on time or late; a missed
+  portion ends it; days without assignments are skipped.
 - **FR-008**: All new screens MUST follow constitution Principles II and VI
   (RTL, 200% text, dark, 320dp, one primary per screen, status triplets).
 - **FR-009**: Today and Log MUST work offline from cache with the offline
