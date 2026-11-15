@@ -55,9 +55,9 @@ values
   ('ac000000-0000-0000-0000-000000000001', 'مجموعة ثانية',
    'aa000000-0000-0000-0000-000000000001', 'Africa/Cairo', 'U2TWX345', 'forming'),
   ('ac000000-0000-0000-0000-000000000002', 'مجموعة ثالثة',
-   'aa000000-0000-0000-0000-000000000001', 'Africa/Cairo', 'U2THR678', 'forming'),
+   'aa000000-0000-0000-0000-000000000002', 'Africa/Cairo', 'U2THR678', 'forming'),
   ('ac000000-0000-0000-0000-000000000003', 'مجموعة رابعة',
-   'aa000000-0000-0000-0000-000000000001', 'Africa/Cairo', 'U2FR9ABC', 'forming');
+   'aa000000-0000-0000-0000-000000000003', 'Africa/Cairo', 'U2FR9ABC', 'forming');
 
 insert into public.group_memberships (group_id,user_id,role,status,seat_number)
 values ('ac000000-0000-0000-0000-000000000001',
