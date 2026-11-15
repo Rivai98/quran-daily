@@ -10,7 +10,7 @@
 - [x] T005 Migration `20261115150003_admin_group_actions.sql`: group actions + `admin_suspend_cleanup`
 - [x] T006 Edge Function `supabase/functions/admin-user-action/` (ban/unban/delete/grant/revoke) reusing `_shared` auth + audit; Deno tests
 - [x] T007 Apply migrations to DEV; run ALL pgTAP: 0 failed
-- [ ] T008 Deploy Edge Functions (admin-create-user, admin-reset-password, admin-user-action) with `supabase functions deploy` (orchestrator, after owner approval)
+- [x] T008 Deploy Edge Functions (admin-create-user, admin-reset-password, admin-user-action) with `supabase functions deploy` (orchestrator, after owner approval)
 
 ## Phase 2: App
 - [ ] T009 [P] Data + cubit tests `test/features/admin/`
