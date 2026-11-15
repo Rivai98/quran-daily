@@ -3,13 +3,13 @@ import 'dart:io';
 
 import 'package:sqflite/sqflite.dart';
 
-/// Local SQLite cache (data-model v1): dashboard snapshots, my groups,
+/// Local SQLite cache (data-model v2): dashboard snapshots, my groups,
 /// history pages, and the personal sync queue. Used only by repositories.
 class LocalDatabase {
   LocalDatabase({this.databasePath});
 
   static const databaseName = 'quran_daily.db';
-  static const schemaVersion = 1;
+  static const schemaVersion = 2;
 
   final String? databasePath;
 
@@ -25,17 +25,20 @@ class LocalDatabase {
         options: OpenDatabaseOptions(
           version: schemaVersion,
           onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
         ),
       );
       return _db!;
     }
 
-    final dir = databasePath ??
+    final dir =
+        databasePath ??
         '${await getDatabasesPath()}${Platform.pathSeparator}$databaseName';
     _db = await openDatabase(
       dir,
       version: schemaVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
     return _db!;
   }
@@ -71,6 +74,40 @@ class LocalDatabase {
         status text not null default 'pending',
         attempts integer not null default 0,
         last_error_kind text,
+        created_at integer not null
+      )
+    ''');
+    await _createMushafTables(db);
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) await _createMushafTables(db);
+  }
+
+  Future<void> _createMushafTables(Database db) async {
+    await db.execute('''
+      create table reading_positions (
+        user_id text primary key,
+        page integer not null,
+        updated_at integer not null
+      )
+    ''');
+    await db.execute('''
+      create table bookmarks (
+        id text primary key,
+        user_id text not null,
+        page integer not null,
+        surah integer,
+        ayah integer,
+        note text,
+        created_at integer not null
+      )
+    ''');
+    await db.execute('''
+      create table mushaf_sync_queue (
+        id text primary key,
+        operation text not null,
+        payload text not null,
         created_at integer not null
       )
     ''');

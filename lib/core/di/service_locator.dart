@@ -6,6 +6,7 @@ import '../network/connectivity_service.dart';
 import '../network/rpc_client.dart';
 import '../network/supabase_client_provider.dart';
 import '../quran/quran_metadata_repository.dart';
+import '../quran/mushaf/mushaf_repository.dart';
 import '../settings/settings_repository.dart';
 import '../settings/settings_repository_impl.dart';
 import '../../features/auth/cubit/auth_cubit.dart';
@@ -17,6 +18,9 @@ import '../../features/quran_groups/data/repositories/khatma_repository.dart';
 import '../../features/quran_groups/data/repositories/khatma_repository_impl.dart';
 import '../../features/quran_groups/data/use_cases/completion_use_cases.dart';
 import '../storage/daos/daos.dart';
+import '../../features/mushaf/data/mushaf_remote_data_source.dart';
+import '../../features/mushaf/data/mushaf_sync_repository.dart';
+import '../../features/mushaf/data/reader_storage.dart';
 import '../../features/auth/data/data_sources/supabase_auth_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -63,6 +67,12 @@ void configureServiceLocator({
     );
   }
 
+  if (!locator.isRegistered<MushafRepository>()) {
+    locator.registerLazySingleton<MushafRepository>(
+      () => MushafRepositoryImpl(metadata: locator<QuranMetadataRepository>()),
+    );
+  }
+
   if (!locator.isRegistered<ConnectivityService>()) {
     locator.registerLazySingleton<ConnectivityService>(
       ConnectivityServiceImpl.new,
@@ -73,6 +83,41 @@ void configureServiceLocator({
     if (!locator.isRegistered<SupabaseClientProvider>()) {
       locator.registerLazySingleton<SupabaseClientProvider>(
         () => SupabaseClientProvider(config: locator<AppConfig>()),
+      );
+    }
+
+    if (!locator.isRegistered<MushafRemoteDataSource>()) {
+      locator.registerLazySingleton<MushafRemoteDataSource>(
+        () => SupabaseMushafRemoteDataSource(
+          () => locator<SupabaseClientProvider>().client,
+        ),
+      );
+    }
+
+    if (!locator.isRegistered<MushafSyncRepository>()) {
+      locator.registerLazySingleton<MushafSyncRepository>(
+        () => MushafSyncRepository(
+          remote: locator<MushafRemoteDataSource>(),
+          storeFor: (userId) => SqfliteReaderStorage(
+            database: locator<LocalDatabase>(),
+            userId: userId,
+          ),
+          currentUserId: () => locator<SessionGateway>().currentUserId,
+        ),
+        dispose: (sync) => sync.dispose(),
+      );
+    }
+
+    // Local-first: writes land in SQLite, then a background sync is queued.
+    if (!locator.isRegistered<ReaderStorage>()) {
+      locator.registerFactory<ReaderStorage>(
+        () => SyncingReaderStorage(
+          SqfliteReaderStorage(
+            database: locator<LocalDatabase>(),
+            userId: locator<SessionGateway>().currentUserId!,
+          ),
+          onLocalChange: locator<MushafSyncRepository>().schedule,
+        ),
       );
     }
 
@@ -158,7 +203,8 @@ void configureServiceLocator({
       locator.registerLazySingleton<AuthCubit>(
         () => AuthCubit(
           repository: locator<AuthRepository>(),
-          googleSignInEnabled: locator<AppConfig>().googleWebClientId.isNotEmpty,
+          googleSignInEnabled:
+              locator<AppConfig>().googleWebClientId.isNotEmpty,
         ),
       );
     }

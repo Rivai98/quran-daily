@@ -2,7 +2,7 @@
 
 **Feature Branch**: `003-in-app-mushaf`
 **Created**: 2026-11-15
-**Status**: Clarified (2026-11-15)
+**Status**: Implemented (merged to main 2026-11-15)
 **Depends on**: specs 001 (reserved "اقرأ الآن" entry point, FR-036), 002, 004 (portion units)
 **Input**: Owner: read the Quran inside the app, open my daily portion directly,
 browse the whole Mushaf, keep my place, and show the khatm dua.
@@ -20,8 +20,10 @@ browse the whole Mushaf, keep my place, and show the khatm dua.
   surah / juz / hizb / page, (3) last position + bookmarks, (4) the khatm dua
   after the end of the Quran.
 - Q: Audio recitation? → A: Out of scope (a later spec after 007).
-- Q: Khatm dua text? → A: Feature stays hidden until the owner supplies an
-  approved text and source (owner 2026-11-15).
+- Q: Which exact source files? → A: The official KFGQPC "QPC Hafs" Unicode text
+  (ayah by ayah) and its matching "QPC Hafs" font, obtained from the Quranic
+  Universal Library because the KFGQPC download site is not available yet.
+  Tanzil `quran-data.xml` stays as the cross-check for pages, juz and quarters.
 
 ## User Scenarios & Testing *(mandatory)*
 

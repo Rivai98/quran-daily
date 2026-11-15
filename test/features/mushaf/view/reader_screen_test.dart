@@ -1,0 +1,176 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:quran_daily/core/localization/arabic_strings.dart';
+import 'package:quran_daily/core/quran/mushaf/mushaf_models.dart';
+import 'package:quran_daily/core/quran/mushaf/mushaf_repository.dart';
+import 'package:quran_daily/core/quran/portion_unit.dart';
+import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
+import 'package:quran_daily/features/mushaf/cubit/reader_cubit.dart';
+import 'package:quran_daily/features/mushaf/data/reader_storage.dart';
+import 'package:quran_daily/features/mushaf/view/reader_screen.dart';
+import '../../../helpers/widget_test_app.dart';
+
+void main() {
+  testWidgets(
+    'renders reversed reader in RTL, dark, 200%, and 320dp variants',
+    (tester) async {
+      for (final variant in testVariants) {
+        tester.view.physicalSize = variant.size;
+        tester.view.devicePixelRatio = 1;
+        final repo = _Repository();
+        final storage = _Storage();
+        final cubit = ReaderCubit(repository: repo, storage: storage);
+        await cubit.openPage(1);
+        await tester.pumpWidget(
+          buildArabicTestApp(
+            BlocProvider.value(
+              value: cubit,
+              child: ReaderScreen(
+                repository: repo,
+                storage: storage,
+                metadata: QuranMetadataRepository(),
+              ),
+            ),
+            dark: variant.dark,
+            textScale: variant.textScale,
+            size: variant.size,
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(
+          find.byKey(const ValueKey('mushaf-page-view')),
+          findsOneWidget,
+          reason: variant.name,
+        );
+        expect(
+          (tester.widget<PageView>(
+            find.byKey(const ValueKey('mushaf-page-view')),
+          )).reverse,
+          isTrue,
+        );
+        await tester.pumpWidget(const SizedBox.shrink());
+        await cubit.close();
+      }
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    },
+  );
+
+  testWidgets('does not offer khatm dua until the owner asset exists', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 740);
+    tester.view.devicePixelRatio = 1;
+    final repo = _Repository();
+    final storage = _Storage();
+    final cubit = ReaderCubit(repository: repo, storage: storage);
+    await cubit.openPage(repo.pageCount);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: ReaderScreen(
+            repository: repo,
+            storage: storage,
+            metadata: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text(ArabicStrings.khatmDuaTitle), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await cubit.close();
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+
+  testWidgets('shows the page the cubit opened, not the first page', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 740);
+    tester.view.devicePixelRatio = 1;
+    final repo = _Repository();
+    final storage = _Storage();
+    final cubit = ReaderCubit(repository: repo, storage: storage);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: ReaderScreen(
+            repository: repo,
+            storage: storage,
+            metadata: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await cubit.openPage(2);
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
+    final view = tester.widget<PageView>(
+      find.byKey(const ValueKey('mushaf-page-view')),
+    );
+    expect(view.controller!.page, 1);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await cubit.close();
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+}
+
+class _Repository implements MushafRepository {
+  @override
+  Future<void> load() async {}
+
+  @override
+  int get pageCount => 2;
+
+  @override
+  MushafPage page(int number) =>
+      MushafPage(number: number, ayahs: const [], juz: 0, firstSurah: 0);
+
+  @override
+  int pageOf(AyahRef ref) => 1;
+
+  @override
+  ({AyahRef start, AyahRef end, int startPage, int endPage}) portionRange(
+    PortionUnit unit,
+    int index,
+  ) => throw UnimplementedError();
+
+  @override
+  List<({int surah, String name, int ayahs, int startPage})> surahIndex() => [];
+
+  @override
+  List<({int juz, int startPage})> juzIndex() => [];
+
+  @override
+  List<({int hizb, int startPage})> hizbIndex() => [];
+}
+
+class _Storage implements ReaderStorage {
+  @override
+  Future<int?> lastPage() async => 1;
+
+  @override
+  Future<void> savePage(int page) async {}
+
+  @override
+  Future<List<ReaderBookmark>> bookmarks() async => [];
+
+  @override
+  Future<void> addBookmark(ReaderBookmark bookmark) async {}
+
+  @override
+  Future<void> removeBookmark(String id) async {}
+
+  @override
+  Future<List<ReaderSyncOperation>> pendingSyncOperations() async => [];
+
+  @override
+  Future<void> markSyncOperationComplete(String id) async {}
+}

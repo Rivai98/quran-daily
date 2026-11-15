@@ -68,6 +68,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -84,8 +85,14 @@ flutter:
   # byte-exact; never modify. Fonts below are bundled (no runtime download).
   assets:
     - assets/quran/
+    - assets/quran/hafs/qpc-hafs.json
+    - assets/fonts/checksums.sha256
 
   fonts:
+    # Quran content uses only the matching KFGQPC QPC Hafs font.
+    - family: KfgqpcHafs
+      fonts:
+        - asset: assets/fonts/kfgqpc_hafs/UthmanicHafs_V22.ttf
     # UI font (constitution Principle VI). Single variable font, wght axis
     # 200-1000; TextStyles must set fontWeight AND FontVariation('wght', w).
     - family: Cairo
@@ -98,3 +105,12 @@ flutter:
           weight: 400
         - asset: assets/fonts/amiri/Amiri-Bold.ttf
           weight: 700
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/branding/app_icon.png"
+  adaptive_icon_background: "#0F5C4A"
+  adaptive_icon_foreground: "assets/branding/app_icon_foreground.png"
+  min_sdk_android: 21

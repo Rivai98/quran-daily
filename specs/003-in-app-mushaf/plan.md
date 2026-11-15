@@ -15,7 +15,7 @@ last position and bookmarks (synced), and show an owner-approved khatm dua.
 | Item | Decision |
 |------|----------|
 | Publisher | King Fahd Glorious Quran Printing Complex (KFGQPC), Madinah |
-| Package | "KFGQPC Uthmanic Script HAFS" font + its Hafs text data file (the text file published together with the font, with surah/ayah/page/juz per ayah), latest version on fonts.qurancomplex.gov.sa |
+| Package | "QPC Hafs font" (KFGQPC Uthmanic Hafs, ttf) + "QPC Hafs script - Ayah by Ayah" (the KFGQPC Hafs Unicode text the font is built for), both from the Quranic Universal Library (qul.tarteel.ai, resources/font/245 and its related script). The KFGQPC download site (fonts.qurancomplex.gov.sa) shows "قريباً" on 2026-11-15; owner approved QUL as the distributor of the official KFGQPC files. |
 | Riwayah | Hafs 'an 'Asim, Madinah Mushaf 604 pages |
 | Files in repo | `assets/quran/hafs/` text data file and `assets/fonts/kfgqpc_hafs/` font, byte-for-byte as downloaded |
 | Records | `assets/quran/hafs/SOURCE.md` (URL, version, date, license text, sizes), SHA-256 in `assets/quran/checksums.sha256` |
@@ -25,6 +25,28 @@ last position and bookmarks (synced), and show an owner-approved khatm dua.
 Why KFGQPC text + KFGQPC font together: the font is built for that exact text
 encoding, so all marks render correctly; mixing another text with this font
 risks wrong glyphs.
+
+## Data contract (shared by all agents)
+
+```dart
+// lib/core/quran/mushaf/mushaf_models.dart
+class AyahRef { final int surah; final int ayah; }            // Equatable
+class MushafAyah { final AyahRef ref; final String text; }    // text only from qpc-hafs.json
+class MushafPage { final int number; final List<MushafAyah> ayahs;
+                   final int juz; final int firstSurah; }      // from quran-data.xml <page>/<juz>
+// lib/core/quran/mushaf/mushaf_repository.dart
+abstract class MushafRepository {
+  Future<void> load();                         // verifies checksums, throws MushafIntegrityException
+  int get pageCount;                           // 604
+  MushafPage page(int number);                 // 1..604
+  int pageOf(AyahRef ref);
+  ({AyahRef start, AyahRef end, int startPage, int endPage}) portionRange(PortionUnit unit, int index);
+  List<({int surah, String name, int ayahs, int startPage})> surahIndex();  // names from quran-data.xml
+  List<({int juz, int startPage})> juzIndex();
+  List<({int hizb, int startPage})> hizbIndex();
+}
+```
+Font family name in pubspec: `KfgqpcHafs` (asset `assets/fonts/kfgqpc_hafs/UthmanicHafs_V22.ttf`).
 
 ## Technical Context
 
