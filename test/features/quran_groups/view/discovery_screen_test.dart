@@ -73,11 +73,6 @@ void main() {
         );
         expect(find.text('حلقة الفجر'), findsOneWidget, reason: variant);
         expect(
-          find.byIcon(Icons.groups_rounded),
-          findsOneWidget,
-          reason: variant,
-        );
-        expect(
           find.byIcon(Icons.people_alt_rounded),
           findsOneWidget,
           reason: variant,

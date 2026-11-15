@@ -939,8 +939,13 @@ class ArabicStrings {
   static const avatarOrnament = 'زخرفة';
   static const avatarManKufi = 'رجل بقلنسوة';
   static const avatarWomanHijab = 'امرأة بحجاب';
-  static String badgeProgress(int current, int target, String unit) =>
-      '${ArabicNumerals.format(current)} من ${ArabicNumerals.format(target)} $unit';
+  /// "٣ من ٧ أيام" / "٣ من ٣٠ يومًا": Arabic counted-noun form follows the target.
+  static String badgeProgress(int current, int target, String unit) {
+    const accusative = {'أيام': 'يومًا', 'أجزاء': 'جزءًا'};
+    final noun = target > 10 ? (accusative[unit] ?? unit) : unit;
+    return '${ArabicFormatting.isolate(ArabicNumerals.format(current))} من '
+        '${ArabicFormatting.isolate(ArabicNumerals.format(target))} $noun';
+  }
   static const badgeProgressDays = 'أيام';
   static const badgeProgressPortions = 'أجزاء';
   static const badgeProgressKhatmas = 'ختمة';

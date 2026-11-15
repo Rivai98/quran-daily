@@ -702,8 +702,7 @@ class _ReaderMenuItem extends StatelessWidget {
   }
 }
 
-QpcFontManager? _qpcFonts() =>
-    serviceLocator.isRegistered<QpcFontManager>()
+QpcFontManager? _qpcFonts() => serviceLocator.isRegistered<QpcFontManager>()
     ? serviceLocator<QpcFontManager>()
     : null;
 
@@ -862,17 +861,25 @@ class _QpcPageBody extends StatelessWidget {
         final lineHeight = constraints.maxHeight / 15;
         final maxNatural = _naturalWidthCache.putIfAbsent(data.family, () {
           var widest = 0.0;
+          // Measure every ayah line, centered ones included (pages 1-2 are all
+          // centered), so no line can ever exceed the screen width.
           for (final line in data.lines) {
-            if (line.lineType == QpcLineType.ayah && !line.isCentered) {
+            if (line.lineType == QpcLineType.ayah) {
               final w = _naturalWidth(line.words, data.family);
               if (w > widest) widest = w;
             }
           }
           return widest;
         });
+        final allCentered = data.lines
+            .where((l) => l.lineType == QpcLineType.ayah)
+            .every((l) => l.isCentered);
+        // Centered pages (Al-Fatiha, start of Al-Baqarah) use a narrower text
+        // block in the printed Mushaf.
+        final blockWidth = allCentered ? width * 0.82 : width;
         final byWidth = maxNatural <= 0
             ? lineHeight * 0.6
-            : _measureSize * width / maxNatural;
+            : _measureSize * blockWidth / maxNatural;
         final fontSize = byWidth.clamp(8.0, lineHeight * 0.7).toDouble();
         final gap = fontSize * 0.25;
 
@@ -901,21 +908,28 @@ class _QpcPageBody extends StatelessWidget {
           );
         }
 
-        Widget centeredRow(List<Widget> children) => Row(
-          textDirection: TextDirection.rtl,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            for (var i = 0; i < children.length; i++) ...[
-              if (i > 0) SizedBox(width: gap),
-              children[i],
+        // Centered lines shrink to fit the width instead of overflowing.
+        Widget centeredRow(List<Widget> children) => FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            textDirection: TextDirection.rtl,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (var i = 0; i < children.length; i++) ...[
+                if (i > 0) SizedBox(width: gap),
+                children[i],
+              ],
             ],
-          ],
+          ),
         );
 
         Widget lineWidget(QpcLine line) {
           switch (line.lineType) {
             case QpcLineType.surahName:
-              return _SurahTitleBand(surahName: surahName(line.surahNumber ?? 1));
+              return _SurahTitleBand(
+                surahName: surahName(line.surahNumber ?? 1),
+              );
             case QpcLineType.blank:
               return const SizedBox.shrink();
             case QpcLineType.basmallah:

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/design_system/app_typography.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/design_system/app_colors.dart';
@@ -83,7 +84,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                     state.groups.isEmpty)) {
               return const _DiscoverySkeleton();
             }
-            if (state.groups.isEmpty && state.status == DiscoveryStatus.empty) {
+            if (state.groups.isEmpty &&
+                state.status == DiscoveryStatus.empty &&
+                state.query.trim().isEmpty) {
               return StatePanel.empty(
                 icon: Icons.search_off_rounded,
                 title: ArabicStrings.noPublicGroups,
@@ -130,23 +133,46 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                     const SizedBox(height: AppSpacing.sm),
                     const _MembershipLimitBanner(),
                   ],
-                  const SizedBox(height: AppSpacing.sm),
-                  AppButton(
-                    label: membershipLimitReached
-                        ? ArabicStrings.membershipLimitReachedAction
-                        : ArabicStrings.joinAnyGroupAction,
-                    icon: const Icon(Icons.groups_rounded),
-                    variant: AppButtonVariant.primary,
-                    expanded: true,
-                    onPressed: membershipLimitReached
-                        ? null
-                        : () => Navigator.pushNamed(context, '/join-any'),
-                  ),
                   if (state.status == DiscoveryStatus.loading) ...[
                     const SizedBox(height: AppSpacing.xs),
                     const LinearProgressIndicator(),
                   ],
                   const SizedBox(height: AppSpacing.md),
+                  if (state.groups.isEmpty &&
+                      state.status != DiscoveryStatus.loading &&
+                      state.query.trim().isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.lg,
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.search_off_rounded,
+                            size: 40,
+                            color: Theme.of(context)
+                                .extension<AppColors>()!
+                                .inkMuted,
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            'لا توجد مجموعات عامة بهذا الاسم',
+                            textAlign: TextAlign.center,
+                            style: AppTypography.title,
+                          ),
+                          const SizedBox(height: AppSpacing.xxs),
+                          Text(
+                            'جرّب كلمة أخرى، أو اطلب رابط الدعوة إن كانت المجموعة خاصة.',
+                            textAlign: TextAlign.center,
+                            style: AppTypography.body.copyWith(
+                              color: Theme.of(context)
+                                  .extension<AppColors>()!
+                                  .inkMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   for (final group in state.groups) ...[
                     PublicGroupCard(
                       group: group,

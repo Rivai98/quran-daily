@@ -116,15 +116,15 @@ class _EmptyEntryPoints extends StatelessWidget {
                   icon: Icons.groups_rounded,
                   title: ArabicStrings.noApprovedGroups,
                   message: ArabicStrings.groupSelectionEmptyMessage,
-                  actionLabel: ArabicStrings.groupSelectionJoinAction,
+                  actionLabel: ArabicStrings.searchGroupAction,
                   onAction: () async {
-                    await Navigator.pushNamed(context, '/join-any');
+                    await Navigator.pushNamed(context, '/discover');
                     if (context.mounted) {
                       await context.read<GroupListCubit>().refresh();
                     }
                   },
                   actionVariant: AppButtonVariant.primary,
-                  actionIcon: const Icon(Icons.volunteer_activism_rounded),
+                  actionIcon: const Icon(Icons.search_rounded),
                   illustration: const HalaqaLogo(size: 80),
                 ),
               ],

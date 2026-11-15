@@ -110,8 +110,7 @@ void main() {
     expect(find.text(ArabicStrings.noApprovedGroups), findsOneWidget);
     expect(find.byType(HalaqaLogo), findsOneWidget);
     expect(find.text(ArabicStrings.groupSelectionEmptyMessage), findsOneWidget);
-    expect(find.text(ArabicStrings.groupSelectionJoinAction), findsOneWidget);
-    expect(find.text(ArabicStrings.searchGroupAction), findsNothing);
+    expect(find.text(ArabicStrings.searchGroupAction), findsOneWidget);
     expect(find.text(ArabicStrings.createGroup), findsNothing);
     expect(find.text(ArabicStrings.iHaveInviteLink), findsNothing);
   });

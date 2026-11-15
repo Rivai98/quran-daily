@@ -82,207 +82,106 @@ class ProfileBadgesGrid extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      final gap = AppSpacing.xs;
-      final columns = constraints.maxWidth >= 288 ? 3 : 2;
-      final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
-      return Wrap(
-        spacing: gap,
-        runSpacing: gap,
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: Column(
         children: [
-          for (final badge in badges)
-            SizedBox(width: width, child: _buildBadge(context, badge)),
+          for (var i = 0; i < badges.length; i++) ...[
+            if (i > 0) Divider(height: 1, color: colors.border),
+            _buildBadge(context, badges[i]),
+          ],
         ],
-      );
-    },
-  );
+      ),
+    );
+  }
 
   Widget _buildBadge(BuildContext context, ProfileBadge badge) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    final badgeInfo = _badgeInfo(badge.code);
-    final progress = badgeInfo.current.clamp(0, badgeInfo.target);
+    final info = _badgeInfo(badge.code);
+    final progress = info.current.clamp(0, info.target);
+    final earned = badge.isEarned;
     final earnedAt = badge.earnedAt;
+    final status = earnedAt == null
+        ? ArabicStrings.badgeProgress(progress, info.target, info.unit)
+        : ArabicStrings.badgeEarned(_date(earnedAt));
     return Semantics(
       button: true,
-      label:
-          '${badgeInfo.title}? ${earnedAt == null ? ArabicStrings.badgeProgress(progress, badgeInfo.target, badgeInfo.unit) : ArabicStrings.badgeEarned(_date(earnedAt))}',
-      child: Material(
-        color: colors.surface,
-        borderRadius: AppRadius.lgBR,
-        child: InkWell(
-          borderRadius: AppRadius.lgBR,
-          onTap: () => _showDetails(context, badgeInfo, badge, progress),
-          child: AppCard(
-            padding: AppSpacing.card,
-            child: _badgeContents(context, badgeInfo, badge, progress),
+      label: '${info.title}، $status',
+      child: InkWell(
+        onTap: () => _showDetails(context, info, badge, progress),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: earned ? colors.primaryContainer : colors.surfaceMuted,
+                  border: Border.all(
+                    color: earned ? colors.accent : colors.border,
+                    width: earned ? 2 : 1,
+                  ),
+                ),
+                child: Icon(
+                  info.icon,
+                  size: 24,
+                  color: earned ? colors.primary : colors.inkMuted,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      info.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.label,
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    if (!earned) ...[
+                      ClipRRect(
+                        borderRadius: AppRadius.pillBR,
+                        child: LinearProgressIndicator(
+                          minHeight: 6,
+                          value: progress / info.target,
+                          color: colors.primary,
+                          backgroundColor: colors.surfaceMuted,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xxs),
+                    ],
+                    Text(
+                      status,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.caption.copyWith(
+                        color: earned ? colors.primary : colors.inkMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Icon(
+                earned ? Icons.verified_rounded : Icons.lock_outline_rounded,
+                size: 20,
+                color: earned ? colors.primary : colors.inkMuted,
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-
-  Widget _badgeContents(
-    BuildContext context,
-    ({
-      String title,
-      String desc,
-      IconData icon,
-      int current,
-      int target,
-      String unit,
-    })
-    badgeInfo,
-    ProfileBadge badge,
-    int progress,
-  ) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    final earned = badge.isEarned;
-    final earnedAt = badge.earnedAt;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _badgeEmblem(context, badgeInfo, badge),
-        const SizedBox(height: AppSpacing.sm),
-        Text(
-          badgeInfo.title,
-          textAlign: TextAlign.center,
-          style: AppTypography.label,
-          softWrap: true,
-        ),
-        const SizedBox(height: AppSpacing.xxs),
-        Text(
-          earnedAt == null
-              ? ArabicStrings.badgeProgress(
-                  progress,
-                  badgeInfo.target,
-                  badgeInfo.unit,
-                )
-              : ArabicStrings.badgeEarned(_date(earnedAt)),
-          textAlign: TextAlign.center,
-          style: AppTypography.caption.copyWith(
-            color: earned ? colors.primary : colors.inkMuted,
-          ),
-          softWrap: true,
-        ),
-      ],
-    );
-  }
-
-  Widget _badgeEmblem(
-    BuildContext context,
-    ({
-      String title,
-      String desc,
-      IconData icon,
-      int current,
-      int target,
-      String unit,
-    })
-    badgeInfo,
-    ProfileBadge badge,
-  ) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    final earned = badge.isEarned;
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        if (earned) _earnedRing(colors),
-        Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: earned ? colors.primaryContainer : colors.surfaceMuted,
-            border: Border.all(
-              color: earned ? colors.accent : colors.border,
-              width: earned ? 2 : 1,
-            ),
-          ),
-          child: Icon(
-            badgeInfo.icon,
-            size: 27,
-            color: earned ? colors.primary : colors.inkMuted,
-          ),
-        ),
-        if (!earned) _lockedBadgeMarker(colors),
-        if (badge.code == ProfileBadgeCode.portions100)
-          _pillThreshold(colors, badgeInfo.target, earned),
-        if (badge.code == ProfileBadgeCode.streak7 ||
-            badge.code == ProfileBadgeCode.streak30 ||
-            badge.code == ProfileBadgeCode.streak100)
-          _roundThreshold(colors, badgeInfo.target, earned),
-      ],
-    );
-  }
-
-  Widget _earnedRing(AppColors colors) => Container(
-    width: 58,
-    height: 58,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      border: Border.all(color: colors.accent.withValues(alpha: .35), width: 3),
-    ),
-  );
-
-  Widget _lockedBadgeMarker(AppColors colors) => PositionedDirectional(
-    end: -3,
-    bottom: -3,
-    child: Container(
-      width: 22,
-      height: 22,
-      decoration: BoxDecoration(
-        color: colors.surface,
-        shape: BoxShape.circle,
-        border: Border.all(color: colors.border),
-      ),
-      child: Icon(Icons.lock_rounded, size: 13, color: colors.inkMuted),
-    ),
-  );
-
-  Widget _pillThreshold(AppColors colors, int target, bool earned) =>
-      PositionedDirectional(
-        bottom: -2,
-        start: -8,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: earned ? colors.primary : colors.surfaceMuted,
-            borderRadius: AppRadius.pillBR,
-            border: Border.all(color: colors.surface, width: 2),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
-            child: Text(
-              ArabicNumerals.format(target),
-              style: AppTypography.caption.copyWith(
-                color: earned ? colors.onPrimary : colors.inkMuted,
-              ),
-            ),
-          ),
-        ),
-      );
-
-  Widget _roundThreshold(AppColors colors, int target, bool earned) =>
-      PositionedDirectional(
-        bottom: -2,
-        start: -5,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: earned ? colors.primary : colors.surfaceMuted,
-            shape: BoxShape.circle,
-            border: Border.all(color: colors.surface, width: 2),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(3),
-            child: Text(
-              ArabicNumerals.format(target),
-              style: AppTypography.caption.copyWith(
-                color: earned ? colors.onPrimary : colors.inkMuted,
-              ),
-            ),
-          ),
-        ),
-      );
 
   void _showDetails(
     BuildContext context,
