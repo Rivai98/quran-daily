@@ -153,8 +153,29 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text(ArabicStrings.inviteUnavailable), findsOneWidget);
+    expect(find.text(ArabicStrings.inviteCodeNotFound), findsOneWidget);
+    expect(find.text(ArabicStrings.joinError), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a malformed code shows a calm format reason, not a network one', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider(
+          create: (_) => JoinCubit(repository: repository),
+          child: const InviteJoinScreen(),
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextField), 'abc');
+    await tester.tap(find.text(ArabicStrings.previewInviteAction));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('invite-error-banner')), findsOneWidget);
+    expect(find.text(ArabicStrings.inviteCodeFormatError), findsOneWidget);
+    expect(find.text(ArabicStrings.joinError), findsNothing);
+    verifyNever(() => repository.getInvitePreview(any()));
   });
 
   testWidgets(
@@ -190,7 +211,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text(ArabicStrings.joinError), findsOneWidget);
+      expect(find.text(ArabicStrings.authError('network')), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox.shrink());
       when(
