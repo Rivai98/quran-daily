@@ -13,7 +13,7 @@ class ArabicFormatting {
       'أُنجز ${isolate(ArabicNumerals.format(completed))} من ${isolate(ArabicNumerals.format(total))}';
 
   static String pageAyahMeta(int page, int ayahs) =>
-      'صفحة ${isolate(ArabicNumerals.format(page))} · ${isolate(ArabicNumerals.format(ayahs))} آيات';
+      'صفحة ${isolate(ArabicNumerals.format(page))}، ${isolate(ArabicNumerals.format(ayahs))} آيات';
 
   static String timezoneCity(String timezone) => switch (timezone) {
     'Africa/Cairo' => 'القاهرة',

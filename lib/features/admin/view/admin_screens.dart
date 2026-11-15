@@ -509,7 +509,7 @@ class _AdminListScreenState extends State<_AdminListScreen> {
     }
     final created = _dateLabel(item['created_at']);
     if (created.isNotEmpty) details.add(created);
-    return details.join(' · ');
+    return details.join('، ');
   }
 
   String _userMeta(Map item) {
@@ -525,7 +525,7 @@ class _AdminListScreenState extends State<_AdminListScreen> {
     );
     final activity = _dateLabel(item['last_activity_at']);
     if (activity.isNotEmpty) details.add('آخر نشاط $activity');
-    return details.join(' · ');
+    return details.join('، ');
   }
 
   String _dateLabel(Object? value) {
@@ -631,7 +631,7 @@ class _DetailView extends StatelessWidget {
                     if (group) ...[
                       Text('${entity['owner_name'] ?? ''}'),
                       Text(
-                        '${_groupStatus(entity['status'])} · ${_portionUnit(entity['portion_unit'])}',
+                        '${_groupStatus(entity['status'])}، ${_portionUnit(entity['portion_unit'])}',
                       ),
                     ],
                     if (group && data['today'] is Map) ...[
@@ -652,7 +652,7 @@ class _DetailView extends StatelessWidget {
                     child: ListTile(
                       title: Text('${item['group_name'] ?? ''}'),
                       subtitle: Text(
-                        '${_groupStatus(item['group_status'])} · ${_role(item['role'])}',
+                        '${_groupStatus(item['group_status'])}، ${_role(item['role'])}',
                       ),
                     ),
                   ),
@@ -709,7 +709,7 @@ class _DetailView extends StatelessWidget {
           child: ListTile(
             title: Text('${member['display_name'] ?? ''}'),
             subtitle: Text(
-              '${_role(member['role'])} · ${ArabicNumerals.format(int.tryParse('${member['seat_number']}') ?? 0)}',
+              '${_role(member['role'])}، ${ArabicNumerals.format(int.tryParse('${member['seat_number']}') ?? 0)}',
             ),
             trailing: Wrap(
               children: [
@@ -1034,10 +1034,10 @@ class _AuditViewState extends State<_AuditView> {
                           style: AppTypography.title,
                         ),
                         Text(
-                          '${item['actor_name'] ?? ''} · ${item['target_name'] ?? ''}',
+                          '${item['actor_name'] ?? ''}، ${item['target_name'] ?? ''}',
                         ),
                         Text(
-                          '${item['created_at'] ?? ''} · ${item['result'] == 'succeeded' ? ArabicStrings.adminSuccessResult : ArabicStrings.adminFailureResult}',
+                          '${item['created_at'] ?? ''}، ${item['result'] == 'succeeded' ? ArabicStrings.adminSuccessResult : ArabicStrings.adminFailureResult}',
                           style: AppTypography.caption,
                           textDirection: TextDirection.ltr,
                         ),

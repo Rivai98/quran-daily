@@ -288,7 +288,7 @@ class _DaysList extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    '${ArabicStrings.cycleLabel} ${ArabicNumerals.format(cycle.cycleNumber)} · ${ArabicStrings.portionUnitName(cycle.portionUnit)}',
+                    '${ArabicStrings.cycleLabel} ${ArabicNumerals.format(cycle.cycleNumber)}، ${ArabicStrings.portionUnitName(cycle.portionUnit)}',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),

@@ -185,7 +185,7 @@ class HistoryDayDetail extends StatelessWidget {
                             ),
                             const SizedBox(height: AppSpacing.xxs),
                             Text(
-                              '${assignment.readerDisplayName ?? assignment.reader?.displayName ?? (assignment.status == AssignmentStatusEnum.available ? ArabicStrings.unassignedReader : ArabicStrings.unread)} · ${ArabicStrings.historySeat(ArabicNumerals.format(assignment.seatNumber))}',
+                              '${assignment.readerDisplayName ?? assignment.reader?.displayName ?? (assignment.status == AssignmentStatusEnum.available ? ArabicStrings.unassignedReader : ArabicStrings.unread)}، ${ArabicStrings.historySeat(ArabicNumerals.format(assignment.seatNumber))}',
                               style: AppTypography.caption.copyWith(
                                 color: colors.inkMuted,
                               ),

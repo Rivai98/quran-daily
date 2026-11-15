@@ -53,9 +53,19 @@ class ArabicStrings {
   static String portionPageProgress(int current, int total) =>
       'صفحة ${ArabicNumerals.format(current)} من ${ArabicNumerals.format(total)}';
   static String surahAyahMeta(int page, int ayahs) =>
-      'صفحة ${ArabicFormatting.isolate(ArabicNumerals.format(page))} · ${ArabicFormatting.isolate(ArabicNumerals.format(ayahs))} آيات';
+      'صفحة ${ArabicFormatting.isolate(ArabicNumerals.format(page))}، ${ArabicFormatting.isolate(ArabicNumerals.format(ayahs))} ${ayahCountNoun(ayahs)}';
+
+  /// Arabic counted-noun form of "آية" for [count].
+  static String ayahCountNoun(int count) {
+    final r = count % 100;
+    if (count == 1) return 'آية';
+    if (count == 2) return 'آيتان';
+    if (r == 0 || r == 1 || r == 2) return 'آية';
+    if (r >= 3 && r <= 10) return 'آيات';
+    return 'آيةً';
+  }
   static String juzHizbMeta(String surahName, int page) =>
-      'سورة $surahName · صفحة ${ArabicFormatting.isolate(ArabicNumerals.format(page))}';
+      'سورة $surahName، صفحة ${ArabicFormatting.isolate(ArabicNumerals.format(page))}';
   // --- 006 reminders ---
   static const reminderPermissionExplain =
       '\u{62a}\u{64f}\u{633}\u{62a}\u{62e}\u{62f}\u{645}\u{20}\u{627}\u{644}\u{625}\u{634}\u{639}\u{627}\u{631}\u{627}\u{62a}\u{20}\u{644}\u{62a}\u{630}\u{643}\u{64a}\u{631}\u{643}\u{20}\u{628}\u{648}\u{631}\u{62f}\u{643}\u{20}\u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a}\u{60c}\u{20}\u{648}\u{64a}\u{64f}\u{62d}\u{633}\u{628}\u{20}\u{645}\u{648}\u{639}\u{62f}\u{647}\u{627}\u{20}\u{639}\u{644}\u{649}\u{20}\u{62c}\u{647}\u{627}\u{632}\u{643}\u{2e}';
@@ -231,7 +241,7 @@ class ArabicStrings {
   static const myGroupsSubtitle = 'حلقاتك ووردك اليومي';
   static const groupSeatsProgressLabel = 'المقاعد المشغولة';
   static const membershipLimitReachedAction = 'بلغت الحد الأقصى';
-  static const groupCitySeparator = ' · ';
+  static const groupCitySeparator = '، ';
   static const groupShortcutsTitle = 'طرق سريعة للانضمام';
   static String membersProgress(int members) =>
       '${ArabicNumerals.format(members)} من ${ArabicNumerals.format(30)} عضوًا';
@@ -243,7 +253,7 @@ class ArabicStrings {
   static String groupProgressLabel(int completed, int activeMembers) =>
       '\u{642}\u{631}\u{623} ${ArabicFormatting.isolate(ArabicNumerals.format(completed))} \u{645}\u{646} ${ArabicFormatting.isolate(ArabicNumerals.format(activeMembers))} \u{639}\u{636}\u{648}\u{64b}\u{627}';
   static String groupDashboardMeta(int members, PortionUnit unit) =>
-      '${membersProgress(members)} · ${portionUnitName(unit)}';
+      '${membersProgress(members)}، ${portionUnitName(unit)}';
   static String pageRangeLabel(int start, int end) =>
       '\u{635}\u{641}\u{62d}\u{629} ${ArabicFormatting.isolate(ArabicNumerals.format(start))} \u{625}\u{644}\u{649} ${ArabicFormatting.isolate(ArabicNumerals.format(end))}';
   static String historyWeekOf(DateTime weekStart) =>
@@ -808,13 +818,13 @@ class ArabicStrings {
   ) =>
       'من $startSura آية ${ArabicFormatting.isolate(ArabicNumerals.format(startAya))} إلى $endSura آية ${ArabicFormatting.isolate(ArabicNumerals.format(endAya))}';
   static String cycleProgress(int day, int length, int completed, int total) =>
-      'اليوم ${ArabicFormatting.isolate(ArabicNumerals.format(day))} من ${ArabicFormatting.isolate(ArabicNumerals.format(length))} · أُنجز ${ArabicFormatting.isolate(ArabicNumerals.format(completed))} من ${ArabicFormatting.isolate(ArabicNumerals.format(total))}';
+      'اليوم ${ArabicFormatting.isolate(ArabicNumerals.format(day))} من ${ArabicFormatting.isolate(ArabicNumerals.format(length))}، أُنجز ${ArabicFormatting.isolate(ArabicNumerals.format(completed))} من ${ArabicFormatting.isolate(ArabicNumerals.format(total))}';
   static String homeGroupProgress(
     int day,
     int completedMembers,
     int activeMembers,
   ) =>
-      'اليوم ${ArabicFormatting.isolate(ArabicNumerals.format(day))} من الختمة · قرأ ${ArabicFormatting.isolate(ArabicNumerals.format(completedMembers))} من ${ArabicFormatting.isolate(ArabicNumerals.format(activeMembers))} عضوًا';
+      'اليوم ${ArabicFormatting.isolate(ArabicNumerals.format(day))} من الختمة، قرأ ${ArabicFormatting.isolate(ArabicNumerals.format(completedMembers))} من ${ArabicFormatting.isolate(ArabicNumerals.format(activeMembers))} عضوًا';
   static const restDay = 'لا ورد اليوم';
   static const volunteeredPortion = 'وحدة تطوعت بقراءتها';
   static String restDaySeatLabel(String seat) =>

@@ -175,7 +175,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                                     page.number - state.startPage! + 1,
                                     state.portionPageCount,
                                   )
-                                : '${ArabicStrings.juzLabel} ${ArabicNumerals.format(page.juz)} · ${ArabicStrings.portionUnitHizb} ${ArabicNumerals.format(_hizbForPage(page.number))}',
+                                : '${ArabicStrings.juzLabel} ${ArabicNumerals.format(page.juz)}، ${ArabicStrings.portionUnitHizb} ${ArabicNumerals.format(_hizbForPage(page.number))}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.end,
@@ -953,32 +953,38 @@ class _QpcPageBody extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: horizontal),
           child: Column(
+            // Short centered pages (Al-Fatiha, start of Al-Baqarah) sit in the
+            // middle of the page like the printed Mushaf.
+            mainAxisAlignment: allCentered
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.start,
             children: [
               for (final line in data.lines)
-                SizedBox(
-                  height: lineHeight,
-                  width: width,
-                  child: line.lineType == QpcLineType.surahName
-                      // The ornamental band has a fixed natural height; scale it
-                      // into the line slot so it is never clipped.
-                      ? FittedBox(
-                          fit: BoxFit.contain,
-                          child: SizedBox(
-                            width: width,
-                            height: AppSpacing.xxl + 2 * AppSpacing.sm,
-                            child: lineWidget(line),
-                          ),
-                        )
-                      : Center(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
+                if (!(allCentered && line.lineType == QpcLineType.blank))
+                  SizedBox(
+                    height: lineHeight,
+                    width: width,
+                    child: line.lineType == QpcLineType.surahName
+                        // The ornamental band has a fixed natural height; scale it
+                        // into the line slot so it is never clipped.
+                        ? FittedBox(
+                            fit: BoxFit.contain,
                             child: SizedBox(
                               width: width,
+                              height: AppSpacing.xxl + 2 * AppSpacing.sm,
                               child: lineWidget(line),
                             ),
+                          )
+                        : Center(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: SizedBox(
+                                width: width,
+                                child: lineWidget(line),
+                              ),
+                            ),
                           ),
-                        ),
-                ),
+                  ),
             ],
           ),
         );

@@ -238,7 +238,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(ArabicStrings.allMembersDetailTitle), findsOneWidget);
-    expect(find.textContaining('قارئ 1 ·'), findsOneWidget);
+    expect(find.textContaining('قارئ 1،'), findsOneWidget);
   });
 
   testWidgets('all variants render without overflow', (tester) async {

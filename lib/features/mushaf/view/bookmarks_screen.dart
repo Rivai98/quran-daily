@@ -94,14 +94,14 @@ class _BookmarksScreenState extends State<BookmarksScreen> {
               if (surahName != null) {
                 if (bookmark.ayah != null) {
                   titleText =
-                      '${ArabicStrings.surahWord} $surahName · ${ArabicStrings.ayahWord} ${ArabicNumerals.format(bookmark.ayah!)}';
+                      '${ArabicStrings.surahWord} $surahName، ${ArabicStrings.ayahWord} ${ArabicNumerals.format(bookmark.ayah!)}';
                 } else {
                   titleText = '${ArabicStrings.surahWord} $surahName';
                 }
                 final pageStr =
                     '${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(bookmark.page)}';
                 if (bookmark.createdAt != null) {
-                  subtitleText = '$pageStr · ${_formatDate(bookmark.createdAt!)}';
+                  subtitleText = '$pageStr، ${_formatDate(bookmark.createdAt!)}';
                 } else {
                   subtitleText = pageStr;
                 }

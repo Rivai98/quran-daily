@@ -39,7 +39,7 @@ class MushafFontDownloadSection extends StatelessWidget {
               ],
             ),
             Text(
-              '${ArabicStrings.mushafFontSizeHint} · ${ArabicStrings.cachedFontSize(progress)}',
+              '${ArabicStrings.mushafFontSizeHint}، ${ArabicStrings.cachedFontSize(progress)}',
               style: AppTypography.caption,
             ),
             if (downloading) ...[

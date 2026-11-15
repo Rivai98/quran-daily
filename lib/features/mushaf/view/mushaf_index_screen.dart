@@ -373,7 +373,7 @@ class _ContinueReadingCardState extends State<_ContinueReadingCard> {
         }
         final subtitle = surah == null
             ? '${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(page)}'
-            : 'سورة $surah · ${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(page)}';
+            : 'سورة $surah، ${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(page)}';
         return Padding(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.md,

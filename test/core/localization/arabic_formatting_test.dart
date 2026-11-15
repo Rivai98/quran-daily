@@ -15,7 +15,7 @@ void main() {
       );
       expect(
         ArabicFormatting.pageAyahMeta(1, 7),
-        'صفحة \u2068١\u2069 · \u2068٧\u2069 آيات',
+        'صفحة \u2068١\u2069، \u2068٧\u2069 آيات',
       );
     },
   );
