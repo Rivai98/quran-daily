@@ -71,6 +71,7 @@ light + dark, Android emulator 1080x2400. Binding rules: constitution Principle 
 | 30 | المصحف tab | Shows only the index titled "الفهرس" | Title "المصحف"; top card "تابع القراءة · صفحة N" (last position) and "وردي اليوم" shortcut; then the index tabs |
 | 31 | حسابي | Badges as a long vertical list of large locked cards | Badges grid (3 per row) with earned vs locked styling; streak card prominent; links section stays |
 | 32 | Log | Good base | Week grouping headers spacing |
+| 31b | حسابي links | Sign-out is hidden inside Settings (owner feedback) | Add a visible "تسجيل الخروج" row at the bottom of حسابي (with confirmation) in addition to Settings |
 | 33 | Edit profile | Fields are NOT prefilled with the current name/bio (bug) | Prefill; save disabled until changed |
 
 ## Not covered by this tour (review after merge)
