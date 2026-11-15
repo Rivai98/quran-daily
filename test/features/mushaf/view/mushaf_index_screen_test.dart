@@ -10,6 +10,24 @@ import 'package:quran_daily/features/mushaf/data/reader_storage.dart';
 import 'package:quran_daily/features/mushaf/view/mushaf_index_screen.dart';
 
 void main() {
+  testWidgets('index loads the Mushaf once, not on every rebuild', (
+    tester,
+  ) async {
+    final repository = _CountingRepository();
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        MushafIndexScreen(repository: repository, onOpenPage: (_) {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'ب');
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'با');
+    await tester.pumpAndSettle();
+    expect(repository.loads, 1);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
   testWidgets('surah search matches Arabic spelling variants', (tester) async {
     await tester.pumpWidget(
       buildArabicTestApp(
@@ -235,4 +253,11 @@ class _SearchRepository extends _Repository {
     (surah: 1, name: 'حلقة الذكر', ayahs: 3, startPage: 1),
     (surah: 2, name: 'باب', ayahs: 4, startPage: 2),
   ];
+}
+
+class _CountingRepository extends _SearchRepository {
+  int loads = 0;
+
+  @override
+  Future<void> load() async => loads++;
 }

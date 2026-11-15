@@ -35,6 +35,9 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
   final _search = TextEditingController();
   final _pageSearch = TextEditingController();
   String _query = '';
+  // Requested once: a new future per build would flash the spinner on every
+  // keystroke in the search fields.
+  late final Future<void> _loaded = widget.repository.load();
   QuranMetadataRepository? _metadata;
 
   @override
@@ -73,7 +76,7 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
         ),
       ),
       body: FutureBuilder<void>(
-        future: widget.repository.load(),
+        future: _loaded,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
