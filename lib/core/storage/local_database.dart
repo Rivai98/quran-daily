@@ -9,7 +9,7 @@ class LocalDatabase {
   LocalDatabase({this.databasePath});
 
   static const databaseName = 'quran_daily.db';
-  static const schemaVersion = 1;
+  static const schemaVersion = 2;
 
   final String? databasePath;
 
@@ -25,6 +25,7 @@ class LocalDatabase {
         options: OpenDatabaseOptions(
           version: schemaVersion,
           onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
         ),
       );
       return _db!;
@@ -36,6 +37,7 @@ class LocalDatabase {
       dir,
       version: schemaVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
     return _db!;
   }
@@ -74,6 +76,13 @@ class LocalDatabase {
         created_at integer not null
       )
     ''');
+    await db.execute('create table cached_today (user_id text primary key, json text not null, cached_at integer not null)');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('create table cached_today (user_id text primary key, json text not null, cached_at integer not null)');
+    }
   }
 
   /// Raw access for DAOs.

@@ -52,6 +52,8 @@ class DashboardCubit extends Cubit<DashboardState> {
     SyncPendingCompletions? syncPending,
     ConnectivityService? connectivityService,
     DashboardState initialState = const DashboardState(),
+    this.onOpened,
+    this.setAsMain,
   }) : _repository = repository,
        _syncPending = syncPending,
        super(initialState) {
@@ -62,6 +64,9 @@ class DashboardCubit extends Cubit<DashboardState> {
   final SyncPendingCompletions? _syncPending;
   final String groupId;
   final GroupsRepository? groupsRepository;
+  final Future<void> Function()? onOpened;
+  final Future<void> Function()? setAsMain;
+  bool _markedOpened = false;
   StreamSubscription<bool>? _connectivitySubscription;
 
   void observeConnectivity(ConnectivityService connectivityService) {
@@ -72,6 +77,10 @@ class DashboardCubit extends Cubit<DashboardState> {
   }
 
   Future<void> refresh() async {
+    if (!_markedOpened && onOpened != null) {
+      _markedOpened = true;
+      try { await onOpened!(); } catch (_) { /* opening remains available offline */ }
+    }
     try {
       await _syncPending?.call();
     } catch (_) {
@@ -167,6 +176,8 @@ class DashboardCubit extends Cubit<DashboardState> {
   }
 
   Future<void> onResumed() => refresh();
+
+  Future<void> pinAsMain() async => setAsMain?.call();
 
   /// Starts the khatma of a forming group (owner action on the forming view).
   Future<void> startKhatma(int startJuz) async {

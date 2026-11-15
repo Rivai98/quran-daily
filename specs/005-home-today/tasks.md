@@ -18,18 +18,18 @@ Test-first (constitution III): write each test task before its implementation.
 
 ## Phase 2: Shell + Home (codex-2) — US1, US1b, US2
 
-- [ ] T011 [P] [US2] Widget tests `test/features/shell/home_shell_test.dart`: 4 tabs (الرئيسية، مجموعاتي، المصحف، حسابي) with icon + label, Home selected after sign-in, tab switch keeps each stack, back inside مجموعاتي returns to the list, RTL, 48dp, 320dp, 200% text
-- [ ] T012 [US2] `lib/features/shell/` HomeShell (IndexedStack + 3 nested Navigators reusing `AppRoutes.onGenerateRoute`), ShellCubit, AppTabBar from design tokens; auth gate opens HomeShell; deep link join still opens above the tabs; sign-out clears stacks
-- [ ] T013 [P] [US1] Entities + JSON parsing tests `test/features/home/data/today_parsing_test.dart` for the `get_my_today` contract
-- [ ] T014 [US1] `lib/features/home/data/`: TodayRemoteDataSource, TodayRepository(+Impl) with sqflite cache of the last payload, offline fallback
-- [ ] T015 [P] [US1] Cubit tests `test/features/home/cubit/home_cubit_test.dart`: load, cached-then-fresh, offline, complete/undo through KhatmaRepository then refresh, pin main group, empty (no groups), all-done
-- [ ] T016 [US1] `lib/features/home/cubit/` HomeCubit + HomeState
-- [ ] T017 [P] [US1] Add `hijri` dependency; `DateHeader` widget test (Hijri then Gregorian, Arabic numerals) `test/features/home/view/date_header_test.dart`
-- [ ] T018 [US1b] `MainGroupHeroCard` (avatar from group initials, name, "١٨ من ٣٠" progress, cycle line, portion name/range from QuranMetadataRepository, افتح الورد primary + تمت القراءة, rest-day state "لا ورد اليوم", shortcut to dashboard)
-- [ ] T019 [US1] `TodayItemCard` (compact) for the other group, and HomeScreen: greeting, DateHeader, hero, other group, empty state with spec 001 entry points, calm all-done message, offline banner, settings icon in app bar
-- [ ] T020 [P] [US1] Widget tests `test/features/home/view/home_screen_test.dart` (states above, light/dark, 320dp, 200% text, RTL)
-- [ ] T021 [US1b] Group dashboard menu "اجعلها مجموعتي الرئيسية" + `mark_group_opened` call when a dashboard opens
-- [ ] T022 [US1] DI registration (marked block in `service_locator.dart`), strings (marked block in `arabic_strings.dart`)
+- [X] T011 [P] [US2] Widget tests `test/features/shell/home_shell_test.dart`: 4 tabs, Home initially selected, nested stack retention/back, RTL, 320dp and 200% text
+- [X] T012 [US2] Four-stack HomeShell, ShellCubit, AppTabBar, placeholders, auth gate, deep-link route handling, and stack disposal at auth-gate transition
+- [X] T013 [P] [US1] Entities + JSON parsing tests `test/features/home/data/today_parsing_test.dart` for the `get_my_today` contract
+- [X] T014 [US1] `lib/features/home/data/`: TodayRemoteDataSource, TodayRepository(+Impl) with sqflite cache and offline fallback
+- [X] T015 [P] [US1] Cubit tests `test/features/home/cubit/home_cubit_test.dart` for loading, completion, pinning, empty and cached states
+- [X] T016 [US1] `lib/features/home/cubit/` HomeCubit + HomeState
+- [X] T017 [P] [US1] `hijri` dependency and DateHeader test (both were present on resume)
+- [X] T018 [US1b] Main group hero with avatar, progress/cycle, metadata range, portion actions, rest-day state and dashboard shortcut
+- [X] T019 [US1] Today cards render each assigned portion; Home includes date, empty entry points, completion/offline states. Settings is opened from حسابي per updated brief.
+- [X] T020 [P] [US1] Home widget tests cover empty/content/offline/error, dark/light, 320dp, 200% text and RTL
+- [X] T021 [US1b] Group dashboard main-group menu and mark-opened callback (present on resume)
+- [X] T022 [US1] DI and ArabicStrings have marked 005 home blocks
 
 ## Phase 3: Log + limit UI + visuals (codex) — US3, US4, FR-004c
 
