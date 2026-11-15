@@ -5,9 +5,34 @@ import 'package:quran_daily/core/quran/mushaf/mushaf_repository.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import '../../../helpers/widget_test_app.dart';
+import 'package:quran_daily/core/di/service_locator.dart';
+import 'package:quran_daily/features/mushaf/data/reader_storage.dart';
 import 'package:quran_daily/features/mushaf/view/mushaf_index_screen.dart';
 
 void main() {
+  testWidgets(
+    'continue-reading card follows a position saved while the tab is alive',
+    (tester) async {
+      final storage = _PositionStorage();
+      serviceLocator.registerSingleton<ReaderStorage>(storage);
+      addTearDown(() => serviceLocator.unregister<ReaderStorage>());
+
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          MushafIndexScreen(repository: _PagedRepository(), onOpenPage: (_) {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(ArabicStrings.continueReadingTitle), findsNothing);
+
+      storage.page = 2;
+      ReaderStorage.notifyPositionSaved(2);
+      await tester.pumpAndSettle();
+      expect(find.text(ArabicStrings.continueReadingTitle), findsOneWidget);
+      expect(find.text('${ArabicStrings.pageNumberLabel} ٢'), findsOneWidget);
+    },
+  );
+
   testWidgets(
     'index exposes the four source-backed browsing categories in all variants',
     (tester) async {
@@ -173,4 +198,20 @@ class _Repository implements MushafRepository {
 
   @override
   List<({int hizb, int startPage})> hizbIndex() => [];
+}
+
+class _PagedRepository extends _Repository {
+  @override
+  MushafPage page(int number) =>
+      MushafPage(number: number, ayahs: const [], juz: 1, firstSurah: 1);
+}
+
+class _PositionStorage implements ReaderStorage {
+  int? page;
+
+  @override
+  Future<int?> lastPage() async => page;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

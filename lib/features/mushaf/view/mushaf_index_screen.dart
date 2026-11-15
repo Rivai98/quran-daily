@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/design_system/app_colors.dart';
@@ -345,7 +347,26 @@ class _ContinueReadingCard extends StatefulWidget {
 }
 
 class _ContinueReadingCardState extends State<_ContinueReadingCard> {
-  late final Future<int?> _lastPage = _load();
+  late Future<int?> _lastPage = _load();
+  StreamSubscription<int>? _positionChanges;
+
+  @override
+  void initState() {
+    super.initState();
+    // The tab stays alive in the shell, so follow every saved position.
+    _positionChanges = ReaderStorage.positionChanges.listen((_) {
+      if (!mounted) return;
+      setState(() {
+        _lastPage = _load();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _positionChanges?.cancel();
+    super.dispose();
+  }
 
   Future<int?> _load() async {
     if (!serviceLocator.isRegistered<ReaderStorage>()) return null;
@@ -373,7 +394,7 @@ class _ContinueReadingCardState extends State<_ContinueReadingCard> {
         }
         final subtitle = surah == null
             ? '${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(page)}'
-            : 'سورة $surah، ${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(page)}';
+            : '${ArabicStrings.surahWord} $surah، ${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(page)}';
         return Padding(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.md,
@@ -401,7 +422,7 @@ class _ContinueReadingCardState extends State<_ContinueReadingCard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'تابع القراءة',
+                            ArabicStrings.continueReadingTitle,
                             style: AppTypography.title.copyWith(
                               color: colors.onPrimaryContainer,
                             ),
