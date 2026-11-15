@@ -3,20 +3,20 @@ create extension if not exists pgtap with schema extensions;
 begin;
 select plan(29);
 
-select tests_seed_user('d4000000-0000-0000-0000-000000000001', 'us4-a@test.local', 'Ø¹Ø¶Ùˆ Ø£Ù„Ù');
-select tests_seed_user('d4000000-0000-0000-0000-000000000002', 'us4-b@test.local', 'Ø¹Ø¶Ùˆ Ø¨Ø§Ø¡');
-select tests_seed_user('d4000000-0000-0000-0000-000000000003', 'us4-c@test.local', 'Ø¹Ø¶Ùˆ Ø¬ÙŠÙ…');
-select tests_seed_user('d4000000-0000-0000-0000-000000000004', 'us4-d@test.local', 'Ø¹Ø¶Ùˆ Ø¯Ø§Ù„');
-select tests_seed_user('d4000000-0000-0000-0000-000000000005', 'us4-e@test.local', 'Ø¹Ø¶Ùˆ Ù‡Ø§Ø¡');
+select tests_seed_user('d4000000-0000-0000-0000-000000000001', 'us4-a@test.local', 'عضو ألف');
+select tests_seed_user('d4000000-0000-0000-0000-000000000002', 'us4-b@test.local', 'عضو باء');
+select tests_seed_user('d4000000-0000-0000-0000-000000000003', 'us4-c@test.local', 'عضو جيم');
+select tests_seed_user('d4000000-0000-0000-0000-000000000004', 'us4-d@test.local', 'عضو دال');
+select tests_seed_user('d4000000-0000-0000-0000-000000000005', 'us4-e@test.local', 'عضو هاء');
 
 insert into public.groups (id,name,owner_id,timezone,visibility,join_mode,status,start_juz,start_date,invite_code)
 values
- ('d4000000-0000-0000-0000-000000000101','Ø¹Ø§Ù… Ø¢Ù„ÙŠ','d4000000-0000-0000-0000-000000000001','Africa/Cairo','public','auto_accept','forming',null,null,'US4A2345'),
- ('d4000000-0000-0000-0000-000000000102','Ø¹Ø§Ù… Ø¨Ø·Ù„Ø¨','d4000000-0000-0000-0000-000000000001','Asia/Riyadh','public','approval','forming',null,null,'US4B2345'),
- ('d4000000-0000-0000-0000-000000000103','Ø®Ø§Øµ','d4000000-0000-0000-0000-000000000001','Africa/Cairo','private','auto_accept','forming',null,null,'US4C2345'),
- ('d4000000-0000-0000-0000-000000000104','Ù…ÙƒØªÙ…Ù„Ø©','d4000000-0000-0000-0000-000000000001','Africa/Cairo','public','auto_accept','forming',null,null,'US4D2345'),
- ('d4000000-0000-0000-0000-000000000105','Ù†Ø´Ø·Ø©','d4000000-0000-0000-0000-000000000001','Asia/Riyadh','public','auto_accept','active',1,current_date,'US4E2345'),
- ('d4000000-0000-0000-0000-000000000106','Ù…Ø¤Ø±Ø´ÙØ©','d4000000-0000-0000-0000-000000000001','Africa/Cairo','private','auto_accept','archived',null,null,'US4F2345');
+ ('d4000000-0000-0000-0000-000000000101','عام آلي','d4000000-0000-0000-0000-000000000001','Africa/Cairo','public','auto_accept','forming',null,null,'US4A2345'),
+ ('d4000000-0000-0000-0000-000000000102','عام بطلب','d4000000-0000-0000-0000-000000000001','Asia/Riyadh','public','approval','forming',null,null,'US4B2345'),
+ ('d4000000-0000-0000-0000-000000000103','خاص','d4000000-0000-0000-0000-000000000001','Africa/Cairo','private','auto_accept','forming',null,null,'US4C2345'),
+ ('d4000000-0000-0000-0000-000000000104','مكتملة','d4000000-0000-0000-0000-000000000001','Africa/Cairo','public','auto_accept','forming',null,null,'US4D2345'),
+ ('d4000000-0000-0000-0000-000000000105','نشطة','d4000000-0000-0000-0000-000000000001','Asia/Riyadh','public','auto_accept','active',1,current_date,'US4E2345'),
+ ('d4000000-0000-0000-0000-000000000106','مؤرشفة','d4000000-0000-0000-0000-000000000001','Africa/Cairo','private','auto_accept','archived',null,null,'US4F2345');
 
 -- Isolate join-any from pre-existing hosted DEV groups. The test transaction
 -- rolls this temporary visibility change back after assertions finish.
@@ -41,7 +41,7 @@ do $$
 declare n integer;
 begin
   for n in 1..30 loop
-    perform tests_seed_user(('d4000000-0000-0000-0000-' || lpad((200+n)::text,12,'0'))::uuid, 'us4-full-' || n || '@test.local', 'Ø¹Ø¶Ùˆ Ù…Ù…ØªÙ„Ø¦');
+    perform tests_seed_user(('d4000000-0000-0000-0000-' || lpad((200+n)::text,12,'0'))::uuid, 'us4-full-' || n || '@test.local', 'عضو ممتلئ');
   end loop;
 end
 $$;
