@@ -19,6 +19,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:quran_daily/app/bootstrap.dart';
 import 'package:quran_daily/app/router.dart';
 import 'package:quran_daily/core/design_system/widgets/part_tile.dart';
+import 'package:quran_daily/core/localization/arabic_numerals.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/features/home/view/home_screen.dart';
 import 'package:quran_daily/features/log/view/log_screen.dart';
@@ -321,9 +322,11 @@ void main() {
 
     // History.
     await optional(tester, 'history', () async {
+      await tapAndSettle(tester, find.byTooltip(ArabicStrings.groupMenuTooltip));
+      await pumpUntil(tester, find.text(ArabicStrings.openHistoryAction));
       await tapAndSettle(
         tester,
-        find.byTooltip(ArabicStrings.openHistoryAction),
+        find.text(ArabicStrings.openHistoryAction).last,
       );
       await pumpUntil(tester, find.byType(HistoryScreen));
       await settle(tester, 1500);
@@ -419,10 +422,7 @@ void main() {
       await settle(tester, 800);
 
       await optional(tester, 'mushaf_index', () async {
-        await tapAndSettle(
-          tester,
-          find.byTooltip(ArabicStrings.mushafIndexAction),
-        );
+        navigatorKey.currentState!.pushNamed(AppRoutes.mushafIndex);
         await pumpUntil(
           tester,
           find.widgetWithText(Tab, ArabicStrings.surahsTab),
@@ -442,13 +442,16 @@ void main() {
           await settle(tester, 1000);
           await shot(tester, entry.value);
         }
-        await popFrom(tester, find.byType(MushafIndexScreen).hitTestable());
+        navigatorKey.currentState!.pop();
+        await settle(tester);
       });
 
       await optional(tester, 'bookmark_sheet', () async {
+        await tapAndSettle(tester, find.byTooltip(ArabicStrings.mushafTitle));
+        await pumpUntil(tester, find.text(ArabicStrings.addBookmarkAction));
         await tapAndSettle(
           tester,
-          find.byTooltip(ArabicStrings.addBookmarkAction),
+          find.text(ArabicStrings.addBookmarkAction).last,
         );
         await pumpUntil(tester, find.text(ArabicStrings.save));
         await shot(tester, '22_bookmark_sheet');
@@ -456,20 +459,19 @@ void main() {
         await settle(tester, 1500);
       });
       await optional(tester, 'bookmarks', () async {
-        await tapAndSettle(tester, find.byTooltip(ArabicStrings.bookmarksTitle));
+        navigatorKey.currentState!.pushNamed(AppRoutes.mushafBookmarks);
         await pumpUntil(tester, find.byType(BookmarksScreen));
         await settle(tester, 1500);
         await shot(tester, '23_bookmarks');
-        await popFrom(tester, find.byType(BookmarksScreen));
+        navigatorKey.currentState!.pop();
+        await settle(tester);
       });
       await optional(tester, 'mushaf_licenses', () async {
-        await tapAndSettle(
-          tester,
-          find.byTooltip(ArabicStrings.mushafLicensesTitle),
-        );
+        navigatorKey.currentState!.pushNamed(AppRoutes.mushafLicenses);
         await settle(tester, 1500);
         await shot(tester, '24_mushaf_licenses');
-        await popFrom(tester, find.text(ArabicStrings.mushafLicensesTitle));
+        navigatorKey.currentState!.pop();
+        await settle(tester);
       });
       await popFrom(tester, find.byType(ReaderScreen));
     });
@@ -520,8 +522,7 @@ void main() {
 
     // Settings (from the dashboard), reminders section, bottom.
     await optional(tester, 'settings', () async {
-      await pumpUntil(tester, find.byTooltip(ArabicStrings.settingsTitle));
-      await tapAndSettle(tester, find.byTooltip(ArabicStrings.settingsTitle));
+      navigatorKey.currentState!.pushNamed(AppRoutes.settings);
       await pumpUntil(tester, find.byType(SettingsScreen));
       await settle(tester, 1500);
       await shot(tester, '29_settings');
@@ -532,7 +533,8 @@ void main() {
         await shot(tester, '29c_settings_bottom');
       });
       expect(find.text(ArabicStrings.adminEntry), findsNothing);
-      await popFrom(tester, find.byType(SettingsScreen));
+      navigatorKey.currentState!.pop();
+      await settle(tester);
     });
 
     // المصحف tab: the Mushaf index.
@@ -542,9 +544,16 @@ void main() {
       await settle(tester, 1500);
       await shot(tester, '30_mushaf_tab');
       // Open surah rows 2 and 5 from the index (page 2 and a surah-start page).
-      for (final entry in const {1: '30b_mushaf_free_row2', 4: '30c_mushaf_free_row5'}.entries) {
+      for (final entry in const {2: '30b_mushaf_free_row2', 5: '30c_mushaf_free_row5'}.entries) {
         await optional(tester, entry.value, () async {
-          await tapAndSettle(tester, find.byType(ListTile).at(entry.key));
+          final badge = find
+              .descendant(
+                of: find.byType(MushafIndexScreen).hitTestable(),
+                matching: find.text(ArabicNumerals.format(entry.key)),
+              )
+              .hitTestable();
+          await scrollTo(tester, badge);
+          await tapAndSettle(tester, badge.first);
           await pumpUntil(
             tester,
             find.byKey(const ValueKey('mushaf-page-view')),
