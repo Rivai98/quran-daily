@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../reminders/view/notification_onboarding.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/router.dart';
 import '../../../core/design_system/app_spacing.dart';
@@ -33,8 +34,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.read<HomeCubit>().load();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await context.read<HomeCubit>().load();
+      // First run only: explain and ask for notification permission.
+      if (mounted) await NotificationOnboarding.maybeAsk(context);
     });
   }
 
