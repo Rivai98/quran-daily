@@ -36,60 +36,73 @@ class PublicGroupCard extends StatelessWidget {
     final isJoined = joinState == GroupJoinState.joined;
     final canJoin = group.canJoinLimit && !membershipLimitReached;
     final status = switch (group.status) {
-      GroupStatus.forming => (Icons.hourglass_top, ArabicStrings.formingLabel),
+      GroupStatus.forming => (
+        Icons.hourglass_top_rounded,
+        ArabicStrings.formingLabel,
+      ),
       GroupStatus.active => (
-        Icons.play_circle_outline,
+        Icons.play_circle_outline_rounded,
         ArabicStrings.activeLabel,
       ),
       GroupStatus.archived => (
-        Icons.archive_outlined,
+        Icons.archive_rounded,
         ArabicStrings.groupArchivedLabel,
       ),
     };
     final portionLabel = ArabicStrings.dailyUnitChip(group.portionUnit);
-    final metadata = [
-      ArabicFormatting.membersProgress(group.activeMemberCount),
-      portionLabel,
-      _timezoneCity(group.timezone),
-    ].join(ArabicStrings.groupCitySeparator);
-
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              GroupAvatar(name: group.name, size: AppSpacing.xl),
+              GroupAvatar(name: group.name, size: AppSpacing.xxl),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: Text(
-                  group.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.title,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        group.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.title,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    _GroupStatusBadge(
+                      icon: status.$1,
+                      label: status.$2,
+                      groupStatus: group.status,
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
-          Text(
-            metadata,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.caption.copyWith(
-              color: Theme.of(context).extension<AppColors>()!.inkMuted,
-            ),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xxs,
+            children: [
+              _MetadataItem(
+                icon: Icons.people_alt_rounded,
+                label: ArabicFormatting.membersProgress(
+                  group.activeMemberCount,
+                ),
+              ),
+              _MetadataItem(icon: Icons.menu_book_rounded, label: portionLabel),
+              _MetadataItem(
+                icon: Icons.location_on_rounded,
+                label: _timezoneCity(group.timezone),
+              ),
+            ],
           ),
           const SizedBox(height: AppSpacing.sm),
           Wrap(
             spacing: AppSpacing.xs,
             runSpacing: AppSpacing.xxs,
             children: [
-              _GroupStatusBadge(
-                icon: status.$1,
-                label: status.$2,
-                groupStatus: group.status,
-              ),
               if (onJoin != null)
                 AppButton(
                   label: isPending
@@ -103,8 +116,8 @@ class PublicGroupCard extends StatelessWidget {
                   loading: joinState == GroupJoinState.joining,
                   icon: Icon(
                     isPending || isJoined
-                        ? Icons.check_circle
-                        : Icons.group_add_outlined,
+                        ? Icons.check_circle_rounded
+                        : Icons.group_add_rounded,
                   ),
                   onPressed:
                       canJoin &&
@@ -131,6 +144,26 @@ class PublicGroupCard extends StatelessWidget {
       'UTC' => 'التوقيت العالمي',
       _ => 'التوقيت المحلي',
     };
+  }
+}
+
+class _MetadataItem extends StatelessWidget {
+  const _MetadataItem({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).extension<AppColors>()!.inkMuted;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: AppSpacing.md, color: color),
+        const SizedBox(width: AppSpacing.xxs),
+        Text(label, style: AppTypography.caption.copyWith(color: color)),
+      ],
+    );
   }
 }
 

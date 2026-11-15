@@ -19,8 +19,10 @@ class AppTextField extends StatefulWidget {
     this.obscure = false,
     this.ltr = false,
     this.keyboardType,
+    this.textCapitalization = TextCapitalization.none,
     this.validator,
     this.onSubmitted,
+    this.onChanged,
     this.focusNode,
     this.autofocus = false,
     this.textInputAction,
@@ -35,8 +37,10 @@ class AppTextField extends StatefulWidget {
   final bool obscure;
   final bool ltr;
   final TextInputType? keyboardType;
+  final TextCapitalization textCapitalization;
   final String? Function(String?)? validator;
   final ValueChanged<String>? onSubmitted;
+  final ValueChanged<String>? onChanged;
   final FocusNode? focusNode;
   final bool autofocus;
   final TextInputAction? textInputAction;
@@ -72,10 +76,12 @@ class _AppTextFieldState extends State<AppTextField> {
             autofocus: widget.autofocus,
             obscureText: _obscured,
             keyboardType: widget.keyboardType,
+            textCapitalization: widget.textCapitalization,
             textInputAction: widget.textInputAction,
             textDirection: widget.ltr ? TextDirection.ltr : null,
             style: AppTypography.bodyLarge,
             onSubmitted: widget.onSubmitted,
+            onChanged: widget.onChanged,
             decoration: InputDecoration(
               hintText: widget.hint,
               errorText: widget.errorText,

@@ -85,10 +85,11 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
             }
             if (state.groups.isEmpty && state.status == DiscoveryStatus.empty) {
               return StatePanel(
-                icon: Icons.search_off,
+                icon: Icons.search_off_rounded,
                 title: ArabicStrings.noPublicGroups,
                 message: ArabicStrings.publicDiscoveryHint,
                 actionLabel: ArabicStrings.retry,
+                actionIcon: const Icon(Icons.refresh_rounded),
                 onAction: () => context.read<DiscoveryCubit>().load(),
               );
             }
@@ -97,8 +98,8 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                     state.status == DiscoveryStatus.offline)) {
               return StatePanel(
                 icon: state.status == DiscoveryStatus.offline
-                    ? Icons.wifi_off
-                    : Icons.error_outline,
+                    ? Icons.wifi_off_rounded
+                    : Icons.error_outline_rounded,
                 title: state.status == DiscoveryStatus.offline
                     ? ArabicStrings.discoveryOffline
                     : ArabicStrings.joinError,
@@ -106,6 +107,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                   state.failure?.code ?? 'network',
                 ),
                 actionLabel: ArabicStrings.retry,
+                actionIcon: const Icon(Icons.refresh_rounded),
                 onAction: () => context.read<DiscoveryCubit>().load(),
                 isError: state.status == DiscoveryStatus.failure,
               );
@@ -115,12 +117,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 controller: _scrollController,
                 padding: AppSpacing.screenContent,
                 children: [
-                  TextField(
-                    textDirection: TextDirection.rtl,
-                    decoration: const InputDecoration(
-                      labelText: ArabicStrings.searchGroupLabel,
-                      prefixIcon: Icon(Icons.search),
-                    ),
+                  AppTextField(
+                    label: ArabicStrings.searchGroupLabel,
+                    prefixIcon: Icons.search_rounded,
                     onChanged: context.read<DiscoveryCubit>().search,
                     onSubmitted: (query) => context
                         .read<DiscoveryCubit>()
@@ -135,7 +134,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                     label: membershipLimitReached
                         ? ArabicStrings.membershipLimitReachedAction
                         : ArabicStrings.joinAnyGroupAction,
-                    icon: const Icon(Icons.groups_outlined),
+                    icon: const Icon(Icons.groups_rounded),
                     variant: AppButtonVariant.primary,
                     expanded: true,
                     onPressed: membershipLimitReached
@@ -160,6 +159,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                     label: ArabicStrings.iHaveInviteLink,
                     variant: AppButtonVariant.secondary,
                     expanded: true,
+                    icon: const Icon(Icons.link_rounded),
                     onPressed: () => Navigator.pushNamed(context, '/join'),
                   ),
                 ],
