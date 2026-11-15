@@ -6,6 +6,7 @@ import '../network/connectivity_service.dart';
 import '../network/rpc_client.dart';
 import '../network/supabase_client_provider.dart';
 import '../quran/quran_metadata_repository.dart';
+import '../quran/mushaf/mushaf_repository.dart';
 import '../settings/settings_repository.dart';
 import '../settings/settings_repository_impl.dart';
 import '../../features/auth/cubit/auth_cubit.dart';
@@ -60,6 +61,12 @@ void configureServiceLocator({
   if (!locator.isRegistered<QuranMetadataRepository>()) {
     locator.registerLazySingleton<QuranMetadataRepository>(
       QuranMetadataRepository.new,
+    );
+  }
+
+  if (!locator.isRegistered<MushafRepository>()) {
+    locator.registerLazySingleton<MushafRepository>(
+      () => MushafRepositoryImpl(metadata: locator<QuranMetadataRepository>()),
     );
   }
 
