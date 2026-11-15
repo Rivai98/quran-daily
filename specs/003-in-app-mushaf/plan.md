@@ -26,6 +26,28 @@ Why KFGQPC text + KFGQPC font together: the font is built for that exact text
 encoding, so all marks render correctly; mixing another text with this font
 risks wrong glyphs.
 
+## Data contract (shared by all agents)
+
+```dart
+// lib/core/quran/mushaf/mushaf_models.dart
+class AyahRef { final int surah; final int ayah; }            // Equatable
+class MushafAyah { final AyahRef ref; final String text; }    // text only from qpc-hafs.json
+class MushafPage { final int number; final List<MushafAyah> ayahs;
+                   final int juz; final int firstSurah; }      // from quran-data.xml <page>/<juz>
+// lib/core/quran/mushaf/mushaf_repository.dart
+abstract class MushafRepository {
+  Future<void> load();                         // verifies checksums, throws MushafIntegrityException
+  int get pageCount;                           // 604
+  MushafPage page(int number);                 // 1..604
+  int pageOf(AyahRef ref);
+  ({AyahRef start, AyahRef end, int startPage, int endPage}) portionRange(PortionUnit unit, int index);
+  List<({int surah, String name, int ayahs, int startPage})> surahIndex();  // names from quran-data.xml
+  List<({int juz, int startPage})> juzIndex();
+  List<({int hizb, int startPage})> hizbIndex();
+}
+```
+Font family name in pubspec: `KfgqpcHafs` (asset `assets/fonts/kfgqpc_hafs/UthmanicHafs_V22.ttf`).
+
 ## Technical Context
 
 Flutter (Dart ^3.10.4), MVVM + Cubit, get_it, sqflite, hosted Supabase. No new
