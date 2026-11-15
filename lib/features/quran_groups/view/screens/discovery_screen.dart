@@ -89,52 +89,54 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
               isError: state.status == DiscoveryStatus.failure,
             );
           }
-          return ListView(
-            controller: _scrollController,
-            padding: AppSpacing.screen,
-            children: [
-              TextField(
-                textDirection: TextDirection.rtl,
-                decoration: const InputDecoration(
-                  labelText: ArabicStrings.searchGroupLabel,
-                  prefixIcon: Icon(Icons.search),
-                ),
-                onChanged: context.read<DiscoveryCubit>().search,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              AppButton(
-                label: ArabicStrings.joinAnyGroupAction,
-                icon: const Icon(Icons.groups_outlined),
-                variant: AppButtonVariant.primary,
-                expanded: true,
-                onPressed: () => Navigator.pushNamed(context, '/join-any'),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              if (state.failure != null) ...[
-                _JoinFailureNotice(),
-                const SizedBox(height: AppSpacing.sm),
-              ],
-              for (final group in state.groups) ...[
-                PublicGroupCard(
-                  group: group,
-                  metadataRepository: _metadataRepository,
-                  joinState: state.joinStates[group.groupId],
-                  onJoin: () => context.read<DiscoveryCubit>().join(group),
+          return AppPageContent(
+            child: ListView(
+              controller: _scrollController,
+              padding: AppSpacing.screenContent,
+              children: [
+                TextField(
+                  textDirection: TextDirection.rtl,
+                  decoration: const InputDecoration(
+                    labelText: ArabicStrings.searchGroupLabel,
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                  onChanged: context.read<DiscoveryCubit>().search,
                 ),
                 const SizedBox(height: AppSpacing.sm),
-              ],
-              if (state.status == DiscoveryStatus.loading)
-                const Padding(
-                  padding: EdgeInsetsDirectional.all(AppSpacing.md),
-                  child: Center(child: CircularProgressIndicator()),
+                AppButton(
+                  label: ArabicStrings.joinAnyGroupAction,
+                  icon: const Icon(Icons.groups_outlined),
+                  variant: AppButtonVariant.primary,
+                  expanded: true,
+                  onPressed: () => Navigator.pushNamed(context, '/join-any'),
                 ),
-              AppButton(
-                label: ArabicStrings.iHaveInviteLink,
-                variant: AppButtonVariant.secondary,
-                expanded: true,
-                onPressed: () => Navigator.pushNamed(context, '/join'),
-              ),
-            ],
+                const SizedBox(height: AppSpacing.md),
+                if (state.failure != null) ...[
+                  _JoinFailureNotice(),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                for (final group in state.groups) ...[
+                  PublicGroupCard(
+                    group: group,
+                    metadataRepository: _metadataRepository,
+                    joinState: state.joinStates[group.groupId],
+                    onJoin: () => context.read<DiscoveryCubit>().join(group),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                if (state.status == DiscoveryStatus.loading)
+                  const Padding(
+                    padding: EdgeInsetsDirectional.all(AppSpacing.md),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                AppButton(
+                  label: ArabicStrings.iHaveInviteLink,
+                  variant: AppButtonVariant.secondary,
+                  expanded: true,
+                  onPressed: () => Navigator.pushNamed(context, '/join'),
+                ),
+              ],
+            ),
           );
         },
       ),

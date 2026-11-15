@@ -6,6 +6,8 @@ import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/progress_header.dart';
+import '../../../../core/design_system/widgets/app_card.dart';
+import '../../../../core/design_system/widgets/app_section_header.dart';
 import '../../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/localization/arabic_strings.dart';
@@ -107,121 +109,144 @@ class GroupDashboardScreen extends StatelessWidget {
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: AppSpacing.screen,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (snapshot.isStale) ...[
-              const OfflineStaleBanner(),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-            if (snapshot.pendingPortionUnit != null) ...[
-              ValidationBanner(
-                icon: Icons.schedule,
-                message: ArabicStrings.pendingPortionChange(
-                  snapshot.pendingPortionUnit!,
-                ),
-                color: Theme.of(context).extension<AppColors>()!.pendingFg,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: PortionUnitChip(
-                unit: snapshot.portionUnit,
-                metadataRepository: metadataRepository,
-              ),
-            ),
-            if (today.fullKhatma) ...[
-              Builder(
-                builder: (context) {
-                  final colors = Theme.of(context).extension<AppColors>()!;
-                  return ValidationBanner(
-                    icon: Icons.verified,
-                    message: ArabicStrings.fullKhatmaBanner,
-                    color: colors.completedFg,
-                  );
-                },
-              ),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-            if (today.state == DayState.grace) ...[
-              Builder(
-                builder: (context) {
-                  final colors = Theme.of(context).extension<AppColors>()!;
-                  return ValidationBanner(
-                    icon: Icons.hourglass_bottom,
-                    message: ArabicStrings.gracePeriodNotice,
-                    color: colors.pendingFg,
-                  );
-                },
-              ),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-            if (myAssignment)
-              MyJuzCard(
-                snapshot: snapshot,
-                metadataRepository: metadataRepository,
-                onOpen: () => Navigator.pushNamed(
-                  context,
-                  AppRoutes.assignment,
-                  arguments: snapshot,
-                ),
-              )
-            else
-              StatePanel(
-                icon: Icons.menu_book,
-                title: ArabicStrings.noAssignmentToday,
-                message: ArabicStrings.noAssignmentToday,
-              ),
-            const SizedBox(height: AppSpacing.lg),
-            if (snapshot.cycle != null)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  bottom: AppSpacing.sm,
-                ),
-                child: Text(
-                  ArabicStrings.cycleProgress(
-                    snapshot.cycle!.day,
-                    snapshot.cycle!.length,
-                    snapshot.cycle!.completed,
-                    snapshot.cycle!.total,
+        child: Align(
+          alignment: AlignmentDirectional.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (snapshot.isStale) ...[
+                  const OfflineStaleBanner(),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                if (snapshot.pendingPortionUnit != null) ...[
+                  ValidationBanner(
+                    icon: Icons.schedule,
+                    message: ArabicStrings.pendingPortionChange(
+                      snapshot.pendingPortionUnit!,
+                    ),
+                    color: Theme.of(context).extension<AppColors>()!.pendingFg,
                   ),
-                  style: AppTypography.title,
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: PortionUnitChip(
+                    unit: snapshot.portionUnit,
+                    metadataRepository: metadataRepository,
+                  ),
                 ),
-              ),
-            ProgressHeader(
-              completed: snapshot.cycle?.completed ?? completed,
-              total: snapshot.cycle?.total ?? 30,
-              variant: ProgressVariant.bar,
-              caption: ArabicStrings.assignmentGroupDate,
+                if (today.fullKhatma) ...[
+                  Builder(
+                    builder: (context) {
+                      final colors = Theme.of(context).extension<AppColors>()!;
+                      return ValidationBanner(
+                        icon: Icons.verified,
+                        message: ArabicStrings.fullKhatmaBanner,
+                        color: colors.completedFg,
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                if (today.state == DayState.grace) ...[
+                  Builder(
+                    builder: (context) {
+                      final colors = Theme.of(context).extension<AppColors>()!;
+                      return ValidationBanner(
+                        icon: Icons.hourglass_bottom,
+                        message: ArabicStrings.gracePeriodNotice,
+                        color: colors.pendingFg,
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                if (myAssignment)
+                  MyJuzCard(
+                    snapshot: snapshot,
+                    metadataRepository: metadataRepository,
+                    onOpen: () => Navigator.pushNamed(
+                      context,
+                      AppRoutes.assignment,
+                      arguments: snapshot,
+                    ),
+                  )
+                else
+                  StatePanel(
+                    icon: Icons.menu_book,
+                    title: ArabicStrings.noAssignmentToday,
+                    message: ArabicStrings.noAssignmentToday,
+                  ),
+                const SizedBox(height: AppSpacing.lg),
+                if (snapshot.cycle != null)
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(
+                      bottom: AppSpacing.sm,
+                    ),
+                    child: Text(
+                      ArabicStrings.cycleProgress(
+                        snapshot.cycle!.day,
+                        snapshot.cycle!.length,
+                        snapshot.cycle!.completed,
+                        snapshot.cycle!.total,
+                      ),
+                      style: AppTypography.title,
+                    ),
+                  ),
+                AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const AppSectionHeader(
+                        title: ArabicStrings.assignmentGroupDate,
+                      ),
+                      ProgressHeader(
+                        completed: snapshot.cycle?.completed ?? completed,
+                        total: snapshot.cycle?.total ?? 30,
+                        variant: ProgressVariant.bar,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const AppSectionHeader(title: ArabicStrings.juzGridTitle),
+                      JuzGrid(
+                        assignments: snapshot.assignments,
+                        unit: snapshot.portionUnit,
+                        onAssignmentTap: snapshot.myRole == GroupRole.owner
+                            ? (assignment) => _openOverride(context, assignment)
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
+                if (snapshot.assignments.any(
+                  (assignment) =>
+                      assignment.juz == 30 &&
+                      assignment.status == AssignmentStatusEnum.completed,
+                )) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(ArabicStrings.khatmaDuaNote, style: AppTypography.body),
+                ],
+                const SizedBox(height: AppSpacing.lg),
+                AvailableJuzList(
+                  assignments: snapshot.assignments,
+                  metadataRepository: metadataRepository,
+                  unit: snapshot.portionUnit,
+                  onVolunteer: (assignment) => context
+                      .read<DashboardCubit>()
+                      .volunteer(assignment.assignmentId),
+                  volunteeringAssignmentId: state.volunteeringAssignmentId,
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.lg),
-            JuzGrid(
-              assignments: snapshot.assignments,
-              unit: snapshot.portionUnit,
-              onAssignmentTap: snapshot.myRole == GroupRole.owner
-                  ? (assignment) => _openOverride(context, assignment)
-                  : null,
-            ),
-            if (snapshot.assignments.any(
-              (assignment) =>
-                  assignment.juz == 30 &&
-                  assignment.status == AssignmentStatusEnum.completed,
-            )) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Text(ArabicStrings.khatmaDuaNote, style: AppTypography.body),
-            ],
-            const SizedBox(height: AppSpacing.lg),
-            AvailableJuzList(
-              assignments: snapshot.assignments,
-              metadataRepository: metadataRepository,
-              unit: snapshot.portionUnit,
-              onVolunteer: (assignment) => context
-                  .read<DashboardCubit>()
-                  .volunteer(assignment.assignmentId),
-              volunteeringAssignmentId: state.volunteeringAssignmentId,
-            ),
-          ],
+          ),
         ),
       ),
     );

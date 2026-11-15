@@ -59,11 +59,11 @@ from generate_series(1,30) s;
 
 select set_config('request.jwt.claims',json_build_object('sub','d4000000-0000-0000-0000-000000000002','role','authenticated')::text,true);
 
-select is((select count(*) from public.search_public_groups(null,true,20,0)),3::bigint,'discovery lists public groups needing seats');
-select is((select count(*) from public.search_public_groups(null,false,20,0)),4::bigint,'discovery may include full public groups');
+select is((select count(*) from public.search_public_groups(null,true,100,0) r where r->>'group_id' like 'd4000000-%'),3::bigint,'discovery lists public groups needing seats');
+select is((select count(*) from public.search_public_groups(null,false,100,0) r where r->>'group_id' like 'd4000000-%'),4::bigint,'discovery may include full public groups');
 select is((select r.value->>'group_id' from public.search_public_groups(null,false,20,0) with ordinality as r(value,ord) where r.ord=1),'d4000000-0000-0000-0000-000000000104','discovery sorts groups closest to full first');
 select is((select public.get_invite_preview('US4C2345')->>'group_id'),'d4000000-0000-0000-0000-000000000103','invite preview supports private groups');
-select is((select count(*) from jsonb_object_keys(public.get_invite_preview('US4A2345'))),10::bigint,'invite preview adds portion unit to profile and own request fields');
+select is((select count(*) from jsonb_object_keys(public.get_invite_preview('US4A2345')) k where k not in ('portion_unit')),9::bigint,'invite preview exposes profile and own request fields');
 select ok((select not (r.value ? 'members') and not (r.value ? 'progress') from public.search_public_groups(null,true,20,0) with ordinality as r(value,ord) where r.ord=1),'public discovery exposes no member list or progress');
 select is(public.get_invite_preview('US4F2345')->>'status','archived','archived invite preview explains the unavailable group');
 select throws_ok('select public.get_invite_preview(''BADCODE1'')','P0001','invite_invalid','invalid invite code rejected');

@@ -218,7 +218,7 @@ class _DaysList extends StatelessWidget {
     return ListView.separated(
       padding: AppSpacing.screen,
       itemCount: rows.length + (hasMore ? 1 : 0),
-      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (context, index) {
         if (index == rows.length) {
           return AppButton(
@@ -272,7 +272,7 @@ class _SkeletonList extends StatelessWidget {
     return ListView.separated(
       padding: AppSpacing.screen,
       itemCount: 4,
-      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (_, index) => const SkeletonBox(height: 120),
     );
   }

@@ -172,24 +172,35 @@ class _SettingsForm extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        AppSectionHeader(title: ArabicStrings.settingsTitle),
-        TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: ArabicStrings.groupNameLabel,
+        AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AppSectionHeader(title: ArabicStrings.settingsTitle),
+              TextField(
+                controller: nameController,
+                textDirection: TextDirection.rtl,
+                decoration: const InputDecoration(
+                  labelText: ArabicStrings.groupNameLabel,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: descriptionController,
+                textDirection: TextDirection.rtl,
+                minLines: 2,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: ArabicStrings.shortDescriptionLabel,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                ArabicStrings.settingsApplyTomorrowNote,
+                style: AppTypography.caption.copyWith(color: colors.inkMuted),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        TextField(
-          controller: descriptionController,
-          decoration: const InputDecoration(
-            labelText: ArabicStrings.shortDescriptionLabel,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          ArabicStrings.settingsApplyTomorrowNote,
-          style: AppTypography.caption,
         ),
         const SizedBox(height: AppSpacing.md),
         _PortionUnitSetting(
@@ -200,7 +211,7 @@ class _SettingsForm extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         AppButton(
           label: ArabicStrings.save,
-          variant: AppButtonVariant.tonal,
+          variant: AppButtonVariant.primary,
           expanded: true,
           loading: submitting,
           onPressed: submitting

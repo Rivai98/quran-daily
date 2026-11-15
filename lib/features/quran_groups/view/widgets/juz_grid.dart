@@ -39,10 +39,16 @@ class JuzGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: unit == PortionUnit.juz ? 5 : 3,
+        crossAxisCount: unit == PortionUnit.juz
+            ? (MediaQuery.sizeOf(context).width < 360 ? 5 : 6)
+            : 3,
         childAspectRatio: unit == PortionUnit.juz ? 1 : 0.72,
-        crossAxisSpacing: AppSpacing.xs,
-        mainAxisSpacing: AppSpacing.xs,
+        crossAxisSpacing: unit == PortionUnit.juz
+            ? AppSpacing.xxs
+            : AppSpacing.xs,
+        mainAxisSpacing: unit == PortionUnit.juz
+            ? AppSpacing.xxs
+            : AppSpacing.xs,
       ),
       children: [
         for (final seat in seatNumbers)

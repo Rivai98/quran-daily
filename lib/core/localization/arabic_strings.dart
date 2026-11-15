@@ -16,6 +16,12 @@ class ArabicStrings {
   static const activeMembersCount = 'الأعضاء النشطون';
   static const formingDashboard = 'المجموعة في طور التكوين';
   static const memberSeats = 'مقاعد الأعضاء';
+  // --- Main design pass: dashboard and group list copy ---
+  static const juzGridTitle = 'الأجزاء';
+  static const groupsHeaderSubtitle = 'وردكم اليومي يبدأ بخطوة معًا';
+  static const groupShortcutsTitle = 'طرق سريعة للانضمام';
+  static String membersProgress(int members) =>
+      '${ArabicNumerals.format(members)} من ${ArabicNumerals.format(30)} عضو';
   static const assignmentGroupDate = 'ورد اليوم';
 
   static const appName =

@@ -21,7 +21,7 @@ void main() {
   test('the 8 constitution tokens are exact', () {
     cairo(const TokenSpec('display', 28, 40, FontWeight.w700),
         AppTypography.display);
-    cairo(const TokenSpec('headline', 22, 32, FontWeight.w700),
+    cairo(const TokenSpec('headline', 24, 36, FontWeight.w700),
         AppTypography.headline);
     cairo(const TokenSpec('title', 18, 28, FontWeight.w600),
         AppTypography.title);

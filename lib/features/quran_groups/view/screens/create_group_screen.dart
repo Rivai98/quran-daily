@@ -84,7 +84,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
           return SafeArea(
             child: ListView(
-              padding: AppSpacing.screen,
+              padding: AppSpacing.screenContent,
               children: [
                 AppTextField(
                   label: ArabicStrings.groupNameLabel,

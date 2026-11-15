@@ -42,12 +42,16 @@ class HistoryDayCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  ArabicNumerals.format(day.groupDate),
-                  style: AppTypography.title,
+                Flexible(
+                  child: Text(
+                    ArabicNumerals.format(day.groupDate),
+                    style: AppTypography.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
+                const SizedBox(width: AppSpacing.sm),
                 if (day.fullKhatma && showFullKhatmaBadge)
                   Container(
                     padding: const EdgeInsetsDirectional.symmetric(
@@ -124,19 +128,23 @@ class HistoryDayCard extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Text(
-                      ArabicStrings.historyMyJuz(
-                        ArabicStrings.portionName(
-                          day.portionUnit,
-                          day.myResult!.portionIndex,
+                    Expanded(
+                      child: Text(
+                        ArabicStrings.historyMyJuz(
+                          ArabicStrings.portionName(
+                            day.portionUnit,
+                            day.myResult!.portionIndex,
+                          ),
                         ),
-                      ),
-                      style: AppTypography.caption.copyWith(
-                        color: colors.ink,
-                        fontWeight: FontWeight.w600,
+                        style: AppTypography.caption.copyWith(
+                          color: colors.ink,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: AppSpacing.xs),
                     StatusChip(status: _toDesignStatus(day.myResult!.status)),
                   ],
                 ),

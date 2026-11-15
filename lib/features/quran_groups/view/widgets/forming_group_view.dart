@@ -75,8 +75,10 @@ class FormingGroupView extends StatelessWidget {
                       child: Text(
                         ArabicStrings.formingLabel,
                         style: AppTypography.caption.copyWith(
-                          color: colors.pendingFg,
+                          color: colors.infoFg,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
@@ -270,7 +272,7 @@ class _SeatList extends StatelessWidget {
                 child: Row(
                   children: [
                     SizedBox(
-                      width: 28,
+                      width: AppSpacing.xl,
                       child: Text(
                         ArabicNumerals.format(member.seatNumber),
                         style: AppTypography.label,
@@ -280,6 +282,8 @@ class _SeatList extends StatelessWidget {
                       child: Text(
                         member.displayName,
                         style: AppTypography.body,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (member.role == GroupRole.owner)
@@ -305,7 +309,7 @@ class _SeatList extends StatelessWidget {
                 child: Row(
                   children: [
                     SizedBox(
-                      width: 28,
+                      width: AppSpacing.xl,
                       child: Text(
                         ArabicNumerals.format(seat),
                         style: AppTypography.label,

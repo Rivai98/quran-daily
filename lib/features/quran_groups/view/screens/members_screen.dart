@@ -76,8 +76,10 @@ class _MembersScreenState extends State<MembersScreen> {
               style: AppTypography.title,
             ),
             const SizedBox(height: AppSpacing.md),
-            for (final member in state.members!.members)
+            for (final member in state.members!.members) ...[
               _member(context, member),
+              const SizedBox(height: AppSpacing.sm),
+            ],
             if (!widget.isOwner)
               AppButton(
                 label: ArabicStrings.leaveGroupAction,
@@ -100,7 +102,12 @@ class _MembersScreenState extends State<MembersScreen> {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(member.displayName, style: AppTypography.title),
+        Text(
+          member.displayName,
+          style: AppTypography.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         Text(
           '${ArabicStrings.seatLabel} ${ArabicNumerals.format(member.seatNumber)} · ${member.role.name == 'owner'
               ? ArabicStrings.groupOwner

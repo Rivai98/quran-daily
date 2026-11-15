@@ -62,28 +62,30 @@ class HistoryDayDetail extends StatelessWidget {
               padding: AppSpacing.card,
               child: Row(
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        ArabicStrings.portionName(
-                          day.portionUnit,
-                          day.myResult!.portionIndex,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          ArabicStrings.portionName(
+                            day.portionUnit,
+                            day.myResult!.portionIndex,
+                          ),
+                          style: AppTypography.title,
                         ),
-                        style: AppTypography.title,
-                      ),
-                      const SizedBox(height: AppSpacing.xxs),
-                      Text(
-                        ArabicStrings.historySeat(
-                          ArabicNumerals.format(day.myResult!.seatNumber),
+                        const SizedBox(height: AppSpacing.xxs),
+                        Text(
+                          ArabicStrings.historySeat(
+                            ArabicNumerals.format(day.myResult!.seatNumber),
+                          ),
+                          style: AppTypography.caption.copyWith(
+                            color: colors.inkMuted,
+                          ),
                         ),
-                        style: AppTypography.caption.copyWith(
-                          color: colors.inkMuted,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: AppSpacing.xs),
                   StatusChip(status: _toDesignStatus(day.myResult!.status)),
                 ],
               ),
@@ -107,28 +109,32 @@ class HistoryDayDetail extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          ArabicStrings.portionName(
-                            day.portionUnit,
-                            assignment.portionIndex,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            ArabicStrings.portionName(
+                              day.portionUnit,
+                              assignment.portionIndex,
+                            ),
+                            style: AppTypography.bodyLarge.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                          style: AppTypography.bodyLarge.copyWith(
-                            fontWeight: FontWeight.w600,
+                          const SizedBox(height: AppSpacing.xxs),
+                          Text(
+                            '${assignment.readerDisplayName ?? ArabicStrings.unassignedSeat} · ${ArabicStrings.historySeat(ArabicNumerals.format(assignment.seatNumber))}',
+                            style: AppTypography.caption.copyWith(
+                              color: colors.inkMuted,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        const SizedBox(height: AppSpacing.xxs),
-                        Text(
-                          '${assignment.readerDisplayName ?? ArabicStrings.unassignedSeat} · ${ArabicStrings.historySeat(ArabicNumerals.format(assignment.seatNumber))}',
-                          style: AppTypography.caption.copyWith(
-                            color: colors.inkMuted,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: AppSpacing.xs),
                     StatusChip(status: _toDesignStatus(assignment.status)),
                   ],
                 ),

@@ -98,39 +98,73 @@ specs/001-track-quran-groups/
 
 ```text
 assets/
-|-- fonts/                  # Cairo, Amiri (owner downloads, OFL)
-`-- quran/                  # quran-data.xml (Tanzil), SOURCE.md, checksums.sha256 (owner provides)
+|-- fonts/                  # Cairo (Cairo-Variable.ttf), Amiri (Regular, Bold), OFL
+`-- quran/                  # quran-data.xml (Tanzil v1.0), SOURCE.md, checksums.sha256
 lib/
 |-- main.dart
 |-- app/                    # app.dart (auth gate), bootstrap.dart, router.dart
 |-- core/
-|   |-- config/  di/  errors/  network/  storage/  sync/
-|   |-- auth/               # session_gateway.dart (interface; impl in features/auth)
-|   |-- settings/           # SettingsRepository (selected group, Quran text scale)
-|   |-- localization/       # arabic_strings.dart, arabic_numerals.dart
+|   |-- auth/               # session_gateway.dart (SessionGateway interface)
+|   |-- config/             # app_config.dart (dart-defines reader)
 |   |-- design_system/      # app_colors, app_typography, app_spacing, app_radius, app_theme
-|   |   `-- widgets/        # AppButton, StatusChip, PartTile, StatePanel, ...
-|   `-- quran/              # QuranMetadataRepository (reads assets/quran)
+|   |   `-- widgets/        # AppButton, StatusChip, PartTile, StatePanel, OfflineBanner, etc.
+|   |-- di/                 # service_locator.dart (GetIt setup)
+|   |-- errors/             # failures.dart (FailureKind, Failure), result.dart (Result)
+|   |-- localization/       # arabic_strings.dart, arabic_numerals.dart
+|   |-- network/            # connectivity_service.dart, rpc_client.dart, supabase_client_provider.dart
+|   |-- quran/              # quran_metadata_repository.dart, juz_info.dart (reads assets/quran)
+|   |-- settings/           # settings_repository.dart (SharedPreferences)
+|   |-- storage/            # local_database.dart, daos/ (SQLite cache & sync queue)
+|   `-- sync/               # sync_operation.dart
 `-- features/
-    |-- auth/               # spec 002 (data/, cubit/, view/)
-    `-- quran_groups/
-        |-- data/           # entities/, models/, data_sources/, repositories/, use_cases/
-        |-- cubit/          # selected_group/, group_list/, create_group/, discovery/, join/,
-        |                   # dashboard/, assignment/, members/, join_requests/,
-        |                   # group_settings/, history/
-        `-- view/           # screens/, widgets/
-lib/features/settings/      # SettingsCubit + screen (text size, sign-out via SessionGateway)
+    |-- auth/               # spec 002: data/ (sources, entities, repos), cubit/, view/
+    |-- quran_groups/       # spec 001:
+    |   |-- data/           # entities/, models/, data_sources/, repositories/, use_cases/
+    |   |-- cubit/          # assignment/, create_group/, dashboard/, discovery/, group_list/,
+    |   |                   # group_settings/, history/, join/, join_requests/, members/,
+    |   |                   # selected_group/
+    |   `-- view/           # screens/, widgets/
+    `-- settings/           # cubit/, view/ (screen, text-scale slider, sign-out)
+scripts/
+`-- run_remote_pgtap.py     # remote pgTAP test runner without Docker
 supabase/
 |-- config.toml
-|-- migrations/             # applied in filename order; auth first because groups reference profiles:
-|                           # 001_email_password_auth, 002_core_schema, 003_group_lifecycle_functions,
-|                           # 004_rotation_jobs (enables pg_cron), 005_dashboard_functions,
-|                           # 006_completion_functions, 007_join_functions, 008_volunteer_functions,
-|                           # 009_management_functions, 010_history_functions
-|-- functions/              # admin-create-user/, admin-reset-password/, _shared/ (spec 002)
-`-- tests/                  # pgTAP: rls, rotation, joins, volunteering, history
-test/                       # mirrors lib/
-integration_test/
+|-- migrations/             # Timestamp naming (202611140000NN / 202611150NNNNN):
+|   |-- 20261114000001_email_password_auth.sql
+|   |-- 20261114000002_core_schema.sql
+|   |-- 20261114000003_core_schema_fix_assignments_policy.sql
+|   |-- 20261114000004_group_lifecycle_functions.sql
+|   |-- 20261114000005_invite_code_pgcrypto_fix.sql
+|   |-- 20261114000006_day_assignments_casts.sql
+|   |-- 20261114000007_rotation_jobs.sql
+|   |-- 20261115010001_dashboard_functions.sql
+|   |-- 20261115020001_completion_functions.sql
+|   |-- 20261115030001_join_functions.sql
+|   |-- 20261115030002_join_group_error_codes.sql
+|   |-- 20261115030003_block_full_group_requests.sql
+|   |-- 20261115040001_management_functions.sql
+|   |-- 20261115040002_safe_seat_swaps.sql
+|   |-- 20261115050001_history_functions.sql
+|   `-- 20261115060001_volunteer_functions.sql
+|-- functions/              # admin-create-user/, admin-reset-password/, _shared/
+`-- tests/                  # 10 pgTAP test files + helpers:
+    |-- 000_auth_test.sql
+    |-- 001_rls_test.sql
+    |-- 001_schema_test.sql
+    |-- 001_us1_dashboard_test.sql
+    |-- 001_us2_lifecycle_test.sql
+    |-- 001_us3_completion_test.sql
+    |-- 001_us4_join_test.sql
+    |-- 001_us5_volunteer_test.sql
+    |-- 001_us6_manage_test.sql
+    |-- 001_us7_history_test.sql
+    |-- helpers/seed_members.sql
+    `-- README.md
+test/                       # unit and widget tests mirroring lib/ (292 tests)
+integration_test/           # device integration tests & runner notes:
+|-- group_flow_test.dart
+|-- offline_completion_test.dart
+`-- README.md
 ```
 
 **Structure Decision**: One Flutter app, feature-first MVVM. `features/auth` follows spec 002. `features/quran_groups` owns all group behavior. `features/settings` is tiny but separate so `quran_groups` does not own sign-out. Shared Quran metadata lives in `core/quran` because spec 003 (Mushaf) will reuse it. Existing scaffolded screens under `lib/features/quran_groups/view/` predate the amendment and design system; they are rebuilt, not patched.

@@ -6,6 +6,7 @@ import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/assignment_status.dart' as ds;
 import '../../../../core/design_system/widgets/confirm_sheet.dart';
+import '../../../../core/design_system/widgets/app_card.dart';
 import '../../../../core/design_system/widgets/offline_banner.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/design_system/widgets/status_chip.dart';
@@ -47,53 +48,49 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
             children: [
               if (state.dayState == DayState.grace)
                 const OfflineBanner(message: ArabicStrings.gracePeriodNotice),
-              Card(
-                child: Padding(
-                  padding: AppSpacing.card,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      StatusChip(
-                        status: ds.AssignmentStatus.values.byName(
-                          current.status.name,
-                        ),
+              AppCard(
+                padding: AppSpacing.card,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StatusChip(
+                      status: ds.AssignmentStatus.values.byName(
+                        current.status.name,
                       ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        ArabicStrings.portionName(
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      ArabicStrings.portionName(
+                        widget.snapshot.portionUnit,
+                        current.portionIndex,
+                      ),
+                      style: AppTypography.quranLabel,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    FutureBuilder<void>(
+                      future: _metadata,
+                      builder: (context, metadataState) {
+                        if (metadataState.connectionState !=
+                                ConnectionState.done ||
+                            metadataState.hasError) {
+                          return const SizedBox.shrink();
+                        }
+                        final info = widget.metadataRepository.portion(
                           widget.snapshot.portionUnit,
                           current.portionIndex,
-                        ),
-                        style: AppTypography.quranLabel,
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      FutureBuilder<void>(
-                        future: _metadata,
-                        builder: (context, metadataState) {
-                          if (metadataState.connectionState !=
-                                  ConnectionState.done ||
-                              metadataState.hasError) {
-                            return const SizedBox.shrink();
-                          }
-                          final info = widget.metadataRepository.portion(
-                            widget.snapshot.portionUnit,
-                            current.portionIndex,
-                          );
-                          return Text(
-                            ArabicStrings.portionRange(
-                              widget.metadataRepository.suraName(
-                                info.startSura,
-                              ),
-                              info.startAya,
-                              widget.metadataRepository.suraName(info.endSura),
-                              info.endAya,
-                            ),
-                            style: AppTypography.bodyLarge,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                        );
+                        return Text(
+                          ArabicStrings.portionRange(
+                            widget.metadataRepository.suraName(info.startSura),
+                            info.startAya,
+                            widget.metadataRepository.suraName(info.endSura),
+                            info.endAya,
+                          ),
+                          style: AppTypography.bodyLarge,
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),

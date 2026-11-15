@@ -40,8 +40,9 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    final height =
-        variant == AppButtonVariant.primary ? _primaryHeight : _defaultHeight;
+    final height = variant == AppButtonVariant.primary
+        ? _primaryHeight
+        : _defaultHeight;
     final disabled = onPressed == null;
     final effectiveOnPressed = loading ? null : onPressed;
 
@@ -60,6 +61,8 @@ class AppButton extends StatelessWidget {
           onPressed: effectiveOnPressed,
           style: FilledButton.styleFrom(
             minimumSize: Size(expanded ? double.infinity : 64, height),
+            backgroundColor: colors.primary,
+            foregroundColor: colors.onPrimary,
           ),
           child: _content(leading),
         );
@@ -68,6 +71,8 @@ class AppButton extends StatelessWidget {
           onPressed: effectiveOnPressed,
           style: FilledButton.styleFrom(
             minimumSize: Size(expanded ? double.infinity : 64, height),
+            backgroundColor: colors.primaryContainer,
+            foregroundColor: colors.onPrimaryContainer,
           ),
           child: _content(leading),
         );
@@ -93,10 +98,9 @@ class AppButton extends StatelessWidget {
           style: FilledButton.styleFrom(
             minimumSize: Size(expanded ? double.infinity : 64, height),
             backgroundColor: colors.danger,
-            foregroundColor:
-                Theme.of(context).brightness == Brightness.light
-                    ? const Color(0xFFFFFFFF)
-                    : const Color(0xFF3D1A18),
+            foregroundColor: Theme.of(context).brightness == Brightness.light
+                ? const Color(0xFFFFFFFF)
+                : const Color(0xFF3D1A18),
           ),
           child: _content(leading),
         );
@@ -113,14 +117,12 @@ class AppButton extends StatelessWidget {
       return Text(label);
     }
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconTheme(
-          data: const IconThemeData(size: 20),
-          child: leading,
-        ),
+        IconTheme(data: const IconThemeData(size: 20), child: leading),
         const SizedBox(width: 8),
-        Text(label),
+        Flexible(child: Text(label, textAlign: TextAlign.center)),
       ],
     );
   }

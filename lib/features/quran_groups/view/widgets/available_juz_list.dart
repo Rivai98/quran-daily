@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/app_button.dart';
 import '../../../../core/design_system/app_colors.dart';
-import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
+import '../../../../core/design_system/widgets/app_card.dart';
 import 'validation_banner.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
@@ -44,7 +44,7 @@ class _AvailableJuzListState extends State<AvailableJuzList> {
     );
     final sorted = rows.toList()
       ..sort(
-          (a, b) => widget.unit == PortionUnit.juz
+        (a, b) => widget.unit == PortionUnit.juz
             ? a.juz.compareTo(b.juz)
             : a.portionIndex.compareTo(b.portionIndex),
       );
@@ -61,61 +61,53 @@ class _AvailableJuzListState extends State<AvailableJuzList> {
           for (final assignment in sorted)
             Padding(
               padding: const EdgeInsetsDirectional.only(bottom: AppSpacing.xs),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: colors.surface,
-                  border: Border.all(color: colors.border),
-                  borderRadius: AppRadius.mdBR,
-                ),
-                child: Padding(
-                  padding: AppSpacing.compactCard,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
+              child: AppCard(
+                padding: AppSpacing.compactCard,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      ArabicStrings.portionName(
+                        widget.unit,
+                        assignment.portionIndex,
+                      ),
+                      style: AppTypography.label,
+                    ),
+                    if (metadataState.connectionState == ConnectionState.done &&
+                        !metadataState.hasError) ...[
+                      const SizedBox(height: AppSpacing.xxs),
                       Text(
-                        ArabicStrings.portionName(
+                        _range(
+                          widget.metadataRepository,
                           widget.unit,
                           assignment.portionIndex,
                         ),
-                        style: AppTypography.label,
+                        style: AppTypography.quranLabel,
                       ),
-                      if (metadataState.connectionState ==
-                              ConnectionState.done &&
-                          !metadataState.hasError) ...[
-                        const SizedBox(height: AppSpacing.xxs),
-                        Text(
-                          _range(
-                            widget.metadataRepository,
-                            widget.unit,
-                            assignment.portionIndex,
-                          ),
-                          style: AppTypography.quranLabel,
-                        ),
-                      ],
-                      const SizedBox(height: AppSpacing.xs),
-                      if (assignment.kind == AssignmentKind.volunteer)
-                        ValidationBanner(
-                          icon: Icons.volunteer_activism,
-                          message: ArabicStrings.volunteerTaken,
-                          color: colors.primary,
-                        )
-                      else
-                        AppButton(
-                          label: ArabicStrings.volunteerForJuz,
-                          icon: const Icon(Icons.volunteer_activism),
-                          variant: AppButtonVariant.tonal,
-                          expanded: true,
-                          loading:
-                              widget.volunteeringAssignmentId ==
-                              assignment.assignmentId,
-                          onPressed:
-                              widget.onVolunteer == null ||
-                                  widget.volunteeringAssignmentId != null
-                              ? null
-                              : () => widget.onVolunteer!(assignment),
-                        ),
                     ],
-                  ),
+                    const SizedBox(height: AppSpacing.xs),
+                    if (assignment.kind == AssignmentKind.volunteer)
+                      ValidationBanner(
+                        icon: Icons.volunteer_activism,
+                        message: ArabicStrings.volunteerTaken,
+                        color: colors.primary,
+                      )
+                    else
+                      AppButton(
+                        label: ArabicStrings.volunteerForJuz,
+                        icon: const Icon(Icons.volunteer_activism),
+                        variant: AppButtonVariant.tonal,
+                        expanded: true,
+                        loading:
+                            widget.volunteeringAssignmentId ==
+                            assignment.assignmentId,
+                        onPressed:
+                            widget.onVolunteer == null ||
+                                widget.volunteeringAssignmentId != null
+                            ? null
+                            : () => widget.onVolunteer!(assignment),
+                      ),
+                  ],
                 ),
               ),
             ),
