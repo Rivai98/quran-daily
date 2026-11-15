@@ -8,8 +8,8 @@ void main() {
     });
 
     test('folds every alef form into a bare alef', () {
-      for (final alef in ['أ', 'إ', 'آ', 'ٱ']) {
-        expect(ArabicSearch.normalize(alef + 'مل'), 'امل', reason: alef);
+      for (final word in ['أمل', 'إمل', 'آمل', 'ٱمل']) {
+        expect(ArabicSearch.normalize(word), 'امل', reason: word);
       }
     });
 
