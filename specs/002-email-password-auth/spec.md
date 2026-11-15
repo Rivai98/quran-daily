@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-13
 
-**Status**: Amended 2026-11-15 (Google sign-in) - pending implementation
+**Status**: Implemented incl. Google sign-in (2026-11-15)
 
 **Input**: User description: "Make login using email and password, store accounts in the database using Supabase, and explain what is needed to set up accounts and the database."
 

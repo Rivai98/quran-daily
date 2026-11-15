@@ -17,9 +17,13 @@
 - [X] T010 Android/iOS wiring: iOS `GIDClientID` + reversed client ID URL scheme in Info.plist (from config); nothing secret committed
 
 ## Phase 3: Validation (orchestrator + owner)
-- [ ] T011 Owner completes [google-setup.md](./google-setup.md)
-- [ ] T012 On the phone: new Google account → profile with Google name; sign out/in again; same email as an existing email/password account → one profile (check `auth.identities`); cancel → back to auth screen with no error
-- [ ] T013 `flutter analyze` 0, `flutter test` green, pgTAP all 0 failed; record results; merge to `main`
+- [X] T011 Owner completes [google-setup.md](./google-setup.md)
+- [X] T012 On the phone: new Google account → profile with Google name; sign out/in again; same email as an existing email/password account → one profile (check `auth.identities`); cancel → back to auth screen with no error
+- [X] T013 `flutter analyze` 0, `flutter test` green, pgTAP all 0 failed; record results; merge to `main`
 
 ## Validation log
-_(filled at T013)_
+2026-11-15:
+- Owner setup done: Google project "Quran Daily" (newprojectflutter011), consent screen External/Testing, Web + Android (com.qurandaily.app, debug SHA-1) + iOS clients; Supabase Google provider enabled with the 3 client IDs, skip nonce on. Package renamed to com.qurandaily.app (owner request).
+- Phone (RZCTC0TNMRW): Google sign-in succeeded; DEV shows one `google` identity with a profile name.
+- Not run yet: linking with an existing email/password account of the same Gmail, cancel flow on device (covered by unit tests), iOS (no macOS; GOOGLE_IOS_REVERSED_CLIENT_ID build setting still to set on a Mac).
+- flutter analyze: 0 issues; flutter test: 325 passed; pgTAP: 12 files, 266 passed, 0 failed.
