@@ -14,7 +14,10 @@ import '../../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/localization/arabic_numerals.dart';
+import '../../../../core/di/service_locator.dart';
 import '../../../../core/quran/portion_unit.dart';
+import '../../../reminders/cubit/reminders_cubit.dart';
+import '../../../reminders/view/group_reminder_section.dart';
 import '../../cubit/group_settings/group_settings_cubit.dart';
 
 /// S9 group settings (ui-contract): edit fields (owner), timezone/start
@@ -28,6 +31,7 @@ class GroupSettingsScreen extends StatelessWidget {
     this.inviteCode,
     this.portionUnit = PortionUnit.juz,
     this.isActive = true,
+    this.groupName,
     required this.onKhatmaStarted,
   });
 
@@ -36,6 +40,7 @@ class GroupSettingsScreen extends StatelessWidget {
   final String? inviteCode;
   final PortionUnit portionUnit;
   final bool isActive;
+  final String? groupName;
   final VoidCallback onKhatmaStarted;
 
   @override
@@ -43,11 +48,25 @@ class GroupSettingsScreen extends StatelessWidget {
     if (!isOwner) {
       return Scaffold(
         appBar: AppBar(title: const Text(ArabicStrings.settingsTitle)),
-        body: StatePanel(
-          icon: Icons.lock_outline,
-          title: ArabicStrings.roleMember,
-          message: ArabicStrings.settingsApplyTomorrowNote,
-        ),
+        body: serviceLocator.isRegistered<RemindersCubit>()
+            ? ListView(
+                padding: AppSpacing.screen,
+                children: [
+                  BlocProvider<RemindersCubit>(
+                    create: (_) => serviceLocator<RemindersCubit>(),
+                    child: GroupReminderSection(
+                      groupId: groupId,
+                      groupName: groupName ?? groupId,
+                      isOwner: false,
+                    ),
+                  ),
+                ],
+              )
+            : StatePanel(
+                icon: Icons.lock_outline,
+                title: ArabicStrings.roleMember,
+                message: ArabicStrings.settingsApplyTomorrowNote,
+              ),
       );
     }
 
@@ -63,6 +82,7 @@ class GroupSettingsScreen extends StatelessWidget {
           final code = state.inviteCode ?? inviteCode;
           return _SettingsForm(
             groupId: groupId,
+            groupName: groupName ?? groupId,
             inviteCode: code,
             portionUnit: portionUnit,
             isActive: isActive,
@@ -78,6 +98,7 @@ class GroupSettingsScreen extends StatelessWidget {
 class _SettingsForm extends StatelessWidget {
   const _SettingsForm({
     required this.groupId,
+    required this.groupName,
     required this.inviteCode,
     required this.submitting,
     required this.failure,
@@ -86,6 +107,7 @@ class _SettingsForm extends StatelessWidget {
   });
 
   final String groupId;
+  final String groupName;
   final String? inviteCode;
   final bool submitting;
   final AppFailure? failure;
@@ -203,6 +225,17 @@ class _SettingsForm extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
+        if (serviceLocator.isRegistered<RemindersCubit>()) ...[
+          BlocProvider<RemindersCubit>(
+            create: (_) => serviceLocator<RemindersCubit>(),
+            child: GroupReminderSection(
+              groupId: groupId,
+              groupName: groupName,
+              isOwner: true,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
         _PortionUnitSetting(
           current: portionUnit,
           isActive: isActive,
