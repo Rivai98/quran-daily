@@ -45,6 +45,21 @@ import '../../features/admin/data/admin_repository.dart';
 import '../../features/admin/data/admin_repository_impl.dart';
 import '../../features/quran_groups/cubit/member_profile/member_profile_cubit.dart';
 import '../../features/quran_groups/cubit/group_info/group_info_cubit.dart';
+import '../../features/profile/cubit/profile_cubit.dart';
+import '../../features/profile/data/repositories/profile_repository.dart';
+import '../../features/profile/data/repositories/profile_repository_impl.dart';
+import '../../features/profile/data/sources/profile_local_data_source.dart';
+import '../../features/profile/data/sources/profile_remote_data_source.dart';
+// --- 005 home ---
+import '../../features/home/cubit/home_cubit.dart';
+import '../../features/home/data/today_remote_data_source.dart';
+import '../../features/home/data/today_repository.dart';
+import '../../features/home/data/today_repository_impl.dart';
+// --- end 005 home ---
+import '../../features/log/data/data_sources/log_remote_data_source.dart';
+import '../../features/log/data/repositories/log_repository.dart';
+import '../../features/log/data/repositories/log_repository_impl.dart';
+import '../../features/log/cubit/log_cubit.dart';
 
 final serviceLocator = GetIt.instance;
 
@@ -229,6 +244,8 @@ void configureServiceLocator({
           groupId: groupId,
           syncPending: SyncPendingCompletions(locator<KhatmaRepository>()),
           connectivityService: locator<ConnectivityService>(),
+          onOpened: () => locator<TodayRepository>().markGroupOpened(groupId),
+          setAsMain: () async { await locator<TodayRepository>().setMainGroup(groupId); },
         ),
       );
     }
@@ -352,6 +369,28 @@ void configureServiceLocator({
       );
     }
 
+    // --- 005 log ---
+    if (!locator.isRegistered<LogRemoteDataSource>()) {
+      locator.registerLazySingleton<LogRemoteDataSource>(
+        () => LogRemoteDataSource(locator<RpcClient>()),
+      );
+    }
+    if (!locator.isRegistered<LogRepository>()) {
+      locator.registerLazySingleton<LogRepository>(
+        () => LogRepositoryImpl(
+          remote: locator<LogRemoteDataSource>(),
+          cache: CachedHistoryDao(locator<LocalDatabase>()),
+          session: locator<SessionGateway>(),
+        ),
+      );
+    }
+    if (!locator.isRegistered<LogCubit>()) {
+      locator.registerFactory<LogCubit>(
+        () => LogCubit(repository: locator<LogRepository>()),
+      );
+    }
+    // --- end 005 log ---
+
     if (!locator.isRegistered<SettingsCubit>()) {
       locator.registerFactory<SettingsCubit>(
         () => SettingsCubit(
@@ -373,6 +412,49 @@ void configureServiceLocator({
         () => GroupInfoCubit(locator<GroupsRepository>()),
       );
     }
+    // --- 005 profile ---
+    if (!locator.isRegistered<ProfileRemoteDataSource>()) {
+      locator.registerLazySingleton<ProfileRemoteDataSource>(
+        () => ProfileRemoteDataSourceImpl(locator<RpcClient>()),
+      );
+    }
+
+    if (!locator.isRegistered<ProfileLocalDataSource>()) {
+      locator.registerLazySingleton<ProfileLocalDataSource>(
+        () => ProfileLocalDataSourceImpl(locator<LocalDatabase>()),
+      );
+    }
+
+    if (!locator.isRegistered<ProfileRepository>()) {
+      locator.registerLazySingleton<ProfileRepository>(
+        () => ProfileRepositoryImpl(
+          remote: locator<ProfileRemoteDataSource>(),
+          cache: locator<ProfileLocalDataSource>(),
+          sessionGateway: locator<SessionGateway>(),
+          connectivity: locator<ConnectivityService>(),
+        ),
+      );
+    }
+
+    if (!locator.isRegistered<ProfileCubit>()) {
+      locator.registerFactory<ProfileCubit>(
+        () => ProfileCubit(repository: locator<ProfileRepository>()),
+      );
+    }
+    // --- 005 home ---
+    if (!locator.isRegistered<CachedTodayDao>()) {
+      locator.registerLazySingleton<CachedTodayDao>(() => CachedTodayDao(locator<LocalDatabase>()));
+    }
+    if (!locator.isRegistered<TodayRemoteDataSource>()) {
+      locator.registerLazySingleton<TodayRemoteDataSource>(() => TodayRemoteDataSource(locator<RpcClient>()));
+    }
+    if (!locator.isRegistered<TodayRepository>()) {
+      locator.registerLazySingleton<TodayRepository>(() => TodayRepositoryImpl(remote: locator<TodayRemoteDataSource>(), cache: locator<CachedTodayDao>(), session: locator<SessionGateway>()));
+    }
+    if (!locator.isRegistered<HomeCubit>()) {
+      locator.registerFactory<HomeCubit>(() => HomeCubit(repository: locator<TodayRepository>(), khatmaRepository: locator<KhatmaRepository>()));
+    }
+    // --- end 005 home ---
   }
 }
 

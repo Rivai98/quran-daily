@@ -102,19 +102,58 @@ class _MembersScreenState extends State<MembersScreen> {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          member.displayName,
-          style: AppTypography.title,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        Row(
+          children: [
+            CircleAvatar(
+              radius: AppSpacing.lg,
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              child: Text(
+                member.displayName.trim().isEmpty
+                    ? ArabicStrings.memberRole.substring(0, 1)
+                    : member.displayName.trim().characters.first,
+                style: AppTypography.title.copyWith(
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                member.displayName,
+                style: AppTypography.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Icon(
+              member.role == GroupRole.owner
+                  ? Icons.verified_user_outlined
+                  : member.role == GroupRole.supervisor
+                  ? Icons.admin_panel_settings_outlined
+                  : Icons.person_outline,
+              semanticLabel: member.role == GroupRole.owner
+                  ? ArabicStrings.groupOwner
+                  : member.role == GroupRole.supervisor
+                  ? ArabicStrings.roleSupervisor
+                  : ArabicStrings.memberRole,
+            ),
+          ],
         ),
-        Text(
-          '${ArabicStrings.seatLabel} ${ArabicNumerals.format(member.seatNumber)} · ${member.role.name == 'owner'
-              ? ArabicStrings.groupOwner
-              : member.role == GroupRole.supervisor
-              ? ArabicStrings.roleSupervisor
-              : ArabicStrings.memberRole}',
-          style: AppTypography.body,
+        Row(
+          children: [
+            const Icon(Icons.event_seat_outlined, size: 18),
+            const SizedBox(width: AppSpacing.xxs),
+            Expanded(
+              child: Text(
+                '${ArabicStrings.seatLabel} ${ArabicNumerals.format(member.seatNumber)} · ${member.role.name == 'owner'
+                    ? ArabicStrings.groupOwner
+                    : member.role == GroupRole.supervisor
+                    ? ArabicStrings.roleSupervisor
+                    : ArabicStrings.memberRole}',
+                style: AppTypography.body,
+              ),
+            ),
+          ],
         ),
         Wrap(
           spacing: AppSpacing.xs,

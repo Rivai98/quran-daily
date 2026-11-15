@@ -15,6 +15,7 @@ import 'package:quran_daily/app/bootstrap.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/group_dashboard_screen.dart';
+import 'package:quran_daily/features/quran_groups/view/screens/create_group_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/widgets/forming_group_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -69,22 +70,32 @@ void main() {
 
     // Sign up.
     await pumpUntil(tester, find.text(ArabicStrings.createAccountTitle));
-    await tapAndSettle(tester, find.text(ArabicStrings.createAccountTitle).first);
+    await tapAndSettle(
+      tester,
+      find.text(ArabicStrings.createAccountTitle).first,
+    );
     await enterField(tester, 'auth-displayName', 'اختبار الأحزاب');
     await enterField(tester, 'auth-email', 'it-hizb-$stamp@test.local');
     await enterField(tester, 'auth-password', 'it-pass-12345');
     await enterField(tester, 'auth-confirmation', 'it-pass-12345');
-    await tapAndSettle(tester, find.text(ArabicStrings.createAccountTitle).last);
+    await tapAndSettle(
+      tester,
+      find.text(ArabicStrings.createAccountTitle).last,
+    );
 
     // Create a group with the hizb unit.
+    await pumpUntil(tester, find.text(ArabicStrings.groupsTab));
+    await tapAndSettle(tester, find.text(ArabicStrings.groupsTab).last);
     await pumpUntil(tester, find.text(ArabicStrings.createGroup));
     await tapAndSettle(tester, find.text(ArabicStrings.createGroup).last);
     await pumpUntil(tester, find.text(ArabicStrings.groupNameLabel));
     final nameField = find.descendant(
-      of: find.ancestor(
-        of: find.text(ArabicStrings.groupNameLabel),
-        matching: find.byType(Column),
-      ).first,
+      of: find
+          .ancestor(
+            of: find.text(ArabicStrings.groupNameLabel),
+            matching: find.byType(Column),
+          )
+          .first,
       matching: find.byType(EditableText),
     );
     await tester.enterText(nameField, groupName);
@@ -94,6 +105,15 @@ void main() {
       find.text(ArabicStrings.portionUnitName(PortionUnit.hizb)).first,
     );
     await tapAndSettle(tester, find.text(ArabicStrings.createTheGroup));
+
+    // The name finder also matches the editable field until the async create
+    // call pops the form, so wait for that route to leave before finding the row.
+    final createRouteEnd = DateTime.now().add(const Duration(seconds: 30));
+    while (find.byType(CreateGroupScreen).evaluate().isNotEmpty &&
+        DateTime.now().isBefore(createRouteEnd)) {
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    expect(find.byType(CreateGroupScreen), findsNothing);
 
     // Open it (retry while the list refreshes).
     for (var attempt = 0; attempt < 5; attempt++) {
@@ -112,7 +132,7 @@ void main() {
     await tapAndSettle(tester, find.text(ArabicStrings.startKhatmaAction));
     await pumpUntil(tester, find.text(ArabicStrings.startKhatmaAction));
     await tapAndSettle(tester, find.text(ArabicStrings.startKhatmaAction).last);
-    await pumpUntil(tester, find.text(ArabicStrings.openTodayWird));
+    await pumpUntil(tester, find.text(ArabicStrings.readNowAction));
 
     // The owner (seat 1) reads hizb 1 today.
     expect(

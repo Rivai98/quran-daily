@@ -150,6 +150,25 @@ class ArabicStrings {
   static const adminMemberRole = 'عضو';
   static const adminJuzUnit = 'جزء';
 
+  // --- 005 home ---
+  static const homeTab = 'الرئيسية';
+  static const groupsTab = 'مجموعاتي';
+  static const mushafTab = 'المصحف';
+  static const profileTab = 'حسابي';
+  static const todayTitle = 'وردك اليوم';
+  static const homeGreeting = 'السلام عليكم';
+  static const otherGroupsTitle = 'أوراد مجموعاتك الأخرى';
+  static const todayCompleteTitle = 'أتممت وردك اليوم';
+  static const setMainGroupAction = 'اجعلها مجموعتي الرئيسية';
+  static const portionCompleteAction = 'تمت القراءة';
+  static const portionUndoAction = 'تراجع عن الإتمام';
+  static const todayLoadError = 'تعذر تحميل وردك اليوم';
+  static const homeEmptyTitle = 'ابدأ وردك مع مجموعة';
+  static const openGroupAction = 'افتح المجموعة';
+  static const joinByInviteAction = 'أدخل رمز الدعوة';
+  static const settingsTooltip = 'الإعدادات';
+  static const hijriDateUnavailable = 'التاريخ الهجري غير متاح';
+  // --- end 005 home ---
   // --- spec 002 Google sign-in ---
   static const googleSignIn = 'تسجيل الدخول باستخدام Google';
   static const googleSignInHint =
@@ -380,6 +399,8 @@ class ArabicStrings {
   /// names the next action (spec 002 error contract).
   static String authError(String code) {
     switch (code) {
+      case 'membership_limit':
+        return membershipLimitMessage;
       case 'invalid_credentials':
         return 'تحقق من البريد الإلكتروني وكلمة المرور، أو تواصل مع مسؤول التطبيق. $googleSignInHint';
       case 'suspended':
@@ -661,6 +682,27 @@ class ArabicStrings {
       : 'ختمة كل ${ArabicNumerals.format(days)} يومًا';
   static String dailyUnitChip(PortionUnit unit) =>
       '${portionUnitName(unit)} يوميًا';
+  // --- 005 log ---
+  static const logScreenTitle = 'السجل';
+  static const logCurrentStreak = 'التتابع الحالي';
+  static const logBestStreak = 'أطول تتابع';
+  static const logMonthSummary = 'أيام مكتملة هذا الشهر';
+  static const logDayComplete = 'يوم مكتمل';
+  static const logDayPartial = 'يوم يحتوي على ورد فائت';
+  static const logVolunteered = 'تطوع';
+  static const logEmptyTitle = 'سيظهر سجلك هنا';
+  static const logEmptyMessage = 'سجل أول ورد لترى ملخص أيامك وتتابعك.';
+  static const logErrorTitle = 'تعذر تحميل السجل';
+  static const logErrorMessage =
+      'حدث خلل أثناء تحميل السجل. تحقق من الاتصال وأعد المحاولة.';
+  static const logDayDetails = 'تفاصيل الورد';
+  static const logWeekLabel = 'هذا الأسبوع';
+  static const logGroupHistoryAction = 'عرض سجل المجموعة';
+  static const membershipLimitMessage = 'يمكنك الانضمام إلى مجموعتين بحد أقصى';
+  static const membershipLimitNextStep =
+      'اذهب إلى مجموعاتي لمغادرة مجموعة قبل المتابعة.';
+  // --- end 005 log ---
+
   static String portionRange(
     String startSura,
     int startAya,
@@ -745,4 +787,43 @@ class ArabicStrings {
       '${ArabicNumerals.format(rate)}٪';
   static String groupMembersRatio(int current, int total) =>
       '${ArabicNumerals.format(current)} عضوًا من ${ArabicNumerals.format(total)}';
+  // --- 005 profile ---
+  static const profileTitle = 'حسابي';
+  static const profileStreakSection = 'التتابع والالتزام';
+  static const profileTotalsSection = 'إجمالي القراءة';
+  static const profileKhatmasSection = 'الختمات المكتملة';
+  static const profileBadgesSection = 'الأوسمة والإنجازات';
+  static const profileQuickLinksSection = 'روابط سريعة';
+
+  static String profileMemberSince(String date) => 'عضو منذ $date';
+  static String profileStreakDays(int days) =>
+      days == 1 ? 'يوم واحد متواصل' : '${ArabicNumerals.format(days)} أيام متواصلة';
+  static String bestStreak(int days) =>
+      'أفضل تتابع: ${ArabicNumerals.format(days)} ${days == 1 ? "يوم" : "أيام"}';
+  static String portionsReadCount(int count) =>
+      '${ArabicNumerals.format(count)} جزءًا مقروءًا';
+  static String portionsLateCount(int count) =>
+      '${ArabicNumerals.format(count)} قُرئت متأخرة';
+  static String khatmasCount(int count) =>
+      count == 1 ? 'ختمة واحدة' : count == 2 ? 'ختمتان' : '${ArabicNumerals.format(count)} ختمات';
+  static const noKhatmasYet = 'لا توجد ختمات مكتملة بعد';
+
+  static const profileLogNavigation = 'السجل اليومي';
+  static const profileSettingsNavigation = 'الإعدادات';
+  static const profileLoadError = 'تعذر تحميل بيانات الحساب الشخصي';
+
+  // Badges
+  static const badgeFirstKhatmaTitle = 'أول ختمة';
+  static const badgeFirstKhatmaDesc = 'إتمام أول ختمة كاملة مع مجموعتك';
+  static const badgeStreak7Title = 'مداومة ٧ أيام';
+  static const badgeStreak7Desc = 'المحافظة على الورد اليومي ٧ أيام متتالية';
+  static const badgeStreak30Title = 'مداومة ٣٠ يومًا';
+  static const badgeStreak30Desc = 'ثبات على القراءة ٣٠ يومًا متواصلة بتوفيق الله';
+  static const badgeStreak100Title = 'مداومة ١٠٠ يوم';
+  static const badgeStreak100Desc = 'اجتهاد مبارك وثبات على تلاوة كتاب الله';
+  static const badgePortions100Title = '١٠٠ جزء';
+  static const badgePortions100Desc = 'إتمام تلاوة ١٠٠ جزء بتوفيق الله وعونه';
+
+  static String badgeEarned(String date) => 'مكتسب في $date';
+  static const badgeLocked = 'لم يُكتسب بعد';
 }

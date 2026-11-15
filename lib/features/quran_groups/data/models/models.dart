@@ -178,6 +178,7 @@ PublicGroupProfile publicGroupProfileFromJson(Map<String, Object?> json) {
     myRequestStatus: json['my_request_status'] as String?,
     myJoinRequestId: json['my_join_request_id'] as String?,
     portionUnit: portionUnitOf(json['portion_unit']),
+    canJoinLimit: json['can_join_limit'] as bool? ?? true,
   );
 }
 
@@ -193,7 +194,9 @@ class PublicGroupProfile extends GroupSummary {
     super.myRequestStatus,
     super.myJoinRequestId,
     super.portionUnit,
+    this.canJoinLimit = true,
   });
+  final bool canJoinLimit;
 }
 
 ReaderInfo readerInfoFromJson(Map<String, Object?> json) => ReaderInfo(

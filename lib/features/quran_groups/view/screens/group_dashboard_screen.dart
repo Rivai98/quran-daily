@@ -341,17 +341,22 @@ class GroupDashboardScreen extends StatelessWidget {
         ),
         icon: const Icon(Icons.history),
       ),
-      if (canManage)
-        PopupMenuButton<String>(
+      PopupMenuButton<String>(
           tooltip: ArabicStrings.groupMenuTooltip,
           icon: const Icon(Icons.manage_accounts),
           onSelected: (route) async {
+            if (route == 'set-main') {
+              await context.read<DashboardCubit>().pinAsMain();
+              return;
+            }
             await Navigator.pushNamed(context, route, arguments: args);
             if (context.mounted) {
               await context.read<DashboardCubit>().refresh();
             }
           },
           itemBuilder: (_) => [
+            const PopupMenuItem(value: 'set-main', child: Text(ArabicStrings.setMainGroupAction)),
+            if (canManage) ...[
             const PopupMenuItem(
               value: AppRoutes.members,
               child: Text(ArabicStrings.manageMembersAction),
@@ -365,6 +370,7 @@ class GroupDashboardScreen extends StatelessWidget {
                 value: AppRoutes.groupSettings,
                 child: Text(ArabicStrings.groupSettingsAction),
               ),
+            ],
           ],
         ),
     ];

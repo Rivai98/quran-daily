@@ -43,6 +43,11 @@ import '../features/quran_groups/view/screens/member_profile_screen.dart';
 import '../features/quran_groups/cubit/group_info/group_info_cubit.dart';
 import '../features/quran_groups/view/screens/group_info_screen.dart';
 import '../features/settings/view/edit_profile_screen.dart';
+import '../features/profile/cubit/profile_cubit.dart';
+import '../features/profile/view/profile_screen.dart';
+import '../features/log/cubit/log_cubit.dart';
+import '../features/log/data/repositories/log_repository.dart';
+import '../features/log/view/log_screen.dart';
 
 String? inviteCodeFromDeepLink(Uri uri) {
   if (uri.scheme != 'qurandaily' ||
@@ -90,6 +95,21 @@ class AppRoutes {
   static const memberProfile = '/groups/member/profile';
   static const groupInfo = '/groups/info';
   static const editMyProfile = '/profile/edit';
+  static const log = '/log';
+  static const profile = '/profile';
+
+  /// Root of the المصحف tab in the HomeShell: the Mushaf index (spec 003).
+  /// Pages open on top of the index so back returns to it.
+  static Widget mushafTab(BuildContext context) {
+    final dependencies = _mushafDependencies();
+    if (dependencies == null) return _mushafUnavailable();
+    final (repository, _) = dependencies;
+    return MushafIndexScreen(
+      repository: repository,
+      onOpenPage: (page) =>
+          Navigator.pushNamed(context, mushafReader, arguments: {'page': page}),
+    );
+  }
 
   static Map<String, WidgetBuilder> get routes {
     // The root "/" is owned by the auth gate in app.dart (home), so it is
@@ -215,9 +235,16 @@ class AppRoutes {
           ),
         );
       },
-      history: (context) => HistoryScreen(
-        groupId: ModalRoute.of(context)?.settings.arguments as String?,
-      ),
+      history: (context) {
+        final arguments = ModalRoute.of(context)?.settings.arguments;
+        if (arguments is Map<String, Object?>) {
+          return HistoryScreen(
+            groupId: arguments['groupId'] as String?,
+            initialDate: arguments['date'] as String?,
+          );
+        }
+        return HistoryScreen(groupId: arguments as String?);
+      },
       settings: (_) => const SettingsScreen(),
       mushaf: (context) {
         final dependencies = _mushafDependencies();
@@ -345,6 +372,14 @@ class AppRoutes {
         );
       },
       editMyProfile: (_) => const EditProfileScreen(),
+      profile: (_) => BlocProvider(
+        create: (_) => serviceLocator<ProfileCubit>()..load(),
+        child: const ProfileScreen(),
+        ),
+      log: (_) => BlocProvider(
+        create: (_) => serviceLocator<LogCubit>()..load(),
+        child: LogScreen(repository: serviceLocator<LogRepository>()),
+      ),
     };
   }
 

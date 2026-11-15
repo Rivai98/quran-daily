@@ -372,11 +372,27 @@ class _MyGroupRow extends StatelessWidget {
                       color: colors.surfaceMuted,
                       shape: const StadiumBorder(),
                     ),
-                    child: Text(
-                      roleMarker,
-                      style: AppTypography.caption.copyWith(
-                        color: colors.inkMuted,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          group.myRole == GroupRole.owner
+                              ? Icons.verified_user_outlined
+                              : group.myRole == GroupRole.supervisor
+                              ? Icons.admin_panel_settings_outlined
+                              : Icons.person_outline,
+                          size: 18,
+                          color: colors.inkMuted,
+                          semanticLabel: roleMarker,
+                        ),
+                        const SizedBox(width: AppSpacing.xxs),
+                        Text(
+                          roleMarker,
+                          style: AppTypography.caption.copyWith(
+                            color: colors.inkMuted,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Row(

@@ -46,6 +46,7 @@ const _kindByCode = <String, FailureKind>{
   'invalid_photo_path': FailureKind.validation,
   'photo_not_found': FailureKind.notFound,
   'profile_not_found': FailureKind.notFound,
+  'membership_limit': FailureKind.limitReached,
 };
 
 extension AppFailureKind on AppFailure {
@@ -75,11 +76,7 @@ enum FailureCategory {
 }
 
 abstract class AppFailure extends Equatable {
-  const AppFailure({
-    required this.message,
-    required this.code,
-    this.cause,
-  });
+  const AppFailure({required this.message, required this.code, this.cause});
 
   final String message;
   final String code;

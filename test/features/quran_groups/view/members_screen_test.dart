@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/errors/result.dart';
@@ -46,6 +47,12 @@ void main() {
           expect(
             find.text(ArabicStrings.memberRole),
             findsWidgets,
+            reason: variant,
+          );
+          expect(find.byType(CircleAvatar), findsOneWidget, reason: variant);
+          expect(
+            find.byIcon(Icons.event_seat_outlined),
+            findsOneWidget,
             reason: variant,
           );
           expect(tester.takeException(), isNull, reason: variant);

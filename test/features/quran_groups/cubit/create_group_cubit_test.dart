@@ -119,6 +119,28 @@ void main() {
             .having((s) => s.failure!.kind, 'kind', FailureKind.limitReached),
       ],
     );
+
+    blocTest<CreateGroupCubit, CreateGroupState>(
+      'membership_limit surfaces as limitReached',
+      build: build,
+      setUp: () => when(() => repo.createGroup(any())).thenAnswer(
+        (_) async => const FailureResult(
+          AuthFailure(message: 'membership_limit', code: 'membership_limit'),
+        ),
+      ),
+      act: (cubit) => cubit.submit(
+        name: 'Ø­Ù„Ù‚Ø© ØµØ§Ù„Ø­Ø©',
+        timezone: 'Africa/Cairo',
+        visibility: GroupVisibility.public,
+        joinMode: JoinMode.approval,
+      ),
+      skip: 1,
+      expect: () => [
+        isA<CreateGroupState>()
+            .having((s) => s.status, 'status', CreateGroupStatus.failure)
+            .having((s) => s.failure!.kind, 'kind', FailureKind.limitReached),
+      ],
+    );
   });
 
   group('success navigates (T058)', () {

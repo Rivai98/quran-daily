@@ -61,6 +61,16 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
             message: ArabicStrings.groupFull,
           );
         }
+        if (state.status == JoinRequestsStatus.membershipLimit) {
+          return StatePanel(
+            icon: Icons.group_off_outlined,
+            title: ArabicStrings.joinError,
+            message: ArabicStrings.membershipLimitMessage,
+            actionLabel: ArabicStrings.groupSelectionTitle,
+            onAction: () => Navigator.of(context).pushNamed('/groups'),
+            isError: true,
+          );
+        }
         if (state.requests.isEmpty) {
           return StatePanel(
             icon: Icons.inbox_outlined,

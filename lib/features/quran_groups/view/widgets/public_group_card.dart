@@ -114,10 +114,24 @@ class PublicGroupCard extends StatelessWidget {
               expanded: true,
               loading: joinState == GroupJoinState.joining,
               onPressed:
-                  isPending || isJoined || joinState == GroupJoinState.joining
+                  !group.canJoinLimit ||
+                      isPending ||
+                      isJoined ||
+                      joinState == GroupJoinState.joining
                   ? null
                   : onJoin,
             ),
+            if (!group.canJoinLimit) ...[
+              const SizedBox(height: AppSpacing.xs),
+              StatePanel(
+                icon: Icons.group_off_outlined,
+                title: ArabicStrings.joinError,
+                message: ArabicStrings.membershipLimitMessage,
+                actionLabel: ArabicStrings.groupSelectionTitle,
+                onAction: () => Navigator.of(context).pushNamed('/groups'),
+                isError: true,
+              ),
+            ],
           ],
         ],
       ),

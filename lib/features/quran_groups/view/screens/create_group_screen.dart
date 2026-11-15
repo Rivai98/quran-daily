@@ -244,9 +244,13 @@ class _LimitBanner extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
-              ArabicStrings.ownerGroupLimitCopy,
+              ArabicStrings.membershipLimitMessage,
               style: AppTypography.caption.copyWith(color: colors.pendingFg),
             ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pushNamed('/groups'),
+            child: Text(ArabicStrings.groupSelectionTitle),
           ),
         ],
       ),
