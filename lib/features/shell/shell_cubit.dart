@@ -11,6 +11,6 @@ class ShellState extends Equatable {
 class ShellCubit extends Cubit<ShellState> {
   ShellCubit() : super(const ShellState(0));
   void select(int index) {
-    if (index >= 0 && index < 3) emit(ShellState(index));
+    if (index >= 0 && index < 4) emit(ShellState(index));
   }
 }

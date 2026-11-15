@@ -9,6 +9,7 @@ import '../core/di/service_locator.dart';
 import '../core/auth/session_gateway.dart';
 import '../core/localization/arabic_strings.dart';
 import '../core/design_system/app_theme.dart';
+import '../core/quran/quran_metadata_repository.dart';
 import '../features/auth/cubit/auth_cubit.dart';
 import '../features/auth/view/auth_entry_screen.dart';
 import '../features/quran_groups/cubit/group_list/group_list_cubit.dart';
@@ -171,9 +172,14 @@ class _AuthGate extends StatelessWidget {
             return BlocProvider(
               create: (_) => serviceLocator<HomeCubit>(),
               child: HomeShell(
-                homeBuilder: (_) => HomeScreen(metadataRepository: _metadataRepository()),
-                groupsBuilder: (context) => AppRoutes.routes[AppRoutes.groups]!(context),
-                logBuilder: (_) => const LogTabPlaceholder(),
+                homeBuilder: (_) => HomeScreen(
+                  metadataRepository:
+                      serviceLocator.isRegistered<QuranMetadataRepository>()
+                      ? serviceLocator<QuranMetadataRepository>()
+                      : QuranMetadataRepository(),
+                ),
+                groupsBuilder: (context) =>
+                    AppRoutes.routes[AppRoutes.groups]!(context),
               ),
             );
           case AuthStatus.profileFailure:

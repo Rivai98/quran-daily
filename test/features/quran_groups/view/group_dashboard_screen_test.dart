@@ -493,12 +493,15 @@ void main() {
     expect(find.text(ArabicStrings.groupSettingsAction), findsNothing);
   });
 
-  testWidgets('member sees history and members but no management menu', (
+  testWidgets('member can pin main group but cannot manage members', (
     tester,
   ) async {
     await pumpWithRole(tester, role: GroupRole.member);
 
     expect(find.byTooltip(ArabicStrings.openHistoryAction), findsOneWidget);
-    expect(find.byTooltip(ArabicStrings.groupMenuTooltip), findsNothing);
+    await tester.tap(find.byTooltip(ArabicStrings.groupMenuTooltip));
+    await tester.pumpAndSettle();
+    expect(find.text(ArabicStrings.setMainGroupAction), findsOneWidget);
+    expect(find.text(ArabicStrings.manageMembersAction), findsNothing);
   });
 }

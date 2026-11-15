@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/localization/arabic_strings.dart';
 
 class AppTabBar extends StatelessWidget {
@@ -11,9 +12,26 @@ class AppTabBar extends StatelessWidget {
     selectedIndex: index,
     onDestinationSelected: onSelected,
     destinations: const [
-      NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: ArabicStrings.homeTab),
-      NavigationDestination(icon: Icon(Icons.groups_outlined), selectedIcon: Icon(Icons.groups), label: ArabicStrings.groupsTab),
-      NavigationDestination(icon: Icon(Icons.history_outlined), selectedIcon: Icon(Icons.history), label: ArabicStrings.logTab),
+      NavigationDestination(
+        icon: Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home),
+        label: ArabicStrings.homeTab,
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.groups_outlined),
+        selectedIcon: Icon(Icons.groups),
+        label: ArabicStrings.groupsTab,
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.menu_book_outlined),
+        selectedIcon: Icon(Icons.menu_book),
+        label: ArabicStrings.mushafTab,
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.person_outline),
+        selectedIcon: Icon(Icons.person),
+        label: ArabicStrings.profileTab,
+      ),
     ],
   );
 }

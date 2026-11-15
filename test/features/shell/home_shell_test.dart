@@ -3,17 +3,106 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/features/shell/home_shell.dart';
 
 void main() {
-  testWidgets('shows three labelled destinations and opens Home first', (tester) async {
-    await tester.pumpWidget(const MaterialApp(home: HomeShell(
-      homeBuilder: _home, groupsBuilder: _groups, logBuilder: _log,
-    )));
-    expect(find.text('الرئيسية'), findsOneWidget);
-    expect(find.text('مجموعاتي'), findsOneWidget);
-    expect(find.text('السجل'), findsOneWidget);
-    expect(find.text('HOME CONTENT'), findsOneWidget);
-  });
+  testWidgets(
+    'shows four labelled tabs, Home selected, and retains tab stacks',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: HomeShell(
+            homeBuilder: _home,
+            groupsBuilder: _groups,
+            mushafBuilder: _mushaf,
+            profileBuilder: _profile,
+          ),
+        ),
+      );
+
+      expect(find.text('الرئيسية'), findsOneWidget);
+      expect(find.text('مجموعاتي'), findsOneWidget);
+      expect(find.text('المصحف'), findsOneWidget);
+      expect(find.text('حسابي'), findsOneWidget);
+      expect(find.text('HOME CONTENT'), findsOneWidget);
+      expect(find.byIcon(Icons.home), findsOneWidget);
+
+      await tester.tap(find.text('مجموعاتي'));
+      await tester.pumpAndSettle();
+      expect(find.text('GROUPS CONTENT'), findsOneWidget);
+      await tester.tap(find.text('OPEN GROUP DETAIL'));
+      await tester.pumpAndSettle();
+      expect(find.text('GROUP DETAIL'), findsOneWidget);
+      await tester.tap(find.text('المصحف'));
+      await tester.pumpAndSettle();
+      expect(find.text('MUSHAF CONTENT'), findsOneWidget);
+      await tester.tap(find.text('مجموعاتي'));
+      await tester.pumpAndSettle();
+      expect(find.text('GROUP DETAIL'), findsOneWidget);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text('GROUPS CONTENT'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'renders in RTL at 200% text scale and offers settings from profile',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: MediaQuery(
+              data: MediaQueryData(textScaler: TextScaler.linear(2)),
+              child: HomeShell(
+                homeBuilder: _home,
+                groupsBuilder: _groups,
+                mushafBuilder: _mushaf,
+                profileBuilder: _profile,
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(
+        Directionality.of(tester.element(find.text('الرئيسية'))),
+        TextDirection.rtl,
+      );
+      await tester.tap(find.text('حسابي'));
+      await tester.pumpAndSettle();
+      expect(find.text('الإعدادات'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
 
-Widget _home(BuildContext context) => const Scaffold(body: Text('HOME CONTENT'));
-Widget _groups(BuildContext context) => const Scaffold(body: Text('GROUPS CONTENT'));
-Widget _log(BuildContext context) => const Scaffold(body: Text('LOG CONTENT'));
+Widget _home(BuildContext context) =>
+    const Scaffold(body: Center(child: Text('HOME CONTENT')));
+Widget _groups(BuildContext context) => Scaffold(
+  body: Center(
+    child: Column(
+      children: [
+        const Text('GROUPS CONTENT'),
+        TextButton(
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) =>
+                  const Scaffold(body: Center(child: Text('GROUP DETAIL'))),
+            ),
+          ),
+          child: const Text('OPEN GROUP DETAIL'),
+        ),
+      ],
+    ),
+  ),
+);
+Widget _mushaf(BuildContext context) =>
+    const Scaffold(body: Center(child: Text('MUSHAF CONTENT')));
+Widget _profile(BuildContext context) => const ProfileTabPlaceholder();

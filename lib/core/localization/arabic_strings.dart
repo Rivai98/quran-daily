@@ -7,7 +7,8 @@ class ArabicStrings {
   // --- 005 home ---
   static const homeTab = 'الرئيسية';
   static const groupsTab = 'مجموعاتي';
-  static const logTab = 'السجل';
+  static const mushafTab = 'المصحف';
+  static const profileTab = 'حسابي';
   static const todayTitle = 'وردك اليوم';
   static const homeGreeting = 'السلام عليكم';
   static const otherGroupsTitle = 'أوراد مجموعاتك الأخرى';
@@ -18,6 +19,7 @@ class ArabicStrings {
   static const todayLoadError = 'تعذر تحميل وردك اليوم';
   static const homeEmptyTitle = 'ابدأ وردك مع مجموعة';
   static const openGroupAction = 'افتح المجموعة';
+  static const joinByInviteAction = 'أدخل رمز الدعوة';
   static const settingsTooltip = 'الإعدادات';
   static const hijriDateUnavailable = 'التاريخ الهجري غير متاح';
   // --- end 005 home ---
@@ -46,8 +48,7 @@ class ArabicStrings {
       '${ArabicNumerals.format(members)} من ${ArabicNumerals.format(30)} عضو';
   static const assignmentGroupDate = 'ورد اليوم';
 
-  static const appName =
-      '\u{648}\u{631}\u{62f} \u{627}\u{644}\u{62c}\u{645}\u{627}\u{639}\u{629}';
+  static const appName = 'حلقة';
   static const signInHint =
       '\u{62a}\u{627}\u{628}\u{639} \u{648}\u{631}\u{62f}\u{643} \u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a} \u{645}\u{639} \u{645}\u{62c}\u{645}\u{648}\u{639}\u{62a}\u{643} \u{645}\u{646} \u{634}\u{627}\u{634}\u{629} \u{639}\u{631}\u{628}\u{64a}\u{629} \u{648}\u{627}\u{636}\u{62d}\u{629}.';
   static const signInError =
