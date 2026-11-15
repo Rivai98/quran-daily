@@ -65,6 +65,39 @@ void main() {
       );
     });
 
+    test('dashboard reads cycle fields from the current RPC today object', () {
+      final snapshot = dashboardSnapshotFromJson({
+        'group_id': 'g1',
+        'group_name': 'x',
+        'my_role': 'owner',
+        'status': 'active',
+        'server_generated_at': '2026-11-15T00:00:00Z',
+        'portion_unit': 'hizb',
+        'today': {
+          'group_date': '2026-11-15',
+          'state': 'open',
+          'completed_count': 2,
+          'late_count': 0,
+          'missed_count': 0,
+          'unread_count': 0,
+          'pending_count': 28,
+          'available_count': 0,
+          'full_khatma': false,
+          'ends_at': '2026-11-16T00:00:00Z',
+          'cycle_number': 3,
+          'cycle_day': 2,
+          'cycle_length': 2,
+          'cycle_completed_count': 32,
+          'cycle_portion_count': 60,
+        },
+      });
+      expect(snapshot.portionUnit, PortionUnit.hizb);
+      expect(
+        snapshot.cycle,
+        const CycleInfo(number: 3, day: 2, length: 2, completed: 32, total: 60),
+      );
+    });
+
     test(
       'history days group under their cycle and legacy dates stay separate',
       () {

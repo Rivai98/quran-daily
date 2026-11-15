@@ -253,11 +253,14 @@ Map<String, Object?> groupDayInfoToJson(GroupDayInfo d) => {
 };
 
 CycleInfo cycleInfoFromJson(Map<String, Object?> json) => CycleInfo(
-  number: (json['number'] as num?)?.toInt() ?? 1,
-  day: (json['day'] as num?)?.toInt() ?? 1,
-  length: (json['length'] as num?)?.toInt() ?? 1,
-  completed: (json['completed'] as num?)?.toInt() ?? 0,
-  total: (json['total'] as num?)?.toInt() ?? 30,
+  number: ((json['number'] ?? json['cycle_number']) as num?)?.toInt() ?? 1,
+  day: ((json['day'] ?? json['cycle_day']) as num?)?.toInt() ?? 1,
+  length: ((json['length'] ?? json['cycle_length']) as num?)?.toInt() ?? 1,
+  completed:
+      ((json['completed'] ?? json['cycle_completed_count']) as num?)?.toInt() ??
+      0,
+  total:
+      ((json['total'] ?? json['cycle_portion_count']) as num?)?.toInt() ?? 30,
 );
 
 Map<String, Object?> cycleInfoToJson(CycleInfo cycle) => {
@@ -297,15 +300,19 @@ DashboardSnapshot dashboardSnapshotFromJson(
   final seats = json['seats'] == null
       ? null
       : seatMapFromJson((json['seats']! as Map).cast<String, Object?>());
+  final todayJson = json['today'] == null
+      ? null
+      : (json['today']! as Map).cast<String, Object?>();
+  final cycleJson = json['cycle'] == null
+      ? (todayJson?.containsKey('cycle_number') == true ? todayJson : null)
+      : (json['cycle']! as Map).cast<String, Object?>();
   return DashboardSnapshot(
     groupId: json['group_id']! as String,
     groupName: json['group_name']! as String,
     myRole: groupRoleOf(json['my_role']! as String),
     status: status,
     serverGeneratedAt: DateTime.parse(json['server_generated_at']! as String),
-    today: json['today'] == null
-        ? null
-        : groupDayInfoFromJson((json['today']! as Map).cast<String, Object?>()),
+    today: todayJson == null ? null : groupDayInfoFromJson(todayJson),
     myAssignments: ((json['my_assignments'] ?? const []) as List)
         .map((e) => assignmentFromJson((e as Map).cast<String, Object?>()))
         .toList(),
@@ -319,9 +326,7 @@ DashboardSnapshot dashboardSnapshotFromJson(
     pendingPortionUnit: json['pending_portion_unit'] == null
         ? null
         : portionUnitOf(json['pending_portion_unit']),
-    cycle: json['cycle'] == null
-        ? null
-        : cycleInfoFromJson((json['cycle']! as Map).cast<String, Object?>()),
+    cycle: cycleJson == null ? null : cycleInfoFromJson(cycleJson),
     isStale: isStale,
     cachedAt: cachedAt,
   );
