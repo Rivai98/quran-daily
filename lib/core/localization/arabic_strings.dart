@@ -83,6 +83,12 @@ class ArabicStrings {
       '\u{642}\u{628}\u{644}\u{20}\u{627}\u{644}\u{646}\u{648}\u{645}\u{20}'
       '(${ArabicFormatting.isolate('${ArabicNumerals.format(10)}:${ArabicNumerals.format(30)}')} '
       '\u{645}\u{633}\u{627}\u{621}\u{64b})';
+  static const reminderOnboardingTitle = 'ذكّرني بوردي اليومي';
+  static const reminderOnboardingExplain =
+      'نرسل لك تذكيرًا هادئًا بوردك في حلقتك، ويتوقف تلقائيًا بعد أن تُتمّه.';
+  static const reminderOnboardingFajr = 'بعد صلاة الفجر';
+  static const reminderOnboardingAsr = 'بعد صلاة العصر';
+  static const reminderOnboardingAllow = 'السماح بالتذكيرات';
   static const reminderOnboardingSettings =
       '\u{64a}\u{645}\u{643}\u{646}\u{643}\u{20}\u{62a}\u{63a}\u{64a}\u{64a}\u{631}\u{20}'
       '\u{627}\u{644}\u{645}\u{648}\u{627}\u{639}\u{64a}\u{62f}\u{20}\u{623}\u{648}\u{20}'

@@ -104,19 +104,19 @@ class _OnboardingSheet extends StatelessWidget {
             const Center(child: HalaqaLogo(size: 72)),
             const SizedBox(height: AppSpacing.md),
             Text(
-              ArabicStrings.reminderPermissionTitle,
+              ArabicStrings.reminderOnboardingTitle,
               textAlign: TextAlign.center,
               style: AppTypography.headline,
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              ArabicStrings.reminderPermissionExplain,
+              ArabicStrings.reminderOnboardingExplain,
               textAlign: TextAlign.center,
               style: AppTypography.body.copyWith(color: colors.inkMuted),
             ),
             const SizedBox(height: AppSpacing.md),
-            row(Icons.wb_twilight_rounded, ArabicStrings.reminderFajr),
-            row(Icons.wb_sunny_rounded, ArabicStrings.reminderAsr),
+            row(Icons.wb_twilight_rounded, ArabicStrings.reminderOnboardingFajr),
+            row(Icons.wb_sunny_rounded, ArabicStrings.reminderOnboardingAsr),
             row(
               Icons.nights_stay_rounded,
               ArabicStrings.reminderOnboardingNight,
@@ -131,7 +131,7 @@ class _OnboardingSheet extends StatelessWidget {
             AppButton(
               expanded: true,
               icon: const Icon(Icons.notifications_active_rounded),
-              label: ArabicStrings.reminderActivate,
+              label: ArabicStrings.reminderOnboardingAllow,
               onPressed: () => Navigator.of(context).pop(true),
             ),
             const SizedBox(height: AppSpacing.xs),

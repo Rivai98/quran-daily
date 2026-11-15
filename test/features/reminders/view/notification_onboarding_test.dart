@@ -85,13 +85,13 @@ void main() {
 
     await tester.tap(find.text('ابدأ'));
     await tester.pumpAndSettle();
-    expect(find.text(ArabicStrings.reminderPermissionTitle), findsOneWidget);
-    expect(find.text(ArabicStrings.reminderPermissionExplain), findsOneWidget);
-    expect(find.text(ArabicStrings.reminderActivate), findsOneWidget);
+    expect(find.text(ArabicStrings.reminderOnboardingTitle), findsOneWidget);
+    expect(find.text(ArabicStrings.reminderOnboardingExplain), findsOneWidget);
+    expect(find.text(ArabicStrings.reminderOnboardingAllow), findsOneWidget);
     expect(find.text(ArabicStrings.reminderPermissionLater), findsOneWidget);
     expect(find.byType(AppButton), findsNWidgets(2));
 
-    await tester.tap(find.text(ArabicStrings.reminderActivate));
+    await tester.tap(find.text(ArabicStrings.reminderOnboardingAllow));
     await tester.pumpAndSettle();
 
     expect(scheduler.permissionRequests, 1);
@@ -115,7 +115,7 @@ void main() {
 
     await tester.tap(find.text('ابدأ'));
     await tester.pumpAndSettle();
-    expect(find.text(ArabicStrings.reminderPermissionTitle), findsNothing);
+    expect(find.text(ArabicStrings.reminderOnboardingTitle), findsNothing);
   });
 
   testWidgets('denied permission leaves reminders off', (tester) async {
@@ -125,7 +125,7 @@ void main() {
 
     await tester.tap(find.text('ابدأ'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(ArabicStrings.reminderActivate));
+    await tester.tap(find.text(ArabicStrings.reminderOnboardingAllow));
     await tester.pumpAndSettle();
 
     expect(scheduler.permissionRequests, 1);
