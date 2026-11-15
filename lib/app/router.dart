@@ -27,6 +27,11 @@ import '../features/quran_groups/view/screens/discovery_screen.dart';
 import '../features/quran_groups/view/screens/invite_join_screen.dart';
 import '../features/quran_groups/view/screens/personal_assignment_screen.dart';
 import '../features/settings/view/settings_screen.dart';
+import '../features/quran_groups/cubit/member_profile/member_profile_cubit.dart';
+import '../features/quran_groups/view/screens/member_profile_screen.dart';
+import '../features/quran_groups/cubit/group_info/group_info_cubit.dart';
+import '../features/quran_groups/view/screens/group_info_screen.dart';
+import '../features/settings/view/edit_profile_screen.dart';
 
 String? inviteCodeFromDeepLink(Uri uri) {
   if (uri.scheme != 'qurandaily' ||
@@ -64,6 +69,11 @@ class AppRoutes {
   static const history = '/groups/history';
   static const groupSettings = '/groups/settings';
   static const settings = '/settings';
+
+  // --- 007 profiles ---
+  static const memberProfile = '/groups/member/profile';
+  static const groupInfo = '/groups/info';
+  static const editMyProfile = '/profile/edit';
 
   static Map<String, WidgetBuilder> get routes {
     // The root "/" is owned by the auth gate in app.dart (home), so it is
@@ -192,6 +202,27 @@ class AppRoutes {
         groupId: ModalRoute.of(context)?.settings.arguments as String?,
       ),
       settings: (_) => const SettingsScreen(),
+      memberProfile: (context) {
+        final args = MemberProfileArgs.fromDynamic(
+          ModalRoute.of(context)?.settings.arguments,
+        );
+        return BlocProvider(
+          create: (_) => serviceLocator<MemberProfileCubit>(),
+          child: MemberProfileScreen(
+            userId: args.userId,
+            groupId: args.groupId,
+          ),
+        );
+      },
+      groupInfo: (context) {
+        final groupId =
+            ModalRoute.of(context)?.settings.arguments as String? ?? '';
+        return BlocProvider(
+          create: (_) => serviceLocator<GroupInfoCubit>(),
+          child: GroupInfoScreen(groupId: groupId),
+        );
+      },
+      editMyProfile: (_) => const EditProfileScreen(),
     };
   }
 

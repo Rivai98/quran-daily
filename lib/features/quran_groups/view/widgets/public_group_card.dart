@@ -48,7 +48,18 @@ class PublicGroupCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(group.name, style: Theme.of(context).textTheme.titleMedium),
+          Row(
+            children: [
+              GroupAvatar(name: group.name, size: 36),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  group.name,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            ],
+          ),
           if ((group.shortDescription ?? '').isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xxs),
             Text(
