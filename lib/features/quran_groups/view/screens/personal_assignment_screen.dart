@@ -12,7 +12,10 @@ import '../../../../core/design_system/widgets/offline_banner.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/design_system/widgets/status_chip.dart';
 import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/localization/arabic_numerals.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
+import '../../../../core/quran/mushaf/mushaf_repository.dart';
+import '../../../../core/di/service_locator.dart';
 import '../../cubit/assignment/assignment_cubit.dart';
 import '../../cubit/assignment/assignment_state.dart';
 import '../../data/entities/entities.dart';
@@ -33,6 +36,11 @@ class PersonalAssignmentScreen extends StatefulWidget {
 
 class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
   late final Future<void> _metadata = widget.metadataRepository.load();
+  MushafRepository? get _mushaf =>
+      serviceLocator.isRegistered<MushafRepository>()
+          ? serviceLocator<MushafRepository>()
+          : null;
+  late final Future<void>? _mushafLoad = _mushaf?.load();
 
   @override
   Widget build(BuildContext context) {
@@ -80,14 +88,39 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                           widget.snapshot.portionUnit,
                           current.portionIndex,
                         );
-                        return Text(
-                          ArabicStrings.portionRange(
+                        final pageSource = _mushaf;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ArabicStrings.portionRange(
                             widget.metadataRepository.suraName(info.startSura),
                             info.startAya,
                             widget.metadataRepository.suraName(info.endSura),
                             info.endAya,
                           ),
                           style: AppTypography.bodyLarge,
+                            ),
+                            if (pageSource != null)
+                              FutureBuilder<void>(
+                                future: _mushafLoad,
+                                builder: (context, pageState) {
+                                  if (pageState.connectionState !=
+                                          ConnectionState.done ||
+                                      pageState.hasError) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  final pages = pageSource.portionRange(
+                                    widget.snapshot.portionUnit,
+                                    current.portionIndex,
+                                  );
+                                  return Text(
+                                    '${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(pages.startPage)} – ${ArabicNumerals.format(pages.endPage)}',
+                                    style: AppTypography.caption,
+                                  );
+                                },
+                              ),
+                          ],
                         );
                       },
                     ),

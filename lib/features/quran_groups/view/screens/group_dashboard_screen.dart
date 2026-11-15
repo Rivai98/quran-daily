@@ -6,10 +6,12 @@ import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
+import '../../../../core/design_system/assignment_status.dart';
 import '../../../../core/design_system/widgets/app_avatar.dart';
 import '../../../../core/design_system/widgets/progress_header.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
 import '../../../../core/design_system/widgets/app_section_header.dart';
+import '../../../../core/design_system/widgets/status_chip.dart';
 import '../../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/localization/arabic_strings.dart';
@@ -24,7 +26,6 @@ import '../widgets/offline_stale_banner.dart';
 import '../widgets/override_assignment_sheet.dart';
 import '../widgets/portion_detail_sheet.dart';
 import '../widgets/validation_banner.dart';
-import '../widgets/portion_unit_chip.dart';
 
 class GroupDashboardScreen extends StatelessWidget {
   const GroupDashboardScreen({super.key, required this.metadataRepository});
@@ -69,7 +70,7 @@ class GroupDashboardScreen extends StatelessWidget {
                           Flexible(
                             child: Text(
                               snapshot.groupName,
-                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
                             ),
                           ),
                         ],
@@ -84,12 +85,6 @@ class GroupDashboardScreen extends StatelessWidget {
                 icon: const Icon(Icons.menu_book),
               ),
               if (snapshot != null) ..._groupActions(context, snapshot),
-              IconButton(
-                tooltip: ArabicStrings.settingsTitle,
-                onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.settings),
-                icon: const Icon(Icons.settings),
-              ),
             ],
           ),
           body: _body(context, state),
@@ -169,13 +164,6 @@ class GroupDashboardScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                 ],
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: PortionUnitChip(
-                    unit: snapshot.portionUnit,
-                    metadataRepository: metadataRepository,
-                  ),
-                ),
                 if (today.fullKhatma) ...[
                   Builder(
                     builder: (context) {
@@ -276,6 +264,19 @@ class GroupDashboardScreen extends StatelessWidget {
                           }
                         },
                       ),
+                      const SizedBox(height: AppSpacing.md),
+                      Wrap(
+                        spacing: AppSpacing.xs,
+                        runSpacing: AppSpacing.xs,
+                        children: [
+                          const StatusChip(status: AssignmentStatus.completed),
+                          const StatusChip(status: AssignmentStatus.pending),
+                          if (snapshot.myRole == GroupRole.owner ||
+                              snapshot.myRole == GroupRole.supervisor)
+                            const StatusChip(status: AssignmentStatus.missed),
+                          const StatusChip(status: AssignmentStatus.available),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -325,6 +326,7 @@ class GroupDashboardScreen extends StatelessWidget {
     final canManage = isOwner || snapshot.myRole == GroupRole.supervisor;
     final args = <String, Object?>{
       'groupId': snapshot.groupId,
+      'groupName': snapshot.groupName,
       'isOwner': isOwner,
       'isSupervisor': snapshot.myRole == GroupRole.supervisor,
       'inviteCode': snapshot.seats?.inviteCode,
@@ -332,21 +334,20 @@ class GroupDashboardScreen extends StatelessWidget {
       'isActive': snapshot.status == GroupStatus.active,
     };
     return [
-      IconButton(
-        tooltip: ArabicStrings.openHistoryAction,
-        onPressed: () => Navigator.pushNamed(
-          context,
-          AppRoutes.history,
-          arguments: snapshot.groupId,
-        ),
-        icon: const Icon(Icons.history),
-      ),
       PopupMenuButton<String>(
           tooltip: ArabicStrings.groupMenuTooltip,
           icon: const Icon(Icons.manage_accounts),
           onSelected: (route) async {
             if (route == 'set-main') {
               await context.read<DashboardCubit>().pinAsMain();
+              return;
+            }
+            if (route == AppRoutes.history) {
+              await Navigator.pushNamed(
+                context,
+                route,
+                arguments: snapshot.groupId,
+              );
               return;
             }
             await Navigator.pushNamed(context, route, arguments: args);
@@ -356,6 +357,10 @@ class GroupDashboardScreen extends StatelessWidget {
           },
           itemBuilder: (_) => [
             const PopupMenuItem(value: 'set-main', child: Text(ArabicStrings.setMainGroupAction)),
+            PopupMenuItem(
+              value: AppRoutes.history,
+              child: Text(ArabicStrings.openHistoryAction),
+            ),
             if (canManage) ...[
             const PopupMenuItem(
               value: AppRoutes.members,

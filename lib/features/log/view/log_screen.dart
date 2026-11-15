@@ -139,8 +139,8 @@ class _LogViewState extends State<_LogView> {
               for (final days in daysByWeek.values) ...[
                 Padding(
                   padding: const EdgeInsetsDirectional.only(
-                    top: AppSpacing.md,
-                    bottom: AppSpacing.xs,
+                    top: AppSpacing.lg,
+                    bottom: AppSpacing.sm,
                   ),
                   child: Text(
                     ArabicStrings.logWeekLabel,

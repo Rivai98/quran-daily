@@ -164,15 +164,17 @@ class SeatMember extends Equatable {
     required this.displayName,
     required this.role,
     required this.seatNumber,
+    this.userId,
   });
 
   final String membershipId;
   final String displayName;
   final GroupRole role;
   final int seatNumber;
+  final String? userId;
 
   @override
-  List<Object?> get props => [membershipId, displayName, role, seatNumber];
+  List<Object?> get props => [membershipId, displayName, role, seatNumber, userId];
 }
 
 /// Members + empty seats for the members screen / forming dashboard.

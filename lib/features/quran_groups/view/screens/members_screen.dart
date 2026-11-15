@@ -4,11 +4,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/design_system/app_button.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
+import '../../../../core/design_system/app_colors.dart';
+import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
+import '../../../../core/design_system/widgets/app_avatar.dart';
 import '../../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/localization/arabic_numerals.dart';
+import '../../../../app/router.dart';
 import '../../cubit/members/members_cubit.dart';
 import '../../data/entities/entities.dart';
 
@@ -104,18 +108,7 @@ class _MembersScreenState extends State<MembersScreen> {
       children: [
         Row(
           children: [
-            CircleAvatar(
-              radius: AppSpacing.lg,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Text(
-                member.displayName.trim().isEmpty
-                    ? ArabicStrings.memberRole.substring(0, 1)
-                    : member.displayName.trim().characters.first,
-                style: AppTypography.title.copyWith(
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-              ),
-            ),
+            UserAvatar(displayName: member.displayName, size: 48),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
@@ -125,17 +118,42 @@ class _MembersScreenState extends State<MembersScreen> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Icon(
-              member.role == GroupRole.owner
-                  ? Icons.verified_user_outlined
-                  : member.role == GroupRole.supervisor
-                  ? Icons.admin_panel_settings_outlined
-                  : Icons.person_outline,
-              semanticLabel: member.role == GroupRole.owner
-                  ? ArabicStrings.groupOwner
-                  : member.role == GroupRole.supervisor
-                  ? ArabicStrings.roleSupervisor
-                  : ArabicStrings.memberRole,
+            InkWell(
+              onTap: member.userId == null
+                  ? null
+                  : () => Navigator.pushNamed(
+                      context,
+                      AppRoutes.memberProfile,
+                      arguments: {
+                        'userId': member.userId,
+                        'groupId': widget.groupId,
+                      },
+                    ),
+              child: Container(
+                padding: const EdgeInsetsDirectional.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xxs,
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .extension<AppColors>()!
+                      .primaryContainer,
+                  borderRadius: AppRadius.pillBR,
+                ),
+                child: Text(
+                  member.role == GroupRole.owner
+                      ? ArabicStrings.groupOwner
+                      : member.role == GroupRole.supervisor
+                          ? ArabicStrings.roleSupervisor
+                          : ArabicStrings.memberRole,
+                  style: AppTypography.caption.copyWith(
+                    color: Theme.of(context)
+                        .extension<AppColors>()!
+                        .onPrimaryContainer,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -145,11 +163,9 @@ class _MembersScreenState extends State<MembersScreen> {
             const SizedBox(width: AppSpacing.xxs),
             Expanded(
               child: Text(
-                '${ArabicStrings.seatLabel} ${ArabicNumerals.format(member.seatNumber)} · ${member.role.name == 'owner'
-                    ? ArabicStrings.groupOwner
-                    : member.role == GroupRole.supervisor
-                    ? ArabicStrings.roleSupervisor
-                    : ArabicStrings.memberRole}',
+                ArabicStrings.historySeat(
+                  ArabicNumerals.format(member.seatNumber),
+                ),
                 style: AppTypography.body,
               ),
             ),

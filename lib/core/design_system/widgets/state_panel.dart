@@ -50,12 +50,14 @@ class StatePanel extends StatelessWidget {
                 style: AppTypography.title,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: AppSpacing.xxs),
-              Text(
-                message,
-                style: AppTypography.body.copyWith(color: colors.inkMuted),
-                textAlign: TextAlign.center,
-              ),
+              if (message.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.xxs),
+                Text(
+                  message,
+                  style: AppTypography.body.copyWith(color: colors.inkMuted),
+                  textAlign: TextAlign.center,
+                ),
+              ],
               if (actionLabel != null && onAction != null) ...[
                 const SizedBox(height: AppSpacing.md),
                 AppButton(

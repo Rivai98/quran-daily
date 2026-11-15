@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
+import 'package:quran_daily/core/design_system/app_colors.dart';
+import 'package:quran_daily/core/design_system/app_spacing.dart';
 import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import '../../../helpers/quran_metadata_test_asset_bundle.dart';
@@ -271,6 +273,20 @@ void main() {
       expect(find.text(ArabicStrings.readNowAction), findsOneWidget);
       expect(find.byTooltip(ArabicStrings.mushafTitle), findsOneWidget);
       expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.byType(IconButton),
+        ),
+        findsNWidgets(2),
+      );
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.byType(PopupMenuButton<String>),
+        ),
+        findsOneWidget,
+      );
+      expect(
         tester.getTopLeft(find.text(ArabicStrings.myWirdToday)).dy,
         lessThan(640),
       );
@@ -418,6 +434,12 @@ void main() {
   testWidgets('forming owner can share the invite and start the khatma', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
     final groups = await pumpWithRole(
       tester,
       role: GroupRole.owner,
@@ -430,8 +452,20 @@ void main() {
     expect(find.byType(FormingGroupView), findsOneWidget);
     expect(find.text(ArabicStrings.shareInviteAction), findsOneWidget);
 
-    await tester.tap(find.text(ArabicStrings.startKhatmaAction));
+    await tester.ensureVisible(find.text(ArabicStrings.startKhatmaAction).first);
+    await tester.tap(find.text(ArabicStrings.startKhatmaAction).first);
     await tester.pumpAndSettle();
+    expect(find.byType(ChoiceChip), findsNWidgets(30));
+    expect(
+      tester.getSize(find.byType(ChoiceChip).first),
+      const Size(AppSpacing.xxl, AppSpacing.xxl),
+    );
+    expect(
+      tester.widget<ChoiceChip>(find.byType(ChoiceChip).first).selectedColor,
+      Theme.of(tester.element(find.byType(ChoiceChip).first))
+          .extension<AppColors>()!
+          .primaryContainer,
+    );
     await tester.tap(find.text(ArabicStrings.startKhatmaAction).last);
     await tester.pumpAndSettle();
 
@@ -476,10 +510,10 @@ void main() {
   ) async {
     await pumpWithRole(tester, role: GroupRole.owner);
 
-    expect(find.byTooltip(ArabicStrings.openHistoryAction), findsOneWidget);
     await tester.tap(find.byTooltip(ArabicStrings.groupMenuTooltip));
     await tester.pumpAndSettle();
 
+    expect(find.text(ArabicStrings.openHistoryAction), findsOneWidget);
     expect(find.text(ArabicStrings.manageMembersAction), findsOneWidget);
     expect(find.text(ArabicStrings.reviewJoinRequestsAction), findsOneWidget);
     expect(find.text(ArabicStrings.groupSettingsAction), findsOneWidget);
@@ -502,9 +536,9 @@ void main() {
   ) async {
     await pumpWithRole(tester, role: GroupRole.member);
 
-    expect(find.byTooltip(ArabicStrings.openHistoryAction), findsOneWidget);
     await tester.tap(find.byTooltip(ArabicStrings.groupMenuTooltip));
     await tester.pumpAndSettle();
+    expect(find.text(ArabicStrings.openHistoryAction), findsOneWidget);
     expect(find.text(ArabicStrings.setMainGroupAction), findsOneWidget);
     expect(find.text(ArabicStrings.manageMembersAction), findsNothing);
   });

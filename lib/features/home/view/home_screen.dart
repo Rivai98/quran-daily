@@ -7,6 +7,8 @@ import '../../../core/design_system/widgets/widgets.dart';
 import '../../../core/localization/arabic_strings.dart';
 import '../../../core/localization/arabic_numerals.dart';
 import '../../../core/quran/quran_metadata_repository.dart';
+import '../../../core/quran/mushaf/mushaf_repository.dart';
+import '../../../core/di/service_locator.dart';
 import '../cubit/home_cubit.dart';
 import '../data/today_snapshot.dart';
 import 'widgets/date_header.dart';
@@ -29,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text(ArabicStrings.todayTitle)),
+    appBar: AppBar(title: const Text(ArabicStrings.homeGreeting)),
     body: BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
         if (state.status == HomeStatus.initial ||
@@ -60,8 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
           child: ListView(
             padding: AppSpacing.screenContent,
             children: [
-              Text(ArabicStrings.homeGreeting, style: AppTypography.headline),
-              const SizedBox(height: AppSpacing.xs),
               DateHeader(date: DateTime.now()),
               if (state.status == HomeStatus.offline) ...[
                 const SizedBox(height: AppSpacing.md),
@@ -74,13 +74,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 complete: context.read<HomeCubit>().complete,
                 undo: context.read<HomeCubit>().undo,
                 busyId: state.updatingId,
-                allDone: state.allDone,
               ),
               for (final item in main.items.skip(1)) ...[
                 const SizedBox(height: AppSpacing.sm),
                 _TodayItemCard(
                   group: main,
                   item: item,
+                  showGroupName: false,
                   metadata: widget.metadataRepository,
                   complete: context.read<HomeCubit>().complete,
                   undo: context.read<HomeCubit>().undo,
@@ -118,14 +118,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                 ],
               ],
-              if (state.allDone) ...[
-                const SizedBox(height: AppSpacing.md),
-                StatePanel(
-                  icon: Icons.verified,
-                  title: ArabicStrings.todayCompleteTitle,
-                  message: ArabicStrings.fullKhatmaBanner,
-                ),
-              ],
             ],
           ),
         );
@@ -135,14 +127,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _empty(BuildContext context) => ListView(
     padding: AppSpacing.screenContent,
     children: [
-      Text(ArabicStrings.homeGreeting, style: AppTypography.headline),
-      const SizedBox(height: AppSpacing.md),
       DateHeader(date: DateTime.now()),
       const SizedBox(height: AppSpacing.lg),
       StatePanel(
         icon: Icons.groups,
         title: ArabicStrings.homeEmptyTitle,
-        message: ArabicStrings.groupsNeedMembersEntry,
+        message: '',
         actionLabel: ArabicStrings.joinAnyGroupAction,
         onAction: () => Navigator.pushNamed(context, '/join-any'),
       ),
@@ -181,48 +171,29 @@ class _MainGroupHeroCard extends StatelessWidget {
     required this.complete,
     required this.undo,
     required this.busyId,
-    required this.allDone,
   });
   final TodayGroup group;
   final QuranMetadataRepository metadata;
   final Future<void> Function(TodayItem) complete, undo;
   final String? busyId;
-  final bool allDone;
   @override
   Widget build(BuildContext context) => AppCard(
     highlighted: true,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            CircleAvatar(
-              child: Text(
-                group.name.isEmpty ? 'م' : group.name.characters.first,
-              ),
-            ),
+        InkWell(
+          onTap: () => Navigator.pushNamed(context, AppRoutes.dashboard, arguments: group.groupId),
+          child: Row(
+            children: [
+            GroupAvatar(name: group.name, size: 40),
             const SizedBox(width: AppSpacing.sm),
             Expanded(child: Text(group.name, style: AppTypography.title)),
-            IconButton(
-              tooltip: ArabicStrings.openGroupAction,
-              onPressed: () => Navigator.pushNamed(
-                context,
-                AppRoutes.dashboard,
-                arguments: group.groupId,
-              ),
-              icon: const Icon(Icons.open_in_new),
-            ),
-          ],
+            ],
+          ),
         ),
         if (group.day != null) ...[
           const SizedBox(height: AppSpacing.xs),
-          Text(
-            ArabicNumerals.ratio(
-              group.day!.completedCount,
-              group.day!.totalCount,
-            ),
-            style: AppTypography.display,
-          ),
           LinearProgressIndicator(
             value: group.day!.totalCount == 0
                 ? 0
@@ -250,23 +221,27 @@ class _MainGroupHeroCard extends StatelessWidget {
             metadata: metadata,
           ),
           const SizedBox(height: AppSpacing.sm),
-          AppButton(
-            label: ArabicStrings.openTodayWird,
-            icon: const Icon(Icons.menu_book),
-            expanded: true,
-            onPressed: () => Navigator.pushNamed(
-              context,
-              AppRoutes.dashboard,
-              arguments: group.groupId,
-            ),
-          ),
+          _status(group.items.first.status),
           const SizedBox(height: AppSpacing.xs),
-          _CompletionAction(
-            item: group.items.first,
-            complete: complete,
-            undo: undo,
-            busy: busyId == group.items.first.assignmentId,
-          ),
+          if (group.items.first.status == 'completed' ||
+              group.items.first.status == 'late') ...[
+            Text(ArabicStrings.todayCompleteTitle, style: AppTypography.body),
+            TextButton(
+              onPressed: group.items.first.canUndo
+                  ? () => ConfirmSheet.show(context, title: ArabicStrings.confirmUndoAction, message: ArabicStrings.undoCompletionHint, confirmLabel: ArabicStrings.confirmUndoAction, destructive: true, onConfirm: () => undo(group.items.first))
+                  : null,
+              child: const Text(ArabicStrings.portionUndoAction),
+            ),
+          ] else ...[
+            AppButton(
+              label: ArabicStrings.readNowAction,
+              icon: const Icon(Icons.menu_book),
+              expanded: true,
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.mushafReader, arguments: {'unit': group.portionUnit, 'index': group.items.first.portionIndex, 'assignmentId': group.items.first.assignmentId, 'alreadyCompleted': false}),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            _CompletionAction(item: group.items.first, complete: complete, undo: undo, busy: busyId == group.items.first.assignmentId),
+          ],
         ],
       ],
     ),
@@ -277,6 +252,7 @@ class _TodayItemCard extends StatelessWidget {
   const _TodayItemCard({
     required this.group,
     this.item,
+    this.showGroupName = true,
     required this.metadata,
     required this.complete,
     required this.undo,
@@ -284,6 +260,7 @@ class _TodayItemCard extends StatelessWidget {
   });
   final TodayGroup group;
   final TodayItem? item;
+  final bool showGroupName;
   final QuranMetadataRepository metadata;
   final Future<void> Function(TodayItem) complete, undo;
   final String? busyId;
@@ -292,7 +269,7 @@ class _TodayItemCard extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(group.name, style: AppTypography.title),
+        if (showGroupName) Text(group.name, style: AppTypography.title),
         if (item != null) ...[
           const SizedBox(height: AppSpacing.xs),
           _PortionLabel(group: group, item: item!, metadata: metadata),
@@ -354,6 +331,9 @@ class _PortionLabel extends StatelessWidget {
         metadata.suraName(portion.endSura),
         portion.endAya,
       );
+      final mushaf = serviceLocator.isRegistered<MushafRepository>()
+          ? serviceLocator<MushafRepository>()
+          : null;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -362,6 +342,24 @@ class _PortionLabel extends StatelessWidget {
             style: AppTypography.quranLabel,
           ),
           Text(range, style: AppTypography.caption),
+          if (mushaf != null)
+            FutureBuilder<void>(
+              future: mushaf.load(),
+              builder: (context, mushafState) {
+                if (mushafState.connectionState != ConnectionState.done ||
+                    mushafState.hasError) {
+                  return const SizedBox.shrink();
+                }
+                final pages = mushaf.portionRange(
+                  group.portionUnit,
+                  item.portionIndex,
+                );
+                return Text(
+                  '${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(pages.startPage)} – ${ArabicNumerals.format(pages.endPage)}',
+                  style: AppTypography.caption,
+                );
+              },
+            ),
         ],
       );
     },
@@ -381,16 +379,8 @@ class _CompletionAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final done = item.status == 'completed' || item.status == 'late';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _status(item.status),
-        const SizedBox(height: AppSpacing.xs),
-        if (done)
-          AppButton(
-            label: ArabicStrings.portionUndoAction,
-            variant: AppButtonVariant.secondary,
-            expanded: true,
+    if (done) {
+      return TextButton(
             onPressed: item.canUndo
                 ? () => ConfirmSheet.show(
                     context,
@@ -401,17 +391,16 @@ class _CompletionAction extends StatelessWidget {
                     onConfirm: () => undo(item),
                   )
                 : null,
-          )
-        else
-          AppButton(
+            child: const Text(ArabicStrings.portionUndoAction),
+      );
+    }
+    return AppButton(
             label: ArabicStrings.portionCompleteAction,
             variant: AppButtonVariant.tonal,
             expanded: true,
             loading: busy,
             icon: const Icon(Icons.check_circle_outline),
             onPressed: () => complete(item),
-          ),
-      ],
     );
   }
 }

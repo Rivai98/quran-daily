@@ -47,7 +47,7 @@ class GroupSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!isOwner) {
       return Scaffold(
-        appBar: AppBar(title: const Text(ArabicStrings.settingsTitle)),
+        appBar: AppBar(title: const Text(ArabicStrings.reminderGroupTitle)),
         body: serviceLocator.isRegistered<RemindersCubit>()
             ? ListView(
                 padding: AppSpacing.screen,
@@ -95,7 +95,7 @@ class GroupSettingsScreen extends StatelessWidget {
   }
 }
 
-class _SettingsForm extends StatelessWidget {
+class _SettingsForm extends StatefulWidget {
   const _SettingsForm({
     required this.groupId,
     required this.groupName,
@@ -115,12 +115,41 @@ class _SettingsForm extends StatelessWidget {
   final bool isActive;
 
   @override
+  State<_SettingsForm> createState() => _SettingsFormState();
+}
+
+class _SettingsFormState extends State<_SettingsForm> {
+  late final TextEditingController nameController;
+  late final TextEditingController descriptionController;
+
+  String get groupId => widget.groupId;
+  String get groupName => widget.groupName;
+  String? get inviteCode => widget.inviteCode;
+  bool get submitting => widget.submitting;
+  AppFailure? get failure => widget.failure;
+  PortionUnit get portionUnit => widget.portionUnit;
+  bool get isActive => widget.isActive;
+
+  @override
+  void initState() {
+    super.initState();
+    nameController = TextEditingController(
+      text: groupName == groupId ? '' : groupName,
+    );
+    descriptionController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final cubit = context.read<GroupSettingsCubit>();
-    final nameController = TextEditingController();
-    final descriptionController = TextEditingController();
-
     return ListView(
       padding: AppSpacing.screen,
       children: [
@@ -228,12 +257,18 @@ class _SettingsForm extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         if (serviceLocator.isRegistered<RemindersCubit>()) ...[
-          BlocProvider<RemindersCubit>(
-            create: (_) => serviceLocator<RemindersCubit>(),
-            child: GroupReminderSection(
-              groupId: groupId,
-              groupName: groupName,
-              isOwner: true,
+          AppButton(
+            label: ArabicStrings.reminderGroupTitle,
+            variant: AppButtonVariant.secondary,
+            expanded: true,
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => _GroupRemindersPage(
+                  groupId: groupId,
+                  groupName: groupName,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -280,6 +315,30 @@ class _SettingsForm extends StatelessWidget {
       ],
     );
   }
+}
+
+class _GroupRemindersPage extends StatelessWidget {
+  const _GroupRemindersPage({required this.groupId, required this.groupName});
+  final String groupId;
+  final String groupName;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text(ArabicStrings.reminderGroupTitle)),
+    body: ListView(
+      padding: AppSpacing.screen,
+      children: [
+        BlocProvider<RemindersCubit>(
+          create: (_) => serviceLocator<RemindersCubit>(),
+          child: GroupReminderSection(
+            groupId: groupId,
+            groupName: groupName,
+            isOwner: true,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _PortionUnitSetting extends StatefulWidget {

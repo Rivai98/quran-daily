@@ -68,27 +68,25 @@ class FormingGroupView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  ArabicStrings.formingLabel,
+                  style: AppTypography.caption.copyWith(color: colors.infoFg),
+                ),
+                const SizedBox(height: AppSpacing.xs),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Flexible(
+                    Expanded(
                       child: Text(
-                        ArabicStrings.formingLabel,
-                        style: AppTypography.caption.copyWith(
-                          color: colors.infoFg,
-                        ),
+                        ArabicStrings.groupMembersRatio(activeMemberCount, 30),
+                        style: AppTypography.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
-                      ArabicNumerals.ratio(activeMemberCount, 30),
-                      style: AppTypography.title,
-                    ),
-                    Text(
-                      ' · ${ArabicStrings.missingX} ${ArabicNumerals.format(_missing)}',
-                      style: AppTypography.title,
+                      '${ArabicStrings.missingX} ${ArabicNumerals.format(_missing)}',
+                      style: AppTypography.body,
                     ),
                   ],
                 ),

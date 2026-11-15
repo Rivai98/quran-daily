@@ -8,7 +8,9 @@ import '../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../core/design_system/widgets/app_text_field.dart';
 import '../../../core/di/service_locator.dart';
 import '../../../core/localization/arabic_strings.dart';
+import '../../../core/auth/session_gateway.dart';
 import '../../quran_groups/data/repositories/groups_repository.dart';
+import '../../profile/data/repositories/profile_repository.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({
@@ -16,11 +18,13 @@ class EditProfileScreen extends StatefulWidget {
     this.initialDisplayName,
     this.initialBio,
     this.repository,
+    this.profileRepository,
   });
 
   final String? initialDisplayName;
   final String? initialBio;
   final GroupsRepository? repository;
+  final ProfileRepository? profileRepository;
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -33,12 +37,86 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String? _nameError;
   String? _bioError;
   bool _isSaving = false;
+  String _originalName = '';
+  String _originalBio = '';
+  bool _edited = false;
+  bool _nameTouched = false;
+  bool _bioTouched = false;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.initialDisplayName ?? '');
     _bioController = TextEditingController(text: widget.initialBio ?? '');
+    _originalName = _nameController.text.trim();
+    _originalBio = _bioController.text.trim();
+    _nameController.addListener(() {
+      _nameTouched = true;
+      _onChanged();
+    });
+    _bioController.addListener(() {
+      _bioTouched = true;
+      _onChanged();
+    });
+    if (widget.initialDisplayName == null || widget.initialBio == null) {
+      _loadCurrentProfile();
+    }
+  }
+
+  Future<void> _loadCurrentProfile() async {
+    final profileRepo = widget.profileRepository ??
+        (serviceLocator.isRegistered<ProfileRepository>()
+            ? serviceLocator<ProfileRepository>()
+            : null);
+    final groupsRepo = widget.repository ??
+        (serviceLocator.isRegistered<GroupsRepository>()
+            ? serviceLocator<GroupsRepository>()
+            : null);
+    if (profileRepo != null && widget.initialDisplayName == null) {
+      final result = await profileRepo.getProfile();
+      if (mounted && !_nameTouched) {
+        result.when(
+          success: (profile) {
+            _originalName = profile.displayName.trim();
+            _nameController.text = profile.displayName;
+          },
+          failure: (_) {},
+        );
+      }
+    }
+    if (groupsRepo == null ||
+        widget.initialBio != null ||
+        !serviceLocator.isRegistered<SessionGateway>()) {
+      return;
+    }
+    final userId = serviceLocator<SessionGateway>().currentUserId;
+    if (userId == null) return;
+    final groupsResult = await groupsRepo.getMyGroups();
+    if (!mounted || _bioTouched) return;
+    groupsResult.when(
+      success: (overview) async {
+        if (overview.groups.isEmpty) return;
+        final profileResult = await groupsRepo.getMemberProfile(
+          userId,
+          overview.groups.first.groupId,
+        );
+        if (!mounted || _bioTouched) return;
+        profileResult.when(
+          success: (profile) {
+            _originalBio = profile.bio?.trim() ?? '';
+            _bioController.text = profile.bio ?? '';
+          },
+          failure: (_) {},
+        );
+      },
+      failure: (_) {},
+    );
+  }
+
+  void _onChanged() {
+    final edited = _nameController.text.trim() != _originalName ||
+        _bioController.text.trim() != _originalBio;
+    if (edited != _edited && mounted) setState(() => _edited = edited);
   }
 
   @override
@@ -145,7 +223,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 variant: AppButtonVariant.primary,
                 expanded: true,
                 loading: _isSaving,
-                onPressed: _isSaving ? null : _onSave,
+                onPressed: _isSaving || !_edited ? null : _onSave,
               ),
             ],
           ),

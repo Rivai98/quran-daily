@@ -121,4 +121,25 @@ void main() {
     expect(find.bySemanticsLabel('الجزء ٧، تمت القراءة'), findsOneWidget);
     semantics.dispose();
   });
+
+  testWidgets('completed reader tile shows both the check and initials', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        const Scaffold(
+          body: Center(
+            child: PartTile(
+              juz: 3,
+              status: AssignmentStatus.completed,
+              readerInitials: 'AB',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    expect(find.text('AB'), findsOneWidget);
+  });
 }

@@ -85,19 +85,24 @@ class PartTile extends StatelessWidget {
                     fontVariations: const [FontVariation('wght', 700)],
                   ),
                 ),
-                if (readerInitials != null && readerInitials!.isNotEmpty)
-                  Text(
-                    readerInitials!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.caption.copyWith(
-                      color: fg,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  )
-                else
-                  Icon(status.icon, size: 14, color: fg),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(status.icon, size: 14, color: fg),
+                    if (readerInitials != null && readerInitials!.isNotEmpty)
+                      Flexible(
+                        child: Text(
+                          readerInitials!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.caption.copyWith(
+                            color: fg,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),

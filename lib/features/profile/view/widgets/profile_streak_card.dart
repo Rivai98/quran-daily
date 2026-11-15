@@ -43,7 +43,7 @@ class ProfileStreakCard extends StatelessWidget {
               children: [
                 Text(
                   ArabicStrings.profileStreakDays(streak),
-                  style: AppTypography.title,
+                  style: AppTypography.display,
                 ),
                 const SizedBox(height: AppSpacing.xxs),
                 Text(
