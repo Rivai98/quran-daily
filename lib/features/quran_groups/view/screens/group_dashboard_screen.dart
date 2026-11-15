@@ -8,12 +8,12 @@ import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/progress_header.dart';
 import '../../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
-import '../../../../core/localization/arabic_numerals.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
 import '../../cubit/dashboard/dashboard_cubit.dart';
 import '../../data/entities/entities.dart';
 import '../widgets/available_juz_list.dart';
+import '../widgets/forming_group_view.dart';
 import '../widgets/juz_grid.dart';
 import '../widgets/my_juz_card.dart';
 import '../widgets/offline_stale_banner.dart';
@@ -41,6 +41,7 @@ class GroupDashboardScreen extends StatelessWidget {
           appBar: AppBar(
             title: Text(snapshot?.groupName ?? ArabicStrings.dashboardTitle),
             actions: [
+              if (snapshot != null) ..._groupActions(context, snapshot),
               IconButton(
                 tooltip: ArabicStrings.settingsTitle,
                 onPressed: () =>
@@ -77,7 +78,7 @@ class GroupDashboardScreen extends StatelessWidget {
     }
 
     if (snapshot.status == GroupStatus.forming) {
-      return _forming(snapshot);
+      return _forming(context, state);
     }
 
     final today = snapshot.today;
@@ -205,30 +206,65 @@ class GroupDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _forming(DashboardSnapshot snapshot) {
-    final members = snapshot.seats?.members ?? const <SeatMember>[];
-    return ListView(
-      padding: AppSpacing.screen,
-      children: [
-        Text(ArabicStrings.formingDashboard, style: AppTypography.headline),
-        const SizedBox(height: AppSpacing.md),
-        ProgressHeader(
-          completed: snapshot.activeMemberCount,
-          total: 30,
-          variant: ProgressVariant.bar,
-          caption: ArabicStrings.activeMembersCount,
+  List<Widget> _groupActions(BuildContext context, DashboardSnapshot snapshot) {
+    final isOwner = snapshot.myRole == GroupRole.owner;
+    final canManage = isOwner || snapshot.myRole == GroupRole.supervisor;
+    final args = <String, Object?>{
+      'groupId': snapshot.groupId,
+      'isOwner': isOwner,
+      'isSupervisor': snapshot.myRole == GroupRole.supervisor,
+      'inviteCode': snapshot.seats?.inviteCode,
+    };
+    return [
+      IconButton(
+        tooltip: ArabicStrings.openHistoryAction,
+        onPressed: () => Navigator.pushNamed(
+          context,
+          AppRoutes.history,
+          arguments: snapshot.groupId,
         ),
-        const SizedBox(height: AppSpacing.lg),
-        Text(ArabicStrings.memberSeats, style: AppTypography.title),
-        const SizedBox(height: AppSpacing.sm),
-        for (final member in members)
-          ListTile(
-            leading: CircleAvatar(
-              child: Text(ArabicNumerals.format(member.seatNumber)),
+        icon: const Icon(Icons.history),
+      ),
+      if (canManage)
+        PopupMenuButton<String>(
+          tooltip: ArabicStrings.groupMenuTooltip,
+          icon: const Icon(Icons.manage_accounts),
+          onSelected: (route) async {
+            await Navigator.pushNamed(context, route, arguments: args);
+            if (context.mounted) {
+              await context.read<DashboardCubit>().refresh();
+            }
+          },
+          itemBuilder: (_) => [
+            const PopupMenuItem(
+              value: AppRoutes.members,
+              child: Text(ArabicStrings.manageMembersAction),
             ),
-            title: Text(member.displayName, style: AppTypography.body),
-          ),
-      ],
+            const PopupMenuItem(
+              value: AppRoutes.joinRequests,
+              child: Text(ArabicStrings.reviewJoinRequestsAction),
+            ),
+            if (isOwner)
+              const PopupMenuItem(
+                value: AppRoutes.groupSettings,
+                child: Text(ArabicStrings.groupSettingsAction),
+              ),
+          ],
+        ),
+    ];
+  }
+
+  Widget _forming(BuildContext context, DashboardState state) {
+    final snapshot = state.snapshot!;
+    final cubit = context.read<DashboardCubit>();
+    return FormingGroupView(
+      groupId: snapshot.groupId,
+      groupName: snapshot.groupName,
+      inviteCode: snapshot.seats?.inviteCode,
+      activeMemberCount: snapshot.activeMemberCount,
+      isOwner: snapshot.myRole == GroupRole.owner,
+      seatMap: snapshot.seats,
+      onStartKhatma: cubit.startKhatma,
     );
   }
 }

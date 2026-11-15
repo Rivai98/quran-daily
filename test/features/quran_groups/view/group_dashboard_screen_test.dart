@@ -12,6 +12,7 @@ import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/design_system/widgets/part_tile.dart';
 import 'package:quran_daily/features/quran_groups/view/widgets/override_assignment_sheet.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/group_dashboard_screen.dart';
+import 'package:quran_daily/features/quran_groups/view/widgets/forming_group_view.dart';
 
 import '../../../helpers/widget_test_app.dart';
 
@@ -327,5 +328,124 @@ void main() {
     );
     expect(find.text('مجموعة'), findsOneWidget);
     expect(find.byType(PartTile), findsNothing);
+  });
+
+  Future<_GroupsRepository> pumpWithRole(
+    WidgetTester tester, {
+    required GroupRole role,
+    GroupStatus status = GroupStatus.active,
+  }) async {
+    final groups = _GroupsRepository();
+    final snapshot = status == GroupStatus.forming
+        ? DashboardSnapshot(
+            groupId: 'g1',
+            groupName: 'مجموعة',
+            myRole: role,
+            status: GroupStatus.forming,
+            serverGeneratedAt: DateTime.parse('2026-11-15T10:00:00Z'),
+            activeMemberCount: 1,
+            seats: const SeatMap(
+              groupId: 'g1',
+              activeMemberCount: 1,
+              members: [],
+              inviteCode: 'ABC123',
+            ),
+          )
+        : _snapshot(role: role);
+    final cubit = DashboardCubit(
+      repository: _Repository(),
+      groupsRepository: groups,
+      groupId: 'g1',
+      initialState: DashboardState(
+        status: status == GroupStatus.forming
+            ? DashboardStatus.empty
+            : DashboardStatus.success,
+        snapshot: snapshot,
+      ),
+    );
+    addTearDown(cubit.close);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: GroupDashboardScreen(
+            metadataRepository: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    return groups;
+  }
+
+  testWidgets('forming owner can share the invite and start the khatma', (
+    tester,
+  ) async {
+    final groups = await pumpWithRole(
+      tester,
+      role: GroupRole.owner,
+      status: GroupStatus.forming,
+    );
+    when(() => groups.startKhatma('g1', any())).thenAnswer(
+      (_) async => Success(_snapshot(role: GroupRole.owner)),
+    );
+
+    expect(find.byType(FormingGroupView), findsOneWidget);
+    expect(find.text(ArabicStrings.shareInviteAction), findsOneWidget);
+
+    await tester.tap(find.text(ArabicStrings.startKhatmaAction));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(ArabicStrings.startKhatmaAction).last);
+    await tester.pumpAndSettle();
+
+    verify(() => groups.startKhatma('g1', any())).called(1);
+    expect(find.byType(FormingGroupView), findsNothing);
+  });
+
+  testWidgets('forming member sees the forming view without a start action', (
+    tester,
+  ) async {
+    await pumpWithRole(
+      tester,
+      role: GroupRole.member,
+      status: GroupStatus.forming,
+    );
+    expect(find.byType(FormingGroupView), findsOneWidget);
+    expect(find.text(ArabicStrings.startKhatmaAction), findsNothing);
+  });
+
+  testWidgets('owner reaches history, members, requests and group settings', (
+    tester,
+  ) async {
+    await pumpWithRole(tester, role: GroupRole.owner);
+
+    expect(find.byTooltip(ArabicStrings.openHistoryAction), findsOneWidget);
+    await tester.tap(find.byTooltip(ArabicStrings.groupMenuTooltip));
+    await tester.pumpAndSettle();
+
+    expect(find.text(ArabicStrings.manageMembersAction), findsOneWidget);
+    expect(find.text(ArabicStrings.reviewJoinRequestsAction), findsOneWidget);
+    expect(find.text(ArabicStrings.groupSettingsAction), findsOneWidget);
+  });
+
+  testWidgets('supervisor manages members and requests but not settings', (
+    tester,
+  ) async {
+    await pumpWithRole(tester, role: GroupRole.supervisor);
+    await tester.tap(find.byTooltip(ArabicStrings.groupMenuTooltip));
+    await tester.pumpAndSettle();
+
+    expect(find.text(ArabicStrings.manageMembersAction), findsOneWidget);
+    expect(find.text(ArabicStrings.reviewJoinRequestsAction), findsOneWidget);
+    expect(find.text(ArabicStrings.groupSettingsAction), findsNothing);
+  });
+
+  testWidgets('member sees history and members but no management menu', (
+    tester,
+  ) async {
+    await pumpWithRole(tester, role: GroupRole.member);
+
+    expect(find.byTooltip(ArabicStrings.openHistoryAction), findsOneWidget);
+    expect(find.byTooltip(ArabicStrings.groupMenuTooltip), findsNothing);
   });
 }

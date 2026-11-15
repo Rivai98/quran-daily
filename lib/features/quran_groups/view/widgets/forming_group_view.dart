@@ -132,11 +132,13 @@ class FormingGroupView extends StatelessWidget {
     var startJuz = 1;
     showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(
+            return SingleChildScrollView(
+              padding: const EdgeInsetsDirectional.fromSTEB(
                 AppSpacing.md,
                 0,
                 AppSpacing.md,

@@ -19,6 +19,8 @@ import '../features/quran_groups/cubit/join_requests/join_requests_cubit.dart';
 import '../features/quran_groups/cubit/members/members_cubit.dart';
 import '../features/quran_groups/view/screens/join_requests_screen.dart';
 import '../features/quran_groups/view/screens/members_screen.dart';
+import '../features/quran_groups/view/screens/group_settings_screen.dart';
+import '../features/quran_groups/cubit/group_settings/group_settings_cubit.dart';
 import '../features/quran_groups/view/screens/discovery_screen.dart';
 import '../features/quran_groups/view/screens/invite_join_screen.dart';
 import '../features/quran_groups/view/screens/personal_assignment_screen.dart';
@@ -53,6 +55,7 @@ class AppRoutes {
   static const joinRequests = '/groups/organizer/join-requests';
   static const members = '/groups/organizer/members';
   static const history = '/groups/history';
+  static const groupSettings = '/groups/settings';
   static const settings = '/settings';
 
   static Map<String, WidgetBuilder> get routes {
@@ -127,20 +130,46 @@ class AppRoutes {
       joinRequests: (context) {
         final args =
             ModalRoute.of(context)!.settings.arguments! as Map<String, Object?>;
-        return BlocProvider.value(
-          value: args['cubit']! as JoinRequestsCubit,
-          child: JoinRequestsScreen(groupId: args['groupId']! as String),
-        );
+        final groupId = args['groupId']! as String;
+        final given = args['cubit'] as JoinRequestsCubit?;
+        final screen = JoinRequestsScreen(groupId: groupId);
+        return given != null
+            ? BlocProvider.value(value: given, child: screen)
+            : BlocProvider(
+                create: (_) => serviceLocator<JoinRequestsCubit>()..load(groupId),
+                child: screen,
+              );
       },
       members: (context) {
         final args =
             ModalRoute.of(context)!.settings.arguments! as Map<String, Object?>;
-        return BlocProvider.value(
-          value: args['cubit']! as MembersCubit,
-          child: MembersScreen(
-            groupId: args['groupId']! as String,
+        final groupId = args['groupId']! as String;
+        final given = args['cubit'] as MembersCubit?;
+        final screen = MembersScreen(
+          groupId: groupId,
+          isOwner: args['isOwner'] == true,
+          isSupervisor: args['isSupervisor'] == true,
+        );
+        return given != null
+            ? BlocProvider.value(value: given, child: screen)
+            : BlocProvider(
+                create: (_) => serviceLocator<MembersCubit>()..load(groupId),
+                child: screen,
+              );
+      },
+      groupSettings: (context) {
+        final args =
+            ModalRoute.of(context)!.settings.arguments! as Map<String, Object?>;
+        final groupId = args['groupId']! as String;
+        final inviteCode = args['inviteCode'] as String?;
+        return BlocProvider(
+          create: (_) => serviceLocator<GroupSettingsCubit>()
+            ..load(groupId: groupId, inviteCode: inviteCode),
+          child: GroupSettingsScreen(
+            groupId: groupId,
             isOwner: args['isOwner'] == true,
-            isSupervisor: args['isSupervisor'] == true,
+            inviteCode: inviteCode,
+            onKhatmaStarted: () => Navigator.of(context).pop(),
           ),
         );
       },

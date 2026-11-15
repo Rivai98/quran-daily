@@ -25,6 +25,9 @@ import '../../features/quran_groups/data/repositories/groups_repository.dart';
 import '../../features/quran_groups/data/repositories/groups_repository_impl.dart';
 import '../../features/quran_groups/cubit/discovery/discovery_cubit.dart';
 import '../../features/quran_groups/cubit/join/join_cubit.dart';
+import '../../features/quran_groups/cubit/group_settings/group_settings_cubit.dart';
+import '../../features/quran_groups/cubit/members/members_cubit.dart';
+import '../../features/quran_groups/cubit/join_requests/join_requests_cubit.dart';
 import '../../features/quran_groups/cubit/group_list/group_list_cubit.dart';
 
 final serviceLocator = GetIt.instance;
@@ -185,6 +188,24 @@ void configureServiceLocator({
     if (!locator.isRegistered<GroupListCubit>()) {
       locator.registerFactory<GroupListCubit>(
         () => GroupListCubit(repository: locator<GroupsRepository>()),
+      );
+    }
+
+    if (!locator.isRegistered<GroupSettingsCubit>()) {
+      locator.registerFactory<GroupSettingsCubit>(
+        () => GroupSettingsCubit(repository: locator<GroupsRepository>()),
+      );
+    }
+
+    if (!locator.isRegistered<MembersCubit>()) {
+      locator.registerFactory<MembersCubit>(
+        () => MembersCubit(locator<GroupsRepository>()),
+      );
+    }
+
+    if (!locator.isRegistered<JoinRequestsCubit>()) {
+      locator.registerFactory<JoinRequestsCubit>(
+        () => JoinRequestsCubit(locator<GroupsRepository>()),
       );
     }
 

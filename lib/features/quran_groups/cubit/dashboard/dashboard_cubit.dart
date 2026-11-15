@@ -21,6 +21,7 @@ class DashboardState extends Equatable {
     this.dayRolledOver = false,
     this.volunteeringAssignmentId,
     this.volunteerFeedbackCode,
+    this.startingKhatma = false,
   });
 
   final DashboardStatus status;
@@ -29,6 +30,7 @@ class DashboardState extends Equatable {
   final bool dayRolledOver;
   final String? volunteeringAssignmentId;
   final String? volunteerFeedbackCode;
+  final bool startingKhatma;
 
   @override
   List<Object?> get props => [
@@ -38,6 +40,7 @@ class DashboardState extends Equatable {
     dayRolledOver,
     volunteeringAssignmentId,
     volunteerFeedbackCode,
+    startingKhatma,
   ];
 }
 
@@ -164,6 +167,33 @@ class DashboardCubit extends Cubit<DashboardState> {
   }
 
   Future<void> onResumed() => refresh();
+
+  /// Starts the khatma of a forming group (owner action on the forming view).
+  Future<void> startKhatma(int startJuz) async {
+    final groups = groupsRepository;
+    if (groups == null || state.startingKhatma) return;
+    final before = state;
+    emit(
+      DashboardState(
+        status: before.status,
+        snapshot: before.snapshot,
+        startingKhatma: true,
+      ),
+    );
+    final result = await groups.startKhatma(groupId, startJuz);
+    result.when(
+      success: (snapshot) => emit(
+        DashboardState(status: DashboardStatus.success, snapshot: snapshot),
+      ),
+      failure: (failure) => emit(
+        DashboardState(
+          status: before.status,
+          snapshot: before.snapshot,
+          failure: failure,
+        ),
+      ),
+    );
+  }
 
   Future<SeatMap?> getActiveMembers() async {
     if (state.snapshot?.myRole != GroupRole.owner) return null;

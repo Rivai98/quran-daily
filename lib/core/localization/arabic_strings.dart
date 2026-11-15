@@ -451,6 +451,10 @@ class ArabicStrings {
   static String historyMyJuz(String juzName) => 'وردك: $juzName';
   static String historySeat(String seat) => 'مقعد $seat';
 
+  // --- Dashboard navigation ---
+  static const groupMenuTooltip = 'إدارة المجموعة';
+  static const groupSettingsAction = 'إعدادات المجموعة';
+
   // --- S11: Settings strings ---
   static const signOutConfirmTitle = 'تأكيد تسجيل الخروج';
   static const signOutConfirmMessage = 'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
