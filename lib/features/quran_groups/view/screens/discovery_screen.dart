@@ -81,10 +81,10 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
             if (state.status == DiscoveryStatus.initial ||
                 (state.status == DiscoveryStatus.loading &&
                     state.groups.isEmpty)) {
-              return const Center(child: CircularProgressIndicator());
+              return const _DiscoverySkeleton();
             }
             if (state.groups.isEmpty && state.status == DiscoveryStatus.empty) {
-              return StatePanel(
+              return StatePanel.empty(
                 icon: Icons.search_off_rounded,
                 title: ArabicStrings.noPublicGroups,
                 message: ArabicStrings.publicDiscoveryHint,
@@ -192,7 +192,7 @@ class _MembershipLimitBanner extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.info_outline, color: colors.primary),
+              Icon(Icons.info_outline_rounded, color: colors.primary),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Text(
@@ -213,4 +213,44 @@ class _MembershipLimitBanner extends StatelessWidget {
       ),
     );
   }
+}
+
+class _DiscoverySkeleton extends StatelessWidget {
+  const _DiscoverySkeleton();
+
+  @override
+  Widget build(BuildContext context) => AppPageContent(
+    child: ListView(
+      padding: AppSpacing.screenContent,
+      children: const [
+        SkeletonBox(height: 52),
+        SizedBox(height: AppSpacing.md),
+        AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SkeletonBox(width: 160, height: 20),
+              SizedBox(height: AppSpacing.sm),
+              SkeletonBox(width: 240, height: 18),
+              SizedBox(height: AppSpacing.sm),
+              SkeletonBox(height: 40),
+            ],
+          ),
+        ),
+        SizedBox(height: AppSpacing.sm),
+        AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SkeletonBox(width: 140, height: 20),
+              SizedBox(height: AppSpacing.sm),
+              SkeletonBox(width: 220, height: 18),
+              SizedBox(height: AppSpacing.sm),
+              SkeletonBox(height: 40),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 }

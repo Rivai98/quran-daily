@@ -4,17 +4,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/app_button.dart';
-import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/widgets/app_avatar.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
 import '../../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/design_system/widgets/halaqa_logo.dart';
 import '../../../../core/design_system/widgets/skeleton.dart';
+import '../../../../core/design_system/widgets/app_banner.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../cubit/join_requests/join_requests_cubit.dart';
 import '../../data/entities/entities.dart';
-import '../widgets/validation_banner.dart';
 
 class JoinRequestsScreen extends StatefulWidget {
   const JoinRequestsScreen({super.key, required this.groupId});
@@ -47,8 +46,8 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
             state.requests.isEmpty) {
           return StatePanel(
             icon: state.status == JoinRequestsStatus.offline
-                ? Icons.cloud_off_outlined
-                : Icons.error_outline,
+                ? Icons.cloud_off_rounded
+                : Icons.error_outline_rounded,
             title: state.status == JoinRequestsStatus.offline
                 ? ArabicStrings.offlineStale
                 : ArabicStrings.operationFailed,
@@ -62,14 +61,14 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
         }
         if (state.status == JoinRequestsStatus.groupFull) {
           return StatePanel(
-            icon: Icons.group_off_outlined,
+            icon: Icons.group_off_rounded,
             title: ArabicStrings.groupFull,
             message: ArabicStrings.groupFull,
           );
         }
         if (state.status == JoinRequestsStatus.membershipLimit) {
           return StatePanel(
-            icon: Icons.group_off_outlined,
+            icon: Icons.group_off_rounded,
             title: ArabicStrings.joinError,
             message: ArabicStrings.membershipLimitMessage,
             actionLabel: ArabicStrings.groupSelectionTitle,
@@ -78,8 +77,8 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
           );
         }
         if (state.requests.isEmpty) {
-          return StatePanel(
-            icon: Icons.inbox_outlined,
+          return StatePanel.empty(
+            icon: Icons.inbox_rounded,
             title: ArabicStrings.noJoinRequests,
             message: ArabicStrings.noJoinRequestsHint,
             actionLabel: ArabicStrings.groupSelectionTitle,
@@ -94,16 +93,16 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
               children: [
                 if (state.status == JoinRequestsStatus.failure ||
                     state.status == JoinRequestsStatus.offline) ...[
-                  ValidationBanner(
+                  AppBanner(
                     icon: state.status == JoinRequestsStatus.offline
-                        ? Icons.cloud_off_outlined
-                        : Icons.error_outline,
+                        ? Icons.cloud_off_rounded
+                        : Icons.error_outline_rounded,
                     message: state.status == JoinRequestsStatus.offline
                         ? ArabicStrings.networkFailure
                         : ArabicStrings.errorMessage(state.failure?.code ?? ''),
-                    color: state.status == JoinRequestsStatus.offline
-                        ? Theme.of(context).extension<AppColors>()!.pendingFg
-                        : Theme.of(context).extension<AppColors>()!.danger,
+                    variant: state.status == JoinRequestsStatus.offline
+                        ? AppBannerVariant.warning
+                        : AppBannerVariant.error,
                   ),
                   TextButton.icon(
                     onPressed: () =>
@@ -142,7 +141,7 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
                                         request.source == JoinSource.invite
                                             ? Icons.link_rounded
                                             : request.source == JoinSource.match
-                                            ? Icons.auto_awesome_outlined
+                                            ? Icons.auto_awesome_rounded
                                             : Icons.public_rounded,
                                         size: 18,
                                         color: Theme.of(

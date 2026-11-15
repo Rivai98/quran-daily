@@ -63,7 +63,7 @@ class GroupSettingsScreen extends StatelessWidget {
                 ],
               )
             : StatePanel(
-                icon: Icons.lock_outline,
+                icon: Icons.lock_outline_rounded,
                 title: ArabicStrings.roleMember,
                 message: ArabicStrings.settingsApplyTomorrowNote,
               ),
@@ -205,7 +205,7 @@ class _SettingsFormState extends State<_SettingsForm> {
                               ' — qurandaily://join/$inviteCode',
                         ),
                       ),
-                      icon: const Icon(Icons.share),
+                      icon: const Icon(Icons.share_rounded),
                     ),
                   ],
                 ),
@@ -239,7 +239,7 @@ class _SettingsFormState extends State<_SettingsForm> {
               AppTextField(
                 label: ArabicStrings.groupNameLabel,
                 controller: nameController,
-                prefixIcon: Icons.groups_outlined,
+                prefixIcon: Icons.groups_rounded,
               ),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
@@ -263,7 +263,7 @@ class _SettingsFormState extends State<_SettingsForm> {
             label: ArabicStrings.reminderGroupTitle,
             variant: AppButtonVariant.secondary,
             expanded: true,
-            icon: const Icon(Icons.notifications_outlined),
+            icon: const Icon(Icons.notifications_rounded),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) =>
@@ -312,7 +312,7 @@ class _SettingsFormState extends State<_SettingsForm> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const _GroupSettingsSectionTitle(
-                icon: Icons.archive_outlined,
+                icon: Icons.archive_rounded,
                 title: ArabicStrings.archiveGroupAction,
               ),
               AppButton(
@@ -328,7 +328,7 @@ class _SettingsFormState extends State<_SettingsForm> {
                         confirmLabel: ArabicStrings.archiveGroupConfirm,
                         onConfirm: () => cubit.archiveGroup(),
                       ),
-                icon: const Icon(Icons.archive_outlined),
+                icon: const Icon(Icons.archive_rounded),
               ),
             ],
           ),

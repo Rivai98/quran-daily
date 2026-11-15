@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/app_colors.dart';
-import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/widgets.dart';
@@ -70,10 +69,14 @@ class PublicGroupCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: AppSpacing.xs),
-                    _GroupStatusBadge(
+                    AppBadge(
                       icon: status.$1,
                       label: status.$2,
-                      groupStatus: group.status,
+                      variant: switch (group.status) {
+                        GroupStatus.forming => AppBadgeVariant.info,
+                        GroupStatus.active => AppBadgeVariant.primary,
+                        GroupStatus.archived => AppBadgeVariant.neutral,
+                      },
                     ),
                   ],
                 ),
@@ -94,7 +97,7 @@ class PublicGroupCard extends StatelessWidget {
               _MetadataItem(icon: Icons.menu_book_rounded, label: portionLabel),
               _MetadataItem(
                 icon: Icons.location_on_rounded,
-                label: _timezoneCity(group.timezone),
+                label: ArabicFormatting.timezoneCity(group.timezone),
               ),
             ],
           ),
@@ -138,19 +141,7 @@ class PublicGroupCard extends StatelessWidget {
     );
   }
 
-  String _timezoneCity(String timezone) {
-    final city = timezone.split('/').last.replaceAll('_', ' ');
-    return switch (city) {
-      'Cairo' => 'القاهرة',
-      'Riyadh' => 'الرياض',
-      'Makkah' => 'مكة',
-      'Madinah' => 'المدينة',
-      'UTC' => 'التوقيت العالمي',
-      _ => 'التوقيت المحلي',
-    };
-  }
 }
-
 class _MetadataItem extends StatelessWidget {
   const _MetadataItem({required this.icon, required this.label});
 
@@ -167,53 +158,6 @@ class _MetadataItem extends StatelessWidget {
         const SizedBox(width: AppSpacing.xxs),
         Text(label, style: AppTypography.caption.copyWith(color: color)),
       ],
-    );
-  }
-}
-
-class _GroupStatusBadge extends StatelessWidget {
-  const _GroupStatusBadge({
-    required this.icon,
-    required this.label,
-    required this.groupStatus,
-  });
-
-  final IconData icon;
-  final String label;
-  final GroupStatus groupStatus;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    final foreground = switch (groupStatus) {
-      GroupStatus.forming => colors.infoFg,
-      GroupStatus.active => colors.primary,
-      GroupStatus.archived => colors.inkMuted,
-    };
-    final background = switch (groupStatus) {
-      GroupStatus.forming => colors.infoBg,
-      GroupStatus.active => colors.primaryContainer,
-      GroupStatus.archived => colors.surfaceMuted,
-    };
-    return Container(
-      constraints: const BoxConstraints(minHeight: AppSpacing.xl),
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xxs,
-      ),
-      decoration: BoxDecoration(
-        color: background,
-        border: Border.all(color: foreground.withValues(alpha: 0.32)),
-        borderRadius: AppRadius.pillBR,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: AppSpacing.md, color: foreground),
-          const SizedBox(width: AppSpacing.xxs),
-          Text(label, style: AppTypography.caption.copyWith(color: foreground)),
-        ],
-      ),
     );
   }
 }

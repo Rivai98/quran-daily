@@ -199,7 +199,7 @@ void main() {
       );
 
       expect(find.byTooltip(ArabicStrings.editGroupDetails), findsOneWidget);
-      expect(find.byIcon(Icons.camera_alt), findsOneWidget);
+      expect(find.byIcon(Icons.camera_alt_rounded), findsOneWidget);
     });
 
     testWidgets(
@@ -227,7 +227,7 @@ void main() {
         );
 
         expect(find.byTooltip(ArabicStrings.editGroupDetails), findsNothing);
-        expect(find.byIcon(Icons.camera_alt), findsNothing);
+        expect(find.byIcon(Icons.camera_alt_rounded), findsNothing);
         expect(find.text(ArabicStrings.inviteCodeLabel), findsNothing);
       },
     );

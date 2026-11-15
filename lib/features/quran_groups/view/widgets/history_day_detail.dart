@@ -53,7 +53,7 @@ class HistoryDayDetail extends StatelessWidget {
               ),
               if (onClose != null)
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close_rounded),
                   tooltip: ArabicStrings.closeDetailAction,
                   onPressed: onClose,
                 ),
@@ -161,8 +161,8 @@ class HistoryDayDetail extends StatelessWidget {
                           ),
                           child: Icon(
                             assignment.status == AssignmentStatusEnum.available
-                                ? Icons.event_seat
-                                : Icons.person_outline,
+                                ? Icons.event_seat_rounded
+                                : Icons.person_outline_rounded,
                             size: 18,
                             color: colors.inkMuted,
                           ),

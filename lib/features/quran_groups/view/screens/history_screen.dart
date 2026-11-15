@@ -155,7 +155,7 @@ class _HistoryViewState extends State<_HistoryView> {
 
             case HistoryStatus.empty:
               return StatePanel(
-                icon: Icons.history,
+                icon: Icons.history_rounded,
                 title: ArabicStrings.emptyHistoryTitle,
                 message: ArabicStrings.emptyHistoryDesc,
                 actionLabel: ArabicStrings.groupSelectionTitle,
@@ -166,7 +166,7 @@ class _HistoryViewState extends State<_HistoryView> {
 
             case HistoryStatus.failure:
               return StatePanel(
-                icon: Icons.error_outline,
+                icon: Icons.error_outline_rounded,
                 title: ArabicStrings.historyErrorTitle,
                 message: ArabicStrings.historyErrorDesc,
                 actionLabel: ArabicStrings.retryAction,
@@ -181,7 +181,7 @@ class _HistoryViewState extends State<_HistoryView> {
                   Expanded(
                     child: state.days.isEmpty
                         ? StatePanel(
-                            icon: Icons.history,
+                            icon: Icons.history_rounded,
                             title: ArabicStrings.emptyHistoryTitle,
                             message: ArabicStrings.emptyHistoryDesc,
                             actionLabel: ArabicStrings.groupSelectionTitle,
@@ -274,7 +274,7 @@ class _DaysList extends StatelessWidget {
               spacing: AppSpacing.xs,
               children: [
                 Icon(
-                  Icons.view_week_outlined,
+                  Icons.view_week_rounded,
                   size: 20,
                   color: colors.inkMuted,
                 ),
@@ -298,7 +298,7 @@ class _DaysList extends StatelessWidget {
                 ),
                 if (cycle.fullKhatma)
                   Chip(
-                    avatar: Icon(Icons.verified, color: colors.completedFg),
+                    avatar: Icon(Icons.verified_rounded, color: colors.completedFg),
                     label: const Text(ArabicStrings.fullKhatmaBadge),
                   ),
               ],

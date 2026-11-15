@@ -41,7 +41,7 @@ class PortionUnitChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.menu_book, size: 18, color: colors.onPrimaryContainer),
+              Icon(Icons.menu_book_rounded, size: 18, color: colors.onPrimaryContainer),
               const SizedBox(width: AppSpacing.xs),
               Flexible(
                 child: Text(

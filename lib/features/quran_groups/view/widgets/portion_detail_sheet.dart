@@ -189,7 +189,7 @@ class PortionDetailSheet extends StatelessWidget {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Icon(
-                            Icons.event_seat_outlined,
+                            Icons.event_seat_rounded,
                             size: 16,
                             color: colors.inkMuted,
                           ),
@@ -203,8 +203,8 @@ class PortionDetailSheet extends StatelessWidget {
                           ),
                           Icon(
                             assignment.kind == AssignmentKind.volunteer
-                                ? Icons.volunteer_activism_outlined
-                                : Icons.menu_book_outlined,
+                                ? Icons.volunteer_activism_rounded
+                                : Icons.menu_book_rounded,
                             size: 16,
                             color: colors.inkMuted,
                           ),
@@ -221,7 +221,7 @@ class PortionDetailSheet extends StatelessWidget {
                         Row(
                           children: [
                             Icon(
-                              isLate ? Icons.history : Icons.schedule,
+                              isLate ? Icons.history_rounded : Icons.schedule_rounded,
                               size: 14,
                               color: colors.inkMuted,
                             ),
@@ -251,7 +251,7 @@ class PortionDetailSheet extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               AppButton(
                 label: ArabicStrings.volunteerForPortion,
-                icon: const Icon(Icons.volunteer_activism),
+                icon: const Icon(Icons.volunteer_activism_rounded),
                 variant: AppButtonVariant.primary,
                 expanded: true,
                 onPressed: onVolunteer,
@@ -263,7 +263,7 @@ class PortionDetailSheet extends StatelessWidget {
               onOpenProfile != null) ...[
             AppButton(
               label: ArabicStrings.openProfile,
-              icon: const Icon(Icons.person),
+              icon: const Icon(Icons.person_rounded),
               variant: AppButtonVariant.primary,
               expanded: true,
               onPressed: () => onOpenProfile!(assignment.reader!.userId),
@@ -273,7 +273,7 @@ class PortionDetailSheet extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             AppButton(
               label: ArabicStrings.overrideAssignmentTitle,
-              icon: const Icon(Icons.swap_horiz),
+              icon: const Icon(Icons.swap_horiz_rounded),
               variant: AppButtonVariant.secondary,
               expanded: true,
               onPressed: onOverride,

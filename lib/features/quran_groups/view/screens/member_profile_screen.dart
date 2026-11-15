@@ -97,7 +97,7 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
 
           if (state.status == MemberProfileStatus.notAccessible) {
             return StatePanel(
-              icon: Icons.lock_outline,
+              icon: Icons.lock_outline_rounded,
               title: ArabicStrings.profileNotAccessible,
               message: ArabicStrings.profileNotAccessible,
               isError: true,
@@ -107,7 +107,7 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
           if (state.status == MemberProfileStatus.offline &&
               state.profile == null) {
             return StatePanel(
-              icon: Icons.cloud_off,
+              icon: Icons.cloud_off_rounded,
               title: ArabicStrings.networkFailure,
               message: ArabicStrings.networkFailure,
               actionLabel: ArabicStrings.retry,
@@ -121,7 +121,7 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
 
           if (state.profile == null) {
             return StatePanel(
-              icon: Icons.error_outline,
+              icon: Icons.error_outline_rounded,
               title: ArabicStrings.operationFailed,
               message: ArabicStrings.errorMessage(state.failure?.code ?? ''),
               actionLabel: ArabicStrings.retry,
@@ -251,7 +251,7 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
                               const SizedBox(height: AppSpacing.md),
                               AppButton(
                                 label: ArabicStrings.editProfile,
-                                icon: const Icon(Icons.edit),
+                                icon: const Icon(Icons.edit_rounded),
                                 variant: AppButtonVariant.secondary,
                                 onPressed: () async {
                                   await Navigator.pushNamed(
@@ -280,7 +280,7 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
                               child: Column(
                                 children: [
                                   Icon(
-                                    Icons.local_fire_department_outlined,
+                                    Icons.local_fire_department_rounded,
                                     size: 20,
                                     color: colors.primary,
                                   ),
@@ -311,7 +311,7 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
                               child: Column(
                                 children: [
                                   Icon(
-                                    Icons.donut_large_outlined,
+                                    Icons.donut_large_rounded,
                                     size: 20,
                                     color: colors.primary,
                                   ),
@@ -342,7 +342,7 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
                               child: Column(
                                 children: [
                                   Icon(
-                                    Icons.auto_stories_outlined,
+                                    Icons.auto_stories_rounded,
                                     size: 20,
                                     color: colors.primary,
                                   ),

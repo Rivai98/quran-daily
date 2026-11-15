@@ -110,7 +110,7 @@ class FormingGroupView extends StatelessWidget {
                         label: ArabicStrings.shareInviteAction,
                         variant: AppButtonVariant.tonal,
                         onPressed: () => _shareInvite(context),
-                        icon: const Icon(Icons.share),
+                        icon: const Icon(Icons.share_rounded),
                       ),
                     ],
                   ),
@@ -127,7 +127,7 @@ class FormingGroupView extends StatelessWidget {
             label: ArabicStrings.startKhatmaAction,
             expanded: true,
             onPressed: () => _showStartSheet(context),
-            icon: const Icon(Icons.play_arrow),
+            icon: const Icon(Icons.play_arrow_rounded),
           ),
         const SizedBox(height: AppSpacing.lg),
       ],
@@ -147,7 +147,10 @@ class FormingGroupView extends StatelessWidget {
         builder: (sheetContext, metadataState) {
           if (metadataState.connectionState != ConnectionState.done ||
               metadataState.hasError) {
-            return const Center(child: CircularProgressIndicator());
+            return const Padding(
+              padding: AppSpacing.screenContent,
+              child: SkeletonBox(height: 192),
+            );
           }
           final count = metadata.portions(portionUnit).length;
           return StatefulBuilder(

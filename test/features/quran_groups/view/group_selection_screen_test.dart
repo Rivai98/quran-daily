@@ -7,7 +7,7 @@ import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/localization/arabic_formatting.dart';
 import 'package:quran_daily/core/design_system/widgets/halaqa_logo.dart';
-import 'package:quran_daily/core/design_system/widgets/islamic_ornament.dart';
+import 'package:quran_daily/core/design_system/widgets/app_section_header.dart';
 import 'package:quran_daily/features/quran_groups/cubit/group_list/group_list_cubit.dart';
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
@@ -97,7 +97,7 @@ void main() {
     );
   });
 
-  testWidgets('empty: StatePanel with the four entry points', (tester) async {
+  testWidgets('empty: branded panel with one helpful action', (tester) async {
     when(
       () => repo.getMyGroups(),
     ).thenAnswer((_) async => Success(TestFixtures.overview()));
@@ -109,13 +109,14 @@ void main() {
 
     expect(find.text(ArabicStrings.noApprovedGroups), findsOneWidget);
     expect(find.byType(HalaqaLogo), findsOneWidget);
-    expect(find.text(ArabicStrings.joinAnyGroupAction), findsOneWidget);
-    expect(find.text(ArabicStrings.searchGroupAction), findsOneWidget);
-    expect(find.text(ArabicStrings.createGroup), findsOneWidget);
-    expect(find.text(ArabicStrings.iHaveInviteLink), findsOneWidget);
+    expect(find.text(ArabicStrings.groupSelectionEmptyMessage), findsOneWidget);
+    expect(find.text(ArabicStrings.groupSelectionJoinAction), findsOneWidget);
+    expect(find.text(ArabicStrings.searchGroupAction), findsNothing);
+    expect(find.text(ArabicStrings.createGroup), findsNothing);
+    expect(find.text(ArabicStrings.iHaveInviteLink), findsNothing);
   });
 
-  testWidgets('My Groups uses a slim branded header', (tester) async {
+  testWidgets('My Groups uses the standard section header', (tester) async {
     when(
       () => repo.getMyGroups(),
     ).thenAnswer((_) async => Success(TestFixtures.overview()));
@@ -125,9 +126,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final band = find.byType(IslamicOrnamentBand);
-    expect(band, findsOneWidget);
-    expect(tester.getSize(band).height, lessThanOrEqualTo(88));
+    expect(find.byType(AppSectionHeader), findsOneWidget);
+    expect(find.text(ArabicStrings.groupSelectionTitle), findsOneWidget);
   });
 
   testWidgets('pending rows show the pending chip and cancel action', (

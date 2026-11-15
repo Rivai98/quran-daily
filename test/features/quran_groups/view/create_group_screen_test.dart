@@ -151,8 +151,8 @@ void main() {
 
     expect(find.byIcon(Icons.public_rounded), findsOneWidget);
     expect(find.byIcon(Icons.lock_outline_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.group_add_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.verified_user_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.group_add_rounded), findsNWidgets(2));
+    expect(find.byIcon(Icons.verified_user_rounded), findsOneWidget);
     expect(find.text(ArabicStrings.publicVisibilityHint), findsOneWidget);
     expect(find.text(ArabicStrings.ownerApprovalJoinModeHint), findsOneWidget);
     expect(tester.takeException(), isNull);

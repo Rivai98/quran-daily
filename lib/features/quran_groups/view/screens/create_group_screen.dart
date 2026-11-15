@@ -109,7 +109,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                         label: ArabicStrings.groupNameLabel,
                         hint: ArabicStrings.nameLengthError,
                         controller: _name,
-                        prefixIcon: Icons.groups_outlined,
+                        prefixIcon: Icons.groups_rounded,
                         errorText:
                             (state.failure?.code == 'validation_failed' &&
                                 _nameError == null)
@@ -126,7 +126,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       ),
                       const SizedBox(height: AppSpacing.md),
                       const _CreateSectionHeader(
-                        icon: Icons.visibility_outlined,
+                        icon: Icons.visibility_rounded,
                         title: ArabicStrings.groupVisibilityTitle,
                       ),
                       _SegmentedRow<GroupVisibility>(
@@ -149,14 +149,14 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       const _CreateSectionHeader(
-                        icon: Icons.group_add_outlined,
+                        icon: Icons.group_add_rounded,
                         title: ArabicStrings.joinModeTitle,
                       ),
                       _SegmentedRow<JoinMode>(
                         values: const [JoinMode.autoAccept, JoinMode.approval],
                         iconOf: (mode) => mode == JoinMode.autoAccept
                             ? Icons.group_add_rounded
-                            : Icons.verified_user_outlined,
+                            : Icons.verified_user_rounded,
                         labelOf: (m) => m == JoinMode.autoAccept
                             ? ArabicStrings.autoAcceptJoinMode
                             : ArabicStrings.ownerApprovalJoinMode,
@@ -294,8 +294,8 @@ class _SegmentedRow<T> extends StatelessWidget {
                     const SizedBox(width: AppSpacing.xs),
                     Icon(
                       selected == value
-                          ? Icons.radio_button_checked
-                          : Icons.radio_button_unchecked,
+                          ? Icons.radio_button_checked_rounded
+                          : Icons.radio_button_unchecked_rounded,
                       color: selected == value
                           ? colors.primary
                           : colors.inkMuted,
@@ -349,7 +349,7 @@ class _LimitBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.block, size: 20, color: colors.pendingFg),
+          Icon(Icons.block_rounded, size: 20, color: colors.pendingFg),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
@@ -404,8 +404,8 @@ class _PortionChoice extends StatelessWidget {
           children: [
             Icon(
               selected
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_unchecked,
+                  ? Icons.radio_button_checked_rounded
+                  : Icons.radio_button_unchecked_rounded,
               color: selected
                   ? Theme.of(context).colorScheme.primary
                   : Theme.of(context).colorScheme.onSurfaceVariant,
