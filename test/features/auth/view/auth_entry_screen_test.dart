@@ -30,15 +30,47 @@ void main() {
       )
       .last;
 
-  Widget pumpAuthEntry({AuthState? seed}) {
+  Widget pumpAuthEntry({AuthState? seed, bool googleEnabled = false}) {
     return BlocProvider<AuthCubit>(
-      create: (_) => AuthCubit(repository: repository)
+      create: (_) => AuthCubit(repository: repository, googleSignInEnabled: googleEnabled)
         ..emit(seed ??
             const AuthState(
                 status: AuthStatus.unauthenticated, mode: AuthMode.login)),
       child: const AuthEntryScreen(),
     );
   }
+
+  testWidgets('configured Google action appears in login and signup modes',
+      (tester) async {
+    await tester.pumpWidget(buildArabicTestApp(
+      pumpAuthEntry(googleEnabled: true),
+      size: const Size(320, 640),
+      textScale: 2,
+    ));
+    expect(find.text(ArabicStrings.googleSignIn), findsOneWidget);
+    await tester.ensureVisible(find.text(ArabicStrings.createAccountTitle));
+    await tester.tap(find.text(ArabicStrings.createAccountTitle));
+    await tester.pumpAndSettle();
+    expect(find.text(ArabicStrings.googleSignIn), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(buildArabicTestApp(
+      pumpAuthEntry(googleEnabled: true),
+      dark: true,
+      size: const Size(360, 740),
+    ));
+    expect(find.text(ArabicStrings.googleSignIn), findsOneWidget);
+    expect(Directionality.of(tester.element(find.byType(AuthEntryScreen))),
+        TextDirection.rtl);
+  });
+
+  testWidgets('invalid credential copy includes Google hint', (tester) async {
+    await tester.pumpWidget(buildArabicTestApp(pumpAuthEntry(seed: const AuthState(
+      status: AuthStatus.failure,
+      failure: AuthFailure(message: 'private', code: 'invalid_credentials'),
+    ))));
+    expect(find.textContaining(ArabicStrings.googleSignInHint), findsOneWidget);
+  });
 
 
   testWidgets('login mode: LTR email, password toggle, primary, guidance, '

@@ -68,18 +68,27 @@ select is(
 from public.profiles
 where id = '11111111-1111-1111-1111-111111111111'::uuid;
 
--- Missing display_name fails account creation cleanly
-select throws_ok(
-  'select tests_insert_auth_user(''22222222-2222-2222-2222-222222222222''::uuid, ''trigger-missing@test.local'')',
-  'profile not provisioned',
-  'auth user without display_name metadata fails creation'
+-- Google provider metadata may omit display_name or send whitespace; fallback
+-- to the local part keeps profile creation usable without a password/name form.
+select tests_insert_auth_user(
+  '22222222-2222-2222-2222-222222222222'::uuid,
+  'trigger-missing@test.local'
+);
+select is(
+  (select display_name from public.profiles where id = '22222222-2222-2222-2222-222222222222'::uuid),
+  'trigger-missing',
+  'missing display_name falls back to email local part'
 );
 
--- Whitespace-only display_name fails account creation cleanly
-select throws_ok(
-  'select tests_insert_auth_user(''33333333-3333-3333-3333-333333333333''::uuid, ''trigger-blank@test.local'', ''   '')',
-  'profile not provisioned',
-  'whitespace-only display_name fails creation'
+select tests_insert_auth_user(
+  '33333333-3333-3333-3333-333333333333'::uuid,
+  'trigger-blank@test.local',
+  '   '
+);
+select is(
+  (select display_name from public.profiles where id = '33333333-3333-3333-3333-333333333333'::uuid),
+  'trigger-blank',
+  'blank display_name falls back to email local part'
 );
 
 -- ---------------------------------------------------------------------------

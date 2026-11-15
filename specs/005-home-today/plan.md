@@ -5,8 +5,10 @@
 
 ## Summary
 
-Replace the group-list-first flow with a 3-tab shell (الرئيسية، مجموعاتي،
-السجل). Home shows the user's main group as a hero card and today's portions
+Replace the group-list-first flow with a 4-tab shell (الرئيسية، مجموعاتي،
+المصحف، حسابي). المصحف hosts the spec 003 index/bookmarks; حسابي is a
+motivating profile (streak, totals, khatmas, badges) that contains the
+personal log and Settings. Home shows the user's main group as a hero card and today's portions
 in their other group, with open / mark-complete actions. The Log shows the
 user's personal history across groups with a streak and a monthly summary.
 Each user may hold at most 2 active memberships. Two new read RPCs aggregate
@@ -89,6 +91,18 @@ Sets the caller's `last_opened_at = now()`; no-op when not a member.
 ```
 Groups ordered: main first, then by `day.ends_at`. Archived groups excluded.
 
+### `get_my_profile() returns jsonb`
+```json
+{
+  "display_name": "text", "member_since": "date",
+  "streak": 5, "best_streak": 12,
+  "portions_read": 143, "portions_late": 9,
+  "khatmas": [{"group_id": "uuid", "group_name": "text", "completed": 3}],
+  "badges": [{"code": "first_khatma|streak_7|streak_30|streak_100|portions_100", "earned_at": "date"}]
+}
+```
+Badges are computed in SQL from assignments/group_days (no client trust).
+
 ### `get_my_log(p_before date default null, p_days int default 30) returns jsonb`
 ```json
 {
@@ -113,7 +127,7 @@ Items come from assignments whose reader is any of the caller's memberships
 
 ```text
 lib/app/router.dart                        root '/home' -> HomeShell; existing routes stay (pushed inside tab navigators)
-lib/features/shell/                        HomeShell (IndexedStack of 3 nested Navigators), ShellCubit, AppTabBar
+lib/features/shell/                        HomeShell (IndexedStack of 4 nested Navigators), ShellCubit, AppTabBar
 lib/features/home/
   data/  today_remote_data_source, today_repository(+_impl, sqflite cache), entities (TodaySnapshot, TodayGroup, TodayItem)
   cubit/ home_cubit (load/refresh/complete/undo/pin), home_state
@@ -140,6 +154,7 @@ Home cubit refreshes Today and the group dashboard cache is invalidated.
 | codex-1 | Backend: T001-T010 | `supabase/` only |
 | codex-2 | Shell + Home: T011-T022 | `lib/app`, `lib/features/shell`, `lib/features/home`, tests |
 | codex | Log + limit UI + icons: T023-T033 | `lib/features/log`, `lib/features/quran_groups`, tests |
+| agy | Profile tab حسابي: T038-T044 | `supabase/` (get_my_profile only), `lib/features/profile`, tests |
 
 The app agents code against the contracts above with fakes; integration runs
 after the backend lands. `arabic_strings.dart` and `service_locator.dart` are

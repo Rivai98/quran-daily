@@ -14,13 +14,14 @@ export 'auth_state.dart';
 /// One application-level auth ViewModel (spec 002): session bootstrap,
 /// entry-form mode, submit guards, sign-out, and expiry events.
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit({required AuthRepository repository})
+  AuthCubit({required AuthRepository repository, this.googleSignInEnabled = false})
       : _repository = repository,
         super(const AuthState()) {
     _subscription = _repository.watchAuthState().listen(_onAuthEvent);
   }
 
   final AuthRepository _repository;
+  final bool googleSignInEnabled;
   late final StreamSubscription<String?> _subscription;
 
   @override
@@ -105,6 +106,22 @@ class AuthCubit extends Cubit<AuthState> {
           email: email,
           password: password,
         ));
+  }
+
+  Future<void> signInWithGoogle() async {
+    if (state.status == AuthStatus.submitting) return;
+    emit(state.copyWith(status: AuthStatus.submitting, clearFailure: true));
+    final result = await _repository.signInWithGoogle();
+    if (result == null) {
+      emit(state.copyWith(status: AuthStatus.unauthenticated, clearFailure: true));
+      return;
+    }
+    result.when(
+      success: (user) => emit(state.copyWith(
+        status: AuthStatus.authenticated, profile: user.profile)),
+      failure: (failure) => emit(state.copyWith(
+        status: AuthStatus.failure, failure: failure)),
+    );
   }
 
   Future<void> retryProfileLoad() async {

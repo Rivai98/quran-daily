@@ -22,6 +22,8 @@ abstract class SupabaseAuthDataSource {
   Future<Map<String, dynamic>?> selectProfile(String userId);
 
   Future<void> signOut();
+
+  Future<void> signInWithGoogleIdToken({required String idToken});
 }
 
 class SupabaseAuthDataSourceImpl implements SupabaseAuthDataSource {
@@ -78,4 +80,12 @@ class SupabaseAuthDataSourceImpl implements SupabaseAuthDataSource {
 
   @override
   Future<void> signOut() => _client.auth.signOut();
+
+  @override
+  Future<void> signInWithGoogleIdToken({required String idToken}) async {
+    await _client.auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: idToken,
+    );
+  }
 }
