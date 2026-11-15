@@ -1,0 +1,190 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../core/design_system/app_button.dart';
+import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_typography.dart';
+import '../../../../core/design_system/widgets/app_card.dart';
+import '../../../../core/design_system/widgets/confirm_sheet.dart';
+import '../../../../core/design_system/widgets/state_panel.dart';
+import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/localization/arabic_numerals.dart';
+import '../../cubit/members/members_cubit.dart';
+import '../../data/entities/entities.dart';
+
+class MembersScreen extends StatefulWidget {
+  const MembersScreen({
+    super.key,
+    required this.groupId,
+    required this.isOwner,
+    required this.isSupervisor,
+  });
+  final String groupId;
+  final bool isOwner;
+  final bool isSupervisor;
+  @override
+  State<MembersScreen> createState() => _MembersScreenState();
+}
+
+class _MembersScreenState extends State<MembersScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<MembersCubit>().load(widget.groupId);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text(ArabicStrings.memberManagementTitle)),
+    body: BlocBuilder<MembersCubit, MembersState>(
+      builder: (context, state) {
+        if (state.status == MembersStatus.loading ||
+            state.status == MembersStatus.initial ||
+            state.status == MembersStatus.submitting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (state.status == MembersStatus.failure ||
+            state.status == MembersStatus.offline) {
+          return StatePanel(
+            icon: state.status == MembersStatus.offline
+                ? Icons.cloud_off_outlined
+                : Icons.error_outline,
+            title: state.status == MembersStatus.offline
+                ? ArabicStrings.offlineStale
+                : ArabicStrings.operationFailed,
+            message: state.status == MembersStatus.offline
+                ? ArabicStrings.authError('network')
+                : ArabicStrings.operationFailed,
+            actionLabel: ArabicStrings.retry,
+            onAction: () => context.read<MembersCubit>().load(widget.groupId),
+          );
+        }
+        if (state.status == MembersStatus.empty || state.members == null) {
+          return StatePanel(
+            icon: Icons.group_outlined,
+            title: ArabicStrings.noActiveMembers,
+            message: ArabicStrings.noActiveMembers,
+          );
+        }
+        return ListView(
+          padding: AppSpacing.screen,
+          children: [
+            Text(
+              '${ArabicStrings.activeMembersLabel}: ${ArabicNumerals.format(state.members!.activeMemberCount)}',
+              style: AppTypography.title,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            for (final member in state.members!.members)
+              _member(context, member),
+            if (!widget.isOwner)
+              AppButton(
+                label: ArabicStrings.leaveGroupAction,
+                variant: AppButtonVariant.secondary,
+                onPressed: () => ConfirmSheet.show(
+                  context,
+                  title: ArabicStrings.leaveGroupAction,
+                  message: ArabicStrings.leaveGroupConfirm,
+                  confirmLabel: ArabicStrings.leaveGroupAction,
+                  onConfirm: () => context.read<MembersCubit>().leave(),
+                ),
+              ),
+          ],
+        );
+      },
+    ),
+  );
+
+  Widget _member(BuildContext context, SeatMember member) => AppCard(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(member.displayName, style: AppTypography.title),
+        Text(
+          '${ArabicStrings.seatLabel} ${ArabicNumerals.format(member.seatNumber)} · ${member.role.name == 'owner'
+              ? ArabicStrings.groupOwner
+              : member.role == GroupRole.supervisor
+              ? ArabicStrings.roleSupervisor
+              : ArabicStrings.memberRole}',
+          style: AppTypography.body,
+        ),
+        Wrap(
+          spacing: AppSpacing.xs,
+          children: [
+            if (widget.isOwner || widget.isSupervisor)
+              PopupMenuButton<int>(
+                tooltip: ArabicStrings.moveSeatAction,
+                onSelected: (seat) => context.read<MembersCubit>().moveSeat(
+                  member.membershipId,
+                  seat,
+                ),
+                itemBuilder: (_) => List.generate(
+                  30,
+                  (i) => PopupMenuItem(
+                    value: i + 1,
+                    child: Text(ArabicNumerals.format(i + 1)),
+                  ),
+                ),
+                child: TextButton.icon(
+                  onPressed: null,
+                  icon: const Icon(Icons.swap_vert),
+                  label: Text(ArabicStrings.moveSeatAction),
+                ),
+              ),
+            if (widget.isOwner && member.role != GroupRole.owner)
+              PopupMenuButton<GroupRole>(
+                tooltip: ArabicStrings.roleChangeAction,
+                onSelected: (role) => context.read<MembersCubit>().setRole(
+                  member.membershipId,
+                  role,
+                ),
+                itemBuilder: (_) => [
+                  PopupMenuItem(
+                    value: GroupRole.member,
+                    child: Text(ArabicStrings.memberRole),
+                  ),
+                  PopupMenuItem(
+                    value: GroupRole.supervisor,
+                    child: Text(ArabicStrings.roleSupervisor),
+                  ),
+                ],
+                child: TextButton.icon(
+                  onPressed: null,
+                  icon: const Icon(Icons.admin_panel_settings_outlined),
+                  label: Text(ArabicStrings.roleChangeAction),
+                ),
+              ),
+            if (widget.isOwner && member.role != GroupRole.owner)
+              TextButton.icon(
+                onPressed: () => ConfirmSheet.show(
+                  context,
+                  title: ArabicStrings.removeMemberAction,
+                  message: ArabicStrings.removeMemberConfirm,
+                  confirmLabel: ArabicStrings.removeMemberAction,
+                  onConfirm: () =>
+                      context.read<MembersCubit>().remove(member.membershipId),
+                ),
+                icon: const Icon(Icons.person_remove_outlined),
+                label: Text(ArabicStrings.removeMemberAction),
+              ),
+            if (widget.isOwner && member.role != GroupRole.owner)
+              TextButton.icon(
+                onPressed: () => ConfirmSheet.show(
+                  context,
+                  title: ArabicStrings.transferOwnershipAction,
+                  message: ArabicStrings.transferOwnershipConfirm,
+                  confirmLabel: ArabicStrings.transferOwnershipAction,
+                  onConfirm: () => context.read<MembersCubit>().transfer(
+                    member.membershipId,
+                  ),
+                ),
+                icon: const Icon(Icons.swap_horiz),
+                label: Text(ArabicStrings.transferOwnershipAction),
+              ),
+          ],
+        ),
+      ],
+    ),
+  );
+}

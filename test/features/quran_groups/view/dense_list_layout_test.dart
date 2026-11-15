@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/daily_history_screen.dart';
-import 'package:quran_daily/features/quran_groups/view/screens/member_management_screen.dart';
-import 'package:quran_daily/features/quran_groups/view/screens/organizer_assignment_review_screen.dart';
 
 import '../../../helpers/widget_test_app.dart';
 
@@ -15,11 +13,7 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    final screens = [
-      const MemberManagementScreen(),
-      const OrganizerAssignmentReviewScreen(),
-      const DailyHistoryScreen(),
-    ];
+    final screens = [const DailyHistoryScreen()];
 
     for (final screen in screens) {
       await tester.pumpWidget(buildArabicTestApp(screen));

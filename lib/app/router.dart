@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../features/quran_groups/view/screens/daily_history_screen.dart';
 import '../features/quran_groups/view/screens/group_dashboard_screen.dart';
 import '../features/quran_groups/view/screens/create_group_screen.dart';
 import '../features/quran_groups/view/screens/group_selection_screen.dart';
-import '../features/quran_groups/view/screens/member_management_screen.dart';
-import '../features/quran_groups/view/screens/organizer_assignment_review_screen.dart';
-import '../features/quran_groups/view/screens/organizer_join_requests_screen.dart';
+import '../features/quran_groups/cubit/join_requests/join_requests_cubit.dart';
+import '../features/quran_groups/cubit/members/members_cubit.dart';
+import '../features/quran_groups/view/screens/join_requests_screen.dart';
+import '../features/quran_groups/view/screens/members_screen.dart';
 import '../features/quran_groups/view/screens/personal_assignment_detail_screen.dart';
 import '../features/quran_groups/view/screens/public_group_discovery_screen.dart';
 import '../features/quran_groups/view/screens/settings_screen.dart';
@@ -39,9 +41,26 @@ class AppRoutes {
       discovery: (_) => const PublicGroupDiscoveryScreen(),
       dashboard: (_) => const GroupDashboardScreen(),
       assignment: (_) => const PersonalAssignmentDetailScreen(),
-      organizerReview: (_) => const OrganizerAssignmentReviewScreen(),
-      joinRequests: (_) => const OrganizerJoinRequestsScreen(),
-      members: (_) => const MemberManagementScreen(),
+      joinRequests: (context) {
+        final args =
+            ModalRoute.of(context)!.settings.arguments! as Map<String, Object?>;
+        return BlocProvider.value(
+          value: args['cubit']! as JoinRequestsCubit,
+          child: JoinRequestsScreen(groupId: args['groupId']! as String),
+        );
+      },
+      members: (context) {
+        final args =
+            ModalRoute.of(context)!.settings.arguments! as Map<String, Object?>;
+        return BlocProvider.value(
+          value: args['cubit']! as MembersCubit,
+          child: MembersScreen(
+            groupId: args['groupId']! as String,
+            isOwner: args['isOwner'] == true,
+            isSupervisor: args['isSupervisor'] == true,
+          ),
+        );
+      },
       history: (_) => const DailyHistoryScreen(),
       settings: (_) => const SettingsScreen(),
     };

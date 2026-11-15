@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quran_daily/core/localization/arabic_strings.dart';
-import 'package:quran_daily/features/quran_groups/view/screens/organizer_assignment_review_screen.dart';
-import 'package:quran_daily/features/quran_groups/view/screens/organizer_join_requests_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/public_group_discovery_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/settings_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/widgets/state_panel.dart';
-import 'package:quran_daily/features/quran_groups/view/widgets/validation_banner.dart';
 
 import '../../../helpers/widget_test_app.dart';
 
@@ -16,7 +12,6 @@ void main() {
     // (group_selection_screen_test.dart) since its rebuild.
     final screens = <Widget>[
       const PublicGroupDiscoveryScreen(),
-      const OrganizerJoinRequestsScreen(),
       const SettingsScreen(),
     ];
 
@@ -27,17 +22,5 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.byType(StatePanel), findsWidgets);
     }
-  });
-
-  testWidgets('validation banners communicate blocked organizer states',
-      (tester) async {
-    await tester.pumpWidget(
-      buildArabicTestApp(const OrganizerAssignmentReviewScreen()),
-    );
-    await tester.pump();
-
-    expect(tester.takeException(), isNull);
-    expect(find.byType(ValidationBanner), findsOneWidget);
-    expect(find.text(ArabicStrings.publishBlocked), findsOneWidget);
   });
 }
