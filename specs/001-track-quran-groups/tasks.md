@@ -211,8 +211,8 @@ Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its 
 
 **Independent test**: quickstart scenario 9.
 
-- [ ] T104 [P] [US7] pgTAP tests for `get_history` and `get_history_day` (members summary + own row only; owner/supervisor per-seat detail; full khatma with late) in `supabase/tests/001_us7_history_test.sql`
-- [ ] T105 [US7] Implement history functions in `supabase/migrations/010_history_functions.sql`
+- [X] T104 [P] [US7] pgTAP tests for `get_history` and `get_history_day` (members summary + own row only; owner/supervisor per-seat detail; full khatma with late) in `supabase/tests/001_us7_history_test.sql`
+- [X] T105 [US7] Implement history functions in `supabase/migrations/010_history_functions.sql`
 - [ ] T106 [P] [US7] Failing tests for history repository methods (cache last page) and `HistoryCubit` (paging, detail by role) in `test/features/quran_groups/cubit/history_cubit_test.dart`
 - [ ] T107 [US7] Implement history in `KhatmaRepositoryImpl` and `HistoryCubit` in `lib/features/quran_groups/cubit/history/`
 - [ ] T108 [P] [US7] Failing widget tests for S10 History list and day detail (all variants) in `test/features/quran_groups/view/history_screen_test.dart`
