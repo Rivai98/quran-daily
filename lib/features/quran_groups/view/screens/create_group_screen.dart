@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/design_system/app_button.dart';
@@ -30,6 +31,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
   String? _nameError;
   String? _descriptionError;
+  bool _preparing = false;
   GroupVisibility _visibility = GroupVisibility.public;
   JoinMode _joinMode = JoinMode.approval;
   final _fallbackMetadata = QuranMetadataRepository();
@@ -44,16 +46,19 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<String> _deviceTimezone() async {
+    try {
+      return (await FlutterTimezone.getLocalTimezone()).identifier;
+    } catch (_) {
+      return 'UTC';
+    }
+  }
+
+  Future<void> _submit() async {
+    if (_preparing) return;
     final cubit = context.read<CreateGroupCubit>();
-    cubit.submit(
-      name: _name.text,
-      shortDescription: _description.text,
-      timezone: 'Africa/Cairo', // device default via flutter_timezone (T062)
-      visibility: _visibility,
-      joinMode: _joinMode,
-    );
     setState(() {
+      _preparing = true;
       _nameError = _name.text.trim().length < 3
           ? ArabicStrings.nameLengthError
           : null;
@@ -61,6 +66,17 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           ? ArabicStrings.descriptionLengthError
           : null;
     });
+    try {
+      await cubit.submit(
+        name: _name.text,
+        shortDescription: _description.text,
+        timezone: await _deviceTimezone(),
+        visibility: _visibility,
+        joinMode: _joinMode,
+      );
+    } finally {
+      if (mounted) setState(() => _preparing = false);
+    }
   }
 
   @override
@@ -77,6 +93,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         },
         builder: (context, state) {
           final submitting = state.status == CreateGroupStatus.submitting;
+          final busy = submitting || _preparing;
           final limitError =
               state.status == CreateGroupStatus.failure &&
               state.failure?.kind == FailureKind.limitReached;
@@ -128,7 +145,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                             : ArabicStrings.privateVisibilityHint,
                         selected: _visibility,
                         onChanged: (v) => setState(() => _visibility = v),
-                        enabled: !submitting,
+                        enabled: !busy,
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       const _CreateSectionHeader(
@@ -148,7 +165,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                             : ArabicStrings.ownerApprovalJoinModeHint,
                         selected: _joinMode,
                         onChanged: (m) => setState(() => _joinMode = m),
-                        enabled: !submitting,
+                        enabled: !busy,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       const _CreateSectionHeader(
@@ -172,7 +189,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                                   count: _metadataRepository
                                       .portions(unit)
                                       .length,
-                                  enabled: !submitting,
+                                  enabled: !busy,
                                   onTap: () => context
                                       .read<CreateGroupCubit>()
                                       .selectPortionUnit(unit),
@@ -196,9 +213,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   padding: AppSpacing.screenH,
                   child: AppButton(
                     label: ArabicStrings.createTheGroup,
-                    loading: submitting,
+                    loading: busy,
                     expanded: true,
-                    onPressed: submitting ? null : _submit,
+                    onPressed: busy ? null : _submit,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),

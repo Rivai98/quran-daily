@@ -40,6 +40,7 @@ Widget _screen(GroupsRepository repository) => MultiBlocProvider(
 );
 
 void main() {
+  setUpAll(loadArabicUiFontsForGoldenTests);
   late _Repository repository;
   setUp(() {
     repository = _Repository();
@@ -94,6 +95,16 @@ void main() {
           find.textContaining(ArabicFormatting.membersProgress(27)),
           findsOneWidget,
           reason: variant,
+        );
+        expect(
+          find.text('القاهرة'),
+          findsOneWidget,
+          reason: 'timezone should be localized to a city name ($variant)',
+        );
+        expect(
+          find.byWidgetPredicate((widget) => widget is TextButton),
+          findsOneWidget,
+          reason: 'join action should use a compact text button ($variant)',
         );
         expect(tester.takeException(), isNull, reason: variant);
       });

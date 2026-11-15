@@ -172,24 +172,14 @@ class _GroupHeader extends StatelessWidget {
   const _GroupHeader();
   @override
   Widget build(BuildContext context) => IslamicOrnamentBand(
-    height: AppSpacing.xxl + (AppSpacing.lg * 3),
+    height: AppSpacing.xxl + AppSpacing.md,
     contentPadding: AppSpacing.md,
     refined: true,
-    child: LayoutBuilder(
-      builder: (context, constraints) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            ArabicStrings.groupSelectionTitle,
-            style: AppTypography.headline,
-          ),
-          if (constraints.maxHeight > 80) ...[
-            const SizedBox(height: AppSpacing.xxs),
-            Text(ArabicStrings.myGroupsSubtitle, style: AppTypography.body),
-          ],
-        ],
+    child: Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Text(
+        ArabicStrings.groupSelectionTitle,
+        style: AppTypography.headline,
       ),
     ),
   );

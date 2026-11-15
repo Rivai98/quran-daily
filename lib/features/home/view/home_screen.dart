@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/router.dart';
 import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_colors.dart';
+import '../../../core/design_system/app_radius.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/widgets/widgets.dart';
 import '../../../core/localization/arabic_strings.dart';
@@ -231,14 +232,18 @@ class _MainGroupHeroCard extends StatelessWidget {
         ),
         if (group.day != null && group.activeMemberCount > 0) ...[
           const SizedBox(height: AppSpacing.xs),
-          LinearProgressIndicator(
-            value: group.activeMemberCount == 0
-                ? 0
-                : group.day!.completedMemberCount / group.activeMemberCount,
-            color: Theme.of(context).extension<AppColors>()!.primary,
-            backgroundColor: Theme.of(
-              context,
-            ).extension<AppColors>()!.surfaceMuted,
+          ClipRRect(
+            borderRadius: AppRadius.pillBR,
+            child: LinearProgressIndicator(
+              minHeight: AppSpacing.xs,
+              value: group.activeMemberCount == 0
+                  ? 0
+                  : group.day!.completedMemberCount / group.activeMemberCount,
+              color: Theme.of(context).extension<AppColors>()!.primary,
+              backgroundColor: Theme.of(
+                context,
+              ).extension<AppColors>()!.surfaceMuted,
+            ),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(

@@ -18,9 +18,13 @@ import 'package:quran_daily/features/home/data/today_repository.dart';
 import 'package:quran_daily/features/home/data/today_snapshot.dart';
 import 'package:quran_daily/features/home/view/home_screen.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/khatma_repository.dart';
+import '../../../helpers/widget_test_app.dart';
 
 void main() {
-  setUpAll(() => initializeDateFormatting('ar'));
+  setUpAll(() async {
+    await initializeDateFormatting('ar');
+    await loadArabicUiFontsForGoldenTests();
+  });
   testWidgets(
     'shows empty entry points in RTL at narrow width and large text',
     (tester) async {
@@ -47,6 +51,7 @@ void main() {
     expect(find.text(ArabicStrings.readNowAction), findsNothing);
     expect(find.text(ArabicStrings.portionUndoAction), findsNWidgets(2));
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    expect(tester.getSize(find.byType(LinearProgressIndicator)).height, 8);
     expect(tester.takeException(), isNull);
   });
 

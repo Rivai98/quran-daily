@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/errors/failures.dart';
@@ -20,10 +21,23 @@ class _MockRepo extends Mock implements GroupsRepository {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(loadArabicUiFontsForGoldenTests);
   late _MockRepo repo;
 
   setUp(() {
     repo = _MockRepo();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('flutter_timezone'),
+          (_) async => 'UTC',
+        );
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('flutter_timezone'),
+            null,
+          ),
+    );
     registerFallbackValue(
       const CreateGroupInput(
         name: 'x',
@@ -82,6 +96,36 @@ void main() {
     expect(find.text(ArabicStrings.khatmaDays(21)), findsOneWidget);
   });
 
+  testWidgets('create group form has light and dark 360x800 goldens', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(360, 800);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final metadataRepository = QuranMetadataRepository(
+      bundle: QuranMetadataTestAssetBundle(),
+    );
+    await tester.runAsync(metadataRepository.load);
+
+    for (final dark in [false, true]) {
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          pump(metadataRepository: metadataRepository),
+          dark: dark,
+          size: const Size(360, 800),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile(
+          '../../../goldens/create_group_${dark ? 'dark' : 'light'}_360x800.png',
+        ),
+      );
+    }
+  });
+
   testWidgets('submitting invalid name shows Arabic validation error and '
       'blocks the repository', (tester) async {
     await tester.pumpWidget(buildArabicTestApp(pump()));
@@ -132,6 +176,40 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(ArabicStrings.membershipLimitMessage), findsOneWidget);
+  });
+
+  testWidgets('uses the device timezone when creating a group', (tester) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('flutter_timezone'), (
+          call,
+        ) async {
+          expect(call.method, 'getLocalTimezone');
+          return 'Asia/Riyadh';
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('flutter_timezone'),
+            null,
+          ),
+    );
+    when(() => repo.createGroup(any())).thenAnswer(
+      (_) async => const FailureResult(
+        AuthFailure(message: 'temporary', code: 'network'),
+      ),
+    );
+
+    await tester.pumpWidget(buildArabicTestApp(pump()));
+    await tester.enterText(find.byType(AppTextField).first, 'حلقة الرياض');
+    await tester.ensureVisible(find.text(ArabicStrings.createTheGroup));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(ArabicStrings.createTheGroup));
+    await tester.pumpAndSettle();
+
+    final input =
+        verify(() => repo.createGroup(captureAny())).captured.single
+            as CreateGroupInput;
+    expect(input.timezone, 'Asia/Riyadh');
   });
 
   testWidgets('renders in all constitution variants without overflow', (

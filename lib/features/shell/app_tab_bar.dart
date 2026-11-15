@@ -14,22 +14,22 @@ class AppTabBar extends StatelessWidget {
     destinations: const [
       NavigationDestination(
         icon: Icon(Icons.home_outlined),
-        selectedIcon: Icon(Icons.home),
+        selectedIcon: Icon(Icons.home_rounded),
         label: ArabicStrings.homeTab,
       ),
       NavigationDestination(
         icon: Icon(Icons.groups_outlined),
-        selectedIcon: Icon(Icons.groups),
+        selectedIcon: Icon(Icons.groups_rounded),
         label: ArabicStrings.groupsTab,
       ),
       NavigationDestination(
         icon: Icon(Icons.menu_book_outlined),
-        selectedIcon: Icon(Icons.menu_book),
+        selectedIcon: Icon(Icons.menu_book_rounded),
         label: ArabicStrings.mushafTab,
       ),
       NavigationDestination(
-        icon: Icon(Icons.person_outline),
-        selectedIcon: Icon(Icons.person),
+        icon: Icon(Icons.person_outline_rounded),
+        selectedIcon: Icon(Icons.person_rounded),
         label: ArabicStrings.profileTab,
       ),
     ],
