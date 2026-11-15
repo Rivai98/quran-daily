@@ -67,8 +67,7 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
   }
 
   void _refreshConfirmationError() {
-    if (_confirmationError != null &&
-        _confirmation.text == _password.text) {
+    if (_confirmationError != null && _confirmation.text == _password.text) {
       setState(() => _confirmationError = null);
     }
   }
@@ -78,8 +77,9 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
 
   bool _validateLogin() {
     setState(() {
-      _emailError =
-          _validEmail(_email.text) ? null : ArabicStrings.invalidEmailError;
+      _emailError = _validEmail(_email.text)
+          ? null
+          : ArabicStrings.invalidEmailError;
       _passwordError = _password.text.isEmpty
           ? ArabicStrings.requiredFieldError
           : null;
@@ -92,8 +92,9 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
       _displayNameError = _displayName.text.trim().isEmpty
           ? ArabicStrings.displayNameError
           : null;
-      _emailError =
-          _validEmail(_email.text) ? null : ArabicStrings.invalidEmailError;
+      _emailError = _validEmail(_email.text)
+          ? null
+          : ArabicStrings.invalidEmailError;
       _passwordError = _password.text.length < 8
           ? ArabicStrings.shortPasswordError
           : null;
@@ -109,8 +110,7 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
 
   void _submit(AuthCubit cubit) {
     final mode = cubit.state.mode;
-    final ok =
-        mode == AuthMode.signup ? _validateSignup() : _validateLogin();
+    final ok = mode == AuthMode.signup ? _validateSignup() : _validateLogin();
     if (!ok) return;
 
     if (mode == AuthMode.signup) {
@@ -161,7 +161,7 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
 
             return Center(
               child: SingleChildScrollView(
-                padding: AppSpacing.screen,
+                padding: AppSpacing.screenContent,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: Column(
@@ -179,8 +179,9 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                       Text(
                         ArabicStrings.signInHint,
                         textAlign: TextAlign.center,
-                        style:
-                            AppTypography.body.copyWith(color: colors.inkMuted),
+                        style: AppTypography.body.copyWith(
+                          color: colors.inkMuted,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.lg),
                       _ModeToggle(enabled: !submitting),
@@ -205,7 +206,7 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                         keyboardType: TextInputType.emailAddress,
                         prefixIcon: Icons.mail_outline,
                       ),
-                      const SizedBox(height: AppSpacing.sm),
+                      const SizedBox(height: AppSpacing.md),
                       AppTextField(
                         key: const ValueKey('auth-password'),
                         label: ArabicStrings.passwordLabel,
@@ -216,7 +217,7 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                         prefixIcon: Icons.lock_outline,
                       ),
                       if (state.mode == AuthMode.signup) ...[
-                        const SizedBox(height: AppSpacing.sm),
+                        const SizedBox(height: AppSpacing.md),
                         AppTextField(
                           key: const ValueKey('auth-confirmation'),
                           label: ArabicStrings.confirmPasswordLabel,
@@ -230,8 +231,8 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                           state.failure != null) ...[
                         const SizedBox(height: AppSpacing.sm),
                         _ErrorBanner(
-                            message:
-                                ArabicStrings.authError(state.failure!.code)),
+                          message: ArabicStrings.authError(state.failure!.code),
+                        ),
                       ],
                       const SizedBox(height: AppSpacing.lg),
                       AppButton(
@@ -248,14 +249,18 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                       const SizedBox(height: AppSpacing.md),
                       Row(
                         children: [
-                          Icon(Icons.info_outline,
-                              size: 20, color: colors.inkMuted),
+                          Icon(
+                            Icons.info_outline,
+                            size: 20,
+                            color: colors.inkMuted,
+                          ),
                           const SizedBox(width: AppSpacing.xs),
                           Expanded(
                             child: Text(
                               ArabicStrings.forgotPasswordGuidance,
-                              style: AppTypography.caption
-                                  .copyWith(color: colors.inkMuted),
+                              style: AppTypography.caption.copyWith(
+                                color: colors.inkMuted,
+                              ),
                             ),
                           ),
                         ],
@@ -283,7 +288,9 @@ class _ErrorBanner extends StatelessWidget {
     final colors = Theme.of(context).extension<AppColors>()!;
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       decoration: ShapeDecoration(
         color: colors.missedBg,
         shape: RoundedRectangleBorder(
@@ -296,9 +303,10 @@ class _ErrorBanner extends StatelessWidget {
           Icon(Icons.error_outline, size: 20, color: colors.danger),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Text(message,
-                style:
-                    AppTypography.caption.copyWith(color: colors.danger)),
+            child: Text(
+              message,
+              style: AppTypography.caption.copyWith(color: colors.danger),
+            ),
           ),
         ],
       ),
@@ -326,13 +334,14 @@ class _ModeToggle extends StatelessWidget {
                 ? context.read<AuthCubit>().showLogin()
                 : context.read<AuthCubit>().showSignup(),
             style: TextButton.styleFrom(
-              backgroundColor:
-                  selected ? colors.primaryContainer : colors.surface,
-              foregroundColor:
-                  selected ? colors.onPrimaryContainer : colors.inkMuted,
+              backgroundColor: selected
+                  ? colors.primaryContainer
+                  : colors.surface,
+              foregroundColor: selected
+                  ? colors.onPrimaryContainer
+                  : colors.inkMuted,
               shape: const RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.all(Radius.circular(AppRadius.md)),
+                borderRadius: BorderRadius.all(Radius.circular(AppRadius.md)),
               ),
             ),
             child: Text(label),
