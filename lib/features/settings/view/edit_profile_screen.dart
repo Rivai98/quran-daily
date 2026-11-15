@@ -189,10 +189,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         Navigator.of(context).pop(true);
       },
       failure: (f) {
-        AppSnackBar.show(
-          context,
-          f.message.isNotEmpty ? f.message : ArabicStrings.operationFailed,
-        );
+        AppSnackBar.show(context, ArabicStrings.authError(f.code));
       },
     );
   }

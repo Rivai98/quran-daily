@@ -43,12 +43,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  void _openRoute(BuildContext context, String routeName) {
-    try {
-      Navigator.of(context).pushNamed(routeName);
-    } catch (_) {
-      // Guarded if missing on this branch
-    }
+  Future<void> _openRoute(BuildContext context, String routeName) async {
+    final cubit = context.read<ProfileCubit>();
+    final changed = await Navigator.of(context).pushNamed<Object?>(routeName);
+    // Edited name/avatar (or settings) must show at once on return.
+    if (changed == true && !cubit.isClosed) await cubit.refresh();
   }
 
   void _confirmSignOut(BuildContext context) {
