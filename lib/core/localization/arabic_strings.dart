@@ -13,6 +13,7 @@ class ArabicStrings {
   static const activeMembersCount = 'الأعضاء النشطون';
   static const formingDashboard = 'المجموعة في طور التكوين';
   static const memberSeats = 'مقاعد الأعضاء';
+  static const juzGridTitle = 'الأجزاء';
   static const assignmentGroupDate = 'ورد اليوم';
 
   static const appName =

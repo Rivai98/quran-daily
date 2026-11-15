@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
+import '../../../../core/design_system/app_button.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
 import '../../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
@@ -75,7 +76,12 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(request.userDisplayName, style: AppTypography.title),
+                    Text(
+                      request.userDisplayName,
+                      style: AppTypography.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     Text(
                       request.source == JoinSource.invite
                           ? ArabicStrings.requestFromInvite
@@ -84,10 +90,14 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
                           : ArabicStrings.requestFromDiscovery,
                       style: AppTypography.caption,
                     ),
+                    const SizedBox(height: AppSpacing.sm),
                     Wrap(
                       spacing: AppSpacing.xs,
+                      runSpacing: AppSpacing.xs,
                       children: [
-                        TextButton(
+                        AppButton(
+                          label: ArabicStrings.approveRequestAction,
+                          variant: AppButtonVariant.tonal,
                           onPressed: () => ConfirmSheet.show(
                             context,
                             title: ArabicStrings.approveRequestAction,
@@ -97,9 +107,10 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
                                 .read<JoinRequestsCubit>()
                                 .review(request.joinRequestId, approve: true),
                           ),
-                          child: const Text(ArabicStrings.approveRequestAction),
                         ),
-                        TextButton(
+                        AppButton(
+                          label: ArabicStrings.rejectRequestAction,
+                          variant: AppButtonVariant.secondary,
                           onPressed: () => ConfirmSheet.show(
                             context,
                             title: ArabicStrings.rejectRequestAction,
@@ -109,7 +120,6 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
                                 .read<JoinRequestsCubit>()
                                 .review(request.joinRequestId, approve: false),
                           ),
-                          child: const Text(ArabicStrings.rejectRequestAction),
                         ),
                       ],
                     ),
