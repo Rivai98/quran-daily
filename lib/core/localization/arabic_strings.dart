@@ -1,6 +1,20 @@
 class ArabicStrings {
   const ArabicStrings._();
 
+  // --- US1 dashboard ---
+  static const myWirdToday = 'وردك اليوم';
+  static const availableJuzTitle = 'أجزاء متاحة للتطوع';
+  static const fullKhatmaBanner = 'اكتملت الختمة اليوم';
+  static const khatmaDuaNote = 'يُستحب دعاء الختم بعد إتمام الجزء الثلاثين';
+  static const dashboardLoadError = 'تعذر تحميل لوحة المجموعة';
+  static const networkFailure = 'تحقق من الاتصال ثم أعد المحاولة';
+  static const noAssignmentToday = 'لا يوجد ورد مسند إليك اليوم';
+  static const openTodayWird = 'افتح وردك';
+  static const activeMembersCount = 'الأعضاء النشطون';
+  static const formingDashboard = 'المجموعة في طور التكوين';
+  static const memberSeats = 'مقاعد الأعضاء';
+  static const assignmentGroupDate = 'ورد اليوم';
+
   static const appName =
       '\u{648}\u{631}\u{62f} \u{627}\u{644}\u{62c}\u{645}\u{627}\u{639}\u{629}';
   static const signInHint =

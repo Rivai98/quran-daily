@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../core/di/service_locator.dart';
+import '../core/localization/arabic_strings.dart';
+import '../core/quran/quran_metadata_repository.dart';
+import '../core/design_system/widgets/state_panel.dart';
+import '../features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
 import '../features/quran_groups/view/screens/daily_history_screen.dart';
 import '../features/quran_groups/view/screens/group_dashboard_screen.dart';
 import '../features/quran_groups/view/screens/create_group_screen.dart';
@@ -37,7 +43,25 @@ class AppRoutes {
       groups: (_) => const GroupSelectionScreen(),
       '/groups/new': (_) => const CreateGroupScreen(),
       discovery: (_) => const PublicGroupDiscoveryScreen(),
-      dashboard: (_) => const GroupDashboardScreen(),
+      dashboard: (context) {
+        final groupId = ModalRoute.of(context)?.settings.arguments as String?;
+        if (groupId == null || groupId.isEmpty) {
+          return Scaffold(
+            body: StatePanel(
+              icon: Icons.groups,
+              title: ArabicStrings.dashboardLoadError,
+              message: ArabicStrings.networkFailure,
+            ),
+          );
+        }
+        return BlocProvider(
+          create: (_) =>
+              serviceLocator<DashboardCubit>(param1: groupId)..refresh(),
+          child: GroupDashboardScreen(
+            metadataRepository: serviceLocator<QuranMetadataRepository>(),
+          ),
+        );
+      },
       assignment: (_) => const PersonalAssignmentDetailScreen(),
       organizerReview: (_) => const OrganizerAssignmentReviewScreen(),
       joinRequests: (_) => const OrganizerJoinRequestsScreen(),
