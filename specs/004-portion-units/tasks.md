@@ -8,9 +8,9 @@ migration repair --remote --yes --status applied <version>` (never db push).
 
 ## Phase 1: Metadata foundation (branch 004-portion-metadata, codex-1)
 
-- [ ] T001 [P] `PortionUnit` enum + `QuranPortion` + `QuranMetadataRepository.portions(unit)`/`portion(unit, i)` derived only from assets/quran/quran-data.xml in `lib/core/quran/`
-- [ ] T002 [P] Tests: counts per unit read from file, contiguity/full coverage, hizb = 4 quarters, half juz = 2 hizb, juz equals existing `juz()` in `test/core/quran/`
-- [ ] T003 Unit labels and portion name formatter ("الحزب ١٢"، "الصفحة ٤٥") in `lib/core/localization/arabic_strings.dart`
+- [X] T001 [P] `PortionUnit` enum + `QuranPortion` + `QuranMetadataRepository.portions(unit)`/`portion(unit, i)` derived only from assets/quran/quran-data.xml in `lib/core/quran/`
+- [X] T002 [P] Tests: counts per unit read from file, contiguity/full coverage, hizb = 4 quarters, half juz = 2 hizb, juz equals existing `juz()` in `test/core/quran/`
+- [X] T003 Unit labels and portion name formatter ("الحزب ١٢"، "الصفحة ٤٥") in `lib/core/localization/arabic_strings.dart`
 
 ## Phase 2: Database (US1, US2, US3, US4)
 
