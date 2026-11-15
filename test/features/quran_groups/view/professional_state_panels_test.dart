@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quran_daily/features/quran_groups/view/screens/public_group_discovery_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/settings_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/widgets/state_panel.dart';
 
@@ -11,7 +10,6 @@ void main() {
     // GroupSelectionScreen is covered by its dedicated test file
     // (group_selection_screen_test.dart) since its rebuild.
     final screens = <Widget>[
-      const PublicGroupDiscoveryScreen(),
       const SettingsScreen(),
     ];
 

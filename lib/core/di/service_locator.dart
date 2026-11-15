@@ -18,6 +18,12 @@ import '../storage/daos/daos.dart';
 import '../../features/auth/data/data_sources/supabase_auth_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/quran_groups/data/data_sources/groups_remote_data_source.dart';
+import '../../features/quran_groups/data/repositories/groups_repository.dart';
+import '../../features/quran_groups/data/repositories/groups_repository_impl.dart';
+import '../../features/quran_groups/cubit/discovery/discovery_cubit.dart';
+import '../../features/quran_groups/cubit/join/join_cubit.dart';
+import '../../features/quran_groups/cubit/group_list/group_list_cubit.dart';
 
 final serviceLocator = GetIt.instance;
 
@@ -130,6 +136,48 @@ void configureServiceLocator({
           settingsRepository: locator<SettingsRepository>(),
           sessionGateway: locator<SessionGateway>(),
         ),
+      );
+    }
+
+    if (!locator.isRegistered<RpcClient>()) {
+      locator.registerLazySingleton<RpcClient>(
+        () => RpcClient.forClient(locator<SupabaseClientProvider>().client),
+      );
+    }
+
+    if (!locator.isRegistered<GroupsRemoteDataSource>()) {
+      locator.registerLazySingleton<GroupsRemoteDataSource>(
+        () => GroupsRemoteDataSourceImpl(locator<RpcClient>()),
+      );
+    }
+
+    if (!locator.isRegistered<GroupsRepository>()) {
+      locator.registerLazySingleton<GroupsRepository>(
+        () => GroupsRepositoryImpl(
+          rpc: locator<RpcClient>(),
+          remote: locator<GroupsRemoteDataSource>(),
+          cache: CachedGroupsDao(locator<LocalDatabase>()),
+          sessionGateway: locator<SessionGateway>(),
+          connectivity: locator<ConnectivityService>(),
+        ),
+      );
+    }
+
+    if (!locator.isRegistered<DiscoveryCubit>()) {
+      locator.registerFactory<DiscoveryCubit>(
+        () => DiscoveryCubit(repository: locator<GroupsRepository>()),
+      );
+    }
+
+    if (!locator.isRegistered<GroupListCubit>()) {
+      locator.registerFactory<GroupListCubit>(
+        () => GroupListCubit(repository: locator<GroupsRepository>()),
+      );
+    }
+
+    if (!locator.isRegistered<JoinCubit>()) {
+      locator.registerFactory<JoinCubit>(
+        () => JoinCubit(repository: locator<GroupsRepository>()),
       );
     }
   }

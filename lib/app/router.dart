@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quran_daily/features/quran_groups/cubit/discovery/discovery_cubit.dart';
+import 'package:quran_daily/features/quran_groups/cubit/join/join_cubit.dart';
 
 import '../core/di/service_locator.dart';
 import '../core/localization/arabic_strings.dart';
@@ -15,8 +17,21 @@ import '../features/quran_groups/cubit/members/members_cubit.dart';
 import '../features/quran_groups/view/screens/join_requests_screen.dart';
 import '../features/quran_groups/view/screens/members_screen.dart';
 import '../features/quran_groups/view/screens/personal_assignment_detail_screen.dart';
-import '../features/quran_groups/view/screens/public_group_discovery_screen.dart';
+import '../features/quran_groups/view/screens/discovery_screen.dart';
+import '../features/quran_groups/view/screens/invite_join_screen.dart';
 import '../features/quran_groups/view/screens/settings_screen.dart';
+
+String? inviteCodeFromDeepLink(Uri uri) {
+  if (uri.scheme != 'qurandaily' ||
+      uri.host != 'join' ||
+      uri.pathSegments.length != 1) {
+    return null;
+  }
+  final code = uri.pathSegments.single.toUpperCase();
+  return RegExp(r'^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{8}$').hasMatch(code)
+      ? code
+      : null;
+}
 
 /// Global navigator key so the auth gate can clear any pushed private
 /// routes when the session ends (sign-out/expiry): back navigation and
@@ -28,7 +43,7 @@ class AppRoutes {
 
   static const auth = '/';
   static const groups = '/groups';
-  static const discovery = '/groups/discovery';
+  static const discovery = '/discover';
   static const dashboard = '/groups/dashboard';
   static const assignment = '/groups/dashboard/assignment';
   static const organizerReview = '/groups/organizer/review';
@@ -43,7 +58,22 @@ class AppRoutes {
     return {
       groups: (_) => const GroupSelectionScreen(),
       '/groups/new': (_) => const CreateGroupScreen(),
-      discovery: (_) => const PublicGroupDiscoveryScreen(),
+      discovery: (_) => BlocProvider(
+        create: (_) => serviceLocator<DiscoveryCubit>()..load(),
+        child: const DiscoveryScreen(),
+      ),
+      '/groups/discovery': (_) => BlocProvider(
+        create: (_) => serviceLocator<DiscoveryCubit>()..load(),
+        child: const DiscoveryScreen(),
+      ),
+      '/join': (_) => BlocProvider(
+        create: (_) => serviceLocator<JoinCubit>(),
+        child: const InviteJoinScreen(),
+      ),
+      '/join-any': (_) => BlocProvider(
+        create: (_) => serviceLocator<JoinCubit>(),
+        child: const InviteJoinScreen(joinAnyMode: true),
+      ),
       dashboard: (context) {
         final groupId = ModalRoute.of(context)?.settings.arguments as String?;
         if (groupId == null || groupId.isEmpty) {
@@ -87,6 +117,32 @@ class AppRoutes {
       history: (_) => const DailyHistoryScreen(),
       settings: (_) => const SettingsScreen(),
     };
+  }
+
+  static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
+    final uri = Uri.tryParse(settings.name ?? '');
+    if (uri == null ||
+        uri.pathSegments.length != 2 ||
+        uri.pathSegments.first != 'join') {
+      return null;
+    }
+    final code = uri.pathSegments.last.toUpperCase();
+    if (!RegExp(r'^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{8}$').hasMatch(code)) {
+      return MaterialPageRoute<void>(
+        settings: settings,
+        builder: (_) => BlocProvider(
+          create: (_) => serviceLocator<JoinCubit>(),
+          child: const InviteJoinScreen(initialCode: 'INVALID'),
+        ),
+      );
+    }
+    return MaterialPageRoute<void>(
+      settings: settings,
+      builder: (_) => BlocProvider(
+        create: (_) => serviceLocator<JoinCubit>(),
+        child: InviteJoinScreen(initialCode: code),
+      ),
+    );
   }
 }
 

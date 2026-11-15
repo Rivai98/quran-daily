@@ -168,15 +168,15 @@ Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its 
 **Goal**: discovery, auto-accept/approval join, join-any, invite codes/links.
 **Independent test**: see quickstart scenario 6.
 
-- [ ] T082 [P] [US4] pgTAP tests for `search_public_groups` (no members/progress, sort, private hidden), `get_invite_preview`, `join_group` (auto-accept lowest seat, approval pending, removed → pending, full, already member, mid-day seat takeover unless volunteered), `join_any_group` (filter + order), `cancel_join_request`, pending request listed by `get_my_groups` and `my_join_request_id` in previews in `supabase/tests/001_us4_join_test.sql`
-- [ ] T083 [US4] Implement join/discovery functions in `supabase/migrations/007_join_functions.sql`
-- [ ] T084 [P] [US4] Failing repository tests for discovery/join methods in `test/features/quran_groups/data/groups_repository_join_test.dart`
-- [ ] T085 [US4] Implement discovery/join methods in `GroupsRepositoryImpl`
-- [ ] T086 [P] [US4] Failing `bloc_test`s for `DiscoveryCubit` (search debounce, paging, per-card join state) and `JoinCubit` (code validation, preview, join, join-any no-group case, pending) in `test/features/quran_groups/cubit/discovery_cubit_test.dart` and `join_cubit_test.dart`
-- [ ] T087 [US4] Implement `DiscoveryCubit` and `JoinCubit` in `lib/features/quran_groups/cubit/`
-- [ ] T088 [P] [US4] Failing widget tests for S2 Discovery and S3 Invite Join (all variants) in `test/features/quran_groups/view/discovery_screen_test.dart` and `invite_join_screen_test.dart`
-- [ ] T089 [US4] Rebuild S2 `screens/discovery_screen.dart` (replace `public_group_discovery_screen.dart`) with `widgets/public_group_card.dart`; build S3 `screens/invite_join_screen.dart`
-- [ ] T090 [US4] Handle `qurandaily://join/<code>` via `app_links` in `lib/app/router.dart` (deferred until signed in); configure Android intent filter in `android/app/src/main/AndroidManifest.xml` and iOS URL type in `ios/Runner/Info.plist`
+- [X] T082 [P] [US4] pgTAP tests for `search_public_groups` (no members/progress, sort, private hidden), `get_invite_preview`, `join_group` (auto-accept lowest seat, approval pending, removed → pending, full, already member, mid-day seat takeover unless volunteered), `join_any_group` (filter + order), `cancel_join_request`, pending request listed by `get_my_groups` and `my_join_request_id` in previews in `supabase/tests/001_us4_join_test.sql`
+- [X] T083 [US4] Implement join/discovery functions in reserved migrations `20261115030001_join_functions.sql`, `20261115030002_join_group_error_codes.sql`, and `20261115030003_block_full_group_requests.sql`
+- [X] T084 [P] [US4] Failing repository tests for discovery/join methods in `test/features/quran_groups/data/groups_repository_join_test.dart`
+- [X] T085 [US4] Reused the already-present discovery/join methods in `GroupsRepositoryImpl`; covered their mapping, RPC arguments, offline, and cancel behavior.
+- [X] T086 [P] [US4] Failing `bloc_test`s for `DiscoveryCubit` (search debounce, paging, per-card join state) and `JoinCubit` (code validation, preview, join, join-any no-group case, pending) in `test/features/quran_groups/cubit/discovery_cubit_test.dart` and `join_cubit_test.dart`
+- [X] T087 [US4] Implement `DiscoveryCubit` and `JoinCubit` in `lib/features/quran_groups/cubit/`
+- [X] T088 [P] [US4] Failing widget tests for S2 Discovery and S3 Invite Join (all variants) in `test/features/quran_groups/view/discovery_screen_test.dart` and `invite_join_screen_test.dart`
+- [X] T089 [US4] Rebuild S2 `screens/discovery_screen.dart` (replace `public_group_discovery_screen.dart`) with `widgets/public_group_card.dart`; build S3 `screens/invite_join_screen.dart`
+- [X] T090 [US4] Handle `qurandaily://join/<code>` via `app_links` in `lib/app/router.dart` (deferred until signed in); configure Android intent filter in `android/app/src/main/AndroidManifest.xml` and iOS URL type in `ios/Runner/Info.plist`
 
 ---
 

@@ -161,6 +161,32 @@ class ArabicStrings {
   static const archiveGroupAction = 'أرشف المجموعة';
   static const missingX = 'ناقص';
 
+  // --- US4 discovery and invitation screens ---
+  static const discoveryScreenTitle =
+      '\u{627}\u{643}\u{62a}\u{634}\u{627}\u{641} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{627}\u{62a}';
+  static const inviteJoinScreenTitle =
+      '\u{627}\u{644}\u{627}\u{646}\u{636}\u{645}\u{627}\u{645} \u{628}\u{631}\u{645}\u{632} \u{62f}\u{639}\u{648}\u{629}';
+  static const joinGroupAction =
+      '\u{627}\u{646}\u{636}\u{645} \u{625}\u{644}\u{649} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}';
+  static const joinedSuccessfully =
+      '\u{62a}\u{645} \u{627}\u{644}\u{627}\u{646}\u{636}\u{645}\u{627}\u{645} \u{625}\u{644}\u{649} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}';
+  static const previewInviteAction =
+      '\u{639}\u{631}\u{636} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}';
+  static const inviteCodeInvalid =
+      '\u{62a}\u{62d}\u{642}\u{642} \u{645}\u{646} \u{631}\u{645}\u{632} \u{627}\u{644}\u{62f}\u{639}\u{648}\u{629} \u{648}\u{623}\u{639}\u{62f} \u{627}\u{644}\u{645}\u{62d}\u{627}\u{648}\u{644}\u{629}.';
+  static const discoveryOffline =
+      '\u{64a}\u{644}\u{632}\u{645} \u{627}\u{62a}\u{635}\u{627}\u{644} \u{62a}\u{646}\u{638}\u{64a}\u{645}\u{627}\u{62a} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{627}\u{62a}.';
+  static const inviteUnavailable =
+      '\u{644}\u{627} \u{64a}\u{645}\u{643}\u{646} \u{627}\u{644}\u{627}\u{646}\u{636}\u{645}\u{627}\u{645} \u{625}\u{644}\u{649} \u{647}\u{630}\u{647} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{627}\u{644}\u{622}\u{646}.';
+  static const groupArchivedLabel =
+      '\u{645}\u{623}\u{631}\u{634}\u{641}\u{629}';
+  static const activeMemberCountLabel =
+      '\u{639}\u{636}\u{648} \u{646}\u{634}\u{637}';
+  static const groupTimezoneLabel =
+      '\u{627}\u{644}\u{62a}\u{648}\u{642}\u{64a}\u{62a} \u{627}\u{644}\u{645}\u{62d}\u{644}\u{64a}';
+  static const joinError =
+      '\u{62a}\u{639}\u{630}\u{631} \u{627}\u{644}\u{627}\u{646}\u{636}\u{645}\u{627}\u{645}. \u{62a}\u{62d}\u{642}\u{642} \u{645}\u{646} \u{627}\u{644}\u{627}\u{62a}\u{635}\u{627}\u{644} \u{648}\u{623}\u{639}\u{62f} \u{627}\u{644}\u{645}\u{62d}\u{627}\u{648}\u{644}\u{629}.';
+
   // Field-level validation copy.
   static const invalidEmailError = 'أدخل بريدًا إلكترونيًا صحيحًا';
   static const shortPasswordError = 'كلمة المرور ٨ أحرف على الأقل';
