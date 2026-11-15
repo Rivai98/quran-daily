@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/design_system/app_colors.dart';
+import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/app_button.dart';
@@ -49,7 +50,7 @@ class InviteCodeRow extends StatelessWidget {
             message: ArabicStrings.copyInviteCode,
             child: InkWell(
               onTap: () => _copy(context),
-              borderRadius: BorderRadius.circular(AppSpacing.xs),
+              borderRadius: AppRadius.smBR,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                 child: Row(
