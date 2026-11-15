@@ -4,7 +4,7 @@
 /// spelling variants: ة/ه, أ/إ/آ/ٱ → ا, ى → ي, with diacritics, Quranic
 /// annotation marks and tatweel removed.
 abstract final class ArabicSearch {
-  static final _marks = RegExp('[ً-ٰٟـۖ-ۭ]');
+  static final _marks = RegExp(r'[\u064B-\u065F\u0670\u0640\u06D6-\u06ED]');
 
   static const _folds = {
     'أ': 'ا',
