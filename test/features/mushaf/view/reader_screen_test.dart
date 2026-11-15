@@ -14,7 +14,7 @@ import '../../../helpers/widget_test_app.dart';
 
 void main() {
   testWidgets(
-    'renders reversed reader in RTL, dark, 200%, and 320dp variants',
+    'renders RTL reader (next page on the left) in RTL, dark, 200%, and 320dp variants',
     (tester) async {
       for (final variant in testVariants) {
         tester.view.physicalSize = variant.size;
@@ -49,7 +49,8 @@ void main() {
           (tester.widget<PageView>(
             find.byKey(const ValueKey('mushaf-page-view')),
           )).reverse,
-          isTrue,
+          isFalse,
+          reason: 'RTL directionality already places the next page on the left',
         );
         await tester.pumpWidget(const SizedBox.shrink());
         await cubit.close();

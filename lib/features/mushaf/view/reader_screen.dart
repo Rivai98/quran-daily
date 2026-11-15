@@ -321,7 +321,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
                           controller: _pages ??= PageController(
                             initialPage: page!.number - (state.startPage ?? 1),
                           ),
-                          reverse: true,
+                          // The app is RTL, so a non-reversed horizontal PageView
+                          // already places the next page on the left, like a
+                          // printed Mushaf.
                           itemCount: state.isPortion
                               ? state.portionPageCount + 1
                               : widget.repository.pageCount,
