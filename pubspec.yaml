@@ -59,6 +59,7 @@ dependencies:
   adhan: ^2.0.0+1
   image_picker: ^1.2.3
   image_cropper: ^12.2.1
+  wakelock_plus: 1.5.2
   flutter_image_compress: ^2.5.1
 
 dev_dependencies:
@@ -78,6 +79,13 @@ dev_dependencies:
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
   flutter_launcher_icons: ^0.14.4
+
+dependency_overrides:
+  # Keep mobile wakelock_plus usable with the existing Windows/Linux plugin
+  # versions while the project is on Dart 3.10.
+  dbus: ^0.8.0
+  package_info_plus: ^10.1.0
+  win32: ^6.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

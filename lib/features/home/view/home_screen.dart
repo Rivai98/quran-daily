@@ -183,12 +183,16 @@ class _MainGroupHeroCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         InkWell(
-          onTap: () => Navigator.pushNamed(context, AppRoutes.dashboard, arguments: group.groupId),
+          onTap: () => Navigator.pushNamed(
+            context,
+            AppRoutes.dashboard,
+            arguments: group.groupId,
+          ),
           child: Row(
             children: [
-            GroupAvatar(name: group.name, size: 40),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(child: Text(group.name, style: AppTypography.title)),
+              GroupAvatar(name: group.name, size: 40),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(child: Text(group.name, style: AppTypography.title)),
             ],
           ),
         ),
@@ -228,7 +232,14 @@ class _MainGroupHeroCard extends StatelessWidget {
             Text(ArabicStrings.todayCompleteTitle, style: AppTypography.body),
             TextButton(
               onPressed: group.items.first.canUndo
-                  ? () => ConfirmSheet.show(context, title: ArabicStrings.confirmUndoAction, message: ArabicStrings.undoCompletionHint, confirmLabel: ArabicStrings.confirmUndoAction, destructive: true, onConfirm: () => undo(group.items.first))
+                  ? () => ConfirmSheet.show(
+                      context,
+                      title: ArabicStrings.confirmUndoAction,
+                      message: ArabicStrings.undoCompletionHint,
+                      confirmLabel: ArabicStrings.confirmUndoAction,
+                      destructive: true,
+                      onConfirm: () => undo(group.items.first),
+                    )
                   : null,
               child: const Text(ArabicStrings.portionUndoAction),
             ),
@@ -237,10 +248,23 @@ class _MainGroupHeroCard extends StatelessWidget {
               label: ArabicStrings.readNowAction,
               icon: const Icon(Icons.menu_book),
               expanded: true,
-              onPressed: () => Navigator.pushNamed(context, AppRoutes.mushafReader, arguments: {'unit': group.portionUnit, 'index': group.items.first.portionIndex, 'assignmentId': group.items.first.assignmentId, 'alreadyCompleted': false}),
+              onPressed: () => AppRoutes.pushReader(
+                context,
+                arguments: {
+                  'unit': group.portionUnit,
+                  'index': group.items.first.portionIndex,
+                  'assignmentId': group.items.first.assignmentId,
+                  'alreadyCompleted': false,
+                },
+              ),
             ),
             const SizedBox(height: AppSpacing.xs),
-            _CompletionAction(item: group.items.first, complete: complete, undo: undo, busy: busyId == group.items.first.assignmentId),
+            _CompletionAction(
+              item: group.items.first,
+              complete: complete,
+              undo: undo,
+              busy: busyId == group.items.first.assignmentId,
+            ),
           ],
         ],
       ],
@@ -381,26 +405,26 @@ class _CompletionAction extends StatelessWidget {
     final done = item.status == 'completed' || item.status == 'late';
     if (done) {
       return TextButton(
-            onPressed: item.canUndo
-                ? () => ConfirmSheet.show(
-                    context,
-                    title: ArabicStrings.confirmUndoAction,
-                    message: ArabicStrings.undoCompletionHint,
-                    confirmLabel: ArabicStrings.confirmUndoAction,
-                    destructive: true,
-                    onConfirm: () => undo(item),
-                  )
-                : null,
-            child: const Text(ArabicStrings.portionUndoAction),
+        onPressed: item.canUndo
+            ? () => ConfirmSheet.show(
+                context,
+                title: ArabicStrings.confirmUndoAction,
+                message: ArabicStrings.undoCompletionHint,
+                confirmLabel: ArabicStrings.confirmUndoAction,
+                destructive: true,
+                onConfirm: () => undo(item),
+              )
+            : null,
+        child: const Text(ArabicStrings.portionUndoAction),
       );
     }
     return AppButton(
-            label: ArabicStrings.portionCompleteAction,
-            variant: AppButtonVariant.tonal,
-            expanded: true,
-            loading: busy,
-            icon: const Icon(Icons.check_circle_outline),
-            onPressed: () => complete(item),
+      label: ArabicStrings.portionCompleteAction,
+      variant: AppButtonVariant.tonal,
+      expanded: true,
+      loading: busy,
+      icon: const Icon(Icons.check_circle_outline),
+      onPressed: () => complete(item),
     );
   }
 }

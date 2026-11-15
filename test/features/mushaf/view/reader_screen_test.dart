@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
@@ -88,6 +89,56 @@ void main() {
     tester.view.resetDevicePixelRatio();
   });
 
+  testWidgets('tap toggles reader chrome and restores system UI on exit', (
+    tester,
+  ) async {
+    final systemUiCalls = <MethodCall>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method.startsWith('SystemChrome.')) systemUiCalls.add(call);
+        return null;
+      },
+    );
+    final repo = _Repository();
+    final storage = _Storage();
+    final cubit = ReaderCubit(repository: repo, storage: storage);
+    await cubit.openPage(1);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: ReaderScreen(
+            repository: repo,
+            storage: storage,
+            metadata: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(AppBar), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('reader-page-tap-area')));
+    await tester.pumpAndSettle();
+    expect(find.byType(AppBar), findsNothing);
+    expect(systemUiCalls.last.method, 'SystemChrome.setEnabledSystemUIMode');
+    expect(systemUiCalls.last.arguments, 'SystemUiMode.immersiveSticky');
+
+    await tester.tap(find.byKey(const ValueKey('reader-page-tap-area')));
+    await tester.pumpAndSettle();
+    expect(find.byType(AppBar), findsOneWidget);
+    expect(systemUiCalls.last.arguments, 'SystemUiMode.edgeToEdge');
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    expect(systemUiCalls.last.arguments, 'SystemUiMode.edgeToEdge');
+    await cubit.close();
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      null,
+    );
+  });
+
   testWidgets('shows the page the cubit opened, not the first page', (
     tester,
   ) async {
@@ -121,45 +172,53 @@ void main() {
     tester.view.resetDevicePixelRatio();
   });
 
-  testWidgets('renders Mushaf slim header, page footer, surah title band, and bookmark in app bar', (tester) async {
-    final repo = _RichRepository();
-    final storage = _Storage();
-    final cubit = ReaderCubit(repository: repo, storage: storage);
-    await cubit.openPortion(PortionUnit.juz, 1, assignmentId: 'assign-1');
-    await tester.pumpWidget(
-      buildArabicTestApp(
-        BlocProvider.value(
-          value: cubit,
-          child: ReaderScreen(
-            repository: repo,
-            storage: storage,
-            metadata: QuranMetadataRepository(),
+  testWidgets(
+    'renders Mushaf slim header, page footer, surah title band, and bookmark in app bar',
+    (tester) async {
+      final repo = _RichRepository();
+      final storage = _Storage();
+      final cubit = ReaderCubit(repository: repo, storage: storage);
+      await cubit.openPortion(PortionUnit.juz, 1, assignmentId: 'assign-1');
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          BlocProvider.value(
+            value: cubit,
+            child: ReaderScreen(
+              repository: repo,
+              storage: storage,
+              metadata: QuranMetadataRepository(),
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    // 1. Bookmark action in AppBar
-    expect(find.byIcon(Icons.bookmark_add_outlined), findsOneWidget);
+      // 1. Bookmark action in AppBar
+      expect(find.byIcon(Icons.bookmark_add_outlined), findsOneWidget);
 
-    // 2. Surah title band at ayah 1
-    expect(find.text('${ArabicStrings.surahWord} ${ArabicStrings.mushafTitle}'), findsWidgets);
+      // 2. Surah title band at ayah 1
+      expect(
+        find.text('${ArabicStrings.surahWord} ${ArabicStrings.mushafTitle}'),
+        findsWidgets,
+      );
 
-    // 3. Page number footer
-    expect(find.text('١'), findsWidgets);
+      // 3. Page number footer
+      expect(find.text('١'), findsWidgets);
 
-    // 4. Portion banner with portion name + "صفحة ١ من ٢"
-    expect(find.text('صفحة ١ من ٢'), findsOneWidget);
+      // 4. Portion banner with portion name + "صفحة ١ من ٢"
+      expect(find.text('صفحة ١ من ٢'), findsOneWidget);
 
-    // 5. Start highlight
-    expect(find.text('بداية الورد'), findsOneWidget);
+      // 5. Start highlight
+      expect(find.text('بداية الورد'), findsOneWidget);
 
-    await tester.pumpWidget(const SizedBox.shrink());
-    await cubit.close();
-  });
+      await tester.pumpWidget(const SizedBox.shrink());
+      await cubit.close();
+    },
+  );
 
-  testWidgets('renders completion action and end highlight on end page', (tester) async {
+  testWidgets('renders completion action and end highlight on end page', (
+    tester,
+  ) async {
     final repo = _RichRepository();
     final storage = _Storage();
     final cubit = ReaderCubit(repository: repo, storage: storage);
@@ -200,14 +259,8 @@ class _RichRepository implements MushafRepository {
     juz: 1,
     firstSurah: 1,
     ayahs: [
-      MushafAyah(
-        ref: const AyahRef(surah: 1, ayah: 1),
-        text: 'ayah 1 text',
-      ),
-      MushafAyah(
-        ref: const AyahRef(surah: 1, ayah: 2),
-        text: 'ayah 2 text',
-      ),
+      MushafAyah(ref: const AyahRef(surah: 1, ayah: 1), text: 'ayah 1 text'),
+      MushafAyah(ref: const AyahRef(surah: 1, ayah: 2), text: 'ayah 2 text'),
     ],
   );
 
@@ -231,14 +284,10 @@ class _RichRepository implements MushafRepository {
   ];
 
   @override
-  List<({int juz, int startPage})> juzIndex() => [
-    (juz: 1, startPage: 1),
-  ];
+  List<({int juz, int startPage})> juzIndex() => [(juz: 1, startPage: 1)];
 
   @override
-  List<({int hizb, int startPage})> hizbIndex() => [
-    (hizb: 1, startPage: 1),
-  ];
+  List<({int hizb, int startPage})> hizbIndex() => [(hizb: 1, startPage: 1)];
 }
 
 class _Repository implements MushafRepository {

@@ -91,6 +91,12 @@ class AppRoutes {
   static const mushafBookmarks = '/mushaf/bookmarks';
   static const mushafLicenses = '/mushaf/licenses';
 
+  static Future<T?> pushReader<T>(BuildContext context, {Object? arguments}) =>
+      Navigator.of(
+        context,
+        rootNavigator: true,
+      ).pushNamed<T>(mushafReader, arguments: arguments);
+
   // --- 007 profiles ---
   static const memberProfile = '/groups/member/profile';
   static const groupInfo = '/groups/info';
@@ -106,8 +112,7 @@ class AppRoutes {
     final (repository, _) = dependencies;
     return MushafIndexScreen(
       repository: repository,
-      onOpenPage: (page) =>
-          Navigator.pushNamed(context, mushafReader, arguments: {'page': page}),
+      onOpenPage: (page) => pushReader(context, arguments: {'page': page}),
     );
   }
 
@@ -320,11 +325,7 @@ class AppRoutes {
         final (repository, _) = dependencies;
         return MushafIndexScreen(
           repository: repository,
-          onOpenPage: (page) => Navigator.pushReplacementNamed(
-            context,
-            mushafReader,
-            arguments: {'page': page},
-          ),
+          onOpenPage: (page) => pushReader(context, arguments: {'page': page}),
         );
       },
       mushafBookmarks: (context) {
@@ -333,11 +334,7 @@ class AppRoutes {
         final storage = dependencies.$2;
         return BookmarksScreen(
           storage: storage,
-          onOpenPage: (page) => Navigator.pushReplacementNamed(
-            context,
-            mushafReader,
-            arguments: {'page': page},
-          ),
+          onOpenPage: (page) => pushReader(context, arguments: {'page': page}),
         );
       },
       mushafLicenses: (_) => const MushafLicensesScreen(),
@@ -375,7 +372,7 @@ class AppRoutes {
       profile: (_) => BlocProvider(
         create: (_) => serviceLocator<ProfileCubit>()..load(),
         child: const ProfileScreen(),
-        ),
+      ),
       log: (_) => BlocProvider(
         create: (_) => serviceLocator<LogCubit>()..load(),
         child: LogScreen(repository: serviceLocator<LogRepository>()),

@@ -38,8 +38,8 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
   late final Future<void> _metadata = widget.metadataRepository.load();
   MushafRepository? get _mushaf =>
       serviceLocator.isRegistered<MushafRepository>()
-          ? serviceLocator<MushafRepository>()
-          : null;
+      ? serviceLocator<MushafRepository>()
+      : null;
   late final Future<void>? _mushafLoad = _mushaf?.load();
 
   @override
@@ -94,12 +94,16 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                           children: [
                             Text(
                               ArabicStrings.portionRange(
-                            widget.metadataRepository.suraName(info.startSura),
-                            info.startAya,
-                            widget.metadataRepository.suraName(info.endSura),
-                            info.endAya,
-                          ),
-                          style: AppTypography.bodyLarge,
+                                widget.metadataRepository.suraName(
+                                  info.startSura,
+                                ),
+                                info.startAya,
+                                widget.metadataRepository.suraName(
+                                  info.endSura,
+                                ),
+                                info.endAya,
+                              ),
+                              style: AppTypography.bodyLarge,
                             ),
                             if (pageSource != null)
                               FutureBuilder<void>(
@@ -147,9 +151,8 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                 icon: const Icon(Icons.menu_book),
                 variant: AppButtonVariant.secondary,
                 expanded: true,
-                onPressed: () => Navigator.pushNamed(
+                onPressed: () => AppRoutes.pushReader(
                   context,
-                  AppRoutes.mushafReader,
                   arguments: {
                     'unit': widget.snapshot.portionUnit,
                     'index': current.portionIndex,

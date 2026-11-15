@@ -31,4 +31,45 @@ void main() {
     expect(find.text(ArabicStrings.groupNameLabel), findsOneWidget);
     expect(find.text(ArabicStrings.createTheGroup), findsOneWidget);
   });
+
+  testWidgets('reader entry pushes onto root navigator above tab bar', (
+    tester,
+  ) async {
+    final rootKey = GlobalKey<NavigatorState>();
+    var readerIsOnRoot = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: rootKey,
+        routes: {
+          AppRoutes.mushafReader: (context) {
+            readerIsOnRoot =
+                ModalRoute.of(context)?.navigator == rootKey.currentState;
+            return const Scaffold(body: Text('reader route'));
+          },
+        },
+        home: Scaffold(
+          body: Navigator(
+            onGenerateRoute: (_) => MaterialPageRoute<void>(
+              builder: (context) => Scaffold(
+                body: Builder(
+                  builder: (context) => ElevatedButton(
+                    onPressed: () =>
+                        AppRoutes.pushReader(context, arguments: {'page': 1}),
+                    child: const Text('open'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          bottomNavigationBar: const Text('tab bar'),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(readerIsOnRoot, isTrue);
+    expect(find.text('reader route'), findsOneWidget);
+    expect(find.text('tab bar'), findsNothing);
+  });
 }

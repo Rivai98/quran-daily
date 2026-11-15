@@ -115,9 +115,8 @@ class MyJuzCard extends StatelessWidget {
             label: ArabicStrings.readNowAction,
             icon: const Icon(Icons.menu_book),
             expanded: true,
-            onPressed: () => Navigator.pushNamed(
+            onPressed: () => AppRoutes.pushReader(
               context,
-              AppRoutes.mushafReader,
               arguments: {
                 'unit': snapshot.portionUnit,
                 'index': assignment.portionIndex,
