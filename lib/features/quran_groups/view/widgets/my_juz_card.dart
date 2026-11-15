@@ -51,6 +51,23 @@ class MyJuzCard extends StatelessWidget {
               style: AppTypography.display,
               textAlign: TextAlign.start,
             ),
+            for (final volunteered in snapshot.myAssignments.where(
+              (item) => item.kind == AssignmentKind.volunteer,
+            )) ...[
+              const SizedBox(height: AppSpacing.xs),
+              Row(
+                children: [
+                  Icon(Icons.volunteer_activism, color: colors.primary),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: Text(
+                      '${ArabicStrings.volunteeredJuz}: ${ArabicNumerals.format(volunteered.juz)}',
+                      style: AppTypography.body,
+                    ),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: AppSpacing.sm),
             AppButton(
               label: ArabicStrings.openTodayWird,

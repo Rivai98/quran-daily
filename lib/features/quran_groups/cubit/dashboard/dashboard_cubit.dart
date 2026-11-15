@@ -17,15 +17,26 @@ class DashboardState extends Equatable {
     this.snapshot,
     this.failure,
     this.dayRolledOver = false,
+    this.volunteeringAssignmentId,
+    this.volunteerFeedbackCode,
   });
 
   final DashboardStatus status;
   final DashboardSnapshot? snapshot;
   final AppFailure? failure;
   final bool dayRolledOver;
+  final String? volunteeringAssignmentId;
+  final String? volunteerFeedbackCode;
 
   @override
-  List<Object?> get props => [status, snapshot, failure, dayRolledOver];
+  List<Object?> get props => [
+    status,
+    snapshot,
+    failure,
+    dayRolledOver,
+    volunteeringAssignmentId,
+    volunteerFeedbackCode,
+  ];
 }
 
 class DashboardCubit extends Cubit<DashboardState> {
@@ -86,6 +97,64 @@ class DashboardCubit extends Cubit<DashboardState> {
           snapshot: state.snapshot,
           failure: failure,
         ),
+      ),
+    );
+  }
+
+  Future<void> volunteer(String assignmentId) async {
+    if (state.volunteeringAssignmentId != null) return;
+    final before = state;
+    emit(
+      DashboardState(
+        status: before.status,
+        snapshot: before.snapshot,
+        failure: before.failure,
+        dayRolledOver: before.dayRolledOver,
+        volunteeringAssignmentId: assignmentId,
+        volunteerFeedbackCode: null,
+      ),
+    );
+    final result = await _repository.volunteer(assignmentId);
+    if (result.isSuccess) {
+      final snapshot = result.valueOrNull!;
+      emit(
+        DashboardState(
+          status: snapshot.isStale
+              ? DashboardStatus.offline
+              : DashboardStatus.success,
+          snapshot: snapshot,
+          dayRolledOver: before.dayRolledOver,
+          volunteerFeedbackCode: null,
+        ),
+      );
+      return;
+    }
+    final failure = result.failureOrNull!;
+    if (failure.code == 'juz_already_taken') {
+      final refreshed = await _repository.getDashboard(groupId);
+      final updated = refreshed.valueOrNull;
+      emit(
+        DashboardState(
+          status: updated == null
+              ? before.status
+              : (updated.isStale
+                    ? DashboardStatus.offline
+                    : DashboardStatus.success),
+          snapshot: updated ?? before.snapshot,
+          failure: failure,
+          dayRolledOver: before.dayRolledOver,
+          volunteerFeedbackCode: failure.code,
+        ),
+      );
+      return;
+    }
+    emit(
+      DashboardState(
+        status: DashboardStatus.failure,
+        snapshot: before.snapshot,
+        failure: failure,
+        dayRolledOver: before.dayRolledOver,
+        volunteerFeedbackCode: failure.code,
       ),
     );
   }

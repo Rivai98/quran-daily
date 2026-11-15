@@ -184,11 +184,11 @@ Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its 
 
 **Independent test**: volunteer once → assigned to me today; concurrent volunteer → exactly one wins; not carried next day; unread at grace.
 
-- [ ] T091 [P] [US5] pgTAP tests for `volunteer_for_juz` (open only, active member, multiple juz allowed, concurrent conflict via two sessions, next-day reset) in `supabase/tests/001_us5_volunteer_test.sql`
-- [ ] T092 [US5] Implement `volunteer_for_juz` in `supabase/migrations/008_volunteer_functions.sql`
-- [ ] T093 [P] [US5] Failing tests for `KhatmaRepositoryImpl.volunteer` and `DashboardCubit.volunteer` (success updates snapshot, `juz_already_taken` → conflict message + refresh, offline → network failure) in `test/features/quran_groups/cubit/dashboard_volunteer_test.dart`
-- [ ] T094 [US5] Implement volunteer in repository and `DashboardCubit`; volunteered juz render as extra cards in `my_juz_card.dart` area
-- [ ] T095 [US5] Widget tests + UI for "أتطوع بقراءته" action and taken state in `test/features/quran_groups/view/available_juz_list_test.dart` and `widgets/available_juz_list.dart`
+- [X] T091 [P] [US5] pgTAP tests for `volunteer_for_juz` (open only, active member, multiple juz allowed, concurrent conflict via two sessions, next-day reset) in `supabase/tests/001_us5_volunteer_test.sql`
+- [X] T092 [US5] Implement `volunteer_for_juz` in `supabase/migrations/008_volunteer_functions.sql`
+- [X] T093 [P] [US5] Failing tests for `KhatmaRepositoryImpl.volunteer` and `DashboardCubit.volunteer` (success updates snapshot, `juz_already_taken` → conflict message + refresh, offline → network failure) in `test/features/quran_groups/cubit/dashboard_volunteer_test.dart`
+- [X] T094 [US5] Implement volunteer in repository and `DashboardCubit`; volunteered juz render as extra cards in `my_juz_card.dart` area
+- [X] T095 [US5] Widget tests + UI for "أتطوع بقراءته" action and taken state in `test/features/quran_groups/view/available_juz_list_test.dart` and `widgets/available_juz_list.dart`
 
 ---
 
