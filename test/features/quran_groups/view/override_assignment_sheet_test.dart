@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/design_system/app_theme.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
-import 'package:quran_daily/features/quran_groups/data/repositories/khatma_repository.dart';
 import 'package:quran_daily/features/quran_groups/view/widgets/override_assignment_sheet.dart';
-
-class _Khatma extends Mock implements KhatmaRepository {}
 
 void main() {
   testWidgets(
@@ -18,18 +14,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      final repository = _Khatma();
-      when(() => repository.overrideAssignment('a1', 'm1')).thenAnswer(
-        (_) async => Success<DashboardSnapshot>(
-          DashboardSnapshot(
-            groupId: 'g',
-            groupName: ArabicStrings.memberRole,
-            myRole: GroupRole.owner,
-            status: GroupStatus.active,
-            serverGeneratedAt: DateTime.utc(2026),
-          ),
-        ),
-      );
+      var submitted = false;
       await tester.pumpWidget(
         MaterialApp(
           theme: AppTheme.dark,
@@ -40,7 +25,6 @@ void main() {
                 body: TextButton(
                   onPressed: () => OverrideAssignmentSheet.show(
                     context,
-                    assignmentId: 'a1',
                     members: const [
                       SeatMember(
                         membershipId: 'm1',
@@ -49,7 +33,18 @@ void main() {
                         seatNumber: 2,
                       ),
                     ],
-                    repository: repository,
+                    onSubmit: (id) async {
+                      submitted = id == 'm1';
+                      return Success<DashboardSnapshot>(
+                        DashboardSnapshot(
+                          groupId: 'g',
+                          groupName: ArabicStrings.memberRole,
+                          myRole: GroupRole.owner,
+                          status: GroupStatus.active,
+                          serverGeneratedAt: DateTime.utc(2026),
+                        ),
+                      );
+                    },
                   ),
                   child: const Text(''),
                 ),
@@ -68,7 +63,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.byType(FilledButton).last);
       await tester.pumpAndSettle();
-      verify(() => repository.overrideAssignment('a1', 'm1')).called(1);
+      expect(submitted, isTrue);
       expect(tester.takeException(), isNull);
     },
   );

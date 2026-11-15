@@ -162,4 +162,37 @@ void main() {
       ),
     ],
   );
+
+  blocTest<DashboardCubit, DashboardState>(
+    'owner override updates the dashboard snapshot',
+    build: () {
+      when(
+        () => repository.overrideAssignment('a1', 'm1'),
+      ).thenAnswer((_) async => Success(_snapshot()));
+      return DashboardCubit(
+        repository: repository,
+        groupId: 'g1',
+        initialState: DashboardState(
+          status: DashboardStatus.success,
+          snapshot: DashboardSnapshot(
+            groupId: 'g1',
+            groupName: 'group',
+            myRole: GroupRole.owner,
+            status: GroupStatus.active,
+            serverGeneratedAt: DateTime.utc(2026),
+          ),
+        ),
+      );
+    },
+    act: (cubit) => cubit.overrideAssignment('a1', 'm1'),
+    expect: () => [
+      isA<DashboardState>().having(
+        (s) => s.snapshot,
+        'updated snapshot',
+        isNotNull,
+      ),
+    ],
+    verify: (_) =>
+        verify(() => repository.overrideAssignment('a1', 'm1')).called(1),
+  );
 }

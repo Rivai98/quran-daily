@@ -10,6 +10,10 @@ abstract interface class KhatmaRemoteDataSource {
   });
   Future<Result<dynamic>> undoCompletion(String assignmentId);
   Future<Result<dynamic>> volunteer(String assignmentId);
+  Future<Result<dynamic>> overrideAssignment(
+    String assignmentId,
+    String membershipId,
+  );
 }
 
 class KhatmaRemoteDataSourceImpl implements KhatmaRemoteDataSource {
@@ -43,4 +47,13 @@ class KhatmaRemoteDataSourceImpl implements KhatmaRemoteDataSource {
     'volunteer_for_juz',
     {'p_assignment_id': assignmentId},
   );
+
+  @override
+  Future<Result<dynamic>> overrideAssignment(
+    String assignmentId,
+    String membershipId,
+  ) => _rpc.call<dynamic>('override_assignment', {
+    'p_assignment_id': assignmentId,
+    'p_membership_id': membershipId,
+  });
 }

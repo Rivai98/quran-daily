@@ -108,6 +108,7 @@ void configureServiceLocator({
       locator.registerFactoryParam<DashboardCubit, String, void>(
         (groupId, _) => DashboardCubit(
           repository: locator<KhatmaRepository>(),
+          groupsRepository: locator<GroupsRepository>(),
           groupId: groupId,
           syncPending: SyncPendingCompletions(locator<KhatmaRepository>()),
           connectivityService: locator<ConnectivityService>(),

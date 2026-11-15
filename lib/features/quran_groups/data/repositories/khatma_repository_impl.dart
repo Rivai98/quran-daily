@@ -251,7 +251,23 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
   Future<Result<DashboardSnapshot>> overrideAssignment(
     String assignmentId,
     String membershipId,
-  ) => _notImplemented();
+  ) async {
+    final cached = await _findAssignment(assignmentId);
+    if (cached == null) {
+      return const FailureResult(
+        UnknownFailure(
+          message: 'assignment not cached',
+          code: 'assignment_not_cached',
+        ),
+      );
+    }
+    final result = await _remote.overrideAssignment(assignmentId, membershipId);
+    return result.when(
+      success: (_) => getDashboard(cached.groupId),
+      failure: FailureResult<DashboardSnapshot>.new,
+    );
+  }
+
   @override
   Future<Result<List<HistoryDaySummary>>> getHistory(
     String groupId, {

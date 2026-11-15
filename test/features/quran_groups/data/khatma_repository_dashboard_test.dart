@@ -4,6 +4,7 @@ import 'package:quran_daily/core/errors/failures.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/storage/daos/daos.dart';
 import 'package:quran_daily/features/quran_groups/data/data_sources/khatma_remote_data_source.dart';
+import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/khatma_repository_impl.dart';
 
 class _Remote extends Mock implements KhatmaRemoteDataSource {}
@@ -113,5 +114,61 @@ void main() {
         .toList();
 
     expect(snapshots, [null]);
+  });
+
+  test('override calls RPC and returns refreshed cached dashboard', () async {
+    final updated = <String, Object?>{
+      ...snapshotJson,
+      'my_role': 'owner',
+      'assignments': [
+        {
+          'assignment_id': 'a1',
+          'juz': 1,
+          'seat_number': 1,
+          'kind': 'override',
+          'status': 'pending',
+          'reader_display_name': 'member',
+          'is_me': false,
+        },
+      ],
+    };
+    when(
+      () => remote.overrideAssignment('a1', 'm1'),
+    ).thenAnswer((_) async => const Success<dynamic>({'membership_id': 'm1'}));
+    when(
+      () => remote.getDashboard('g1'),
+    ).thenAnswer((_) async => Success<dynamic>(updated));
+    when(() => cache.readAll()).thenAnswer(
+      (_) async => [
+        (
+          groupId: 'g1',
+          json: {
+            ...snapshotJson,
+            'assignments': [
+              {
+                'assignment_id': 'a1',
+                'juz': 1,
+                'seat_number': 1,
+                'kind': 'seat',
+                'status': 'available',
+                'is_me': false,
+              },
+            ],
+          },
+          cachedAt: DateTime.utc(2026),
+        ),
+      ],
+    );
+    when(() => cache.upsert('g1', any())).thenAnswer((_) async {});
+
+    final result = await repository.overrideAssignment('a1', 'm1');
+
+    expect(
+      result.valueOrNull?.assignments.single.kind,
+      AssignmentKind.override,
+    );
+    verify(() => remote.overrideAssignment('a1', 'm1')).called(1);
+    verify(() => remote.getDashboard('g1')).called(1);
+    verify(() => cache.upsert('g1', updated)).called(1);
   });
 }

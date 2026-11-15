@@ -16,11 +16,13 @@ class PartTile extends StatelessWidget {
     required this.juz,
     required this.status,
     this.isMine = false,
+    this.onTap,
   });
 
   final int juz;
   final AssignmentStatus status;
   final bool isMine;
+  final VoidCallback? onTap;
 
   String get _semanticLabel {
     final buffer = StringBuffer(
@@ -41,32 +43,39 @@ class PartTile extends StatelessWidget {
     return Semantics(
       label: _semanticLabel,
       container: true,
+      button: onTap != null,
+      enabled: onTap != null,
+      onTap: onTap,
       excludeSemantics: true,
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: Container(
-          decoration: ShapeDecoration(
-            color: colors.statusBg(status),
-            shape: RoundedRectangleBorder(
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
-              side: isMine
-                  ? BorderSide(color: colors.primary, width: 2)
-                  : BorderSide.none,
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                ArabicNumerals.format(juz),
-                style: AppTypography.label.copyWith(
-                  color: fg,
-                  fontWeight: FontWeight.w700,
-                  fontVariations: const [FontVariation('wght', 700)],
-                ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: Container(
+            decoration: ShapeDecoration(
+              color: colors.statusBg(status),
+              shape: RoundedRectangleBorder(
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                side: isMine
+                    ? BorderSide(color: colors.primary, width: 2)
+                    : BorderSide.none,
               ),
-              Icon(status.icon, size: 14, color: fg),
-            ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  ArabicNumerals.format(juz),
+                  style: AppTypography.label.copyWith(
+                    color: fg,
+                    fontWeight: FontWeight.w700,
+                    fontVariations: const [FontVariation('wght', 700)],
+                  ),
+                ),
+                Icon(status.icon, size: 14, color: fg),
+              ],
+            ),
           ),
         ),
       ),
