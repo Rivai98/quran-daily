@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/quran/mushaf/mushaf_models.dart';
 import '../../../core/quran/mushaf/mushaf_repository.dart';
+import '../../../core/quran/mushaf/qpc_v2_repository.dart';
 import '../../../core/quran/portion_unit.dart';
 import '../../../core/settings/settings_repository.dart';
 import '../data/reader_storage.dart';
@@ -25,6 +28,9 @@ class ReaderState extends Equatable {
     this.isOffline = false,
     this.error,
     this.quranTextScale = 1,
+    this.qpcLines = const [],
+    this.qpcFontFamily,
+    this.isFontFallback = false,
   });
 
   final ReaderStatus status;
@@ -41,6 +47,9 @@ class ReaderState extends Equatable {
   final bool isOffline;
   final Object? error;
   final double quranTextScale;
+  final List<QpcLine> qpcLines;
+  final String? qpcFontFamily;
+  final bool isFontFallback;
 
   bool get isPortion => startAyah != null;
   bool get isStartPage => page?.number == startPage;
@@ -65,6 +74,9 @@ class ReaderState extends Equatable {
     bool? isOffline,
     Object? error,
     double? quranTextScale,
+    List<QpcLine>? qpcLines,
+    String? qpcFontFamily,
+    bool? isFontFallback,
   }) => ReaderState(
     status: status ?? this.status,
     page: page ?? this.page,
@@ -80,6 +92,9 @@ class ReaderState extends Equatable {
     isOffline: isOffline ?? this.isOffline,
     error: error,
     quranTextScale: quranTextScale ?? this.quranTextScale,
+    qpcLines: qpcLines ?? this.qpcLines,
+    qpcFontFamily: qpcFontFamily ?? this.qpcFontFamily,
+    isFontFallback: isFontFallback ?? this.isFontFallback,
   );
 
   @override
@@ -98,6 +113,9 @@ class ReaderState extends Equatable {
     isOffline,
     quranTextScale,
     error,
+    qpcLines,
+    qpcFontFamily,
+    isFontFallback,
   ];
 }
 
@@ -107,16 +125,22 @@ class ReaderCubit extends Cubit<ReaderState> {
     required ReaderStorage storage,
     SettingsRepository? settings,
     Future<bool> Function()? onComplete,
+    QpcV2Repository? qpcLayout,
+    QpcFontManager? qpcFonts,
   }) : _repository = repository,
        _storage = storage,
        _settings = settings,
        _onComplete = onComplete,
+       _qpcLayout = qpcLayout,
+       _qpcFonts = qpcFonts,
        super(const ReaderState());
 
   final MushafRepository _repository;
   final ReaderStorage _storage;
   final SettingsRepository? _settings;
   final Future<bool> Function()? _onComplete;
+  final QpcV2Repository? _qpcLayout;
+  final QpcFontManager? _qpcFonts;
 
   Future<void> openLastPosition() async {
     int? saved;
@@ -134,11 +158,15 @@ class ReaderCubit extends Cubit<ReaderState> {
       await _repository.load();
       final textScale = await _loadTextScale();
       final page = _repository.page(number);
+      final exact = await _loadExactPage(number);
       emit(
         ReaderState(
           status: ReaderStatus.content,
           page: page,
           quranTextScale: textScale,
+          qpcLines: exact.$1,
+          qpcFontFamily: exact.$2,
+          isFontFallback: exact.$3,
         ),
       );
       try {
@@ -162,6 +190,7 @@ class ReaderCubit extends Cubit<ReaderState> {
       await _repository.load();
       final textScale = await _loadTextScale();
       final range = _repository.portionRange(unit, index);
+      final exact = await _loadExactPage(range.startPage);
       emit(
         ReaderState(
           status: ReaderStatus.content,
@@ -175,8 +204,18 @@ class ReaderCubit extends Cubit<ReaderState> {
           portionIndex: index,
           isCompleted: alreadyCompleted,
           quranTextScale: textScale,
+          qpcLines: exact.$1,
+          qpcFontFamily: exact.$2,
+          isFontFallback: exact.$3,
         ),
       );
+      final fonts = _qpcFonts;
+      final layout = _qpcLayout;
+      if (fonts != null && layout != null) {
+        for (var page = range.startPage + 1; page <= range.endPage; page++) {
+          unawaited(fonts.ensureLoaded(page).catchError((_) => ''));
+        }
+      }
     } catch (error) {
       emit(ReaderState(status: ReaderStatus.error, error: error));
     }
@@ -194,6 +233,16 @@ class ReaderCubit extends Cubit<ReaderState> {
           isCompletionPage: false,
         ),
       );
+      final exact = await _loadExactPage(number);
+      if (exact.$1.isNotEmpty || exact.$3) {
+        emit(
+          state.copyWith(
+            qpcLines: exact.$1,
+            qpcFontFamily: exact.$2,
+            isFontFallback: exact.$3,
+          ),
+        );
+      }
       if (!state.isPortion) {
         try {
           await _storage.savePage(number);
@@ -231,5 +280,21 @@ class ReaderCubit extends Cubit<ReaderState> {
     final settings = _settings;
     if (settings == null) return 1;
     return (await settings.getQuranTextScale()).valueOrNull ?? 1;
+  }
+
+  Future<(List<QpcLine>, String?, bool)> _loadExactPage(int number) async {
+    final layout = _qpcLayout;
+    final fonts = _qpcFonts;
+    if (layout == null || fonts == null) {
+      return (const <QpcLine>[], null, false);
+    }
+    try {
+      await layout.load();
+      final lines = layout.linesForPage(number);
+      final family = await fonts.ensureLoaded(number);
+      return (lines, family, false);
+    } on Object {
+      return (const <QpcLine>[], null, true);
+    }
   }
 }

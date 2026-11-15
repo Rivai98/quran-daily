@@ -7,6 +7,7 @@ import '../network/rpc_client.dart';
 import '../network/supabase_client_provider.dart';
 import '../quran/quran_metadata_repository.dart';
 import '../quran/mushaf/mushaf_repository.dart';
+import '../quran/mushaf/qpc_v2_repository.dart';
 import '../settings/settings_repository.dart';
 import '../settings/settings_repository_impl.dart';
 import '../../features/auth/cubit/auth_cubit.dart';
@@ -21,6 +22,7 @@ import '../storage/daos/daos.dart';
 import '../../features/mushaf/data/mushaf_remote_data_source.dart';
 import '../../features/mushaf/data/mushaf_sync_repository.dart';
 import '../../features/mushaf/data/reader_storage.dart';
+import '../../features/mushaf/cubit/mushaf_font_download_cubit.dart';
 import '../../features/auth/data/data_sources/supabase_auth_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -95,6 +97,20 @@ void configureServiceLocator({
   if (!locator.isRegistered<MushafRepository>()) {
     locator.registerLazySingleton<MushafRepository>(
       () => MushafRepositoryImpl(metadata: locator<QuranMetadataRepository>()),
+    );
+  }
+
+  if (!locator.isRegistered<QpcV2Repository>()) {
+    locator.registerLazySingleton<QpcV2Repository>(QpcV2Repository.new);
+  }
+  if (!locator.isRegistered<QpcFontManager>()) {
+    locator.registerLazySingleton<QpcFontManager>(
+      () => QpcFontManager(layout: locator<QpcV2Repository>()),
+    );
+  }
+  if (!locator.isRegistered<MushafFontDownloadCubit>()) {
+    locator.registerFactory<MushafFontDownloadCubit>(
+      () => MushafFontDownloadCubit(locator<QpcFontManager>()),
     );
   }
 
@@ -245,7 +261,9 @@ void configureServiceLocator({
           syncPending: SyncPendingCompletions(locator<KhatmaRepository>()),
           connectivityService: locator<ConnectivityService>(),
           onOpened: () => locator<TodayRepository>().markGroupOpened(groupId),
-          setAsMain: () async { await locator<TodayRepository>().setMainGroup(groupId); },
+          setAsMain: () async {
+            await locator<TodayRepository>().setMainGroup(groupId);
+          },
         ),
       );
     }
@@ -443,16 +461,31 @@ void configureServiceLocator({
     }
     // --- 005 home ---
     if (!locator.isRegistered<CachedTodayDao>()) {
-      locator.registerLazySingleton<CachedTodayDao>(() => CachedTodayDao(locator<LocalDatabase>()));
+      locator.registerLazySingleton<CachedTodayDao>(
+        () => CachedTodayDao(locator<LocalDatabase>()),
+      );
     }
     if (!locator.isRegistered<TodayRemoteDataSource>()) {
-      locator.registerLazySingleton<TodayRemoteDataSource>(() => TodayRemoteDataSource(locator<RpcClient>()));
+      locator.registerLazySingleton<TodayRemoteDataSource>(
+        () => TodayRemoteDataSource(locator<RpcClient>()),
+      );
     }
     if (!locator.isRegistered<TodayRepository>()) {
-      locator.registerLazySingleton<TodayRepository>(() => TodayRepositoryImpl(remote: locator<TodayRemoteDataSource>(), cache: locator<CachedTodayDao>(), session: locator<SessionGateway>()));
+      locator.registerLazySingleton<TodayRepository>(
+        () => TodayRepositoryImpl(
+          remote: locator<TodayRemoteDataSource>(),
+          cache: locator<CachedTodayDao>(),
+          session: locator<SessionGateway>(),
+        ),
+      );
     }
     if (!locator.isRegistered<HomeCubit>()) {
-      locator.registerFactory<HomeCubit>(() => HomeCubit(repository: locator<TodayRepository>(), khatmaRepository: locator<KhatmaRepository>()));
+      locator.registerFactory<HomeCubit>(
+        () => HomeCubit(
+          repository: locator<TodayRepository>(),
+          khatmaRepository: locator<KhatmaRepository>(),
+        ),
+      );
     }
     // --- end 005 home ---
   }

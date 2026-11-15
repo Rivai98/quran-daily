@@ -13,6 +13,8 @@ import '../../../core/localization/arabic_numerals.dart';
 import '../../../core/localization/arabic_strings.dart';
 import '../../reminders/cubit/reminders_cubit.dart';
 import '../../reminders/view/reminder_settings_section.dart';
+import '../../mushaf/cubit/mushaf_font_download_cubit.dart';
+import '../../mushaf/view/mushaf_font_download_section.dart';
 import '../cubit/settings_cubit.dart';
 import '../cubit/settings_state.dart';
 
@@ -108,6 +110,14 @@ class _SettingsView extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (serviceLocator.isRegistered<MushafFontDownloadCubit>()) ...[
+                  const SizedBox(height: AppSpacing.lg),
+                  BlocProvider<MushafFontDownloadCubit>(
+                    create: (_) =>
+                        serviceLocator<MushafFontDownloadCubit>()..load(),
+                    child: const MushafFontDownloadSection(),
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.lg),
                 AppCard(
                   padding: AppSpacing.card,

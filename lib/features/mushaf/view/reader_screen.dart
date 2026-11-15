@@ -17,6 +17,7 @@ import '../../../core/localization/arabic_numerals.dart';
 import '../../../core/localization/arabic_strings.dart';
 import '../../../core/quran/mushaf/mushaf_models.dart';
 import '../../../core/quran/mushaf/mushaf_repository.dart';
+import '../../../core/quran/mushaf/qpc_v2_repository.dart';
 import '../../../core/quran/quran_metadata_repository.dart';
 import '../cubit/reader_cubit.dart';
 import '../data/reader_storage.dart';
@@ -27,11 +28,13 @@ class ReaderScreen extends StatefulWidget {
     required this.repository,
     required this.storage,
     required this.metadata,
+    this.qpcLayout,
   });
 
   final MushafRepository repository;
   final ReaderStorage storage;
   final QuranMetadataRepository metadata;
+  final QpcV2Repository? qpcLayout;
 
   @override
   State<ReaderScreen> createState() => _ReaderScreenState();
@@ -275,7 +278,14 @@ class _ReaderScreenState extends State<ReaderScreen> {
               top: !_chromeVisible,
               child: switch (state.status) {
                 ReaderStatus.loading => const Center(
-                  child: CircularProgressIndicator(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: AppSpacing.md),
+                      Text(ArabicStrings.mushafPagePreparing),
+                    ],
+                  ),
                 ),
                 ReaderStatus.error => Center(
                   child: Padding(
@@ -292,6 +302,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
                       const Padding(
                         padding: AppSpacing.screenH,
                         child: OfflineBanner(message: ArabicStrings.syncQueued),
+                      ),
+                    if (_chromeVisible && state.isFontFallback)
+                      const Padding(
+                        padding: AppSpacing.screenH,
+                        child: OfflineBanner(
+                          message: ArabicStrings.mushafFontFallback,
+                        ),
                       ),
                     Expanded(
                       child: GestureDetector(
@@ -326,6 +343,43 @@ class _ReaderScreenState extends State<ReaderScreen> {
                             final mushafPage = widget.repository.page(
                               (state.startPage ?? 1) + index,
                             );
+                            if (widget.qpcLayout != null &&
+                                state.qpcLines.isNotEmpty &&
+                                state.qpcFontFamily != null &&
+                                state.page?.number == mushafPage.number) {
+                              return Column(
+                                children: [
+                                  Expanded(
+                                    child: _QpcExactPage(
+                                      lines: state.qpcLines,
+                                      basmallahWords:
+                                          widget.qpcLayout!.basmallahWords,
+                                      fontFamily: state.qpcFontFamily!,
+                                      startAyah: state.startAyah,
+                                      endAyah: state.endAyah,
+                                      onLongPress: (word) => _addBookmark(
+                                        context,
+                                        mushafPage.number,
+                                        word.surah,
+                                        word.ayah,
+                                      ),
+                                      surahName: (surah) => _surahName(surah),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: AppSpacing.xxs,
+                                    ),
+                                    child: Text(
+                                      ArabicNumerals.format(mushafPage.number),
+                                      style: AppTypography.caption.copyWith(
+                                        color: colors.inkMuted,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
                             return Column(
                               children: [
                                 Expanded(
@@ -643,6 +697,137 @@ class _ReaderMenuItem extends StatelessWidget {
         const SizedBox(width: AppSpacing.sm),
         Flexible(child: Text(label, style: AppTypography.label)),
       ],
+    );
+  }
+}
+
+class _QpcExactPage extends StatelessWidget {
+  const _QpcExactPage({
+    required this.lines,
+    required this.basmallahWords,
+    required this.fontFamily,
+    required this.startAyah,
+    required this.endAyah,
+    required this.onLongPress,
+    required this.surahName,
+  });
+
+  final List<QpcLine> lines;
+  final List<QpcWord> basmallahWords;
+  final String fontFamily;
+  final AyahRef? startAyah;
+  final AyahRef? endAyah;
+  final ValueChanged<QpcWord> onLongPress;
+  final String Function(int) surahName;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final style = AppTypography.quranLabel.copyWith(
+      fontFamily: fontFamily,
+      color: colors.ink,
+    );
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        AppSpacing.md,
+        AppSpacing.xs,
+        AppSpacing.md,
+        AppSpacing.xs,
+      ),
+      child: Column(
+        children: [
+          for (final line in lines)
+            Expanded(
+              child: switch (line.lineType) {
+                QpcLineType.surahName => _SurahTitleBand(
+                  surahName: surahName(line.surahNumber ?? 1),
+                ),
+                QpcLineType.basmallah => _QpcLineText(
+                  words: basmallahWords,
+                  style: style,
+                  centered: true,
+                  startAyah: startAyah,
+                  endAyah: endAyah,
+                  onLongPress: onLongPress,
+                ),
+                QpcLineType.ayah => _QpcLineText(
+                  words: line.words,
+                  style: style,
+                  centered: line.isCentered,
+                  startAyah: startAyah,
+                  endAyah: endAyah,
+                  onLongPress: onLongPress,
+                ),
+                QpcLineType.blank => const SizedBox.expand(),
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QpcLineText extends StatelessWidget {
+  const _QpcLineText({
+    required this.words,
+    required this.style,
+    required this.centered,
+    required this.startAyah,
+    required this.endAyah,
+    required this.onLongPress,
+  });
+
+  final List<QpcWord> words;
+  final TextStyle style;
+  final bool centered;
+  final AyahRef? startAyah;
+  final AyahRef? endAyah;
+  final ValueChanged<QpcWord> onLongPress;
+
+  @override
+  Widget build(BuildContext context) {
+    final first = words.firstOrNull;
+    final spans = <InlineSpan>[];
+    for (final word in words) {
+      final highlighted =
+          (startAyah?.surah == word.surah && startAyah?.ayah == word.ayah) ||
+          (endAyah?.surah == word.surah && endAyah?.ayah == word.ayah);
+      spans.add(
+        TextSpan(
+          text: word.text,
+          style: highlighted
+              ? style.copyWith(
+                  backgroundColor: Theme.of(context)
+                      .extension<AppColors>()!
+                      .primaryContainer
+                      .withValues(alpha: 0.5),
+                )
+              : null,
+          children: const [TextSpan(text: ' ')],
+        ),
+      );
+    }
+    final text = RichText(
+      textAlign: centered ? TextAlign.center : TextAlign.justify,
+      textDirection: TextDirection.rtl,
+      text: TextSpan(style: style, children: spans),
+      maxLines: 1,
+      overflow: TextOverflow.visible,
+    );
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onLongPress: first == null ? null : () => onLongPress(first),
+      child: Center(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.sizeOf(context).width - 2 * AppSpacing.md,
+            ),
+            child: text,
+          ),
+        ),
+      ),
     );
   }
 }

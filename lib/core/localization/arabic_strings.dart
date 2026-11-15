@@ -497,6 +497,25 @@ class ArabicStrings {
       '\u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{645}\u{643}\u{62a}\u{645}\u{644}\u{629}. \u{644}\u{627} \u{64a}\u{645}\u{643}\u{646} \u{642}\u{628}\u{648}\u{644} \u{639}\u{636}\u{648} \u{62c}\u{62f}\u{64a}\u{62f} \u{642}\u{628}\u{644} \u{62a}\u{648}\u{641}\u{631} \u{645}\u{642}\u{639}\u{62f}.';
   static const publishBlocked =
       '\u{64a}\u{62c}\u{628} \u{623}\u{646} \u{62a}\u{636}\u{645} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} 30 \u{639}\u{636}\u{648}\u{627} \u{646}\u{634}\u{637}\u{627} \u{642}\u{628}\u{644} \u{646}\u{634}\u{631} \u{648}\u{631}\u{62f} \u{627}\u{644}\u{64a}\u{648}\u{645}.';
+  // Mushaf exact pages brief.
+  static const mushafPagePreparing =
+      '\u{62c}\u{627}\u{631}\u{64d} \u{62a}\u{62c}\u{647}\u{64a}\u{632} \u{627}\u{644}\u{635}\u{641}\u{62d}\u{629}';
+  static const mushafFontFallback =
+      '\u{62a}\u{639}\u{630}\u{631} \u{62a}\u{62d}\u{645}\u{64a}\u{644} \u{62e}\u{637} \u{627}\u{644}\u{635}\u{641}\u{62d}\u{629}. \u{64a}\u{639}\u{631}\u{636} \u{627}\u{644}\u{646}\u{635} \u{628}\u{634}\u{643}\u{644} \u{645}\u{62a}\u{648}\u{627}\u{635}\u{644} \u{645}\u{624}\u{642}\u{62a}\u{64b}\u{627}.';
+  static const mushafDownloadAll =
+      '\u{62a}\u{646}\u{632}\u{64a}\u{644} \u{627}\u{644}\u{645}\u{635}\u{62d}\u{641} \u{643}\u{627}\u{645}\u{644}\u{64b}\u{627} \u{644}\u{644}\u{642}\u{631}\u{627}\u{621}\u{629} \u{628}\u{62f}\u{648}\u{646} \u{625}\u{646}\u{62a}\u{631}\u{646}\u{62a}';
+  static const mushafDeleteFonts =
+      '\u{62d}\u{630}\u{641} \u{62e}\u{637}\u{648}\u{637} \u{627}\u{644}\u{645}\u{635}\u{62d}\u{641} \u{645}\u{646} \u{627}\u{644}\u{62c}\u{647}\u{627}\u{632}';
+  static const mushafCancelDownload =
+      '\u{625}\u{64a}\u{642}\u{627}\u{641} \u{627}\u{644}\u{62a}\u{646}\u{632}\u{64a}\u{644}';
+  static const mushafDownloaded =
+      '\u{62a}\u{645} \u{62a}\u{646}\u{632}\u{64a}\u{644} \u{62e}\u{637}\u{648}\u{637} \u{627}\u{644}\u{645}\u{635}\u{62d}\u{641}';
+  static const mushafFontSizeHint =
+      '\u{627}\u{644}\u{62d}\u{62c}\u{645} \u{627}\u{644}\u{62a}\u{642}\u{631}\u{64a}\u{628}\u{64a} \u{644}\u{644}\u{62e}\u{637}\u{648}\u{637} \u{643}\u{627}\u{645}\u{644}\u{64b}\u{627}: ٢٠٨ \u{645}\u{64a}\u{62c}\u{627}\u{628}\u{627}\u{64a}\u{62a}';
+  static const mushafFontDownloadError =
+      '\u{62a}\u{639}\u{630}\u{631} \u{62a}\u{646}\u{632}\u{64a}\u{644} \u{628}\u{639}\u{636} \u{627}\u{644}\u{62e}\u{637}\u{648}\u{637}. \u{62a}\u{62d}\u{642}\u{642} \u{645}\u{646} \u{627}\u{644}\u{627}\u{62a}\u{635}\u{627}\u{644} \u{648}\u{623}\u{639}\u{62f} \u{627}\u{644}\u{645}\u{62d}\u{627}\u{648}\u{644}\u{629}.';
+  static String cachedFontSize(String size) =>
+      '\u{627}\u{644}\u{645}\u{62d}\u{641}\u{648}\u{638}: $size \u{645}\u{64a}\u{62c}\u{627}\u{628}\u{627}\u{64a}\u{62a}';
   static const noQuranReader =
       '\u{64a}\u{639}\u{631}\u{636} \u{627}\u{644}\u{62a}\u{637}\u{628}\u{64a}\u{642} \u{627}\u{633}\u{645} \u{627}\u{644}\u{62c}\u{632}\u{621} \u{648}\u{645}\u{62f}\u{627}\u{647} \u{641}\u{642}\u{637} \u{62f}\u{648}\u{646} \u{645}\u{635}\u{62d}\u{641} \u{62f}\u{627}\u{62e}\u{644}\u{64a}.';
   static const syncQueued =
@@ -765,7 +784,11 @@ class ArabicStrings {
       'من $startSura آية ${ArabicNumerals.format(startAya)} إلى $endSura آية ${ArabicNumerals.format(endAya)}';
   static String cycleProgress(int day, int length, int completed, int total) =>
       'اليوم ${ArabicNumerals.format(day)} من ${ArabicNumerals.format(length)} · أُنجز ${ArabicNumerals.format(completed)} من ${ArabicNumerals.format(total)}';
-  static String homeGroupProgress(int day, int completedMembers, int activeMembers) =>
+  static String homeGroupProgress(
+    int day,
+    int completedMembers,
+    int activeMembers,
+  ) =>
       'اليوم ${ArabicFormatting.isolate(ArabicNumerals.format(day))} من الختمة · قرأ ${ArabicFormatting.isolate(ArabicNumerals.format(completedMembers))} من ${ArabicFormatting.isolate(ArabicNumerals.format(activeMembers))} عضوًا';
   static const restDay = 'لا ورد اليوم';
   static const volunteeredPortion = 'وحدة تطوعت بقراءتها';

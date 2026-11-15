@@ -12,6 +12,7 @@ import '../core/storage/local_database.dart';
 import '../core/quran/portion_unit.dart';
 import '../core/settings/settings_repository.dart';
 import '../core/quran/mushaf/mushaf_repository.dart';
+import '../core/quran/mushaf/qpc_v2_repository.dart';
 import '../core/design_system/widgets/state_panel.dart';
 import '../features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
 import '../features/quran_groups/cubit/assignment/assignment_cubit.dart';
@@ -260,11 +261,14 @@ class AppRoutes {
             repository: repository,
             storage: storage,
             settings: serviceLocator<SettingsRepository>(),
+            qpcLayout: serviceLocator<QpcV2Repository>(),
+            qpcFonts: serviceLocator<QpcFontManager>(),
           )..openLastPosition(),
           child: ReaderScreen(
             repository: repository,
             storage: storage,
             metadata: _metadataRepository(),
+            qpcLayout: serviceLocator<QpcV2Repository>(),
           ),
         );
       },
@@ -287,6 +291,8 @@ class AppRoutes {
               repository: repository,
               storage: storage,
               settings: serviceLocator<SettingsRepository>(),
+              qpcLayout: serviceLocator<QpcV2Repository>(),
+              qpcFonts: serviceLocator<QpcFontManager>(),
               onComplete: assignmentId == null
                   ? null
                   : () async {
@@ -316,6 +322,7 @@ class AppRoutes {
             repository: repository,
             storage: storage,
             metadata: _metadataRepository(),
+            qpcLayout: serviceLocator<QpcV2Repository>(),
           ),
         );
       },
