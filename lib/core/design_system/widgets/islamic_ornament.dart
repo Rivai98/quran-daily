@@ -24,7 +24,10 @@ class IslamicOrnamentBand extends StatelessWidget {
     final colors = Theme.of(context).extension<AppColors>()!;
     return ConstrainedBox(
       constraints: BoxConstraints(minHeight: height),
+      // Centre the content: the default (start) alignment pushed narrow
+      // content such as the sign-in logo and name to the right in RTL.
       child: Stack(
+        alignment: Alignment.center,
         children: [
           Positioned.fill(
             child: DecoratedBox(
