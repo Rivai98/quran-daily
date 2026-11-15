@@ -5,6 +5,7 @@ import '../../../core/design_system/app_radius.dart';
 import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/widgets/app_card.dart';
+import '../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../core/design_system/widgets/state_panel.dart';
 import '../../../core/di/service_locator.dart';
 import '../../../core/localization/arabic_numerals.dart';
@@ -156,12 +157,16 @@ class _BookmarksScreenState extends State<BookmarksScreen> {
                 onTap: () => widget.onOpenPage(bookmark.page),
                 trailing: PopupMenuButton<String>(
                   icon: Icon(Icons.more_vert, color: colors.inkMuted),
-                  tooltip: ArabicStrings.cancel,
+                  tooltip: ArabicStrings.bookmarkOptions,
                   onSelected: (value) async {
                     if (value == 'delete') {
                       await widget.storage.removeBookmark(bookmark.id);
                       if (mounted) {
                         setState(() => _bookmarks = widget.storage.bookmarks());
+                        AppSnackBar.show(
+                          this.context,
+                          ArabicStrings.bookmarkDeleted,
+                        );
                       }
                     }
                   },
