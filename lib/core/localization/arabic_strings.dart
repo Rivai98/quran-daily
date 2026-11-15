@@ -29,6 +29,28 @@ class ArabicStrings {
       'النص والخط: مجمع الملك فهد لطباعة المصحف الشريف (KFGQPC).';
   static const tanzilAttribution = 'بيانات الصفحات والأجزاء: Tanzil.';
   static const khatmDuaTitle = 'دعاء ختم القرآن';
+  static const deleteBookmarkAction = 'حذف العلامة';
+  static const bookmarksEmptyHint =
+      'يمكنك حفظ علامات أثناء القراءة للرجوع إليها لاحقًا';
+  static const versionLabel = 'الإصدار';
+  static const sourceLinkLabel = 'رابط المصدر';
+  static const licenseLabel = 'الترخيص';
+  static const kfgqpcSourceName = 'مجمع الملك فهد لطباعة المصحف الشريف';
+  static const kfgqpcVersion = 'الإصدار ٢٢';
+  static const kfgqpcLink = 'https://qul.tarteel.ai/resources/quran-script/86';
+  static const kfgqpcLicense = 'استخدام مجاني للنصوص والخطوط دون تعديل';
+  static const tanzilSourceName = 'مشروع تنزيل (Tanzil.net)';
+  static const tanzilVersion = 'الإصدار ١.٠';
+  static const tanzilLink = 'https://tanzil.net';
+  static const tanzilLicense = 'المشاع الإبداعي نَسب المُصنّف (CC-BY 3.0)';
+  static const ayahWord = 'آية';
+  static const surahWord = 'سورة';
+  static String portionPageProgress(int current, int total) =>
+      'صفحة ${ArabicNumerals.format(current)} من ${ArabicNumerals.format(total)}';
+  static String surahAyahMeta(int page, int ayahs) =>
+      'صفحة ${ArabicNumerals.format(page)} · ${ArabicNumerals.format(ayahs)} آيات';
+  static String juzHizbMeta(String surahName, int page) =>
+      'سورة $surahName · صفحة ${ArabicNumerals.format(page)}';
   // --- 006 reminders ---
   static const reminderPermissionExplain =
       '\u{62a}\u{64f}\u{633}\u{62a}\u{62e}\u{62f}\u{645}\u{20}\u{627}\u{644}\u{625}\u{634}\u{639}\u{627}\u{631}\u{627}\u{62a}\u{20}\u{644}\u{62a}\u{630}\u{643}\u{64a}\u{631}\u{643}\u{20}\u{628}\u{648}\u{631}\u{62f}\u{643}\u{20}\u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a}\u{60c}\u{20}\u{648}\u{64a}\u{64f}\u{62d}\u{633}\u{628}\u{20}\u{645}\u{648}\u{639}\u{62f}\u{647}\u{627}\u{20}\u{639}\u{644}\u{649}\u{20}\u{62c}\u{647}\u{627}\u{632}\u{643}\u{2e}';

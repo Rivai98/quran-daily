@@ -120,6 +120,125 @@ void main() {
     tester.view.resetPhysicalSize();
     tester.view.resetDevicePixelRatio();
   });
+
+  testWidgets('renders Mushaf slim header, page footer, surah title band, and bookmark in app bar', (tester) async {
+    final repo = _RichRepository();
+    final storage = _Storage();
+    final cubit = ReaderCubit(repository: repo, storage: storage);
+    await cubit.openPortion(PortionUnit.juz, 1, assignmentId: 'assign-1');
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: ReaderScreen(
+            repository: repo,
+            storage: storage,
+            metadata: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // 1. Bookmark action in AppBar
+    expect(find.byIcon(Icons.bookmark_add_outlined), findsOneWidget);
+
+    // 2. Surah title band at ayah 1
+    expect(find.text('${ArabicStrings.surahWord} ${ArabicStrings.mushafTitle}'), findsWidgets);
+
+    // 3. Page number footer
+    expect(find.text('١'), findsWidgets);
+
+    // 4. Portion banner with portion name + "صفحة ١ من ٢"
+    expect(find.text('صفحة ١ من ٢'), findsOneWidget);
+
+    // 5. Start highlight
+    expect(find.text('بداية الورد'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await cubit.close();
+  });
+
+  testWidgets('renders completion action and end highlight on end page', (tester) async {
+    final repo = _RichRepository();
+    final storage = _Storage();
+    final cubit = ReaderCubit(repository: repo, storage: storage);
+    await cubit.openPortion(PortionUnit.juz, 1, assignmentId: 'assign-1');
+    await cubit.turnTo(2);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: ReaderScreen(
+            repository: repo,
+            storage: storage,
+            metadata: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // End page offers complete reading
+    expect(find.text(ArabicStrings.completeReadingAction), findsWidgets);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await cubit.close();
+  });
+}
+
+class _RichRepository implements MushafRepository {
+  @override
+  Future<void> load() async {}
+
+  @override
+  int get pageCount => 10;
+
+  @override
+  MushafPage page(int number) => MushafPage(
+    number: number,
+    juz: 1,
+    firstSurah: 1,
+    ayahs: [
+      MushafAyah(
+        ref: const AyahRef(surah: 1, ayah: 1),
+        text: 'ayah 1 text',
+      ),
+      MushafAyah(
+        ref: const AyahRef(surah: 1, ayah: 2),
+        text: 'ayah 2 text',
+      ),
+    ],
+  );
+
+  @override
+  int pageOf(AyahRef ref) => ref.ayah == 1 ? 1 : 2;
+
+  @override
+  ({AyahRef start, AyahRef end, int startPage, int endPage}) portionRange(
+    PortionUnit unit,
+    int index,
+  ) => (
+    start: const AyahRef(surah: 1, ayah: 1),
+    end: const AyahRef(surah: 1, ayah: 2),
+    startPage: 1,
+    endPage: 2,
+  );
+
+  @override
+  List<({int surah, String name, int ayahs, int startPage})> surahIndex() => [
+    (surah: 1, name: 'الفاتحة', ayahs: 7, startPage: 1),
+  ];
+
+  @override
+  List<({int juz, int startPage})> juzIndex() => [
+    (juz: 1, startPage: 1),
+  ];
+
+  @override
+  List<({int hizb, int startPage})> hizbIndex() => [
+    (hizb: 1, startPage: 1),
+  ];
 }
 
 class _Repository implements MushafRepository {
