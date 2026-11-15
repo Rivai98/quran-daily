@@ -25,6 +25,11 @@ log. Put icons on the cards. Make it feel more spiritual."
   lists all groups the user belongs to (and pending requests) with richer
   cards. The main group defaults to the most recently opened active group and
   the user can pin another one as main ("اجعلها مجموعتي الرئيسية").
+- Q: How many groups can one person belong to? → A: At most 2 active groups
+  in total (owned + joined), so the home stays focused (owner request
+  2026-11-15: "one group, or two at most"). This replaces spec 001's "up to 3
+  owned groups". Existing users above the limit keep their groups but cannot
+  join or create more until they are below 2.
 - Q: What is the daily log? → A: A personal history across all groups: per
   day, the portions the user read (on time / late), missed, and volunteered.
 
@@ -134,6 +139,11 @@ contrast checks pass in light and dark.
 
 ### Edge Cases
 
+- A user already in 2 groups opens an invite link: the preview shows the
+  limit message and a link to "مجموعاتي" to leave a group first.
+- An owner approves a request from someone who reached the limit meanwhile:
+  approval is refused and the request stays pending with an explanation.
+
 - A portion volunteered today appears on Today as its own card.
 - Group day boundaries differ by timezone: each card uses its group's day.
 - A group in a rest day (spec 004 page unit) shows "لا ورد اليوم" for that
@@ -156,6 +166,11 @@ contrast checks pass in light and dark.
   followed by today's portions in other groups; "مجموعاتي" is a separate tab.
 - **FR-004b**: Users MUST be able to pin a main group; default is the most
   recently opened active group; the choice is stored per user server-side.
+- **FR-004c**: A user MUST NOT have more than 2 active group memberships
+  (owned or joined). Joining, accepting an invite, join-any, approving a
+  join request for that user, and creating a group MUST be refused with a clear
+  Arabic message ("يمكنك الانضمام إلى مجموعتين بحد أقصى") when the limit is
+  reached; pending requests count toward the limit only once approved.
 - **FR-005**: The Log MUST list the user's past days across groups with
   per-portion status, a streak, and a monthly summary.
 - **FR-006**: Portion names/ranges MUST come from the metadata repository
