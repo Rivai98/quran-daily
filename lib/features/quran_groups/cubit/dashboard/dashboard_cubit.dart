@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/network/connectivity_service.dart';
 import '../../data/entities/entities.dart';
 import '../../data/repositories/khatma_repository.dart';
+import '../../data/use_cases/completion_use_cases.dart';
 
 enum DashboardStatus { initial, loading, success, empty, offline, failure }
 
@@ -28,14 +32,33 @@ class DashboardCubit extends Cubit<DashboardState> {
   DashboardCubit({
     required KhatmaRepository repository,
     required this.groupId,
+    SyncPendingCompletions? syncPending,
+    ConnectivityService? connectivityService,
     DashboardState initialState = const DashboardState(),
   }) : _repository = repository,
-       super(initialState);
+       _syncPending = syncPending,
+       super(initialState) {
+    if (connectivityService != null) observeConnectivity(connectivityService);
+  }
 
   final KhatmaRepository _repository;
+  final SyncPendingCompletions? _syncPending;
   final String groupId;
+  StreamSubscription<bool>? _connectivitySubscription;
+
+  void observeConnectivity(ConnectivityService connectivityService) {
+    _connectivitySubscription ??= connectivityService.online.listen((online) {
+      final sync = _syncPending;
+      if (online && sync != null) unawaited(sync());
+    });
+  }
 
   Future<void> refresh() async {
+    try {
+      await _syncPending?.call();
+    } catch (_) {
+      // Dashboard reads remain available even if background queue replay fails.
+    }
     final previousDate = state.snapshot?.today?.groupDate;
     emit(
       DashboardState(status: DashboardStatus.loading, snapshot: state.snapshot),
@@ -68,4 +91,10 @@ class DashboardCubit extends Cubit<DashboardState> {
   }
 
   Future<void> onResumed() => refresh();
+
+  @override
+  Future<void> close() async {
+    await _connectivitySubscription?.cancel();
+    await super.close();
+  }
 }

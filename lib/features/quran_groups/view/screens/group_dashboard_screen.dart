@@ -116,11 +116,27 @@ class GroupDashboardScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
             ],
+            if (today.state == DayState.grace) ...[
+              Builder(
+                builder: (context) {
+                  final colors = Theme.of(context).extension<AppColors>()!;
+                  return ValidationBanner(
+                    icon: Icons.hourglass_bottom,
+                    message: ArabicStrings.gracePeriodNotice,
+                    color: colors.pendingFg,
+                  );
+                },
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
             if (myAssignment)
               MyJuzCard(
                 snapshot: snapshot,
-                onOpen: () =>
-                    Navigator.pushNamed(context, AppRoutes.assignment),
+                onOpen: () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.assignment,
+                  arguments: snapshot,
+                ),
               )
             else
               StatePanel(

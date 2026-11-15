@@ -6,6 +6,9 @@ import '../core/localization/arabic_strings.dart';
 import '../core/quran/quran_metadata_repository.dart';
 import '../core/design_system/widgets/state_panel.dart';
 import '../features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
+import '../features/quran_groups/cubit/assignment/assignment_cubit.dart';
+import '../features/quran_groups/data/entities/entities.dart';
+import '../features/quran_groups/data/repositories/khatma_repository.dart';
 import '../features/quran_groups/view/screens/daily_history_screen.dart';
 import '../features/quran_groups/view/screens/group_dashboard_screen.dart';
 import '../features/quran_groups/view/screens/create_group_screen.dart';
@@ -13,7 +16,7 @@ import '../features/quran_groups/view/screens/group_selection_screen.dart';
 import '../features/quran_groups/view/screens/member_management_screen.dart';
 import '../features/quran_groups/view/screens/organizer_assignment_review_screen.dart';
 import '../features/quran_groups/view/screens/organizer_join_requests_screen.dart';
-import '../features/quran_groups/view/screens/personal_assignment_detail_screen.dart';
+import '../features/quran_groups/view/screens/personal_assignment_screen.dart';
 import '../features/quran_groups/view/screens/public_group_discovery_screen.dart';
 import '../features/quran_groups/view/screens/settings_screen.dart';
 
@@ -62,7 +65,34 @@ class AppRoutes {
           ),
         );
       },
-      assignment: (_) => const PersonalAssignmentDetailScreen(),
+      assignment: (context) {
+        final snapshot = ModalRoute.of(context)?.settings.arguments;
+        if (snapshot is! DashboardSnapshot || snapshot.myAssignments.isEmpty) {
+          return Scaffold(
+            body: StatePanel(
+              icon: Icons.menu_book,
+              title: ArabicStrings.noAssignmentToday,
+              message: ArabicStrings.noAssignmentToday,
+            ),
+          );
+        }
+        final assignment = snapshot.myAssignments.firstWhere(
+          (item) => item.isMe,
+          orElse: () => snapshot.myAssignments.first,
+        );
+        return BlocProvider(
+          create: (_) => AssignmentCubit(
+            repository: serviceLocator<KhatmaRepository>(),
+            assignment: assignment,
+            groupId: snapshot.groupId,
+            dayState: snapshot.today?.state ?? DayState.open,
+          ),
+          child: PersonalAssignmentScreen(
+            snapshot: snapshot,
+            metadataRepository: serviceLocator<QuranMetadataRepository>(),
+          ),
+        );
+      },
       organizerReview: (_) => const OrganizerAssignmentReviewScreen(),
       joinRequests: (_) => const OrganizerJoinRequestsScreen(),
       members: (_) => const MemberManagementScreen(),

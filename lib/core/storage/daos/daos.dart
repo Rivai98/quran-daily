@@ -15,19 +15,16 @@ class CachedSnapshotsDao {
 
   Future<void> upsert(String groupId, Map<String, Object?> json) async {
     final db = await _db.database;
-    await db.insert(
-      'cached_snapshots',
-      {
-        'group_id': groupId,
-        'json': jsonEncode(json),
-        'cached_at': DateTime.now().millisecondsSinceEpoch,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('cached_snapshots', {
+      'group_id': groupId,
+      'json': jsonEncode(json),
+      'cached_at': DateTime.now().millisecondsSinceEpoch,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<({Map<String, Object?> json, DateTime cachedAt})?> read(
-      String groupId) async {
+    String groupId,
+  ) async {
     final db = await _db.database;
     final rows = await db.query(
       'cached_snapshots',
@@ -40,8 +37,27 @@ class CachedSnapshotsDao {
       json: (jsonDecode(rows.first['json']! as String) as Map)
           .cast<String, Object?>(),
       cachedAt: DateTime.fromMillisecondsSinceEpoch(
-          rows.first['cached_at']! as int),
+        rows.first['cached_at']! as int,
+      ),
     );
+  }
+
+  Future<List<({String groupId, Map<String, Object?> json, DateTime cachedAt})>>
+  readAll() async {
+    final db = await _db.database;
+    final rows = await db.query('cached_snapshots', orderBy: 'cached_at desc');
+    return rows
+        .map(
+          (row) => (
+            groupId: row['group_id']! as String,
+            json: (jsonDecode(row['json']! as String) as Map)
+                .cast<String, Object?>(),
+            cachedAt: DateTime.fromMillisecondsSinceEpoch(
+              row['cached_at']! as int,
+            ),
+          ),
+        )
+        .toList();
   }
 }
 
@@ -53,19 +69,16 @@ class CachedGroupsDao {
 
   Future<void> upsert(String userId, Map<String, Object?> json) async {
     final db = await _db.database;
-    await db.insert(
-      'cached_groups',
-      {
-        'user_id': userId,
-        'json': jsonEncode(json),
-        'cached_at': DateTime.now().millisecondsSinceEpoch,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('cached_groups', {
+      'user_id': userId,
+      'json': jsonEncode(json),
+      'cached_at': DateTime.now().millisecondsSinceEpoch,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<({Map<String, Object?> json, DateTime cachedAt})?> read(
-      String userId) async {
+    String userId,
+  ) async {
     final db = await _db.database;
     final rows = await db.query(
       'cached_groups',
@@ -78,7 +91,8 @@ class CachedGroupsDao {
       json: (jsonDecode(rows.first['json']! as String) as Map)
           .cast<String, Object?>(),
       cachedAt: DateTime.fromMillisecondsSinceEpoch(
-          rows.first['cached_at']! as int),
+        rows.first['cached_at']! as int,
+      ),
     );
   }
 }
@@ -91,19 +105,16 @@ class CachedHistoryDao {
 
   Future<void> upsert(String groupId, Map<String, Object?> json) async {
     final db = await _db.database;
-    await db.insert(
-      'cached_history',
-      {
-        'group_id': groupId,
-        'json': jsonEncode(json),
-        'cached_at': DateTime.now().millisecondsSinceEpoch,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('cached_history', {
+      'group_id': groupId,
+      'json': jsonEncode(json),
+      'cached_at': DateTime.now().millisecondsSinceEpoch,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<({Map<String, Object?> json, DateTime cachedAt})?> read(
-      String groupId) async {
+    String groupId,
+  ) async {
     final db = await _db.database;
     final rows = await db.query(
       'cached_history',
@@ -116,7 +127,8 @@ class CachedHistoryDao {
       json: (jsonDecode(rows.first['json']! as String) as Map)
           .cast<String, Object?>(),
       cachedAt: DateTime.fromMillisecondsSinceEpoch(
-          rows.first['cached_at']! as int),
+        rows.first['cached_at']! as int,
+      ),
     );
   }
 }
@@ -129,22 +141,16 @@ class SyncQueueDao {
 
   Future<void> enqueue(SyncOperation op) async {
     final db = await _db.database;
-    await db.insert(
-      'sync_queue',
-      {
-        'id': op.id,
-        'op': op.type.name,
-        'assignment_id': op.assignmentId,
-        'client_recorded_at':
-            op.clientRecordedAt.millisecondsSinceEpoch,
-        'status': op.status.name,
-        'attempts': op.attempts,
-        'last_error_kind': op.lastErrorKind,
-        'created_at':
-            (op.createdAt ?? DateTime.now()).millisecondsSinceEpoch,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('sync_queue', {
+      'id': op.id,
+      'op': op.type.name,
+      'assignment_id': op.assignmentId,
+      'client_recorded_at': op.clientRecordedAt.millisecondsSinceEpoch,
+      'status': op.status.name,
+      'attempts': op.attempts,
+      'last_error_kind': op.lastErrorKind,
+      'created_at': (op.createdAt ?? DateTime.now()).millisecondsSinceEpoch,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   /// Pending + failed rows in creation order (replay order matters).
@@ -171,12 +177,7 @@ class SyncQueueDao {
       'last_error_kind': ?lastErrorKind,
     };
     if (values.isEmpty) return;
-    await db.update(
-      'sync_queue',
-      values,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    await db.update('sync_queue', values, where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> delete(String id) async {
@@ -192,12 +193,12 @@ class SyncQueueDao {
           : SyncOperationType.undoCompletion,
       assignmentId: row['assignment_id']! as String,
       clientRecordedAt: DateTime.fromMillisecondsSinceEpoch(
-          row['client_recorded_at']! as int),
+        row['client_recorded_at']! as int,
+      ),
       status: _statusOf(row['status']! as String),
       attempts: row['attempts']! as int,
       lastErrorKind: row['last_error_kind'] as String?,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-          row['created_at']! as int),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(row['created_at']! as int),
     );
   }
 

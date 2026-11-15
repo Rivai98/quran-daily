@@ -150,14 +150,14 @@ Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its 
 **Goal**: complete/undo with confirmation, offline queue, late in grace, closed rejection.
 **Independent test**: complete → +1; undo → −1; offline complete syncs; grace → late; closed → rejected.
 
-- [ ] T074 [P] [US3] pgTAP tests for `mark_assignment_complete`/`undo_assignment_completion` (reader only, idempotent, open/grace/closed rules, online uses server time, offline_sync uses `client_recorded_at` clamped to `[opens_at, now()]`, counts, full_khatma incl. late) and `advance_day_states` (pending→missed, available→unread, close) in `supabase/tests/001_us3_completion_test.sql`
-- [ ] T075 [US3] Implement completion functions and `advance_day_states` in `supabase/migrations/006_completion_functions.sql`; schedule `advance_day_states()` every minute in the same migration
-- [ ] T076 [P] [US3] Failing tests for `MarkAssignmentComplete`, `UndoAssignmentCompletion`, `SyncPendingCompletions` use cases (optimistic cache update, enqueue on network failure, replay order, day_closed → failed) in `test/features/quran_groups/data/use_cases/completion_use_cases_test.dart`
-- [ ] T077 [US3] Implement completion methods in `KhatmaRepositoryImpl` and use cases in `lib/features/quran_groups/data/use_cases/`; trigger sync on connectivity regained, app resume, dashboard refresh (wire in `lib/app/app.dart` lifecycle observer)
-- [ ] T078 [P] [US3] Failing `bloc_test`s for `AssignmentCubit` (complete, undo after confirm, queued offline state, failed sync with retry, duplicate tap ignored) in `test/features/quran_groups/cubit/assignment_cubit_test.dart`
-- [ ] T079 [US3] Implement `AssignmentCubit` in `lib/features/quran_groups/cubit/assignment/`
-- [ ] T080 [P] [US3] Failing widget tests for S6 Personal Assignment (primary action, completed state, undo `ConfirmSheet`, queued/failed states, hidden "اقرأ الآن" slot) and dashboard grace banner in `test/features/quran_groups/view/personal_assignment_screen_test.dart`
-- [ ] T081 [US3] Rebuild S6 `lib/features/quran_groups/view/screens/personal_assignment_screen.dart` (replace `personal_assignment_detail_screen.dart`), connect my-juz card primary action, add grace banner; add `kMushafEnabled = false` flag in `lib/core/config/feature_flags.dart`
+- [X] T074 [P] [US3] pgTAP tests for `mark_assignment_complete`/`undo_assignment_completion` (reader only, idempotent, open/grace/closed rules, online uses server time, offline_sync uses `client_recorded_at` clamped to `[opens_at, now()]`, counts, full_khatma incl. late) and `advance_day_states` (pending→missed, available→unread, close) in `supabase/tests/001_us3_completion_test.sql`
+- [X] T075 [US3] Implement completion functions and `advance_day_states` in `supabase/migrations/006_completion_functions.sql`; schedule `advance_day_states()` every minute in the same migration
+- [X] T076 [P] [US3] Failing tests for `MarkAssignmentComplete`, `UndoAssignmentCompletion`, `SyncPendingCompletions` use cases (optimistic cache update, enqueue on network failure, replay order, day_closed → failed) in `test/features/quran_groups/data/use_cases/completion_use_cases_test.dart`
+- [X] T077 [US3] Implement completion methods in `KhatmaRepositoryImpl` and use cases in `lib/features/quran_groups/data/use_cases/`; trigger sync on connectivity regained, app resume, dashboard refresh (wire in `lib/app/app.dart` lifecycle observer)
+- [X] T078 [P] [US3] Failing `bloc_test`s for `AssignmentCubit` (complete, undo after confirm, queued offline state, failed sync with retry, duplicate tap ignored) in `test/features/quran_groups/cubit/assignment_cubit_test.dart`
+- [X] T079 [US3] Implement `AssignmentCubit` in `lib/features/quran_groups/cubit/assignment/`
+- [X] T080 [P] [US3] Failing widget tests for S6 Personal Assignment (primary action, completed state, undo `ConfirmSheet`, queued/failed states, hidden "اقرأ الآن" slot) and dashboard grace banner in `test/features/quran_groups/view/personal_assignment_screen_test.dart`
+- [X] T081 [US3] Rebuild S6 `lib/features/quran_groups/view/screens/personal_assignment_screen.dart` (replace `personal_assignment_detail_screen.dart`), connect my-juz card primary action, add grace banner; add `kMushafEnabled = false` flag in `lib/core/config/feature_flags.dart`
 
 **Checkpoint**: P1 complete (US2 + US1 + US3), validated with seeded members. First real-user release also needs US4 (joining).
 

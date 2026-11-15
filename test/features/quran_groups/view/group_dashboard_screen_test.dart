@@ -14,7 +14,11 @@ import '../../../helpers/widget_test_app.dart';
 
 class _Repository extends Mock implements KhatmaRepository {}
 
-DashboardSnapshot _snapshot({bool full = false, bool stale = false}) {
+DashboardSnapshot _snapshot({
+  bool full = false,
+  bool stale = false,
+  DayState dayState = DayState.open,
+}) {
   final assignments = List.generate(
     30,
     (i) => Assignment(
@@ -38,7 +42,7 @@ DashboardSnapshot _snapshot({bool full = false, bool stale = false}) {
     serverGeneratedAt: DateTime.parse('2026-11-15T10:00:00Z'),
     today: GroupDayInfo(
       groupDate: '2026-11-15',
-      state: DayState.open,
+      state: dayState,
       completedCount: 0,
       lateCount: 0,
       missedCount: 0,
@@ -55,6 +59,31 @@ DashboardSnapshot _snapshot({bool full = false, bool stale = false}) {
 }
 
 void main() {
+  testWidgets('grace day banner is visible on dashboard', (tester) async {
+    final snapshot = _snapshot(dayState: DayState.grace);
+    final cubit = DashboardCubit(
+      repository: _Repository(),
+      groupId: 'g1',
+      initialState: DashboardState(
+        status: DashboardStatus.success,
+        snapshot: snapshot,
+      ),
+    );
+    addTearDown(cubit.close);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: GroupDashboardScreen(
+            metadataRepository: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    expect(find.text(ArabicStrings.gracePeriodNotice), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('loading state announces progress', (tester) async {
     final cubit = DashboardCubit(
       repository: _Repository(),
