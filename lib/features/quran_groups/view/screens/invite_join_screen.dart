@@ -68,7 +68,13 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text(ArabicStrings.inviteJoinScreenTitle)),
+      appBar: AppBar(
+        title: Text(
+          widget.joinAnyMode
+              ? ArabicStrings.inviteJoinScreenTitle
+              : ArabicStrings.joinByInviteTitle,
+        ),
+      ),
       body: BlocBuilder<JoinCubit, JoinState>(
         builder: (context, state) {
           final profile = state.preview;

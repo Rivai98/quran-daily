@@ -194,7 +194,7 @@ class ArabicStrings {
   }
 
   static const otherGroupsTitle = 'أوراد مجموعاتك الأخرى';
-  static const todayCompleteTitle = 'أتممت وردك اليوم';
+  static const todayCompleteTitle = 'أتممت وردك اليوم، تقبّل الله';
   static const setMainGroupAction = 'اجعلها مجموعتي الرئيسية';
   static const portionCompleteAction = 'تمت القراءة';
   static const portionUndoAction = 'تراجع عن الإتمام';
@@ -432,6 +432,7 @@ class ArabicStrings {
   static const discoveryScreenTitle =
       '\u{627}\u{643}\u{62a}\u{634}\u{627}\u{641} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{627}\u{62a}';
   static const inviteJoinScreenTitle = 'انضم لأي حلقة';
+  static const joinByInviteTitle = 'الانضمام برمز دعوة';
   static const noGroupAvailable =
       'لا توجد حلقة متاحة الآن. أعد المحاولة لاحقًا أو ابحث عن حلقة.';
   static const joinedAnyGroup = 'انضممت إلى الحلقة بنجاح.';

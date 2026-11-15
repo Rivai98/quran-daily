@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/features/shell/home_shell.dart';
+import '../../helpers/widget_test_app.dart';
 
 void main() {
+  setUpAll(loadArabicUiFontsForGoldenTests);
+
   testWidgets('refreshes Home when returning to its tab', (tester) async {
     var homeSelected = 0;
     await tester.pumpWidget(
@@ -51,7 +54,7 @@ void main() {
       expect(find.text('المصحف'), findsOneWidget);
       expect(find.text('حسابي'), findsOneWidget);
       expect(find.text('HOME CONTENT'), findsOneWidget);
-      expect(find.byIcon(Icons.home), findsOneWidget);
+      expect(find.byIcon(Icons.home_rounded), findsOneWidget);
 
       await tester.tap(find.text('مجموعاتي'));
       await tester.pumpAndSettle();
@@ -70,6 +73,35 @@ void main() {
       expect(find.text('GROUPS CONTENT'), findsOneWidget);
     },
   );
+
+  testWidgets('shell tabs render light and dark at 360x800', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    for (final dark in [false, true]) {
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          HomeShell(
+            homeBuilder: _home,
+            groupsBuilder: _groups,
+            mushafBuilder: _mushaf,
+            profileBuilder: _profile,
+          ),
+          dark: dark,
+          size: const Size(360, 800),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile(
+          'goldens/shell_tabs_${dark ? 'dark' : 'light'}_360x800.png',
+        ),
+      );
+    }
+  });
 
   testWidgets(
     'renders in RTL at 200% text scale and offers settings from profile',

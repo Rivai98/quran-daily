@@ -104,20 +104,24 @@ class PublicGroupCard extends StatelessWidget {
             runSpacing: AppSpacing.xxs,
             children: [
               if (onJoin != null)
-                AppButton(
-                  label: isPending
-                      ? ArabicStrings.pendingApproval
-                      : isJoined
-                      ? ArabicStrings.joinedSuccessfully
-                      : membershipLimitReached || !group.canJoinLimit
-                      ? ArabicStrings.membershipLimitReachedAction
-                      : ArabicStrings.requestToJoin,
-                  variant: AppButtonVariant.secondary,
-                  loading: joinState == GroupJoinState.joining,
+                TextButton.icon(
+                  label: Text(
+                    isPending
+                        ? ArabicStrings.pendingApproval
+                        : isJoined
+                        ? ArabicStrings.joinedSuccessfully
+                        : membershipLimitReached || !group.canJoinLimit
+                        ? ArabicStrings.membershipLimitReachedAction
+                        : ArabicStrings.requestToJoin,
+                  ),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(0, AppSpacing.xxl),
+                  ),
                   icon: Icon(
                     isPending || isJoined
                         ? Icons.check_circle_rounded
                         : Icons.group_add_rounded,
+                    size: AppSpacing.lg,
                   ),
                   onPressed:
                       canJoin &&
