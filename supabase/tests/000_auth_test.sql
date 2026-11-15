@@ -153,14 +153,22 @@ select set_config(
 select throws_ok(
   'insert into public.profiles (id, display_name) values (''66666666-6666-6666-6666-666666666666''::uuid, ''مزور'')',
   42501,
+  null,
   'authenticated user cannot insert profiles'
 );
-select throws_ok(
-  'delete from public.profiles where id = ''55555555-5555-5555-5555-555555555555''::uuid',
-  42501,
+-- RLS has no delete policy: a delete silently affects 0 rows (no exception),
+-- so assert both profiles survive.
+delete from public.profiles
+where id in ('44444444-4444-4444-4444-444444444444'::uuid,
+             '55555555-5555-5555-5555-555555555555'::uuid);
+reset role;
+select is(
+  (select count(*) from public.profiles
+   where id in ('44444444-4444-4444-4444-444444444444'::uuid,
+                '55555555-5555-5555-5555-555555555555'::uuid)),
+  2::bigint,
   'authenticated user cannot delete profiles'
 );
-reset role;
 
 -- ---------------------------------------------------------------------------
 -- private.app_admins / private.admin_auth_audit are unreachable by API roles
@@ -169,6 +177,7 @@ set role anon;
 select throws_ok(
   'select * from private.app_admins',
   42501,
+  null,
   'anon cannot read private.app_admins'
 );
 reset role;
@@ -182,16 +191,19 @@ select set_config(
 select throws_ok(
   'select * from private.app_admins',
   42501,
+  null,
   'authenticated user cannot read private.app_admins'
 );
 select throws_ok(
   'select * from private.admin_auth_audit',
   42501,
+  null,
   'authenticated user cannot read private.admin_auth_audit'
 );
 select throws_ok(
   'insert into private.app_admins (user_id) values (''44444444-4444-4444-4444-444444444444''::uuid)',
   42501,
+  null,
   'authenticated user cannot grant admin rights'
 );
 reset role;

@@ -3,7 +3,7 @@ create extension if not exists pgtap with schema extensions;
 \i helpers/seed_members.sql
 
 begin;
-select plan(30);
+select plan(27);
 
 -- Seed three users
 select tests_seed_user('aa000000-0000-0000-0000-000000000001', 'us2-owner@test.local', 'مالك يو2');

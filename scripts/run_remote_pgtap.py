@@ -33,10 +33,10 @@ PRELUDE = """\
 -- Real pgTAP runs in-transaction; assertion SELECTs are rewritten below to
 -- buffer their TAP lines (db query only surfaces the last result set).
 create temp table tap_lines (id serial primary key, line text);
-grant insert on tap_lines to authenticated;
-grant usage, select on sequence tap_lines_id_seq to authenticated;
-grant usage on schema extensions to authenticated;
-grant execute on all functions in schema extensions to authenticated;
+grant insert on tap_lines to authenticated, anon;
+grant usage, select on sequence tap_lines_id_seq to authenticated, anon;
+grant usage on schema extensions to authenticated, anon;
+grant execute on all functions in schema extensions to authenticated, anon;
 """
 
 FINALE = """

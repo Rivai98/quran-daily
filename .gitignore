@@ -54,3 +54,4 @@ android/.gradle/
 ios/Pods/
 macos/Pods/
 !.env.example
+__pycache__/
