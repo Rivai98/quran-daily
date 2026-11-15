@@ -224,13 +224,6 @@ void main() {
       navigatorKey.currentState!.pop();
       await settle(tester);
     });
-    await optional(tester, 'join_any', () async {
-      navigatorKey.currentState!.pushNamed('/join-any');
-      await settle(tester, 1500);
-      await shot(tester, '04d_join_any');
-      navigatorKey.currentState!.pop();
-      await settle(tester);
-    });
 
     // Create group form, then the unit selector.
     final createButton = find.text(ArabicStrings.createGroup).hitTestable();

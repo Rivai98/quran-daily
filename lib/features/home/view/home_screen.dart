@@ -164,6 +164,9 @@ class _HomeScreenState extends State<HomeScreen> {
         actionLabel: ArabicStrings.searchGroupAction,
         actionIcon: const Icon(Icons.search_rounded),
         onAction: () => Navigator.pushNamed(context, AppRoutes.discovery),
+        secondaryActionLabel: ArabicStrings.createGroup,
+        secondaryActionIcon: const Icon(Icons.add_circle_outline_rounded),
+        onSecondaryAction: () => Navigator.pushNamed(context, '/groups/new'),
       ),
     ],
   );
