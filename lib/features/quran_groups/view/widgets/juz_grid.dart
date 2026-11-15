@@ -17,10 +17,12 @@ class JuzGrid extends StatelessWidget {
     return GridView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 5,
-        crossAxisSpacing: AppSpacing.xs,
-        mainAxisSpacing: AppSpacing.xs,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        // Six columns follow the design reference while preserving room for
+        // Arabic-Indic numbers at narrow phone widths.
+        crossAxisCount: MediaQuery.sizeOf(context).width < 360 ? 5 : 6,
+        crossAxisSpacing: AppSpacing.xxs,
+        mainAxisSpacing: AppSpacing.xxs,
       ),
       children: [
         for (final assignment in ordered)
