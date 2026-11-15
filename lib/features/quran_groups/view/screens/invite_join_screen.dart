@@ -75,7 +75,8 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
           final canJoin =
               profile != null &&
               profile.status != GroupStatus.archived &&
-              profile.activeMemberCount < 30;
+              profile.activeMemberCount < 30 &&
+              profile.canJoinLimit;
           return AppPageContent(
             child: ListView(
               padding: AppSpacing.screenContent,
@@ -116,6 +117,12 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
                         : ArabicStrings.authError(state.failure!.code),
                     isError: true,
                   ),
+                  if (state.failure!.code == 'membership_limit')
+                    TextButton(
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed('/groups'),
+                      child: Text(ArabicStrings.groupSelectionTitle),
+                    ),
                 ],
                 if (profile != null) ...[
                   const SizedBox(height: AppSpacing.lg),
@@ -129,11 +136,21 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
                       icon: profile.status == GroupStatus.archived
                           ? Icons.archive_outlined
                           : Icons.group_off_outlined,
-                      title: profile.status == GroupStatus.archived
+                      title: !profile.canJoinLimit
+                          ? ArabicStrings.joinError
+                          : profile.status == GroupStatus.archived
                           ? ArabicStrings.groupArchivedLabel
                           : ArabicStrings.groupFull,
-                      message: ArabicStrings.inviteUnavailable,
+                      message: !profile.canJoinLimit
+                          ? ArabicStrings.membershipLimitMessage
+                          : ArabicStrings.inviteUnavailable,
                     ),
+                    if (!profile.canJoinLimit)
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed('/groups'),
+                        child: Text(ArabicStrings.groupSelectionTitle),
+                      ),
                   ],
                   if (state.status == JoinStatus.pending) ...[
                     const SizedBox(height: AppSpacing.sm),
@@ -189,8 +206,12 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
                     message: ArabicStrings.authError(
                       state.failure?.code ?? 'network',
                     ),
-                    actionLabel: ArabicStrings.retry,
-                    onAction: _joinAny,
+                    actionLabel: state.failure?.code == 'membership_limit'
+                        ? ArabicStrings.groupSelectionTitle
+                        : ArabicStrings.retry,
+                    onAction: state.failure?.code == 'membership_limit'
+                        ? () => Navigator.of(context).pushNamed('/groups')
+                        : _joinAny,
                     isError: state.failure?.code != 'no_group_available',
                   ),
                 ],

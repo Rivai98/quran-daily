@@ -40,6 +40,7 @@ const _kindByCode = <String, FailureKind>{
   'day_closed': FailureKind.dayClosed,
   'day_not_open': FailureKind.dayClosed,
   'owner_group_limit': FailureKind.limitReached,
+  'membership_limit': FailureKind.limitReached,
 };
 
 extension AppFailureKind on AppFailure {
@@ -69,11 +70,7 @@ enum FailureCategory {
 }
 
 abstract class AppFailure extends Equatable {
-  const AppFailure({
-    required this.message,
-    required this.code,
-    this.cause,
-  });
+  const AppFailure({required this.message, required this.code, this.cause});
 
   final String message;
   final String code;

@@ -23,9 +23,10 @@ import '../widgets/history_day_detail.dart';
 
 /// S10 History Screen: lists daily khatma summaries with drill-down (ui-contract).
 class HistoryScreen extends StatelessWidget {
-  const HistoryScreen({super.key, this.groupId});
+  const HistoryScreen({super.key, this.groupId, this.initialDate});
 
   final String? groupId;
+  final String? initialDate;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +34,7 @@ class HistoryScreen extends StatelessWidget {
     try {
       final existingCubit = context.read<HistoryCubit?>();
       if (existingCubit != null) {
-        return const _HistoryView();
+        return _HistoryView(initialDate: initialDate);
       }
     } catch (_) {}
 
@@ -46,15 +47,14 @@ class HistoryScreen extends StatelessWidget {
       create: (context) {
         if (serviceLocator.isRegistered<KhatmaRepository>()) {
           final repo = serviceLocator<KhatmaRepository>();
-          return HistoryCubit(groupId: effectiveGroupId, repository: repo)
-            ..loadHistory();
+          return HistoryCubit(groupId: effectiveGroupId, repository: repo);
         }
         return HistoryCubit(
           groupId: effectiveGroupId,
           repository: _FallbackKhatmaRepository(),
         );
       },
-      child: const _HistoryView(),
+      child: _HistoryView(initialDate: initialDate),
     );
   }
 }
@@ -108,7 +108,8 @@ class _FallbackKhatmaRepository implements KhatmaRepository {
 }
 
 class _HistoryView extends StatefulWidget {
-  const _HistoryView();
+  const _HistoryView({this.initialDate});
+  final String? initialDate;
 
   @override
   State<_HistoryView> createState() => _HistoryViewState();
@@ -122,7 +123,12 @@ class _HistoryViewState extends State<_HistoryView> {
       if (mounted) {
         final cubit = context.read<HistoryCubit>();
         if (cubit.state.status == HistoryStatus.initial) {
-          cubit.loadHistory();
+          final initialDate = widget.initialDate;
+          if (initialDate == null) {
+            cubit.loadHistory();
+          } else {
+            cubit.loadDayDetail(initialDate);
+          }
         }
       }
     });

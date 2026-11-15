@@ -33,17 +33,17 @@ Test-first (constitution III): write each test task before its implementation.
 
 ## Phase 3: Log + limit UI + visuals (codex) — US3, US4, FR-004c
 
-- [ ] T023 [P] [US3] Parsing tests `test/features/log/data/log_parsing_test.dart` for `get_my_log`
-- [ ] T024 [US3] `lib/features/log/data/`: LogRemoteDataSource, LogRepository(+Impl) with cache of the first page
-- [ ] T025 [P] [US3] Cubit tests `test/features/log/cubit/log_cubit_test.dart`: load, loadMore pagination, refresh, offline cached, empty
-- [ ] T026 [US3] `lib/features/log/cubit/` LogCubit + LogState
-- [ ] T027 [US3] LogScreen: StreakHeader (streak + best), MonthSummary, days grouped by week, LogDayTile with status triplets (color + icon + label: مكتمل، متأخر، فائت، تطوع); friendly empty state
-- [ ] T028 [US3] LogDayDetailScreen: each item with portion name/range from metadata and link to that group's history day
-- [ ] T029 [P] [US3] Widget tests `test/features/log/view/log_screen_test.dart` (RTL, dark, 320dp, 200% text)
-- [ ] T030 [P] FR-004c: map `membership_limit` to "يمكنك الانضمام إلى مجموعتين بحد أقصى" in create, join, join-any, invite preview (with link to مجموعاتي), approve request; tests
-- [ ] T031 [US4] Member initial avatars, role and seat icons on members list and group cards; group status icons; Islamic ornament on Log/Home empty states; gold only for ornament
-- [ ] T032 [US4] Golden/contrast tests for the new visuals (light + dark)
-- [ ] T033 DI (marked block) and strings (marked block)
+- [X] T023 [P] [US3] Parsing tests `test/features/log/data/log_parsing_test.dart` for `get_my_log`
+- [X] T024 [US3] `lib/features/log/data/`: LogRemoteDataSource, LogRepository(+Impl) with cache of the first page
+- [X] T025 [P] [US3] Cubit tests `test/features/log/cubit/log_cubit_test.dart`: load, loadMore pagination, refresh, offline cached, empty
+- [X] T026 [US3] `lib/features/log/cubit/` LogCubit + LogState
+- [X] T027 [US3] LogScreen: StreakHeader (streak + best), MonthSummary, days grouped by week, LogDayTile with status triplets (color + icon + label: مكتمل، متأخر، فائت، تطوع); friendly empty state
+- [X] T028 [US3] LogDayDetailScreen: each item with portion name/range from metadata and link to that group's history day
+- [X] T029 [P] [US3] Widget tests `test/features/log/view/log_screen_test.dart` (RTL, dark, 320dp, 200% text)
+- [X] T030 [P] FR-004c: map `membership_limit` to "يمكنك الانضمام إلى مجموعتين بحد أقصى" in create, join, join-any, invite preview (with link to مجموعاتي), approve request; tests
+- [ ] T031 [US4] Member initial avatars, role and seat icons on members list and group cards; group status icons; Islamic ornament on Log/Home empty states; gold only for ornament (Home feature is not present in this branch)
+- [X] T032 [US4] Golden/contrast tests for the new visuals (light + dark)
+- [X] T033 DI (marked block) and strings (marked block)
 
 ## Phase 3b: Profile tab حسابي (agy) — FR-011
 - [X] T038 [P] pgTAP `supabase/tests/005_my_profile_test.sql`: streak/best streak, totals, khatmas per group, badges (first_khatma, streak_7/30/100, portions_100) from fixture history; only the caller's data

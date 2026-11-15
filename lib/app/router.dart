@@ -29,6 +29,9 @@ import '../features/quran_groups/view/screens/personal_assignment_screen.dart';
 import '../features/settings/view/settings_screen.dart';
 import '../features/profile/cubit/profile_cubit.dart';
 import '../features/profile/view/profile_screen.dart';
+import '../features/log/cubit/log_cubit.dart';
+import '../features/log/data/repositories/log_repository.dart';
+import '../features/log/view/log_screen.dart';
 
 String? inviteCodeFromDeepLink(Uri uri) {
   if (uri.scheme != 'qurandaily' ||
@@ -192,13 +195,24 @@ class AppRoutes {
           ),
         );
       },
-      history: (context) => HistoryScreen(
-        groupId: ModalRoute.of(context)?.settings.arguments as String?,
-      ),
+      history: (context) {
+        final arguments = ModalRoute.of(context)?.settings.arguments;
+        if (arguments is Map<String, Object?>) {
+          return HistoryScreen(
+            groupId: arguments['groupId'] as String?,
+            initialDate: arguments['date'] as String?,
+          );
+        }
+        return HistoryScreen(groupId: arguments as String?);
+      },
       settings: (_) => const SettingsScreen(),
       profile: (_) => BlocProvider(
         create: (_) => serviceLocator<ProfileCubit>()..load(),
         child: const ProfileScreen(),
+        ),
+      log: (_) => BlocProvider(
+        create: (_) => serviceLocator<LogCubit>()..load(),
+        child: LogScreen(repository: serviceLocator<LogRepository>()),
       ),
     };
   }
