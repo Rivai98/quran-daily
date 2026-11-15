@@ -2,7 +2,7 @@
 
 **Feature Branch**: `006-daily-reminders`
 **Created**: 2026-11-15
-**Status**: Draft (needs `/speckit-clarify` before planning)
+**Status**: Clarified (2026-11-15)
 **Depends on**: spec 001 (groups, seats, rotation - implemented), spec 004 (portion units), spec 005 (Today home, settings)
 **Input**: Owner request: "local (on-device) daily reminders inside the app to read the wird, 3 times a day: morning after Fajr, afternoon after Asr, night before sleep (about 22:00-23:00)."
 
@@ -13,7 +13,7 @@
 - Q: Are reminders push notifications sent by a server or local notifications on the device? → A: Local notifications only (on-device scheduling). No server push infrastructure, no user tracking, and full functionality offline.
 - Q: Which reminders are provided and can the user control them? → A: Exactly three daily reminders: morning (after Fajr), afternoon (after Asr), and night before sleep (target window 22:00–23:00, default 22:30). Each reminder can be independently toggled on or off, and its schedule can be customized.
 - Q: How are the default reminder times computed? → A: Fajr and Asr reminder times are calculated offline from prayer times based on device location (or a user-chosen city if location permission is denied). Calculations use a standard prayer-times method chosen by the user (default: Egyptian General Authority of Survey). Post-prayer offsets (default: +20 minutes) are configurable. The night reminder uses a fixed clock time (default 22:30).
-- Q: What happens if the user has already finished all their assigned portions for today? → A: When all assigned portions across active groups are marked completed (checked against local cache), the scheduled reminder is either skipped silently or replaced by a brief encouraging notification ("ما شاء الله، أتممت وردك اليوم").
+- Q: What happens if the user has already finished all their assigned portions for today? → A: When all assigned portions across active groups are marked completed (checked against local cache), the remaining reminders for that day are cancelled silently.
 - Q: What does notification copy look like? → A: Clear Modern Standard Arabic identifying the specific portion and group (e.g. "وردك اليوم: الحزب ١٢ في حلقة الفجر"). No Quranic aya text is ever included in notification content (constitution Principle VII).
 - Q: Where does tapping a notification take the user? → A: Directly opens the Today screen (spec 005) or the specific pending assignment detail.
 - Q: How are OS notification permissions handled? → A: Handled gracefully through an in-app introductory explanation before requesting OS permission on Android 13+ (API 33+) and iOS. If denied, the app continues normally and displays calm guidance in Settings.
@@ -27,6 +27,14 @@
   default; each member may mute a group's reminders or a single slot for
   themselves, but cannot change the group's times. Personal reminders (US1/US2)
   still apply when the user is not in any group with a schedule.
+
+- Q: A user in two groups gets how many notifications per slot? → A: One
+  combined notification per slot listing each pending portion with its group
+  (e.g. "وردك اليوم: الحزب ١٢ في حلقة الفجر، والجزء ٣ في حلقة العائلة"). If the
+  groups' owner schedules differ, each distinct time fires one notification
+  that lists only the portions still pending at that time.
+- Q: What happens after the user finishes all portions early? → A: Remaining
+  reminders for that day are cancelled silently (no encouraging notification).
 
 ## User Scenarios & Testing *(mandatory)*
 

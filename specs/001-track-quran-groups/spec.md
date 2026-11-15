@@ -6,7 +6,7 @@
 
 **Updated**: 2026-11-14 (group lifecycle, automatic rotation, vacant seats)
 
-**Status**: Draft
+**Status**: Implemented (merged to main 2026-11-15)
 
 **Input**: User description: "design the app ui, the idea of the app to make group of people to manage together through read quran for everyone and assign 1 part of quran for everyone, the people in one group are 30 and assign to anyone in specific group have part to finish in day, the idea of the app to track the process"
 

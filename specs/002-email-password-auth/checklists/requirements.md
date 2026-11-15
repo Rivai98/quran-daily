@@ -1,7 +1,7 @@
 # Specification Quality Checklist: Email and Password Authentication
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-08-13
+**Created**: 2026-08-13 | **Re-validated**: 2026-11-15 (amendment: Sign in with Google)
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -32,3 +32,4 @@
 ## Notes
 
 - Validation passed on the first review. Supabase is captured as an implementation constraint from the request and existing project plan, while the specification itself remains focused on user-visible behavior and data responsibilities.
+- Re-validated 2026-11-15: "Sign in with Google" added with automatic identity linking by email and display name profile creation; client secret management stays out of the app.

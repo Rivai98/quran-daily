@@ -2,7 +2,7 @@
 
 **Feature Branch**: `004-portion-units`
 **Created**: 2026-11-15
-**Status**: Draft
+**Status**: Implemented (merged to main 2026-11-15)
 **Depends on**: spec 001 (groups, seats, daily rotation) - implemented
 **Input**: Owner request: "The owner chooses whether members read a quarter,
 a hizb, a juz... each day; the wird does not have to be a full juz."

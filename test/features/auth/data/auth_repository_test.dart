@@ -2,11 +2,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/features/auth/data/data_sources/supabase_auth_data_source.dart';
+import 'package:quran_daily/features/auth/data/data_sources/google_auth_client.dart';
 import 'package:quran_daily/features/auth/data/entities/app_user.dart';
 import 'package:quran_daily/features/auth/data/entities/user_profile.dart';
 import 'package:quran_daily/features/auth/data/repositories/auth_repository_impl.dart';
 
 class _MockDataSource extends Mock implements SupabaseAuthDataSource {}
+class _FakeGoogleAuthClient implements GoogleAuthClient {
+  @override
+  Future<GoogleAuthTokens?> authenticate() async => null;
+  @override
+  Future<void> signOut() async {}
+}
 
 void main() {
   late _MockDataSource dataSource;
@@ -26,7 +33,10 @@ void main() {
 
   setUp(() {
     dataSource = _MockDataSource();
-    repository = AuthRepositoryImpl(dataSource: dataSource);
+    repository = AuthRepositoryImpl(
+      dataSource: dataSource,
+      googleAuthClient: _FakeGoogleAuthClient(),
+    );
     registerFallbackValue(Uri.parse('https://fallback.local'));
   });
 
