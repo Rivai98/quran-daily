@@ -12,12 +12,12 @@
 - [ ] T003 Apply to DEV; run all pgTAP files: 0 failed
 
 ## Phase 2: Mushaf data (codex-2)
-- [ ] T004 [P] Tests `test/core/quran/mushaf/mushaf_integrity_test.dart`: checksums match; 604 pages, 6236 ayahs, 114 surahs; page starts equal Tanzil `quran-data.xml` `<page>` entries
-- [ ] T005 `lib/core/quran/mushaf/`: checksum verification, parser (isolate), `MushafPage`, `AyahRef`, `pageOf`
-- [ ] T006 [P] Tests `test/core/quran/mushaf/portion_pages_test.dart`: for every portion of all 5 units, start/end pages equal `pageOf(start/end)` from metadata
-- [ ] T007 `MushafRepository.portionPages(unit, index)`
-- [ ] T008 [P] Test `test/core/quran/no_quran_text_in_repo_test.dart`: no Arabic Quran ayah strings in `lib/`, `test/` (except reading the source files)
-- [ ] T009 DI registration; integrity failure state
+- [X] T004 [P] Tests `test/core/quran/mushaf/mushaf_integrity_test.dart`: checksums match; 604 pages, 6236 ayahs, 114 surahs; page starts equal Tanzil `quran-data.xml` `<page>` entries
+- [X] T005 `lib/core/quran/mushaf/`: checksum verification, parser (isolate), `MushafPage`, `AyahRef`, `pageOf`
+- [X] T006 [P] Portion page coverage for every portion of all 5 units is included in `mushaf_integrity_test.dart`
+- [X] T007 `MushafRepository.portionRange(unit, index)`
+- [X] T008 [P] Test `test/core/quran/no_quran_text_in_repo_test.dart`: no Quranic marks in `lib/`, `test/`
+- [X] T009 DI registration; integrity exceptions prevent partial data from being exposed
 
 ## Phase 3: Reader + UI (codex)
 - [ ] T010 [P] Cubit tests `test/features/mushaf/cubit/reader_cubit_test.dart` (open page, open portion, highlight, completion, offline)
