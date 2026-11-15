@@ -8,9 +8,10 @@ import 'app_colors.dart';
 /// destructive 48 — only inside a confirmation dialog/sheet.
 enum AppButtonVariant { primary, tonal, secondary, text, destructive }
 
-/// The one shared button. At most ONE primary button is visible per screen;
-/// on action screens it is full width ([expanded]) and pinned above the
-/// keyboard.
+/// The one shared button (Constitution Principle VI & ui-craft.md).
+///
+/// At most ONE primary button is visible per screen; on action screens it is
+/// full width ([expanded]) and pinned above the keyboard.
 ///
 /// * The optional [icon] sits at the start (right in RTL), 20dp.
 /// * While [loading] the button is disabled, keeps its width, shows a 20dp
@@ -51,8 +52,8 @@ class AppButton extends StatelessWidget {
       AppButtonVariant.secondary || AppButtonVariant.text => colors.primary,
       AppButtonVariant.destructive =>
         Theme.of(context).brightness == Brightness.light
-            ? const Color(0xFFFFFFFF)
-            : const Color(0xFF3D1A18),
+            ? colors.onPrimary
+            : colors.missedBg,
     };
 
     final leading = loading
@@ -111,8 +112,8 @@ class AppButton extends StatelessWidget {
             minimumSize: Size(expanded ? double.infinity : 64, height),
             backgroundColor: colors.danger,
             foregroundColor: Theme.of(context).brightness == Brightness.light
-                ? const Color(0xFFFFFFFF)
-                : const Color(0xFF3D1A18),
+                ? colors.onPrimary
+                : colors.missedBg,
           ),
           child: _content(leading, foregroundColor),
         );
