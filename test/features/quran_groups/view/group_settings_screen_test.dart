@@ -18,6 +18,10 @@ void main() {
   testWidgets('owner confirms a portion change for the next cycle', (
     tester,
   ) async {
+    // Tall surface so the portion selector is on screen regardless of the
+    // invite section's height.
+    await tester.binding.setSurfaceSize(const Size(800, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     final repository = _MockGroupsRepository();
     registerFallbackValue(const GroupSettingsPatch());
     final cubit = GroupSettingsCubit(repository: repository)

@@ -65,6 +65,7 @@ class ArabicStrings {
     if (r >= 3 && r <= 10) return 'آيات';
     return 'آيةً';
   }
+
   static String juzHizbMeta(String surahName, int page) =>
       'سورة $surahName، صفحة ${ArabicFormatting.isolate(ArabicNumerals.format(page))}';
   // --- 006 reminders ---
@@ -431,6 +432,15 @@ class ArabicStrings {
   static const inviteShareMessage =
       'انضم إلى مجموعتي في ختمة يومية! رمز الدعوة: ';
   static const regenerateInviteAction = 'توليد رمز جديد';
+  static const inviteCodeCopied = 'تم نسخ رمز الدعوة';
+  static const inviteShareSubject = 'دعوة للانضمام إلى حلقة';
+  static String inviteShareText({
+    required String groupName,
+    required String code,
+  }) =>
+      'انضم إلى مجموعتي «$groupName» لختمة القرآن على تطبيق حلقة\n'
+      'رمز الدعوة: $code\n'
+      'افتح التطبيق، ثم مجموعاتي ← عندي رابط دعوة، واكتب الرمز.';
   static const regenerateInviteTitle = 'توليد رمز دعوة جديد؟';
   static const regenerateInviteMessage =
       'سيتوقف عمل رمز الدعوة القديم ولن يعود رابط الدعوة السابق.';
@@ -924,7 +934,8 @@ class ArabicStrings {
   static String completionPercentage(int rate) =>
       '${ArabicNumerals.format(rate)}٪';
   static String groupMembersRatio(int current, int total) =>
-      '${ArabicNumerals.format(current)} عضوًا من ${ArabicNumerals.format(total)}';
+      '${ArabicFormatting.isolate(ArabicNumerals.format(current))} من '
+      '${ArabicFormatting.isolate(ArabicNumerals.format(total))} عضوًا';
   // --- 005 profile ---
   static const profileTitle = 'حسابي';
   static const profileStreakSection = 'التتابع والالتزام';
@@ -973,6 +984,7 @@ class ArabicStrings {
   static const avatarOrnament = 'زخرفة';
   static const avatarManKufi = 'رجل بقلنسوة';
   static const avatarWomanHijab = 'امرأة بحجاب';
+
   /// "٣ من ٧ أيام" / "٣ من ٣٠ يومًا": Arabic counted-noun form follows the target.
   static String badgeProgress(int current, int target, String unit) {
     const accusative = {'أيام': 'يومًا', 'أجزاء': 'جزءًا'};
@@ -980,6 +992,7 @@ class ArabicStrings {
     return '${ArabicFormatting.isolate(ArabicNumerals.format(current))} من '
         '${ArabicFormatting.isolate(ArabicNumerals.format(target))} $noun';
   }
+
   static const badgeProgressDays = 'أيام';
   static const badgeProgressPortions = 'أجزاء';
   static const badgeProgressKhatmas = 'ختمة';

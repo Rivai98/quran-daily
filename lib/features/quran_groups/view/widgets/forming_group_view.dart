@@ -5,10 +5,10 @@ import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
-import '../../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../../core/design_system/widgets/skeleton.dart';
 import '../../../../core/localization/arabic_numerals.dart';
 import '../../../../core/localization/arabic_strings.dart';
+import 'invite_code_row.dart';
 import '../../../../core/quran/portion_unit.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
 import '../../data/entities/entities.dart';
@@ -44,15 +44,6 @@ class FormingGroupView extends StatelessWidget {
   final QuranMetadataRepository? metadataRepository;
 
   int get _missing => 30 - activeMemberCount;
-
-  void _shareInvite(BuildContext context) {
-    final code = inviteCode;
-    if (code == null) return;
-    AppSnackBar.show(
-      context,
-      '${ArabicStrings.formingInviteSnack}$code — qurandaily://join/$code',
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,23 +88,7 @@ class FormingGroupView extends StatelessWidget {
                 ),
                 if (inviteCode != null) ...[
                   const SizedBox(height: AppSpacing.md),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          ArabicNumerals.format(inviteCode!),
-                          style: AppTypography.bodyLarge,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      AppButton(
-                        label: ArabicStrings.shareInviteAction,
-                        variant: AppButtonVariant.tonal,
-                        onPressed: () => _shareInvite(context),
-                        icon: const Icon(Icons.share_rounded),
-                      ),
-                    ],
-                  ),
+                  InviteCodeRow(code: inviteCode!, groupName: groupName),
                 ],
               ],
             ),

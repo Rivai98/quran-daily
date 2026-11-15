@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/design_system/app_button.dart';
@@ -14,7 +13,7 @@ import '../../../../core/design_system/widgets/app_text_field.dart';
 import '../../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/localization/arabic_numerals.dart';
+import '../widgets/invite_code_row.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/quran/portion_unit.dart';
 import '../../../reminders/cubit/reminders_cubit.dart';
@@ -205,31 +204,13 @@ class _SettingsFormState extends State<_SettingsForm> {
                   title: ArabicStrings.inviteCodeLabel,
                 ),
                 const SizedBox(height: AppSpacing.xxs),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        inviteCode == null
-                            ? ArabicStrings.showInviteCode
-                            : ArabicNumerals.format(inviteCode!),
-                        style: AppTypography.bodyLarge,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    AppButton(
-                      label: ArabicStrings.shareInviteAction,
-                      variant: AppButtonVariant.tonal,
-                      onPressed: () => SharePlus.instance.share(
-                        ShareParams(
-                          text:
-                              '${ArabicStrings.inviteShareMessage}$inviteCode'
-                              ' — qurandaily://join/$inviteCode',
-                        ),
-                      ),
-                      icon: const Icon(Icons.share_rounded),
-                    ),
-                  ],
-                ),
+                if (inviteCode == null)
+                  Text(
+                    ArabicStrings.showInviteCode,
+                    style: AppTypography.bodyLarge,
+                  )
+                else
+                  InviteCodeRow(code: inviteCode!, groupName: groupName),
                 const SizedBox(height: AppSpacing.sm),
                 AppButton(
                   label: ArabicStrings.regenerateInviteAction,
