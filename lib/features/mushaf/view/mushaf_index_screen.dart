@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design_system/app_colors.dart';
+import '../data/reader_storage.dart';
+import '../../../core/design_system/app_radius.dart';
 import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/di/service_locator.dart';
@@ -56,7 +58,7 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
     length: 4,
     child: Scaffold(
       appBar: AppBar(
-        title: const Text(ArabicStrings.mushafIndexAction),
+        title: const Text(ArabicStrings.mushafTitle),
         bottom: const TabBar(
           isScrollable: true,
           tabs: [
@@ -81,12 +83,23 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
               ),
             );
           }
-          return TabBarView(
+          return Column(
             children: [
-              _surahs(),
-              _juzList(),
-              _hizbList(),
-              _pages(),
+              _ContinueReadingCard(
+                repository: widget.repository,
+                metadata: _metadata,
+                onOpenPage: widget.onOpenPage,
+              ),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    _surahs(),
+                    _juzList(),
+                    _hizbList(),
+                    _pages(),
+                  ],
+                ),
+              ),
             ],
           );
         },
@@ -310,6 +323,111 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+
+/// "تابع القراءة": resumes free reading at the last saved page.
+class _ContinueReadingCard extends StatefulWidget {
+  const _ContinueReadingCard({
+    required this.repository,
+    required this.metadata,
+    required this.onOpenPage,
+  });
+
+  final MushafRepository repository;
+  final QuranMetadataRepository? metadata;
+  final ValueChanged<int> onOpenPage;
+
+  @override
+  State<_ContinueReadingCard> createState() => _ContinueReadingCardState();
+}
+
+class _ContinueReadingCardState extends State<_ContinueReadingCard> {
+  late final Future<int?> _lastPage = _load();
+
+  Future<int?> _load() async {
+    if (!serviceLocator.isRegistered<ReaderStorage>()) return null;
+    try {
+      return await serviceLocator<ReaderStorage>().lastPage();
+    } on Object {
+      return null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return FutureBuilder<int?>(
+      future: _lastPage,
+      builder: (context, snapshot) {
+        final page = snapshot.data;
+        if (page == null) return const SizedBox.shrink();
+        final mushafPage = widget.repository.page(page);
+        String? surah;
+        try {
+          surah = widget.metadata?.suraName(mushafPage.firstSurah);
+        } on Object {
+          surah = null;
+        }
+        final subtitle = surah == null
+            ? '${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(page)}'
+            : 'سورة $surah · ${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(page)}';
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.sm,
+            AppSpacing.md,
+            AppSpacing.xs,
+          ),
+          child: Material(
+            color: colors.primaryContainer,
+            borderRadius: AppRadius.lgBR,
+            child: InkWell(
+              borderRadius: AppRadius.lgBR,
+              onTap: () => widget.onOpenPage(page),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.auto_stories_rounded,
+                      color: colors.onPrimaryContainer,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'تابع القراءة',
+                            style: AppTypography.title.copyWith(
+                              color: colors.onPrimaryContainer,
+                            ),
+                          ),
+                          Text(
+                            subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.caption.copyWith(
+                              color: colors.onPrimaryContainer,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: colors.onPrimaryContainer,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
