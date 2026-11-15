@@ -17,11 +17,13 @@ class JuzGrid extends StatelessWidget {
     required this.assignments,
     this.onAssignmentTap,
     this.unit = PortionUnit.juz,
+    this.showMissed = true,
   });
 
   final List<Assignment> assignments;
   final ValueChanged<Assignment>? onAssignmentTap;
   final PortionUnit unit;
+  final bool showMissed;
 
   @override
   Widget build(BuildContext context) {
@@ -53,24 +55,30 @@ class JuzGrid extends StatelessWidget {
       children: [
         for (final seat in seatNumbers)
           if (bySeat[seat] case final assignment?)
-            PartTile(
-              juz: assignment.juz,
-              unit: unit,
-              portionIndex: assignment.portionIndex,
-              readerInitials: assignment.reader?.initials,
-              readerDisplayName: assignment.reader?.displayName ??
-                  assignment.readerDisplayName,
-              status: design.AssignmentStatus.values.byName(
-                assignment.status.name,
-              ),
-              isMine: assignment.isMe,
-              onTap: onAssignmentTap == null
-                  ? null
-                  : () => onAssignmentTap!(assignment),
-            )
+            _assignmentTile(assignment)
           else
             _RestDayTile(seat: seat),
       ],
+    );
+  }
+
+  Widget _assignmentTile(Assignment assignment) {
+    final hideMissed =
+        !showMissed && assignment.status == AssignmentStatusEnum.missed;
+    return PartTile(
+      juz: assignment.juz,
+      unit: unit,
+      portionIndex: assignment.portionIndex,
+      readerInitials: assignment.reader?.initials,
+      readerDisplayName:
+          assignment.reader?.displayName ?? assignment.readerDisplayName,
+      status: design.AssignmentStatus.values.byName(
+        hideMissed ? AssignmentStatusEnum.unread.name : assignment.status.name,
+      ),
+      isMine: assignment.isMe,
+      onTap: onAssignmentTap == null || hideMissed
+          ? null
+          : () => onAssignmentTap!(assignment),
     );
   }
 }
@@ -82,8 +90,7 @@ class _RestDayTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     return Semantics(
-      label:
-          ArabicStrings.restDaySeatLabel(ArabicNumerals.format(seat)),
+      label: ArabicStrings.restDaySeatLabel(ArabicNumerals.format(seat)),
       child: Container(
         constraints: const BoxConstraints(minHeight: 48),
         padding: const EdgeInsetsDirectional.all(AppSpacing.xs),

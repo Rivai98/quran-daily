@@ -68,6 +68,7 @@ DashboardSnapshot _snapshot({
     ),
     assignments: assignments,
     myAssignments: [assignments.first],
+    activeMemberCount: 1,
     isStale: stale,
     pendingPortionUnit: pendingPortionUnit,
     portionUnit: portionUnit,
@@ -452,7 +453,9 @@ void main() {
     expect(find.byType(FormingGroupView), findsOneWidget);
     expect(find.text(ArabicStrings.shareInviteAction), findsOneWidget);
 
-    await tester.ensureVisible(find.text(ArabicStrings.startKhatmaAction).first);
+    await tester.ensureVisible(
+      find.text(ArabicStrings.startKhatmaAction).first,
+    );
     await tester.tap(find.text(ArabicStrings.startKhatmaAction).first);
     await tester.pumpAndSettle();
     expect(find.byType(ChoiceChip), findsNWidgets(30));
@@ -462,9 +465,9 @@ void main() {
     );
     expect(
       tester.widget<ChoiceChip>(find.byType(ChoiceChip).first).selectedColor,
-      Theme.of(tester.element(find.byType(ChoiceChip).first))
-          .extension<AppColors>()!
-          .primaryContainer,
+      Theme.of(
+        tester.element(find.byType(ChoiceChip).first),
+      ).extension<AppColors>()!.primaryContainer,
     );
     await tester.tap(find.text(ArabicStrings.startKhatmaAction).last);
     await tester.pumpAndSettle();
@@ -502,7 +505,12 @@ void main() {
       find.text(ArabicStrings.portionName(PortionUnit.hizb, 1)),
       findsOneWidget,
     );
-    expect(find.text(ArabicStrings.cycleProgress(1, 2, 1, 60)), findsOneWidget);
+    expect(find.text(ArabicStrings.cycleDayProgress(1, 2)), findsOneWidget);
+    expect(find.text(ArabicStrings.groupProgressLabel(0, 1)), findsOneWidget);
+    expect(
+      find.text(ArabicStrings.groupDashboardMeta(1, PortionUnit.hizb)),
+      findsOneWidget,
+    );
   });
 
   testWidgets('owner reaches history, members, requests and group settings', (

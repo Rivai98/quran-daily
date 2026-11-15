@@ -43,6 +43,8 @@ class HistoryDayCard extends StatelessWidget {
           children: [
             Row(
               children: [
+                Icon(Icons.today_outlined, size: 18, color: colors.inkMuted),
+                const SizedBox(width: AppSpacing.xs),
                 Flexible(
                   child: Text(
                     ArabicNumerals.format(day.groupDate),
@@ -88,6 +90,7 @@ class HistoryDayCard extends StatelessWidget {
               completed: totalCompleted,
               total: 30,
               variant: ProgressVariant.bar,
+              caption: ArabicStrings.groupProgressLabel(totalCompleted, 30),
             ),
             const SizedBox(height: AppSpacing.sm),
             Wrap(

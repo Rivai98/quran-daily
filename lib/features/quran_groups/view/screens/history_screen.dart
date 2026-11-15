@@ -222,13 +222,32 @@ class _DaysList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cycles = groupHistoryByCycle(days.cast<HistoryDaySummary>());
-    final rows = <({HistoryCycleSummary cycle, HistoryDaySummary? day})>[];
+    final rows =
+        <
+          ({HistoryCycleSummary? cycle, HistoryDaySummary? day, String? week})
+        >[];
+    String? lastWeekStart;
     for (final cycle in cycles) {
       if (cycle.portionUnit != PortionUnit.juz) {
-        rows.add((cycle: cycle, day: null));
+        rows.add((cycle: cycle, day: null, week: null));
       }
       for (final day in cycle.days) {
-        rows.add((cycle: cycle, day: day));
+        final date = DateTime.parse(day.groupDate);
+        final weekStart = date
+            .subtract(Duration(days: date.weekday - DateTime.monday))
+            .toIso8601String()
+            .substring(0, 10);
+        if (weekStart != lastWeekStart) {
+          rows.add((
+            cycle: null,
+            day: null,
+            week: ArabicStrings.historyWeekOf(
+              date.subtract(Duration(days: date.weekday - DateTime.monday)),
+            ),
+          ));
+          lastWeekStart = weekStart;
+        }
+        rows.add((cycle: cycle, day: day, week: null));
       }
     }
     return ListView.separated(
@@ -246,8 +265,26 @@ class _DaysList extends StatelessWidget {
         }
 
         final row = rows[index];
+        if (row.week != null) {
+          final colors = Theme.of(context).extension<AppColors>()!;
+          return Padding(
+            padding: const EdgeInsetsDirectional.only(top: AppSpacing.sm),
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AppSpacing.xs,
+              children: [
+                Icon(
+                  Icons.view_week_outlined,
+                  size: 20,
+                  color: colors.inkMuted,
+                ),
+                Text(row.week!, style: Theme.of(context).textTheme.titleMedium),
+              ],
+            ),
+          );
+        }
         if (row.day == null) {
-          final cycle = row.cycle;
+          final cycle = row.cycle!;
           final colors = Theme.of(context).extension<AppColors>()!;
           return Padding(
             padding: const EdgeInsetsDirectional.only(top: AppSpacing.sm),
@@ -271,7 +308,7 @@ class _DaysList extends StatelessWidget {
         final day = row.day!;
         return HistoryDayCard(
           day: day,
-          showFullKhatmaBadge: row.cycle.portionUnit == PortionUnit.juz,
+          showFullKhatmaBadge: row.cycle!.portionUnit == PortionUnit.juz,
           onTap: () =>
               context.read<HistoryCubit>().loadDayDetail(day.groupDate),
         );

@@ -44,40 +44,40 @@ class PortionDetailSheet extends StatelessWidget {
     ValueChanged<String>? onOpenProfile,
     VoidCallback? onVolunteer,
     VoidCallback? onOverride,
-  }) =>
-      showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        builder: (sheetContext) => SafeArea(
-          child: PortionDetailSheet(
-            assignment: assignment,
-            unit: unit,
-            groupId: groupId,
-            metadataRepository: metadataRepository,
-            onOpenProfile: onOpenProfile ??
-                (userId) {
-                  Navigator.of(sheetContext).pop();
-                  Navigator.pushNamed(
-                    context,
-                    AppRoutes.memberProfile,
-                    arguments: {'userId': userId, 'groupId': groupId},
-                  );
-                },
-            onVolunteer: onVolunteer == null
-                ? null
-                : () {
-                    Navigator.of(sheetContext).pop();
-                    onVolunteer();
-                  },
-            onOverride: onOverride == null
-                ? null
-                : () {
-                    Navigator.of(sheetContext).pop();
-                    onOverride();
-                  },
-          ),
-        ),
-      );
+  }) => showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (sheetContext) => SafeArea(
+      child: PortionDetailSheet(
+        assignment: assignment,
+        unit: unit,
+        groupId: groupId,
+        metadataRepository: metadataRepository,
+        onOpenProfile:
+            onOpenProfile ??
+            (userId) {
+              Navigator.of(sheetContext).pop();
+              Navigator.pushNamed(
+                context,
+                AppRoutes.memberProfile,
+                arguments: {'userId': userId, 'groupId': groupId},
+              );
+            },
+        onVolunteer: onVolunteer == null
+            ? null
+            : () {
+                Navigator.of(sheetContext).pop();
+                onVolunteer();
+              },
+        onOverride: onOverride == null
+            ? null
+            : () {
+                Navigator.of(sheetContext).pop();
+                onOverride();
+              },
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -87,10 +87,7 @@ class PortionDetailSheet extends StatelessWidget {
     String? readingRange;
     if (metadataRepository != null) {
       try {
-        final p = metadataRepository!.portion(
-          unit,
-          assignment.portionIndex,
-        );
+        final p = metadataRepository!.portion(unit, assignment.portionIndex);
         final startSuraName = metadataRepository!.suraName(p.startSura);
         final endSuraName = metadataRepository!.suraName(p.endSura);
         readingRange = ArabicStrings.portionRange(
@@ -102,11 +99,13 @@ class PortionDetailSheet extends StatelessWidget {
       } catch (_) {}
     }
 
-    final hasReader = assignment.reader != null ||
+    final hasReader =
+        assignment.reader != null ||
         (assignment.readerDisplayName != null &&
             assignment.readerDisplayName!.isNotEmpty);
 
-    final readerDisplayName = assignment.reader?.displayName ??
+    final readerDisplayName =
+        assignment.reader?.displayName ??
         assignment.readerDisplayName ??
         (assignment.status == AssignmentStatusEnum.available
             ? ArabicStrings.available
@@ -182,16 +181,40 @@ class PortionDetailSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        readerDisplayName,
-                        style: AppTypography.title,
-                      ),
+                      Text(readerDisplayName, style: AppTypography.title),
                       const SizedBox(height: AppSpacing.xxs),
-                      Text(
-                        '${ArabicStrings.historySeat(ArabicNumerals.format(assignment.seatNumber))} · $kindText',
-                        style: AppTypography.caption.copyWith(
-                          color: colors.inkMuted,
-                        ),
+                      Wrap(
+                        spacing: AppSpacing.xs,
+                        runSpacing: AppSpacing.xxs,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.event_seat_outlined,
+                            size: 16,
+                            color: colors.inkMuted,
+                          ),
+                          Text(
+                            ArabicStrings.historySeat(
+                              ArabicNumerals.format(assignment.seatNumber),
+                            ),
+                            style: AppTypography.caption.copyWith(
+                              color: colors.inkMuted,
+                            ),
+                          ),
+                          Icon(
+                            assignment.kind == AssignmentKind.volunteer
+                                ? Icons.volunteer_activism_outlined
+                                : Icons.menu_book_outlined,
+                            size: 16,
+                            color: colors.inkMuted,
+                          ),
+                          Text(
+                            kindText,
+                            style: AppTypography.caption.copyWith(
+                              color: colors.inkMuted,
+                            ),
+                          ),
+                        ],
                       ),
                       if (formattedTime != null) ...[
                         const SizedBox(height: AppSpacing.xxs),
@@ -235,7 +258,9 @@ class PortionDetailSheet extends StatelessWidget {
               ),
             ],
           ],
-          if (hasReader && assignment.reader?.userId != null && onOpenProfile != null) ...[
+          if (hasReader &&
+              assignment.reader?.userId != null &&
+              onOpenProfile != null) ...[
             AppButton(
               label: ArabicStrings.openProfile,
               icon: const Icon(Icons.person),

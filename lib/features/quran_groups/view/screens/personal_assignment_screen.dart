@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/router.dart';
 import '../../../../core/design_system/app_button.dart';
+import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/assignment_status.dart' as ds;
@@ -12,7 +13,6 @@ import '../../../../core/design_system/widgets/offline_banner.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/design_system/widgets/status_chip.dart';
 import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/localization/arabic_numerals.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
 import '../../../../core/quran/mushaf/mushaf_repository.dart';
 import '../../../../core/di/service_locator.dart';
@@ -62,20 +62,26 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    StatusChip(
-                      status: ds.AssignmentStatus.values.byName(
-                        current.status.name,
-                      ),
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.xs,
+                      children: [
+                        Text(
+                          ArabicStrings.portionName(
+                            widget.snapshot.portionUnit,
+                            current.portionIndex,
+                          ),
+                          style: AppTypography.quranLabel,
+                        ),
+                        StatusChip(
+                          status: ds.AssignmentStatus.values.byName(
+                            current.status.name,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      ArabicStrings.portionName(
-                        widget.snapshot.portionUnit,
-                        current.portionIndex,
-                      ),
-                      style: AppTypography.quranLabel,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
                     FutureBuilder<void>(
                       future: _metadata,
                       builder: (context, metadataState) {
@@ -92,18 +98,33 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              ArabicStrings.portionRange(
-                                widget.metadataRepository.suraName(
-                                  info.startSura,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.auto_stories_outlined,
+                                  size: 20,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<AppColors>()!.inkMuted,
                                 ),
-                                info.startAya,
-                                widget.metadataRepository.suraName(
-                                  info.endSura,
+                                const SizedBox(width: AppSpacing.xs),
+                                Expanded(
+                                  child: Text(
+                                    ArabicStrings.portionRange(
+                                      widget.metadataRepository.suraName(
+                                        info.startSura,
+                                      ),
+                                      info.startAya,
+                                      widget.metadataRepository.suraName(
+                                        info.endSura,
+                                      ),
+                                      info.endAya,
+                                    ),
+                                    style: AppTypography.bodyLarge,
+                                  ),
                                 ),
-                                info.endAya,
-                              ),
-                              style: AppTypography.bodyLarge,
+                              ],
                             ),
                             if (pageSource != null)
                               FutureBuilder<void>(
@@ -118,9 +139,29 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                                     widget.snapshot.portionUnit,
                                     current.portionIndex,
                                   );
-                                  return Text(
-                                    '${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(pages.startPage)} – ${ArabicNumerals.format(pages.endPage)}',
-                                    style: AppTypography.caption,
+                                  return Padding(
+                                    padding: const EdgeInsetsDirectional.only(
+                                      top: AppSpacing.xs,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.bookmark_outline_rounded,
+                                          size: 18,
+                                          color: Theme.of(
+                                            context,
+                                          ).extension<AppColors>()!.inkMuted,
+                                        ),
+                                        const SizedBox(width: AppSpacing.xs),
+                                        Text(
+                                          ArabicStrings.pageRangeLabel(
+                                            pages.startPage,
+                                            pages.endPage,
+                                          ),
+                                          style: AppTypography.caption,
+                                        ),
+                                      ],
+                                    ),
                                   );
                                 },
                               ),

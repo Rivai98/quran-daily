@@ -56,9 +56,9 @@ class GroupDashboardScreen extends StatelessWidget {
                     ),
                     borderRadius: AppRadius.smBR,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
+                      padding: const EdgeInsetsDirectional.symmetric(
                         horizontal: AppSpacing.xs,
-                        vertical: AppSpacing.xxs,
+                        vertical: AppSpacing.xs,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -66,7 +66,44 @@ class GroupDashboardScreen extends StatelessWidget {
                           GroupAvatar(name: snapshot.groupName, size: 32),
                           const SizedBox(width: AppSpacing.xs),
                           Flexible(
-                            child: Text(snapshot.groupName, maxLines: 2),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  snapshot.groupName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.people_alt_outlined,
+                                      size: 16,
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<AppColors>()!.inkMuted,
+                                    ),
+                                    const SizedBox(width: AppSpacing.xxs),
+                                    Flexible(
+                                      child: Text(
+                                        ArabicStrings.groupDashboardMeta(
+                                          snapshot.activeMemberCount,
+                                          snapshot.portionUnit,
+                                        ),
+                                        style: AppTypography.caption.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).extension<AppColors>()!.inkMuted,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -125,15 +162,8 @@ class GroupDashboardScreen extends StatelessWidget {
       );
     }
 
+    final completedMembers = today.completedCount + today.lateCount;
     final myAssignment = snapshot.myAssignments.isNotEmpty;
-    final completed = snapshot.assignments
-        .where(
-          (assignment) =>
-              assignment.status == AssignmentStatusEnum.completed ||
-              assignment.status == AssignmentStatusEnum.late,
-        )
-        .length;
-
     return RefreshIndicator(
       onRefresh: context.read<DashboardCubit>().refresh,
       child: SingleChildScrollView(
@@ -211,14 +241,24 @@ class GroupDashboardScreen extends StatelessWidget {
                     padding: const EdgeInsetsDirectional.only(
                       bottom: AppSpacing.sm,
                     ),
-                    child: Text(
-                      ArabicStrings.cycleProgress(
-                        snapshot.cycle!.day,
-                        snapshot.cycle!.length,
-                        snapshot.cycle!.completed,
-                        snapshot.cycle!.total,
-                      ),
-                      style: AppTypography.title,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today_rounded,
+                          size: 20,
+                          color: Theme.of(
+                            context,
+                          ).extension<AppColors>()!.inkMuted,
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          ArabicStrings.cycleDayProgress(
+                            snapshot.cycle!.day,
+                            snapshot.cycle!.length,
+                          ),
+                          style: AppTypography.title,
+                        ),
+                      ],
                     ),
                   ),
                 AppCard(
@@ -229,9 +269,16 @@ class GroupDashboardScreen extends StatelessWidget {
                         title: ArabicStrings.assignmentGroupDate,
                       ),
                       ProgressHeader(
-                        completed: snapshot.cycle?.completed ?? completed,
-                        total: snapshot.cycle?.total ?? 30,
+                        completed: completedMembers.clamp(
+                          0,
+                          snapshot.activeMemberCount,
+                        ),
+                        total: snapshot.activeMemberCount,
                         variant: ProgressVariant.bar,
+                        caption: ArabicStrings.groupProgressLabel(
+                          completedMembers.clamp(0, snapshot.activeMemberCount),
+                          snapshot.activeMemberCount,
+                        ),
                       ),
                     ],
                   ),
@@ -245,6 +292,9 @@ class GroupDashboardScreen extends StatelessWidget {
                       JuzGrid(
                         assignments: snapshot.assignments,
                         unit: snapshot.portionUnit,
+                        showMissed:
+                            snapshot.myRole == GroupRole.owner ||
+                            snapshot.myRole == GroupRole.supervisor,
                         onAssignmentTap: (assignment) {
                           if (snapshot.myRole == GroupRole.owner &&
                               assignment.status ==

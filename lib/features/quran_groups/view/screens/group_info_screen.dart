@@ -302,12 +302,14 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                       customBorder: const CircleBorder(),
                                       onTap: () =>
                                           _showPhotoOptions(context, info),
-                                      child: const Padding(
-                                        padding: EdgeInsets.all(6),
-                                        child: Icon(
-                                          Icons.camera_alt,
-                                          size: 18,
-                                          color: Colors.white,
+                                      child: SizedBox.square(
+                                        dimension: AppSpacing.xxl,
+                                        child: Center(
+                                          child: Icon(
+                                            Icons.camera_alt,
+                                            size: 20,
+                                            color: colors.onPrimary,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -372,9 +374,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                               runSpacing: AppSpacing.xs,
                               spacing: AppSpacing.sm,
                               children: [
-                                Text(
-                                  ArabicStrings.portionSelectorTitle,
-                                  style: AppTypography.label,
+                                _GroupStatLabel(
+                                  icon: Icons.menu_book_outlined,
+                                  label: ArabicStrings.portionSelectorTitle,
                                 ),
                                 PortionUnitChip(
                                   unit: info.portionUnit,
@@ -389,9 +391,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                               runSpacing: AppSpacing.xs,
                               spacing: AppSpacing.sm,
                               children: [
-                                Text(
-                                  ArabicStrings.createdDate,
-                                  style: AppTypography.label,
+                                _GroupStatLabel(
+                                  icon: Icons.calendar_today_outlined,
+                                  label: ArabicStrings.createdDate,
                                 ),
                                 Text(
                                   '${ArabicNumerals.format(info.createdAt.year)}/${ArabicNumerals.format(info.createdAt.month)}/${ArabicNumerals.format(info.createdAt.day)}',
@@ -406,9 +408,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                               runSpacing: AppSpacing.xs,
                               spacing: AppSpacing.sm,
                               children: [
-                                Text(
-                                  ArabicStrings.groupMembers,
-                                  style: AppTypography.label,
+                                _GroupStatLabel(
+                                  icon: Icons.people_alt_outlined,
+                                  label: ArabicStrings.groupMembers,
                                 ),
                                 Text(
                                   ArabicStrings.groupMembersRatio(
@@ -426,9 +428,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                               runSpacing: AppSpacing.xs,
                               spacing: AppSpacing.sm,
                               children: [
-                                Text(
-                                  ArabicStrings.completedKhatmas,
-                                  style: AppTypography.label,
+                                _GroupStatLabel(
+                                  icon: Icons.check_circle_outline_rounded,
+                                  label: ArabicStrings.completedKhatmas,
                                 ),
                                 Text(
                                   ArabicNumerals.format(info.khatmaCount),
@@ -541,15 +543,28 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                       ),
                                       if (member.seatNumber != null) ...[
                                         const SizedBox(height: AppSpacing.xxs),
-                                        Text(
-                                          ArabicStrings.historySeat(
-                                            ArabicNumerals.format(
-                                              member.seatNumber!,
+                                        Wrap(
+                                          crossAxisAlignment:
+                                              WrapCrossAlignment.center,
+                                          spacing: AppSpacing.xxs,
+                                          children: [
+                                            Icon(
+                                              Icons.event_seat_outlined,
+                                              size: 16,
+                                              color: colors.inkMuted,
                                             ),
-                                          ),
-                                          style: AppTypography.caption.copyWith(
-                                            color: colors.inkMuted,
-                                          ),
+                                            Text(
+                                              ArabicStrings.historySeat(
+                                                ArabicNumerals.format(
+                                                  member.seatNumber!,
+                                                ),
+                                              ),
+                                              style: AppTypography.caption
+                                                  .copyWith(
+                                                    color: colors.inkMuted,
+                                                  ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ],
@@ -590,6 +605,26 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
           );
         },
       ),
+    );
+  }
+}
+
+class _GroupStatLabel extends StatelessWidget {
+  const _GroupStatLabel({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: AppSpacing.xxs,
+      children: [
+        Icon(icon, size: 16, color: colors.inkMuted),
+        Text(label, style: AppTypography.label),
+      ],
     );
   }
 }
