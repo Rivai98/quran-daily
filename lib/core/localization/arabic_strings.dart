@@ -1,3 +1,6 @@
+import 'arabic_numerals.dart';
+import '../quran/portion_unit.dart';
+
 class ArabicStrings {
   const ArabicStrings._();
 
@@ -460,4 +463,25 @@ class ArabicStrings {
   static const signOutConfirmMessage = 'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
   static const quranTextSizeTitle = 'حجم خط قراءة الأجزاء';
   static const quranPreviewText = 'الجزء الأول';
+
+  // --- 004 portion metadata ---
+  static const portionUnitJuz = '\u{627}\u{644}\u{62c}\u{632}\u{621}';
+  static const portionUnitHalfJuz =
+      '\u{646}\u{635}\u{641} \u{627}\u{644}\u{62c}\u{632}\u{621}';
+  static const portionUnitHizb = '\u{627}\u{644}\u{62d}\u{632}\u{628}';
+  static const portionUnitQuarter =
+      '\u{631}\u{628}\u{639} \u{627}\u{644}\u{62d}\u{632}\u{628}';
+  static const portionUnitPage = '\u{627}\u{644}\u{635}\u{641}\u{62d}\u{629}';
+
+  static String portionUnitName(PortionUnit unit) => switch (unit) {
+    PortionUnit.juz => portionUnitJuz,
+    PortionUnit.halfJuz => portionUnitHalfJuz,
+    PortionUnit.hizb => portionUnitHizb,
+    PortionUnit.quarter => portionUnitQuarter,
+    PortionUnit.page => portionUnitPage,
+  };
+
+  /// Formats ordinal unit names using the shared Arabic-Indic numeral formatter.
+  static String portionName(PortionUnit unit, int index) =>
+      '${portionUnitName(unit)} ${ArabicNumerals.format(index)}';
 }
