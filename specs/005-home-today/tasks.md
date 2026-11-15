@@ -5,16 +5,16 @@ Test-first (constitution III): write each test task before its implementation.
 
 ## Phase 1: Backend (codex-1, `supabase/` only, migrations `2026111510NNNN`)
 
-- [ ] T001 [P] pgTAP `supabase/tests/005_membership_limit_test.sql`: 3rd active membership refused with `membership_limit` in create_group, join_group, join_any_group, review_join_request approve, invite join; archived groups and left memberships do not count; users already above 2 keep their groups
-- [ ] T002 Migration `supabase/migrations/20261115100001_membership_limit.sql`: shared helper `active_membership_count(uid)`, enforce limit 2 in all join/create paths, drop the owner-3 rule, add `can_join_limit` to invite preview and search rows
-- [ ] T003 [P] pgTAP `supabase/tests/005_main_group_test.sql`: set_main_group (member ok, non-member `not_member`, null clears), mark_group_opened, main group fallback order
-- [ ] T004 Migration `supabase/migrations/20261115100002_main_group.sql`: `profiles.main_group_id`, `group_memberships.last_opened_at`, `set_main_group`, `mark_group_opened`
-- [ ] T005 [P] pgTAP `supabase/tests/005_my_today_test.sql`: two groups (juz + hizb) return both with day, counts, cycle fields and the caller's items; volunteer/override items included; rest-day flag for a page group; forming group has `day = null`; archived excluded; ordering main first
-- [ ] T006 Migration `supabase/migrations/20261115100003_get_my_today.sql`: `get_my_today()` per plan contract (call `ensure_current_group_day` per group first)
-- [ ] T007 [P] pgTAP `supabase/tests/005_my_log_test.sql`: days newest first; late keeps streak; missed breaks it; empty days skipped; month summary; pagination via `p_before`; history kept after leaving a group; other users' items never returned
-- [ ] T008 Migration `supabase/migrations/20261115100004_get_my_log.sql`: `get_my_log(p_before, p_days)` per plan contract
-- [ ] T009 Apply migrations to hosted DEV (`db query -f` + `migration repair`), run all 005 tests and the full existing suite (`supabase/tests/*.sql`) with `scripts/run_remote_pgtap.py`: 0 failed
-- [ ] T010 Update existing tests that assumed the owner-3 limit
+- [X] T001 [P] pgTAP `supabase/tests/005_membership_limit_test.sql`: 3rd active membership refused with `membership_limit` in create_group, join_group, join_any_group, review_join_request approve, invite join; archived groups and left memberships do not count; users already above 2 keep their groups
+- [X] T002 Migration `supabase/migrations/20261115100001_membership_limit.sql`: shared helper `active_membership_count(uid)`, enforce limit 2 in all join/create paths, drop the owner-3 rule, add `can_join_limit` to invite preview and search rows
+- [X] T003 [P] pgTAP `supabase/tests/005_main_group_test.sql`: set_main_group (member ok, non-member `not_member`, null clears), mark_group_opened, main group fallback order
+- [X] T004 Migration `supabase/migrations/20261115100002_main_group.sql`: `profiles.main_group_id`, `group_memberships.last_opened_at`, `set_main_group`, `mark_group_opened`
+- [X] T005 [P] pgTAP `supabase/tests/005_my_today_test.sql`: two groups (juz + hizb) return both with day, counts, cycle fields and the caller's items; volunteer/override items included; rest-day flag for a page group; forming group has `day = null`; archived excluded; ordering main first
+- [X] T006 Migration `supabase/migrations/20261115100003_get_my_today.sql`: `get_my_today()` per plan contract (call `ensure_current_group_day` per group first)
+- [X] T007 [P] pgTAP `supabase/tests/005_my_log_test.sql`: days newest first; late keeps streak; missed breaks it; empty days skipped; month summary; pagination via `p_before`; history kept after leaving a group; other users' items never returned
+- [X] T008 Migration `supabase/migrations/20261115100004_get_my_log.sql`: `get_my_log(p_before, p_days)` per plan contract
+- [X] T009 Apply migrations to hosted DEV (`db query -f` + `migration repair`), run all 005 tests and the full existing suite (`supabase/tests/*.sql`) with `scripts/run_remote_pgtap.py`: 0 failed
+- [X] T010 Update existing tests that assumed the owner-3 limit
 
 ## Phase 2: Shell + Home (codex-2) — US1, US1b, US2
 
