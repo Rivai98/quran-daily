@@ -182,7 +182,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                           }
                           return Column(
                             children: [
-                              for (final unit in PortionUnit.values)
+                              for (final unit in PortionUnit.values) ...[
+                                if (unit != PortionUnit.values.first)
+                                  const SizedBox(height: AppSpacing.sm),
                                 _PortionChoice(
                                   unit: unit,
                                   selected: state.portionUnit == unit,
@@ -194,6 +196,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                                       .read<CreateGroupCubit>()
                                       .selectPortionUnit(unit),
                                 ),
+                              ],
                             ],
                           );
                         },
