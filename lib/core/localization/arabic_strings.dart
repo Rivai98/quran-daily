@@ -79,6 +79,16 @@ class ArabicStrings {
       '\u{645}\u{62a}\u{627}\u{628}\u{639}\u{629}';
   static const reminderPermissionLater =
       '\u{644}\u{64a}\u{633}\u{20}\u{627}\u{644}\u{622}\u{646}';
+  static String get reminderOnboardingNight =>
+      '\u{642}\u{628}\u{644}\u{20}\u{627}\u{644}\u{646}\u{648}\u{645}\u{20}'
+      '(${ArabicFormatting.isolate('${ArabicNumerals.format(10)}:${ArabicNumerals.format(30)}')} '
+      '\u{645}\u{633}\u{627}\u{621}\u{64b})';
+  static const reminderOnboardingSettings =
+      '\u{64a}\u{645}\u{643}\u{646}\u{643}\u{20}\u{62a}\u{63a}\u{64a}\u{64a}\u{631}\u{20}'
+      '\u{627}\u{644}\u{645}\u{648}\u{627}\u{639}\u{64a}\u{62f}\u{20}\u{623}\u{648}\u{20}'
+      '\u{625}\u{64a}\u{642}\u{627}\u{641}\u{647}\u{627}\u{20}\u{645}\u{646}\u{20}'
+      '\u{627}\u{644}\u{625}\u{639}\u{62f}\u{627}\u{62f}\u{627}\u{62a}\u{20}\u{641}\u{64a}\u{20}'
+      '\u{623}\u{64a}\u{20}\u{648}\u{642}\u{62a}\u{2e}';
   static const reminderPermissionDenied =
       '\u{644}\u{645}\u{20}\u{62a}\u{64f}\u{641}\u{639}\u{651}\u{644}\u{20}\u{627}\u{644}\u{625}\u{634}\u{639}\u{627}\u{631}\u{627}\u{62a}\u{2e}\u{20}\u{64a}\u{645}\u{643}\u{646}\u{643}\u{20}\u{62a}\u{641}\u{639}\u{64a}\u{644}\u{647}\u{627}\u{20}\u{645}\u{646}\u{20}\u{625}\u{639}\u{62f}\u{627}\u{62f}\u{627}\u{62a}\u{20}\u{627}\u{644}\u{62c}\u{647}\u{627}\u{632}\u{2e}';
   static const cityCairo = '\u{627}\u{644}\u{642}\u{627}\u{647}\u{631}\u{629}';
@@ -285,8 +295,7 @@ class ArabicStrings {
   static const pendingApproval =
       '\u{628}\u{627}\u{646}\u{62a}\u{638}\u{627}\u{631} \u{627}\u{644}\u{642}\u{628}\u{648}\u{644} \u{645}\u{646} \u{645}\u{627}\u{644}\u{643} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}';
   static const pendingShortLabel = 'بانتظار القبول';
-  static const pendingRequestHint =
-      'أرسلت طلب الانضمام، سيصلك الرد من المشرف.';
+  static const pendingRequestHint = 'أرسلت طلب الانضمام، سيصلك الرد من المشرف.';
   static const cancelJoinRequestAction = 'إلغاء الطلب';
   static const groupSelectionTitle =
       '\u{645}\u{62c}\u{645}\u{648}\u{639}\u{627}\u{62a}\u{64a}';

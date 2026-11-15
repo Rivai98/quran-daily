@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quran_daily/core/design_system/app_button.dart';
 import 'package:quran_daily/core/di/service_locator.dart';
+import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/features/reminders/data/notification_scheduler.dart';
 import 'package:quran_daily/features/reminders/data/reminders_repository.dart';
 import 'package:quran_daily/features/reminders/domain/reminder_planner.dart';
@@ -83,9 +85,13 @@ void main() {
 
     await tester.tap(find.text('ابدأ'));
     await tester.pumpAndSettle();
-    expect(find.text('ذكّرني بوردي اليومي'), findsOneWidget);
+    expect(find.text(ArabicStrings.reminderPermissionTitle), findsOneWidget);
+    expect(find.text(ArabicStrings.reminderPermissionExplain), findsOneWidget);
+    expect(find.text(ArabicStrings.reminderActivate), findsOneWidget);
+    expect(find.text(ArabicStrings.reminderPermissionLater), findsOneWidget);
+    expect(find.byType(AppButton), findsNWidgets(2));
 
-    await tester.tap(find.text('السماح بالتذكيرات'));
+    await tester.tap(find.text(ArabicStrings.reminderActivate));
     await tester.pumpAndSettle();
 
     expect(scheduler.permissionRequests, 1);
@@ -101,7 +107,7 @@ void main() {
 
     await tester.tap(find.text('ابدأ'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('ليس الآن'));
+    await tester.tap(find.text(ArabicStrings.reminderPermissionLater));
     await tester.pumpAndSettle();
 
     expect(scheduler.permissionRequests, 0);
@@ -109,7 +115,7 @@ void main() {
 
     await tester.tap(find.text('ابدأ'));
     await tester.pumpAndSettle();
-    expect(find.text('ذكّرني بوردي اليومي'), findsNothing);
+    expect(find.text(ArabicStrings.reminderPermissionTitle), findsNothing);
   });
 
   testWidgets('denied permission leaves reminders off', (tester) async {
@@ -119,7 +125,7 @@ void main() {
 
     await tester.tap(find.text('ابدأ'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('السماح بالتذكيرات'));
+    await tester.tap(find.text(ArabicStrings.reminderActivate));
     await tester.pumpAndSettle();
 
     expect(scheduler.permissionRequests, 1);

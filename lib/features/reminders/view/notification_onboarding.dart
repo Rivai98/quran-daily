@@ -4,8 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_typography.dart';
+import '../../../core/design_system/app_button.dart';
 import '../../../core/design_system/widgets/halaqa_logo.dart';
 import '../../../core/di/service_locator.dart';
+import '../../../core/localization/arabic_strings.dart';
 import '../data/notification_scheduler.dart';
 import '../data/reminder_planning_service.dart';
 import '../data/reminders_repository.dart';
@@ -102,36 +104,42 @@ class _OnboardingSheet extends StatelessWidget {
             const Center(child: HalaqaLogo(size: 72)),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'ذكّرني بوردي اليومي',
+              ArabicStrings.reminderPermissionTitle,
               textAlign: TextAlign.center,
               style: AppTypography.headline,
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              'نرسل لك تذكيرًا هادئًا بوردك في حلقتك، ويتوقف تلقائيًا بعد أن تُتمّه.',
+              ArabicStrings.reminderPermissionExplain,
               textAlign: TextAlign.center,
               style: AppTypography.body.copyWith(color: colors.inkMuted),
             ),
             const SizedBox(height: AppSpacing.md),
-            row(Icons.wb_twilight_rounded, 'بعد صلاة الفجر'),
-            row(Icons.wb_sunny_rounded, 'بعد صلاة العصر'),
-            row(Icons.nights_stay_rounded, 'قبل النوم (١٠:٣٠ مساءً)'),
+            row(Icons.wb_twilight_rounded, ArabicStrings.reminderFajr),
+            row(Icons.wb_sunny_rounded, ArabicStrings.reminderAsr),
+            row(
+              Icons.nights_stay_rounded,
+              ArabicStrings.reminderOnboardingNight,
+            ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              'يمكنك تغيير المواعيد أو إيقافها من الإعدادات في أي وقت.',
+              ArabicStrings.reminderOnboardingSettings,
               textAlign: TextAlign.center,
               style: AppTypography.caption.copyWith(color: colors.inkMuted),
             ),
             const SizedBox(height: AppSpacing.lg),
-            FilledButton.icon(
-              onPressed: () => Navigator.of(context).pop(true),
+            AppButton(
+              expanded: true,
               icon: const Icon(Icons.notifications_active_rounded),
-              label: const Text('السماح بالتذكيرات'),
+              label: ArabicStrings.reminderActivate,
+              onPressed: () => Navigator.of(context).pop(true),
             ),
             const SizedBox(height: AppSpacing.xs),
-            TextButton(
+            AppButton(
+              expanded: true,
+              variant: AppButtonVariant.text,
+              label: ArabicStrings.reminderPermissionLater,
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('ليس الآن'),
             ),
           ],
         ),
