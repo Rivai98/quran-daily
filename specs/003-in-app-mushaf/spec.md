@@ -20,6 +20,8 @@ browse the whole Mushaf, keep my place, and show the khatm dua.
   surah / juz / hizb / page, (3) last position + bookmarks, (4) the khatm dua
   after the end of the Quran.
 - Q: Audio recitation? → A: Out of scope (a later spec after 007).
+- Q: Khatm dua text? → A: Feature stays hidden until the owner supplies an
+  approved text and source (owner 2026-11-15).
 
 ## User Scenarios & Testing *(mandatory)*
 
