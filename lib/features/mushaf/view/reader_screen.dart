@@ -8,10 +8,12 @@ import '../../../core/design_system/app_radius.dart';
 import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/assignment_status.dart' as ds;
+import '../../../core/design_system/widgets/islamic_ornament.dart';
 import '../../../core/design_system/widgets/offline_banner.dart';
 import '../../../core/design_system/widgets/status_chip.dart';
 import '../../../core/localization/arabic_numerals.dart';
 import '../../../core/localization/arabic_strings.dart';
+import '../../../core/quran/mushaf/mushaf_models.dart';
 import '../../../core/quran/mushaf/mushaf_repository.dart';
 import '../../../core/quran/quran_metadata_repository.dart';
 import '../cubit/reader_cubit.dart';
@@ -64,6 +66,31 @@ class _ReaderScreenState extends State<ReaderScreen> {
     super.dispose();
   }
 
+  int _hizbForPage(int pageNumber) {
+    try {
+      final hizbs = widget.repository.hizbIndex();
+      var current = 1;
+      for (final h in hizbs) {
+        if (h.startPage <= pageNumber) {
+          current = h.hizb;
+        } else {
+          break;
+        }
+      }
+      return current;
+    } catch (_) {
+      return 1;
+    }
+  }
+
+  String _surahName(int index) {
+    try {
+      return widget.metadata.suraName(index);
+    } on Object {
+      return ArabicStrings.mushafTitle;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<ReaderCubit, ReaderState>(
@@ -72,8 +99,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
           previous.page?.number != current.page?.number,
       listener: (context, state) {
         final page = state.page?.number;
-        // The PageView only exists in the content state, so it may not be
-        // attached yet when the first page arrives: jump after the frame.
         if (page != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             final pages = _pages;
@@ -103,14 +128,19 @@ class _ReaderScreenState extends State<ReaderScreen> {
           final page = state.page;
           return Scaffold(
             appBar: AppBar(
-              title: Text(ArabicStrings.mushafTitle),
+              title: const Text(ArabicStrings.mushafTitle),
               actions: [
-                IconButton(
-                  tooltip: ArabicStrings.mushafIndexAction,
-                  onPressed: () =>
-                      Navigator.pushNamed(context, AppRoutes.mushafIndex),
-                  icon: const Icon(Icons.list),
-                ),
+                if (page != null)
+                  IconButton(
+                    tooltip: ArabicStrings.addBookmarkAction,
+                    onPressed: () => _addBookmark(
+                      context,
+                      page.number,
+                      page.firstSurah,
+                      null,
+                    ),
+                    icon: const Icon(Icons.bookmark_add_outlined),
+                  ),
                 IconButton(
                   tooltip: ArabicStrings.bookmarksTitle,
                   onPressed: () => Navigator.pushNamed(
@@ -118,7 +148,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     AppRoutes.mushafBookmarks,
                     arguments: widget.storage,
                   ),
-                  icon: const Icon(Icons.bookmark_outline),
+                  icon: const Icon(Icons.bookmarks_outlined),
+                ),
+                IconButton(
+                  tooltip: ArabicStrings.mushafIndexAction,
+                  onPressed: () =>
+                      Navigator.pushNamed(context, AppRoutes.mushafIndex),
+                  icon: const Icon(Icons.menu_book_outlined),
                 ),
                 IconButton(
                   tooltip: ArabicStrings.mushafLicensesTitle,
@@ -143,35 +179,79 @@ class _ReaderScreenState extends State<ReaderScreen> {
               ),
               ReaderStatus.content => Column(
                 children: [
-                  _PageHeader(
-                    pageNumber: page!.number,
-                    surahName: _surahName(page.firstSurah),
-                    juz: page.juz,
-                    onBookmark: () => _addBookmark(
-                      context,
-                      page.number,
-                      page.firstSurah,
-                      null,
-                    ),
-                  ),
                   if (state.isPortion)
                     Padding(
-                      padding: AppSpacing.screenH,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.xxs,
+                      ),
                       child: Container(
                         width: double.infinity,
-                        padding: AppSpacing.card,
-                        decoration: ShapeDecoration(
-                          color: colors.primaryContainer,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppRadius.mdBR,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.xs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colors.primaryContainer.withValues(alpha: 0.6),
+                          borderRadius: AppRadius.mdBR,
+                          border: Border.all(
+                            color: colors.primary.withValues(alpha: 0.2),
                           ),
                         ),
-                        child: Text(
-                          ArabicStrings.portionName(
-                            state.portionUnit!,
-                            state.portionIndex!,
-                          ),
-                          style: AppTypography.body,
+                        child: Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: AppSpacing.xs,
+                          runSpacing: AppSpacing.xxs,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.auto_stories,
+                                  size: 18,
+                                  color: colors.primary,
+                                ),
+                                const SizedBox(width: AppSpacing.xs),
+                                Text(
+                                  ArabicStrings.portionName(
+                                    state.portionUnit!,
+                                    state.portionIndex!,
+                                  ),
+                                  style: AppTypography.body.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colors.onPrimaryContainer,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (state.startPage != null &&
+                                state.endPage != null &&
+                                page != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.xs,
+                                  vertical: AppSpacing.xxs,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: colors.surface.withValues(alpha: 0.8),
+                                  borderRadius: AppRadius.smBR,
+                                ),
+                                child: Text(
+                                  ArabicStrings.portionPageProgress(
+                                    (page.number - state.startPage! + 1).clamp(
+                                      1,
+                                      state.endPage! - state.startPage! + 1,
+                                    ),
+                                    state.endPage! - state.startPage! + 1,
+                                  ),
+                                  style: AppTypography.caption.copyWith(
+                                    color: colors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ),
@@ -189,7 +269,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     child: PageView.builder(
                       key: const ValueKey('mushaf-page-view'),
                       controller: _pages ??= PageController(
-                        initialPage: page.number - 1,
+                        initialPage: page!.number - 1,
                       ),
                       reverse: true,
                       itemCount: widget.repository.pageCount,
@@ -197,59 +277,112 @@ class _ReaderScreenState extends State<ReaderScreen> {
                           context.read<ReaderCubit>().turnTo(index + 1),
                       itemBuilder: (context, index) {
                         final mushafPage = widget.repository.page(index + 1);
-                        return ListView(
-                          key: PageStorageKey<int>(mushafPage.number),
-                          padding: AppSpacing.screenContent,
+                        final hizb = _hizbForPage(mushafPage.number);
+                        final surahTitle = _surahName(mushafPage.firstSurah);
+                        return Column(
                           children: [
-                            for (final ayah in mushafPage.ayahs)
-                              GestureDetector(
-                                key: ayah.ref == state.startAyah
-                                    ? _startAyahKey
-                                    : null,
-                                onLongPress: () => _addBookmark(
-                                  context,
-                                  mushafPage.number,
-                                  ayah.ref.surah,
-                                  ayah.ref.ayah,
-                                ),
-                                child: Container(
-                                  padding:
-                                      const EdgeInsetsDirectional.symmetric(
-                                        vertical: AppSpacing.xxs,
-                                        horizontal: AppSpacing.xs,
-                                      ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        ayah.ref == state.startAyah ||
-                                            ayah.ref == state.endAyah
-                                        ? colors.primaryContainer
-                                        : null,
-                                    borderRadius: AppRadius.smBR,
-                                  ),
-                                  child: Text(
-                                    key: const ValueKey('mushaf-ayah'),
-                                    ayah.text,
-                                    textAlign: TextAlign.justify,
-                                    textDirection: TextDirection.rtl,
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md,
+                                vertical: AppSpacing.xxs,
+                              ),
+                              child: Wrap(
+                                alignment: WrapAlignment.spaceBetween,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                spacing: AppSpacing.xs,
+                                runSpacing: AppSpacing.xxs,
+                                children: [
+                                  Text(
+                                    surahTitle,
                                     style: AppTypography.quranLabel.copyWith(
-                                      fontFamily: 'KfgqpcHafs',
+                                      color: colors.primary,
                                     ),
-                                    textScaler: TextScaler.linear(
-                                      state.quranTextScale *
-                                          MediaQuery.textScalerOf(
-                                            context,
-                                          ).scale(1),
+                                  ),
+                                  Text(
+                                    '${ArabicStrings.juzLabel} ${ArabicNumerals.format(mushafPage.juz)} · ${ArabicStrings.portionUnitHizb} ${ArabicNumerals.format(hizb)}',
+                                    style: AppTypography.caption.copyWith(
+                                      color: colors.inkMuted,
                                     ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Divider(color: colors.border, height: 1),
+                            Expanded(
+                              child: ListView(
+                                key: PageStorageKey<int>(mushafPage.number),
+                                padding: AppSpacing.screenContent,
+                                children: [
+                                  for (final ayah in mushafPage.ayahs) ...[
+                                    if (ayah.ref.ayah == 1)
+                                      _SurahTitleBand(
+                                        surahName: _surahName(ayah.ref.surah),
+                                      ),
+                                    _AyahRow(
+                                      key: ayah.ref == state.startAyah
+                                          ? _startAyahKey
+                                          : null,
+                                      ayah: ayah,
+                                      isStart: ayah.ref == state.startAyah,
+                                      isEnd: ayah.ref == state.endAyah,
+                                      textScale: state.quranTextScale,
+                                      onLongPress: () => _addBookmark(
+                                        context,
+                                        mushafPage.number,
+                                        ayah.ref.surah,
+                                        ayah.ref.ayah,
+                                      ),
+                                    ),
+                                  ],
+                                  if (mushafPage.number == state.endPage &&
+                                      state.isPortion) ...[
+                                    const SizedBox(height: AppSpacing.md),
+                                    if (state.isCompleted)
+                                      const Center(
+                                        child: StatusChip(
+                                          status: ds.AssignmentStatus.completed,
+                                        ),
+                                      )
+                                    else if (state.canComplete)
+                                      Center(
+                                        child: OutlinedButton.icon(
+                                          onPressed: () => context
+                                              .read<ReaderCubit>()
+                                              .completePortion(),
+                                          icon: const Icon(Icons.check_circle),
+                                          label: const Text(
+                                            ArabicStrings.completeReadingAction,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                  if (mushafPage.number ==
+                                          widget.repository.pageCount &&
+                                      _dua != null)
+                                    TextButton(
+                                      onPressed: () => _showDua(context),
+                                      child: const Text(
+                                        ArabicStrings.khatmDuaTitle,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            Divider(color: colors.border, height: 1),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: AppSpacing.xxs,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  ArabicNumerals.format(mushafPage.number),
+                                  style: AppTypography.caption.copyWith(
+                                    color: colors.inkMuted,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
-                            if (mushafPage.number ==
-                                    widget.repository.pageCount &&
-                                _dua != null)
-                              TextButton(
-                                onPressed: () => _showDua(context),
-                                child: const Text(ArabicStrings.khatmDuaTitle),
-                              ),
+                            ),
                           ],
                         );
                       },
@@ -263,10 +396,17 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     child: Padding(
                       padding: AppSpacing.screen,
                       child: FilledButton.icon(
+                        key: const ValueKey('complete-reading-button'),
                         onPressed: () =>
                             context.read<ReaderCubit>().completePortion(),
                         icon: const Icon(Icons.check_circle_outline),
                         label: const Text(ArabicStrings.completeReadingAction),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(52),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.mdBR,
+                          ),
+                        ),
                       ),
                     ),
                   )
@@ -275,14 +415,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
         },
       ),
     );
-  }
-
-  String _surahName(int index) {
-    try {
-      return widget.metadata.suraName(index);
-    } on Object {
-      return ArabicStrings.mushafTitle;
-    }
   }
 
   Future<void> _addBookmark(
@@ -353,43 +485,192 @@ class _ReaderScreenState extends State<ReaderScreen> {
   }
 }
 
-class _PageHeader extends StatelessWidget {
-  const _PageHeader({
-    required this.pageNumber,
-    required this.surahName,
-    required this.juz,
-    required this.onBookmark,
-  });
+class _SurahTitleBand extends StatelessWidget {
+  const _SurahTitleBand({required this.surahName});
 
-  final int pageNumber;
   final String surahName;
-  final int juz;
-  final VoidCallback onBookmark;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: AppSpacing.screen,
-    child: Row(
-      children: [
-        Expanded(
-          child: Wrap(
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xxs,
-            children: [
-              Text(surahName, style: AppTypography.quranLabel),
-              Text(
-                '${ArabicStrings.juzLabel} ${ArabicNumerals.format(juz)} · ${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(pageNumber)}',
-                style: AppTypography.caption,
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      height: 52,
+      decoration: BoxDecoration(
+        color: colors.primaryContainer.withValues(alpha: 0.4),
+        borderRadius: AppRadius.mdBR,
+        border: Border.all(
+          color: colors.accent.withValues(alpha: 0.35),
+          width: 1.2,
+        ),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: AppRadius.mdBR,
+              child: CustomPaint(
+                painter: GirihPainter(colors.accent.withValues(alpha: 0.08)),
               ),
-            ],
+            ),
           ),
+          PositionedDirectional(
+            start: AppSpacing.md,
+            child: Icon(Icons.star, size: 12, color: colors.accent),
+          ),
+          PositionedDirectional(
+            end: AppSpacing.md,
+            child: Icon(Icons.star, size: 12, color: colors.accent),
+          ),
+          Text(
+            '${ArabicStrings.surahWord} $surahName',
+            style: AppTypography.quranLabel.copyWith(
+              color: colors.onPrimaryContainer,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AyahRow extends StatelessWidget {
+  const _AyahRow({
+    super.key,
+    required this.ayah,
+    required this.isStart,
+    required this.isEnd,
+    required this.textScale,
+    required this.onLongPress,
+  });
+
+  final MushafAyah ayah;
+  final bool isStart;
+  final bool isEnd;
+  final double textScale;
+  final VoidCallback onLongPress;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final isHighlighted = isStart || isEnd;
+
+    return GestureDetector(
+      onLongPress: onLongPress,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+        padding: const EdgeInsetsDirectional.symmetric(
+          vertical: AppSpacing.xs,
+          horizontal: AppSpacing.sm,
         ),
-        IconButton(
-          tooltip: ArabicStrings.addBookmarkAction,
-          onPressed: onBookmark,
-          icon: const Icon(Icons.bookmark_add_outlined),
+        decoration: BoxDecoration(
+          color: isHighlighted
+              ? colors.primaryContainer.withValues(alpha: 0.5)
+              : null,
+          borderRadius: AppRadius.smBR,
+          border: isHighlighted
+              ? BorderDirectional(
+                  start: BorderSide(
+                    color: colors.primary,
+                    width: 3.5,
+                  ),
+                )
+              : null,
         ),
-      ],
-    ),
-  );
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (isStart)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.xxs),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.xs,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.primary,
+                        borderRadius: AppRadius.smBR,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.play_arrow,
+                            size: 12,
+                            color: colors.onPrimary,
+                          ),
+                          const SizedBox(width: AppSpacing.xxs),
+                          Text(
+                            'بداية الورد',
+                            style: AppTypography.caption.copyWith(
+                              color: colors.onPrimary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            Text(
+              key: const ValueKey('mushaf-ayah'),
+              ayah.text,
+              textAlign: TextAlign.justify,
+              textDirection: TextDirection.rtl,
+              style: AppTypography.quranLabel.copyWith(
+                fontFamily: 'KfgqpcHafs',
+              ),
+              textScaler: TextScaler.linear(
+                textScale * MediaQuery.textScalerOf(context).scale(1),
+              ),
+            ),
+            if (isEnd)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xxs),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.xs,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.primary,
+                        borderRadius: AppRadius.smBR,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.flag,
+                            size: 12,
+                            color: colors.onPrimary,
+                          ),
+                          const SizedBox(width: AppSpacing.xxs),
+                          Text(
+                            'نهاية الورد',
+                            style: AppTypography.caption.copyWith(
+                              color: colors.onPrimary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 }
