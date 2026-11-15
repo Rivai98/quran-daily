@@ -941,7 +941,16 @@ class _QpcPageBody extends StatelessWidget {
                   height: lineHeight,
                   width: width,
                   child: line.lineType == QpcLineType.surahName
-                      ? lineWidget(line)
+                      // The ornamental band has a fixed natural height; scale it
+                      // into the line slot so it is never clipped.
+                      ? FittedBox(
+                          fit: BoxFit.contain,
+                          child: SizedBox(
+                            width: width,
+                            height: AppSpacing.xxl + 2 * AppSpacing.sm,
+                            child: lineWidget(line),
+                          ),
+                        )
                       : Center(
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
