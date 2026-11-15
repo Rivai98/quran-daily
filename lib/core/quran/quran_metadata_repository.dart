@@ -2,6 +2,8 @@ import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 import 'package:xml/xml.dart';
 
 import 'juz_info.dart';
+import 'portion_unit.dart';
+import 'quran_portion.dart';
 
 /// Reads juz boundaries, surah names, and surah ayah counts from the
 /// verified Tanzil metadata file `assets/quran/quran-data.xml`
@@ -19,16 +21,25 @@ class QuranMetadataRepository {
 
   List<Map<String, String>>? _suras;
   List<Map<String, String>>? _juzs;
+  List<Map<String, String>>? _quarters;
+  List<Map<String, String>>? _pages;
 
   /// Parses the bundled metadata; throws when the asset is missing or
   /// malformed. Safe to call repeatedly (parses once).
   Future<void> load() async {
-    if (_suras != null && _juzs != null) return;
+    if (_suras != null &&
+        _juzs != null &&
+        _quarters != null &&
+        _pages != null) {
+      return;
+    }
 
     final String xmlText;
     try {
-      final data =
-          await (_bundle ?? rootBundle).loadString(assetPath, cache: false);
+      final data = await (_bundle ?? rootBundle).loadString(
+        assetPath,
+        cache: false,
+      );
       xmlText = data;
     } catch (error) {
       throw QuranMetadataException('Quran metadata asset unavailable', error);
@@ -38,19 +49,43 @@ class QuranMetadataRepository {
       final doc = XmlDocument.parse(xmlText);
       _suras = doc
           .findAllElements('sura')
-          .map((e) => {
-                'index': e.getAttribute('index')!,
-                'ayas': e.getAttribute('ayas')!,
-                'name': e.getAttribute('name')!,
-              })
+          .map(
+            (e) => {
+              'index': e.getAttribute('index')!,
+              'ayas': e.getAttribute('ayas')!,
+              'name': e.getAttribute('name')!,
+            },
+          )
           .toList();
       _juzs = doc
           .findAllElements('juz')
-          .map((e) => {
-                'index': e.getAttribute('index')!,
-                'sura': e.getAttribute('sura')!,
-                'aya': e.getAttribute('aya')!,
-              })
+          .map(
+            (e) => {
+              'index': e.getAttribute('index')!,
+              'sura': e.getAttribute('sura')!,
+              'aya': e.getAttribute('aya')!,
+            },
+          )
+          .toList();
+      _quarters = doc
+          .findAllElements('quarter')
+          .map(
+            (e) => {
+              'index': e.getAttribute('index')!,
+              'sura': e.getAttribute('sura')!,
+              'aya': e.getAttribute('aya')!,
+            },
+          )
+          .toList();
+      _pages = doc
+          .findAllElements('page')
+          .map(
+            (e) => {
+              'index': e.getAttribute('index')!,
+              'sura': e.getAttribute('sura')!,
+              'aya': e.getAttribute('aya')!,
+            },
+          )
           .toList();
     } catch (error) {
       throw QuranMetadataException('Quran metadata parse failure', error);
@@ -63,6 +98,77 @@ class QuranMetadataRepository {
         null,
       );
     }
+  }
+
+  /// All portions for [unit], ordered from the start of the Quran.
+  /// Boundaries are loaded from the Tanzil file and composed from quarter
+  /// hizb entries for hizb and half-juz units.
+  List<QuranPortion> portions(PortionUnit unit) {
+    _ensureLoaded();
+    final starts = switch (unit) {
+      PortionUnit.juz => _juzs!,
+      PortionUnit.quarter => _quarters!,
+      PortionUnit.page => _pages!,
+      PortionUnit.hizb => _groupQuarterStarts(4),
+      PortionUnit.halfJuz => _groupQuarterStarts(8),
+    };
+    return List<QuranPortion>.unmodifiable([
+      for (var i = 0; i < starts.length; i++)
+        _portionFromStarts(unit, starts, i),
+    ]);
+  }
+
+  /// Returns a 1-based portion index.
+  QuranPortion portion(PortionUnit unit, int index) {
+    final all = portions(unit);
+    if (index < 1 || index > all.length) {
+      throw RangeError.range(index, 1, all.length, 'portion index');
+    }
+    return all[index - 1];
+  }
+
+  List<Map<String, String>> _groupQuarterStarts(int quartersPerGroup) {
+    final quarters = _quarters!;
+    return [
+      for (var i = 0; i < quarters.length; i += quartersPerGroup) quarters[i],
+    ];
+  }
+
+  QuranPortion _portionFromStarts(
+    PortionUnit unit,
+    List<Map<String, String>> starts,
+    int offset,
+  ) {
+    final start = starts[offset];
+    final startSura = int.parse(start['sura']!);
+    final startAya = int.parse(start['aya']!);
+    late final int endSura;
+    late final int endAya;
+
+    if (offset + 1 < starts.length) {
+      final next = starts[offset + 1];
+      final nextSura = int.parse(next['sura']!);
+      final nextAya = int.parse(next['aya']!);
+      if (nextAya > 1) {
+        endSura = nextSura;
+        endAya = nextAya - 1;
+      } else {
+        endSura = nextSura - 1;
+        endAya = suraAyahCount(endSura);
+      }
+    } else {
+      endSura = _suras!.length;
+      endAya = suraAyahCount(endSura);
+    }
+
+    return QuranPortion(
+      unit: unit,
+      index: offset + 1,
+      startSura: startSura,
+      startAya: startAya,
+      endSura: endSura,
+      endAya: endAya,
+    );
   }
 
   /// Juz [number] (1..30) with derived end boundary.
