@@ -63,7 +63,7 @@ select is((select count(*) from public.search_public_groups(null,true,100,0) r w
 select is((select count(*) from public.search_public_groups(null,false,100,0) r where r->>'group_id' like 'd4000000-%'),4::bigint,'discovery may include full public groups');
 select is((select r.value->>'group_id' from public.search_public_groups(null,false,20,0) with ordinality as r(value,ord) where r.ord=1),'d4000000-0000-0000-0000-000000000104','discovery sorts groups closest to full first');
 select is((select public.get_invite_preview('US4C2345')->>'group_id'),'d4000000-0000-0000-0000-000000000103','invite preview supports private groups');
-select is((select count(*) from jsonb_object_keys(public.get_invite_preview('US4A2345')) k where k not in ('portion_unit')),9::bigint,'invite preview exposes profile and own request fields');
+select is((select count(*) from jsonb_object_keys(public.get_invite_preview('US4A2345')) k where k not in ('portion_unit','can_join_limit')),9::bigint,'invite preview exposes profile and own request fields');
 select ok((select not (r.value ? 'members') and not (r.value ? 'progress') from public.search_public_groups(null,true,20,0) with ordinality as r(value,ord) where r.ord=1),'public discovery exposes no member list or progress');
 select is(public.get_invite_preview('US4F2345')->>'status','archived','archived invite preview explains the unavailable group');
 select throws_ok('select public.get_invite_preview(''BADCODE1'')','P0001','invite_invalid','invalid invite code rejected');
@@ -73,6 +73,8 @@ select throws_ok('select public.join_group(gen_random_uuid(),null,''discovery'')
 
 select is((public.join_group('d4000000-0000-0000-0000-000000000101',null,'discovery')->>'seat_number')::smallint,2::smallint,'auto-accept assigns the lowest empty seat');
 select is(public.join_group(null,'US4C2345','invite')->>'result','joined','private group can be joined using its invite code');
+update public.group_memberships set status='left',seat_number=null,ended_at=now()
+where group_id='d4000000-0000-0000-0000-000000000103' and user_id=auth.uid() and status='active';
 select is(public.join_group(null,'US4B2345','invite')->>'result','pending','approval group invite creates pending request');
 select ok((public.get_my_groups()->'pending_requests') @> jsonb_build_array(jsonb_build_object('group_id','d4000000-0000-0000-0000-000000000102')),'my groups lists pending join request');
 select ok(public.get_invite_preview('US4B2345')->>'my_join_request_id' is not null,'invite preview identifies the caller pending request');
@@ -96,7 +98,7 @@ select is((select reader_membership_id from public.assignments where group_day_i
 select set_config('request.jwt.claims',json_build_object('sub','d4000000-0000-0000-0000-000000000004','role','authenticated')::text,true);
 select is((public.join_any_group('Asia/Riyadh')->>'group_id')::uuid,'d4000000-0000-0000-0000-000000000105'::uuid,'join-any prefers a timezone match');
 select is((public.join_any_group('Africa/Cairo')->>'group_id')::uuid,'d4000000-0000-0000-0000-000000000101'::uuid,'join-any next chooses fewest empty seats then creation order');
-select throws_ok('select public.join_any_group(''UTC'')','P0001','no_group_available','join-any reports no group after membership');
+select throws_ok('select public.join_any_group(''UTC'')','P0001','membership_limit','join-any enforces the two-membership limit');
 
 select * from finish();
 rollback;

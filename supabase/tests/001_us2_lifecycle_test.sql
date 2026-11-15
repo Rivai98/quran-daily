@@ -16,7 +16,7 @@ select set_config('request.jwt.claims',
   json_build_object('sub', 'aa000000-0000-0000-0000-000000000001', 'role', 'authenticated')::text, true);
 
 -- ---------------------------------------------------------------------------
--- create_group: validation, owner seat 1, 3-group limit
+-- create_group: validation, owner seat 1, 2 active membership limit
 -- ---------------------------------------------------------------------------
 select throws_ok(
   'select public.create_group(''ab'', ''''::text, ''Africa/Cairo'', ''00:00''::time, ''private''::public.group_visibility, ''approval''::public.join_mode)',
@@ -49,7 +49,7 @@ select is(
   'forming'::public.group_status,
   'new group starts forming');
 
--- owner 3-group limit
+-- Membership cap includes owned and joined groups, but excludes archived groups.
 insert into public.groups (id, name, owner_id, timezone, invite_code, status)
 values
   ('ac000000-0000-0000-0000-000000000001', 'مجموعة ثانية',
@@ -59,16 +59,18 @@ values
   ('ac000000-0000-0000-0000-000000000003', 'مجموعة رابعة',
    'aa000000-0000-0000-0000-000000000001', 'Africa/Cairo', 'U2FR9ABC', 'forming');
 
+insert into public.group_memberships (group_id,user_id,role,status,seat_number)
+values ('ac000000-0000-0000-0000-000000000001',
+        'aa000000-0000-0000-0000-000000000001','owner','active',1);
+
 select throws_ok(
   'select public.create_group(''مجموعة خامسة'', ''''::text, ''Africa/Cairo'', ''00:00''::time, ''private''::public.group_visibility, ''approval''::public.join_mode)',
-  'owner_group_limit',
-  'fourth owned group rejected (limit 3 non-archived)');
+  'P0001', null,
+  'third active membership rejected (owned or joined limit 2)');
 
--- archived groups do not count: archive two of the three extras so the
--- owner is back to 2 non-archived (plus the new one = 3, allowed)
+-- Archived memberships do not count, allowing another group.
 update public.groups set status = 'archived'
-where id in ('ac000000-0000-0000-0000-000000000002',
-             'ac000000-0000-0000-0000-000000000003');
+where id = 'ac000000-0000-0000-0000-000000000001';
 select lives_ok(
   'select public.create_group(''مجموعة خامسة'', ''''::text, ''Africa/Cairo'', ''00:00''::time, ''private''::public.group_visibility, ''approval''::public.join_mode)',
   'archived groups do not count toward the limit');
