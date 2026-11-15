@@ -137,6 +137,7 @@ class FormingGroupView extends StatelessWidget {
   }
 
   void _showStartSheet(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
     final metadata = metadataRepository ?? QuranMetadataRepository();
     var startPortion = 1;
     showModalBottomSheet<void>(
@@ -181,13 +182,33 @@ class FormingGroupView extends StatelessWidget {
                         spacing: AppSpacing.xs,
                         runSpacing: AppSpacing.xs,
                         children: [
-                          for (var portion = 1; portion <= count; portion++)
-                            ChoiceChip(
-                              label: Text(ArabicNumerals.format(portion)),
-                              selected: startPortion == portion,
-                              onSelected: (_) =>
-                                  setSheetState(() => startPortion = portion),
+                          for (var portion = 1; portion <= count; portion++) ...[
+                            SizedBox.square(
+                              dimension: AppSpacing.xxl,
+                              child: ChoiceChip(
+                                label: Center(
+                                  child: Text(ArabicNumerals.format(portion)),
+                                ),
+                                selected: startPortion == portion,
+                                selectedColor: colors.primaryContainer,
+                                labelStyle: AppTypography.label.copyWith(
+                                  color: startPortion == portion
+                                      ? colors.onPrimaryContainer
+                                      : colors.ink,
+                                ),
+                                padding: EdgeInsets.zero,
+                                labelPadding: EdgeInsets.zero,
+                                side: BorderSide(
+                                  color: startPortion == portion
+                                      ? colors.primary
+                                      : colors.border,
+                                ),
+                                onSelected: (_) => setSheetState(
+                                  () => startPortion = portion,
+                                ),
+                              ),
                             ),
+                          ],
                         ],
                       )
                     else
