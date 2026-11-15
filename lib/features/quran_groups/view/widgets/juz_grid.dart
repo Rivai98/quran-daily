@@ -57,6 +57,9 @@ class JuzGrid extends StatelessWidget {
               juz: assignment.juz,
               unit: unit,
               portionIndex: assignment.portionIndex,
+              readerInitials: assignment.reader?.initials,
+              readerDisplayName: assignment.reader?.displayName ??
+                  assignment.readerDisplayName,
               status: design.AssignmentStatus.values.byName(
                 assignment.status.name,
               ),

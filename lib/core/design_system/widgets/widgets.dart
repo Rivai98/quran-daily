@@ -15,3 +15,4 @@ export 'skeleton.dart';
 export 'state_panel.dart';
 export 'islamic_ornament.dart';
 export 'status_chip.dart';
+export 'app_avatar.dart';

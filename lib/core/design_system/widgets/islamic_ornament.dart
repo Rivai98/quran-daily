@@ -20,7 +20,7 @@ class IslamicOrnamentBand extends StatelessWidget {
       child: Stack(
         children: [
           Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(color: colors.primaryContainer))),
-          Positioned.fill(child: CustomPaint(painter: _GirihPainter(colors.accent.withValues(alpha: 0.06)))),
+          Positioned.fill(child: CustomPaint(painter: GirihPainter(colors.accent.withValues(alpha: 0.06)))),
           Padding(padding: EdgeInsets.all(contentPadding), child: child),
         ],
       ),
@@ -28,8 +28,8 @@ class IslamicOrnamentBand extends StatelessWidget {
   }
 }
 
-class _GirihPainter extends CustomPainter {
-  const _GirihPainter(this.color);
+class GirihPainter extends CustomPainter {
+  const GirihPainter(this.color);
   final Color color;
 
   @override
@@ -57,7 +57,7 @@ class _GirihPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _GirihPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant GirihPainter oldDelegate) => oldDelegate.color != color;
 }
 
 /// Hairline divider with a small eight-point star at its center.

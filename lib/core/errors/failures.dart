@@ -40,6 +40,12 @@ const _kindByCode = <String, FailureKind>{
   'day_closed': FailureKind.dayClosed,
   'day_not_open': FailureKind.dayClosed,
   'owner_group_limit': FailureKind.limitReached,
+  'profile_not_accessible': FailureKind.forbidden,
+  'invalid_display_name': FailureKind.validation,
+  'invalid_bio': FailureKind.validation,
+  'invalid_photo_path': FailureKind.validation,
+  'photo_not_found': FailureKind.notFound,
+  'profile_not_found': FailureKind.notFound,
 };
 
 extension AppFailureKind on AppFailure {

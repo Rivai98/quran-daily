@@ -533,4 +533,68 @@ class ArabicStrings {
       'سيبدأ التغيير مع بداية الختمة القادمة.';
   static const portionChangeAppliesImmediately =
       'سيبدأ هذا الورد عند بدء الختمة.';
+
+  // --- 007 profiles ---
+  static const portionDetailTitle = 'تفاصيل الورد';
+  static const reader = 'القارئ';
+  static const unassignedReader = 'غير مسند';
+  static const completionTime = 'وقت الإتمام';
+  static const readingKind = 'نوع القراءة';
+  static const kindSeat = 'ورد المقعد';
+  static const kindVolunteer = 'تطوع';
+  static const kindOverride = 'تعيين المشرف';
+  static const openProfile = 'عرض الملف الشخصي';
+  static const volunteerForPortion = 'تطوع لقراءة هذا الورد';
+  static const portionVacant = 'هذا المقعد شاغر ومتاح للتطوع';
+  static const tagOnTime = 'في الوقت';
+  static const tagLate = 'قُرئ متأخرًا';
+  static const tagVolunteer = 'تطوع';
+  static const tagOverride = 'مُسند';
+  static const memberProfileTitle = 'الملف الشخصي';
+  static const memberRoleOwner = 'مالك المجموعة';
+  static const memberRoleSupervisor = 'مشرف';
+  static const memberRoleMember = 'عضو';
+  static const memberRoleFormer = 'عضو سابق';
+  static const memberSince = 'عضو منذ';
+  static const currentStreak = 'سلسلة القراءة الحالية';
+  static const completionRate = 'نسبة الإتمام';
+  static const portionsRead = 'الأوراد المنجزة';
+  static const recentDays = 'الأيام الأخيرة';
+  static const noBio = 'لا توجد نبذة شخصية';
+  static const profileNotAccessible =
+      'لا يمكن عرض هذا الملف الشخصي لأنك لست عضوًا معه في نفس المجموعة';
+  static const myProfileTitle = 'ملفي الشخصي';
+  static const editProfile = 'تعديل الملف الشخصي';
+  static const displayName = 'الاسم الظاهر';
+  static const displayNameHint = 'أدخل اسمك الظاهر (٢-٥٠ حرفًا)';
+  static const invalidDisplayName = 'يجب أن يكون الاسم بين ٢ و٥٠ حرفًا';
+  static const bio = 'النبذة التعريفية';
+  static const bioHint = 'نبذة قصيرة عنك (بحد أقصى ١٢٠ حرفًا)';
+  static const invalidBio = 'يجب ألا تتجاوز النبذة ١٢٠ حرفًا';
+  static const profileUpdated = 'تم تحديث الملف الشخصي بنجاح';
+  static const saveChanges = 'حفظ التعديلات';
+  static const groupInfoTitle = 'معلومات المجموعة';
+  static const groupDescription = 'الوصف';
+  static const noDescription = 'لا يوجد وصف للمجموعة';
+  static const groupStats = 'إحصائيات المجموعة';
+  static const createdDate = 'تاريخ الإنشاء';
+  static const completedKhatmas = 'الختمات المكتملة';
+  static const groupMembers = 'الأعضاء';
+  static const editGroupDetails = 'تعديل بيانات المجموعة';
+  static const changeGroupPhoto = 'تغيير صورة المجموعة';
+  static const removeGroupPhoto = 'حذف الصورة';
+  static const pickFromGallery = 'اختيار من المعرض';
+  static const takePhoto = 'التقاط صورة';
+  static const uploadingPhoto = 'جاري رفع الصورة...';
+  static const photoUploadFailed = 'تعذر رفع الصورة، حاول مرة أخرى';
+  static const invalidGroupName = 'يجب أن يكون اسم المجموعة بين ٣ و٦٠ حرفًا';
+  static const invalidGroupDescription = 'يجب ألا يتجاوز الوصف ٢٠٠ حرف';
+  static const copyInviteCode = 'نسخ رمز الدعوة';
+  static const copiedToClipboard = 'تم النسخ إلى الحافظة';
+  static String streakDays(int days) =>
+      days == 1 ? 'يوم واحد' : '${ArabicNumerals.format(days)} أيام متتالية';
+  static String completionPercentage(int rate) =>
+      '${ArabicNumerals.format(rate)}٪';
+  static String groupMembersRatio(int current, int total) =>
+      '${ArabicNumerals.format(current)} عضوًا من ${ArabicNumerals.format(total)}';
 }
