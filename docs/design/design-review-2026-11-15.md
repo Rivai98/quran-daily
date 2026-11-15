@@ -10,7 +10,7 @@ light + dark, Android emulator 1080x2400. Binding rules: constitution Principle 
 - G1 **Gold misuse**: gold is used for the selected start-juz chip and for progress
   bars. Rule: gold only for ornament. Selection and progress use the primary green
   (dark mode: the primary-container mint).
-- G2 **Percent and number ordering in RTL**: "٠٪" renders as "·/." and strings like
+- G2 **Number ordering in RTL** (note: "٠" and "٪" ARE the correct Arabic-Indic glyphs; keep them). Strings like
   "١ الصفحة · ٧" / "اليوم · من ٣٠ · أنجز · ١ من ٣٠" are scrambled. Build these strings
   with proper Arabic templates (e.g. "صفحة ١ · ٧ آيات", "أُنجز ١ من ٣٠") and use the
   Arabic percent sign "٪" via the existing numerals helper; wrap mixed runs with
@@ -56,6 +56,22 @@ light + dark, Android emulator 1080x2400. Binding rules: constitution Principle 
 | 16/17 | Bookmarks | Dialog fine; list shows only "الصفحة ١" | List row: surah + ayah, page, note, date; swipe or menu to delete |
 | 18 | Licenses | Plain text | Card with source names, versions and links (from SOURCE.md) |
 | 19 | Settings | Bare: font size, reminders switch, sign out | Group into sections (القراءة، التذكيرات، الحساب، حول التطبيق); reminders expanded controls when on; admin entry for admins |
+
+## Round 2: specs 005 + 007 screens (after merge)
+
+| # | Screen | Problems | Fix |
+|---|--------|----------|-----|
+| 03 | Home empty | Redundant title "وردك اليوم" above the greeting; orphan "مجموعات تحتاج أعضاء" | Greeting as the title; date line; one primary + secondary entry points |
+| 10 | Home hero | Big "٠ / ٣٠" dominates; scrambled summary (G2); gold line (G1); full-width "لم تقرأ بعد" pill looks like a button; unclear open-in-new icon | Follow the agreed mockup: group name + avatar, portion name and range, start/end page, primary "اقرأ الآن", secondary "تمت القراءة"; progress as a labeled green bar "قرأ اليوم ١ من ٣٠"; status as a small chip; tap header → dashboard |
+| 25 | Home completed | "اكتملت الختمة اليوم" shown when only the user's portion is done; "افتح وردك" stays primary after completion | Copy based on real state ("أتممت وردك اليوم، تقبّل الله"); after completion the primary becomes "اقرأ مرة أخرى"/none, undo as text button |
+| 06 | My groups tab | Big "حلقة" banner header wastes space inside a tab | Normal title "مجموعاتي" with a slim ornament |
+| 09/26 | Dashboard grid | Completed tile looks like pending; app-bar avatar chip "ج1" odd | Status triplet on tiles (completed = filled green + check + initials; pending; missed only for owner/supervisor; available) and a legend; group avatar in the header area, not as an app-bar chip |
+| 18 | Group info | Stats chip wraps (G3) | One-line values |
+| 19 | Member profile | OK; zero values fine | Minor spacing |
+| 30 | المصحف tab | Shows only the index titled "الفهرس" | Title "المصحف"; top card "تابع القراءة · صفحة N" (last position) and "وردي اليوم" shortcut; then the index tabs |
+| 31 | حسابي | Badges as a long vertical list of large locked cards | Badges grid (3 per row) with earned vs locked styling; streak card prominent; links section stays |
+| 32 | Log | Good base | Week grouping headers spacing |
+| 33 | Edit profile | Fields are NOT prefilled with the current name/bio (bug) | Prefill; save disabled until changed |
 
 ## Not covered by this tour (review after merge)
 
