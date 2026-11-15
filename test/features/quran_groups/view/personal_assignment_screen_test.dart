@@ -192,4 +192,35 @@ void main() {
       },
     );
   });
+
+  testWidgets('network failure displays the retry action', (tester) async {
+    final repository = _Repository();
+    final snapshot = _snapshot();
+    final cubit = AssignmentCubit(
+      repository: repository,
+      assignment: snapshot.myAssignments.single,
+    );
+    when(() => repository.markComplete('a-1', any())).thenAnswer(
+      (_) async => const FailureResult<DashboardSnapshot>(
+        NetworkFailure(message: 'offline', code: 'network'),
+      ),
+    );
+    addTearDown(cubit.close);
+    await cubit.complete(DateTime.parse('2026-11-15T12:00:00Z'));
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: PersonalAssignmentScreen(
+            snapshot: snapshot,
+            metadataRepository: _metadata(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(ArabicStrings.networkFailure), findsOneWidget);
+    expect(find.text(ArabicStrings.retry), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
