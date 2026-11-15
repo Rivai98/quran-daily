@@ -39,6 +39,10 @@ void main() {
 
     expect(find.text(ArabicStrings.createGroup), findsAtLeastNWidgets(1));
     expect(find.byType(AppTextField), findsAtLeastNWidgets(2));
+    // Field labels name the field, not the page or a validation message.
+    expect(find.text(ArabicStrings.groupNameLabel), findsOneWidget);
+    expect(find.text(ArabicStrings.shortDescriptionLabel), findsOneWidget);
+    expect(find.text(ArabicStrings.groupSelectionTitle), findsNothing);
   });
 
   testWidgets('submitting invalid name shows Arabic validation error and '

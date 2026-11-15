@@ -80,7 +80,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               padding: AppSpacing.screen,
               children: [
                 AppTextField(
-                  label: ArabicStrings.groupSelectionTitle,
+                  label: ArabicStrings.groupNameLabel,
                   hint: ArabicStrings.nameLengthError,
                   controller: _name,
                   errorText:
@@ -91,7 +91,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 AppTextField(
-                  label: ArabicStrings.descriptionLengthError,
+                  label: ArabicStrings.shortDescriptionLabel,
+                  hint: ArabicStrings.descriptionLengthError,
                   controller: _description,
                   errorText: _descriptionError,
                 ),
