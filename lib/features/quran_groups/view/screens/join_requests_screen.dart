@@ -7,6 +7,7 @@ import '../../../../core/design_system/app_button.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
 import '../../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
+import '../../../../core/design_system/widgets/halaqa_logo.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../cubit/join_requests/join_requests_cubit.dart';
 import '../../data/entities/entities.dart';
@@ -76,6 +77,9 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
             icon: Icons.inbox_outlined,
             title: ArabicStrings.noJoinRequests,
             message: ArabicStrings.noJoinRequestsHint,
+            actionLabel: ArabicStrings.groupSelectionTitle,
+            onAction: () => Navigator.of(context).pushNamed('/groups'),
+            illustration: const HalaqaLogo(size: 80),
           );
         }
         return ListView(

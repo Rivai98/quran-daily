@@ -271,6 +271,10 @@ class ArabicStrings {
       '\u{633}\u{62c}\u{644} \u{627}\u{644}\u{62e}\u{62a}\u{645}\u{627}\u{62a} \u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a}\u{629}';
   static const settingsTitle =
       '\u{627}\u{644}\u{625}\u{639}\u{62f}\u{627}\u{62f}\u{627}\u{62a}';
+  static const settingsReadingSection = 'القراءة';
+  static const settingsAccountSection = 'الحساب';
+  static const settingsAboutSection = 'حول التطبيق';
+  static const settingsLicensesEntry = 'التراخيص والمصادر';
   static const completed =
       '\u{62a}\u{645}\u{62a} \u{627}\u{644}\u{642}\u{631}\u{627}\u{621}\u{629}';
   static const pending = 'لم يُقرأ بعد';

@@ -91,6 +91,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 actionLabel: ArabicStrings.retry,
                 actionIcon: const Icon(Icons.refresh_rounded),
                 onAction: () => context.read<DiscoveryCubit>().load(),
+                illustration: const HalaqaLogo(size: 80),
               );
             }
             if (state.groups.isEmpty &&

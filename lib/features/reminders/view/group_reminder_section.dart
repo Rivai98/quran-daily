@@ -89,6 +89,7 @@ class _GroupReminderSectionState extends State<GroupReminderSection> {
               if (widget.isOwner) ...[
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
+                  secondary: const Icon(Icons.wb_twilight_rounded),
                   title: const Text(ArabicStrings.reminderFajr),
                   value: _fajrOn,
                   onChanged: (v) => setState(() => _fajrOn = v),
@@ -101,6 +102,7 @@ class _GroupReminderSectionState extends State<GroupReminderSection> {
                   ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
+                  secondary: const Icon(Icons.wb_sunny_outlined),
                   title: const Text(ArabicStrings.reminderAsr),
                   value: _asrOn,
                   onChanged: (v) => setState(() => _asrOn = v),
@@ -113,6 +115,7 @@ class _GroupReminderSectionState extends State<GroupReminderSection> {
                   ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
+                  secondary: const Icon(Icons.nightlight_outlined),
                   title: const Text(ArabicStrings.reminderNight),
                   value: _nightOn,
                   onChanged: (v) => setState(() => _nightOn = v),

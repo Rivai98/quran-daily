@@ -26,6 +26,8 @@ class AppTextField extends StatefulWidget {
     this.focusNode,
     this.autofocus = false,
     this.textInputAction,
+    this.minLines = 1,
+    this.maxLines = 1,
   });
 
   final String label;
@@ -44,6 +46,8 @@ class AppTextField extends StatefulWidget {
   final FocusNode? focusNode;
   final bool autofocus;
   final TextInputAction? textInputAction;
+  final int minLines;
+  final int? maxLines;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -78,6 +82,8 @@ class _AppTextFieldState extends State<AppTextField> {
             keyboardType: widget.keyboardType,
             textCapitalization: widget.textCapitalization,
             textInputAction: widget.textInputAction,
+            minLines: widget.minLines,
+            maxLines: widget.maxLines,
             textDirection: widget.ltr ? TextDirection.ltr : null,
             style: AppTypography.bodyLarge,
             onSubmitted: widget.onSubmitted,
