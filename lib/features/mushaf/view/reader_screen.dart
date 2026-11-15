@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../app/router.dart';
+import '../../../core/di/service_locator.dart';
 import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_radius.dart';
 import '../../../core/design_system/app_spacing.dart';
@@ -343,18 +344,16 @@ class _ReaderScreenState extends State<ReaderScreen> {
                             final mushafPage = widget.repository.page(
                               (state.startPage ?? 1) + index,
                             );
-                            if (widget.qpcLayout != null &&
-                                state.qpcLines.isNotEmpty &&
-                                state.qpcFontFamily != null &&
-                                state.page?.number == mushafPage.number) {
+                            final qpcFonts = _qpcFonts();
+                            if (widget.qpcLayout != null && qpcFonts != null) {
                               return Column(
                                 children: [
                                   Expanded(
-                                    child: _QpcExactPage(
-                                      lines: state.qpcLines,
-                                      basmallahWords:
-                                          widget.qpcLayout!.basmallahWords,
-                                      fontFamily: state.qpcFontFamily!,
+                                    child: _QpcPageView(
+                                      key: ValueKey<int>(mushafPage.number),
+                                      pageNumber: mushafPage.number,
+                                      layout: widget.qpcLayout!,
+                                      fonts: qpcFonts,
                                       startAyah: state.startAyah,
                                       endAyah: state.endAyah,
                                       onLongPress: (word) => _addBookmark(
@@ -701,133 +700,261 @@ class _ReaderMenuItem extends StatelessWidget {
   }
 }
 
-class _QpcExactPage extends StatelessWidget {
-  const _QpcExactPage({
-    required this.lines,
-    required this.basmallahWords,
-    required this.fontFamily,
+QpcFontManager? _qpcFonts() =>
+    serviceLocator.isRegistered<QpcFontManager>()
+    ? serviceLocator<QpcFontManager>()
+    : null;
+
+class _QpcPageData {
+  const _QpcPageData(this.lines, this.family, this.basmalaFamily, this.basmala);
+  final List<QpcLine> lines;
+  final String family;
+  final String? basmalaFamily;
+  final List<QpcWord> basmala;
+}
+
+/// One printed Madinah Mushaf page: the 15 lines of the KFGQPC V2 layout, each
+/// line drawn word by word in that page's own verified font and justified to
+/// the full width, like the printed page.
+class _QpcPageView extends StatefulWidget {
+  const _QpcPageView({
+    super.key,
+    required this.pageNumber,
+    required this.layout,
+    required this.fonts,
     required this.startAyah,
     required this.endAyah,
     required this.onLongPress,
     required this.surahName,
   });
 
-  final List<QpcLine> lines;
-  final List<QpcWord> basmallahWords;
-  final String fontFamily;
+  final int pageNumber;
+  final QpcV2Repository layout;
+  final QpcFontManager fonts;
   final AyahRef? startAyah;
   final AyahRef? endAyah;
   final ValueChanged<QpcWord> onLongPress;
   final String Function(int) surahName;
 
   @override
+  State<_QpcPageView> createState() => _QpcPageViewState();
+}
+
+class _QpcPageViewState extends State<_QpcPageView> {
+  late Future<_QpcPageData> _data = _load();
+
+  Future<_QpcPageData> _load() async {
+    await widget.layout.load();
+    final lines = widget.layout.linesForPage(widget.pageNumber);
+    final family = await widget.fonts.ensureLoaded(widget.pageNumber);
+    String? basmalaFamily;
+    var basmala = const <QpcWord>[];
+    if (lines.any((line) => line.lineType == QpcLineType.basmallah)) {
+      // The basmala glyphs are the words of 1:1, encoded for page 1's font.
+      basmalaFamily = await widget.fonts.ensureLoaded(1);
+      basmala = widget.layout.basmallahWords;
+    }
+    return _QpcPageData(lines, family, basmalaFamily, basmala);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    final style = AppTypography.quranLabel.copyWith(
-      fontFamily: fontFamily,
-      color: colors.ink,
-    );
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(
-        AppSpacing.md,
-        AppSpacing.xs,
-        AppSpacing.md,
-        AppSpacing.xs,
-      ),
-      child: Column(
-        children: [
-          for (final line in lines)
-            Expanded(
-              child: switch (line.lineType) {
-                QpcLineType.surahName => _SurahTitleBand(
-                  surahName: surahName(line.surahNumber ?? 1),
+    return FutureBuilder<_QpcPageData>(
+      future: _data,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.cloud_off_rounded, color: colors.inkMuted),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'تعذّر تجهيز الصفحة. تحقّق من الاتصال لتنزيلها أول مرة.',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.body.copyWith(color: colors.inkMuted),
                 ),
-                QpcLineType.basmallah => _QpcLineText(
-                  words: basmallahWords,
-                  style: style,
-                  centered: true,
-                  startAyah: startAyah,
-                  endAyah: endAyah,
-                  onLongPress: onLongPress,
+                TextButton.icon(
+                  onPressed: () => setState(() => _data = _load()),
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('إعادة المحاولة'),
                 ),
-                QpcLineType.ayah => _QpcLineText(
-                  words: line.words,
-                  style: style,
-                  centered: line.isCentered,
-                  startAyah: startAyah,
-                  endAyah: endAyah,
-                  onLongPress: onLongPress,
-                ),
-                QpcLineType.blank => const SizedBox.expand(),
-              },
+              ],
             ),
-        ],
-      ),
+          );
+        }
+        final data = snapshot.data;
+        if (data == null) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'جارٍ تجهيز الصفحة',
+                  style: AppTypography.caption.copyWith(color: colors.inkMuted),
+                ),
+              ],
+            ),
+          );
+        }
+        return _QpcPageBody(
+          data: data,
+          startAyah: widget.startAyah,
+          endAyah: widget.endAyah,
+          onLongPress: widget.onLongPress,
+          surahName: widget.surahName,
+        );
+      },
     );
   }
 }
 
-class _QpcLineText extends StatelessWidget {
-  const _QpcLineText({
-    required this.words,
-    required this.style,
-    required this.centered,
+class _QpcPageBody extends StatelessWidget {
+  const _QpcPageBody({
+    required this.data,
     required this.startAyah,
     required this.endAyah,
     required this.onLongPress,
+    required this.surahName,
   });
 
-  final List<QpcWord> words;
-  final TextStyle style;
-  final bool centered;
+  final _QpcPageData data;
   final AyahRef? startAyah;
   final AyahRef? endAyah;
   final ValueChanged<QpcWord> onLongPress;
+  final String Function(int) surahName;
+
+  static const _measureSize = 100.0;
+
+  double _naturalWidth(List<QpcWord> words, String family) {
+    final painter = TextPainter(
+      textDirection: TextDirection.rtl,
+      maxLines: 1,
+      text: TextSpan(
+        text: words.map((w) => w.text).join(' '),
+        style: TextStyle(fontFamily: family, fontSize: _measureSize),
+      ),
+    )..layout();
+    return painter.width;
+  }
+
+  bool _highlighted(QpcWord word) =>
+      (startAyah?.surah == word.surah && startAyah?.ayah == word.ayah) ||
+      (endAyah?.surah == word.surah && endAyah?.ayah == word.ayah);
 
   @override
   Widget build(BuildContext context) {
-    final first = words.firstOrNull;
-    final spans = <InlineSpan>[];
-    for (final word in words) {
-      final highlighted =
-          (startAyah?.surah == word.surah && startAyah?.ayah == word.ayah) ||
-          (endAyah?.surah == word.surah && endAyah?.ayah == word.ayah);
-      spans.add(
-        TextSpan(
-          text: word.text,
-          style: highlighted
-              ? style.copyWith(
-                  backgroundColor: Theme.of(context)
-                      .extension<AppColors>()!
-                      .primaryContainer
-                      .withValues(alpha: 0.5),
-                )
-              : null,
-          children: const [TextSpan(text: ' ')],
-        ),
-      );
-    }
-    final text = RichText(
-      textAlign: centered ? TextAlign.center : TextAlign.justify,
-      textDirection: TextDirection.rtl,
-      text: TextSpan(style: style, children: spans),
-      maxLines: 1,
-      overflow: TextOverflow.visible,
-    );
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onLongPress: first == null ? null : () => onLongPress(first),
-      child: Center(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.sizeOf(context).width - 2 * AppSpacing.md,
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const horizontal = AppSpacing.sm;
+        final width = constraints.maxWidth - 2 * horizontal;
+        final lineHeight = constraints.maxHeight / 15;
+        var maxNatural = 0.0;
+        for (final line in data.lines) {
+          if (line.lineType == QpcLineType.ayah && !line.isCentered) {
+            final w = _naturalWidth(line.words, data.family);
+            if (w > maxNatural) maxNatural = w;
+          }
+        }
+        final byWidth = maxNatural <= 0
+            ? lineHeight * 0.6
+            : _measureSize * width / maxNatural;
+        final fontSize = byWidth.clamp(8.0, lineHeight * 0.7).toDouble();
+        final gap = fontSize * 0.25;
+
+        Widget wordWidget(QpcWord word, String family) {
+          final text = Text(
+            word.text,
+            textDirection: TextDirection.rtl,
+            style: TextStyle(
+              fontFamily: family,
+              fontSize: fontSize,
+              height: 1.0,
+              color: colors.ink,
             ),
-            child: text,
+          );
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onLongPress: () => onLongPress(word),
+            child: _highlighted(word)
+                ? DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: colors.primaryContainer.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: text,
+                  )
+                : text,
+          );
+        }
+
+        Widget centeredRow(List<Widget> children) => Row(
+          textDirection: TextDirection.rtl,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (var i = 0; i < children.length; i++) ...[
+              if (i > 0) SizedBox(width: gap),
+              children[i],
+            ],
+          ],
+        );
+
+        Widget lineWidget(QpcLine line) {
+          switch (line.lineType) {
+            case QpcLineType.surahName:
+              return _SurahTitleBand(surahName: surahName(line.surahNumber ?? 1));
+            case QpcLineType.blank:
+              return const SizedBox.shrink();
+            case QpcLineType.basmallah:
+              final family = data.basmalaFamily ?? data.family;
+              return centeredRow([
+                for (final word in data.basmala) wordWidget(word, family),
+              ]);
+            case QpcLineType.ayah:
+              final children = [
+                for (final word in line.words) wordWidget(word, data.family),
+              ];
+              if (line.isCentered) return centeredRow(children);
+              return Row(
+                textDirection: TextDirection.rtl,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: children,
+              );
+          }
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: horizontal),
+          child: Column(
+            children: [
+              for (final line in data.lines)
+                SizedBox(
+                  height: lineHeight,
+                  width: width,
+                  child: line.lineType == QpcLineType.surahName
+                      ? lineWidget(line)
+                      : Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: SizedBox(
+                              width: width,
+                              child: lineWidget(line),
+                            ),
+                          ),
+                        ),
+                ),
+            ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

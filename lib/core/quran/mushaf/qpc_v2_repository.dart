@@ -293,8 +293,13 @@ class QpcFontManager {
        _httpClientFactory = httpClientFactory ?? HttpClient.new,
        _registerFont = registerFont ?? _registerFlutterFont;
 
-  static const _baseUrl =
-      'https://zwkvijapswwutwozbvgy.supabase.co/storage/v1/object/public/mushaf-fonts/v2';
+  /// Byte-identical mirrors of the KFGQPC QPC V2 page fonts (verified against the
+  /// bundled manifest before use; any mismatch is rejected).
+  static const fontBaseUrls = [
+    'https://static.qurancdn.com/fonts/quran/hafs/v2/ttf',
+    'https://verses.quran.foundation/fonts/quran/hafs/v2/ttf',
+  ];
+  static const _userAgent = 'Mozilla/5.0 (Linux; Android) HalaqaApp/1.0';
   final QpcV2Repository layout;
   final Directory? _storageDirectory;
   final HttpClient Function() _httpClientFactory;
@@ -379,32 +384,47 @@ class QpcFontManager {
     Map<String, Object> info,
     File destination,
   ) async {
-    final client = _httpClientFactory();
-    _activeClient = client;
-    try {
-      final request = await client.getUrl(Uri.parse('$_baseUrl/p$page.ttf'));
-      final response = await request.close();
+    Object? lastError;
+    for (final base in fontBaseUrls) {
       if (_cancelRequested) throw const HttpException('download cancelled');
-      if (response.statusCode != HttpStatus.ok) {
-        throw HttpException('HTTP ${response.statusCode}');
+      final client = _httpClientFactory();
+      _activeClient = client;
+      try {
+        final request = await client.getUrl(Uri.parse('$base/p$page.ttf'));
+        request.headers.set(HttpHeaders.userAgentHeader, _userAgent);
+        final response = await request.close();
+        if (_cancelRequested) throw const HttpException('download cancelled');
+        if (response.statusCode != HttpStatus.ok) {
+          lastError = HttpException('HTTP ${response.statusCode}');
+          await response.drain<void>();
+          continue;
+        }
+        final bytes = await response.fold<List<int>>(
+          <int>[],
+          (data, chunk) => data..addAll(chunk),
+        );
+        try {
+          QpcV2Repository.verifyFontBytes(
+            page: page,
+            bytes: bytes,
+            expectedSha256: info['sha256']! as String,
+            expectedBytes: info['bytes']! as int,
+          );
+        } on QpcFontIntegrityException catch (error) {
+          lastError = error;
+          continue;
+        }
+        await destination.parent.create(recursive: true);
+        await destination.writeAsBytes(bytes, flush: true);
+        return bytes;
+      } on SocketException catch (error) {
+        lastError = error;
+      } finally {
+        client.close(force: true);
+        if (identical(_activeClient, client)) _activeClient = null;
       }
-      final bytes = await response.fold<List<int>>(
-        <int>[],
-        (data, chunk) => data..addAll(chunk),
-      );
-      QpcV2Repository.verifyFontBytes(
-        page: page,
-        bytes: bytes,
-        expectedSha256: info['sha256']! as String,
-        expectedBytes: info['bytes']! as int,
-      );
-      await destination.parent.create(recursive: true);
-      await destination.writeAsBytes(bytes, flush: true);
-      return bytes;
-    } finally {
-      client.close(force: true);
-      if (identical(_activeClient, client)) _activeClient = null;
     }
+    throw lastError ?? const HttpException('font unavailable');
   }
 
   Future<Directory> _fontDirectory() async {

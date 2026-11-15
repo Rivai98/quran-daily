@@ -78,7 +78,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('الفاتحة'), findsOneWidget);
-    expect(find.text('صفحة ١ · ٧ آيات'), findsOneWidget);
+    expect(find.text(ArabicStrings.surahAyahMeta(1, 7)), findsOneWidget);
     expect(find.byIcon(Icons.chevron_right), findsWidgets);
   });
 
