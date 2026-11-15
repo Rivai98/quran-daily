@@ -572,6 +572,30 @@ void main() {
     expect(find.text(ArabicStrings.manageMembersAction), findsOneWidget);
     expect(find.text(ArabicStrings.reviewJoinRequestsAction), findsOneWidget);
     expect(find.text(ArabicStrings.groupSettingsAction), findsOneWidget);
+
+    // Every item leads with an icon in the item's text color (ui-craft).
+    const expected = {
+      ArabicStrings.setMainGroupAction: Icons.push_pin_rounded,
+      ArabicStrings.openHistoryAction: Icons.history_rounded,
+      ArabicStrings.manageMembersAction: Icons.people_alt_rounded,
+      ArabicStrings.reviewJoinRequestsAction: Icons.person_add_alt_1_rounded,
+      ArabicStrings.groupSettingsAction: Icons.tune_rounded,
+    };
+    for (final entry in expected.entries) {
+      final item = find.ancestor(
+        of: find.text(entry.key),
+        matching: find.byType(PopupMenuItem<String>),
+      );
+      final icon = find.descendant(of: item, matching: find.byIcon(entry.value));
+      expect(icon, findsOneWidget, reason: entry.key);
+      final label = tester.widget<Text>(
+        find.descendant(of: item, matching: find.text(entry.key)),
+      );
+      final labelColor =
+          label.style?.color ??
+          DefaultTextStyle.of(tester.element(find.text(entry.key))).style.color;
+      expect(tester.widget<Icon>(icon).color, labelColor, reason: entry.key);
+    }
   });
 
   testWidgets('supervisor manages members and requests but not settings', (

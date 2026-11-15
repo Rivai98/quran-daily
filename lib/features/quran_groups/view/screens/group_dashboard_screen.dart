@@ -401,25 +401,40 @@ class GroupDashboardScreen extends StatelessWidget {
         itemBuilder: (_) => [
           const PopupMenuItem(
             value: 'set-main',
-            child: Text(ArabicStrings.setMainGroupAction),
+            child: _GroupMenuRow(
+              icon: Icons.push_pin_rounded,
+              label: ArabicStrings.setMainGroupAction,
+            ),
           ),
-          PopupMenuItem(
+          const PopupMenuItem(
             value: AppRoutes.history,
-            child: Text(ArabicStrings.openHistoryAction),
+            child: _GroupMenuRow(
+              icon: Icons.history_rounded,
+              label: ArabicStrings.openHistoryAction,
+            ),
           ),
           if (canManage) ...[
             const PopupMenuItem(
               value: AppRoutes.members,
-              child: Text(ArabicStrings.manageMembersAction),
+              child: _GroupMenuRow(
+                icon: Icons.people_alt_rounded,
+                label: ArabicStrings.manageMembersAction,
+              ),
             ),
             const PopupMenuItem(
               value: AppRoutes.joinRequests,
-              child: Text(ArabicStrings.reviewJoinRequestsAction),
+              child: _GroupMenuRow(
+                icon: Icons.person_add_alt_1_rounded,
+                label: ArabicStrings.reviewJoinRequestsAction,
+              ),
             ),
             if (isOwner)
               const PopupMenuItem(
                 value: AppRoutes.groupSettings,
-                child: Text(ArabicStrings.groupSettingsAction),
+                child: _GroupMenuRow(
+                  icon: Icons.tune_rounded,
+                  label: ArabicStrings.groupSettingsAction,
+                ),
               ),
           ],
         ],
@@ -440,6 +455,26 @@ class GroupDashboardScreen extends StatelessWidget {
       onStartKhatma: cubit.startKhatma,
       portionUnit: snapshot.portionUnit,
       metadataRepository: metadataRepository,
+    );
+  }
+}
+
+/// Overflow menu row: leading icon tinted with the item's text color.
+class _GroupMenuRow extends StatelessWidget {
+  const _GroupMenuRow({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = DefaultTextStyle.of(context).style.color;
+    return Row(
+      children: [
+        Icon(icon, size: 22, color: color),
+        const SizedBox(width: AppSpacing.sm),
+        Flexible(child: Text(label)),
+      ],
     );
   }
 }
