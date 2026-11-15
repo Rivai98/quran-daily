@@ -104,4 +104,37 @@ void main() {
     ],
     verify: (_) => verify(() => repo.cancelJoinRequest('jr1')).called(1),
   );
+
+  blocTest<GroupListCubit, GroupListState>(
+    'cancelJoinRequest failure keeps the group list and exposes the failure',
+    build: build,
+    seed: () => GroupListState(
+      status: GroupListStatus.success,
+      overview: TestFixtures.overview(
+        groups: [TestFixtures.myGroup()],
+        pending: [
+          PendingJoinRequest(
+            joinRequestId: 'jr1',
+            groupId: 'g9',
+            groupName: 'مجموعة',
+            requestedAt: DateTime.parse('2026-11-14T10:00:00Z'),
+            source: JoinSource.invite,
+          ),
+        ],
+      ),
+    ),
+    setUp: () => when(() => repo.cancelJoinRequest('jr1')).thenAnswer(
+      (_) async => const FailureResult(
+        NetworkFailure(message: 'offline', code: 'network'),
+      ),
+    ),
+    act: (cubit) => cubit.cancelJoinRequest('jr1'),
+    expect: () => [
+      isA<GroupListState>()
+          .having((s) => s.status, 'status', GroupListStatus.success)
+          .having((s) => s.overview!.groups.length, 'groups', 1)
+          .having((s) => s.overview!.pendingRequests.length, 'pending', 1)
+          .having((s) => s.failure?.code, 'failure code', 'network'),
+    ],
+  );
 }

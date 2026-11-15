@@ -39,7 +39,15 @@ class _GroupSelectionScreenState extends State<GroupSelectionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),
-      body: BlocBuilder<GroupListCubit, GroupListState>(
+      body: BlocConsumer<GroupListCubit, GroupListState>(
+        listenWhen: (previous, current) =>
+            previous.status == current.status &&
+            previous.failure != current.failure &&
+            current.failure != null,
+        listener: (context, state) => AppSnackBar.showError(
+          context,
+          ArabicStrings.authError(state.failure!.code),
+        ),
         builder: (context, state) {
           switch (state.status) {
             case GroupListStatus.initial:

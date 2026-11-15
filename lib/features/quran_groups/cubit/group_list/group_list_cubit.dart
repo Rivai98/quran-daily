@@ -65,6 +65,7 @@ class GroupListCubit extends Cubit<GroupListState> {
   }
 
   Future<void> cancelJoinRequest(String joinRequestId) async {
+    emit(state.copyWith(clearFailure: true));
     final result = await _repository.cancelJoinRequest(joinRequestId);
     result.when(
       success: (_) {
@@ -81,8 +82,7 @@ class GroupListCubit extends Cubit<GroupListState> {
           ),
         ));
       },
-      failure: (AppFailure failure) =>
-          emit(state.copyWith(status: GroupListStatus.failure, failure: failure)),
+      failure: (AppFailure failure) => emit(state.copyWith(failure: failure)),
     );
   }
 }
