@@ -111,17 +111,19 @@ class _ReaderScreenState extends State<ReaderScreen> {
   Widget build(BuildContext context) {
     return BlocListener<ReaderCubit, ReaderState>(
       listenWhen: (previous, current) =>
-          current.status == ReaderStatus.content &&
-          previous.page?.number != current.page?.number,
+          (current.status == ReaderStatus.content &&
+              previous.page?.number != current.page?.number) ||
+          (!previous.isCompleted && current.isCompleted),
       listener: (context, state) {
         final page = state.page?.number;
-        if (page != null) {
+        if (page != null && !state.isCompletionPage) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             final pages = _pages;
+            final firstPage = state.startPage ?? 1;
             if (pages != null &&
                 pages.hasClients &&
-                pages.page?.round() != page - 1) {
-              pages.jumpToPage(page - 1);
+                pages.page?.round() != page - firstPage) {
+              pages.jumpToPage(page - firstPage);
             }
           });
         }
@@ -137,13 +139,16 @@ class _ReaderScreenState extends State<ReaderScreen> {
             }
           });
         }
+        if (state.isCompleted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
       },
       child: BlocBuilder<ReaderCubit, ReaderState>(
         builder: (context, state) {
           final colors = Theme.of(context).extension<AppColors>()!;
           final page = state.page;
           return Scaffold(
-            appBar: _chromeVisible && page != null
+            appBar: _chromeVisible && page != null && !state.isCompletionPage
                 ? AppBar(
                     titleSpacing: 0,
                     title: Row(
@@ -161,7 +166,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         const SizedBox(width: AppSpacing.xs),
                         Flexible(
                           child: Text(
-                            '${ArabicStrings.juzLabel} ${ArabicNumerals.format(page.juz)} · ${ArabicStrings.portionUnitHizb} ${ArabicNumerals.format(_hizbForPage(page.number))}',
+                            state.isPortion
+                                ? ArabicStrings.portionPageProgress(
+                                    page.number - state.startPage! + 1,
+                                    state.portionPageCount,
+                                  )
+                                : '${ArabicStrings.juzLabel} ${ArabicNumerals.format(page.juz)} · ${ArabicStrings.portionUnitHizb} ${ArabicNumerals.format(_hizbForPage(page.number))}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.end,
@@ -291,15 +301,30 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         child: PageView.builder(
                           key: const ValueKey('mushaf-page-view'),
                           controller: _pages ??= PageController(
-                            initialPage: page!.number - 1,
+                            initialPage: page!.number - (state.startPage ?? 1),
                           ),
                           reverse: true,
-                          itemCount: widget.repository.pageCount,
-                          onPageChanged: (index) =>
-                              context.read<ReaderCubit>().turnTo(index + 1),
+                          itemCount: state.isPortion
+                              ? state.portionPageCount + 1
+                              : widget.repository.pageCount,
+                          onPageChanged: (index) {
+                            final cubit = context.read<ReaderCubit>();
+                            if (state.isPortion &&
+                                index >= state.portionPageCount) {
+                              cubit.showCompletionPage();
+                            } else {
+                              cubit.turnTo((state.startPage ?? 1) + index);
+                            }
+                          },
                           itemBuilder: (context, index) {
+                            if (state.isPortion &&
+                                index == state.portionPageCount) {
+                              return _ReaderCompletionPage(
+                                completed: state.isCompleted,
+                              );
+                            }
                             final mushafPage = widget.repository.page(
-                              index + 1,
+                              (state.startPage ?? 1) + index,
                             );
                             return Column(
                               children: [
@@ -342,7 +367,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
                                               : null,
                                         ),
                                       ],
-                                      if (mushafPage.number ==
+                                      if (!state.isPortion &&
+                                          mushafPage.number ==
                                               widget.repository.pageCount &&
                                           _dua != null)
                                         TextButton(
@@ -378,23 +404,54 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 ),
               },
             ),
-            bottomNavigationBar:
-                state.canComplete && page?.number == state.endPage
+            bottomNavigationBar: state.canComplete
                 ? SafeArea(
                     child: Padding(
                       padding: AppSpacing.screen,
-                      child: OutlinedButton.icon(
-                        key: const ValueKey('complete-reading-button'),
-                        onPressed: () =>
-                            context.read<ReaderCubit>().completePortion(),
-                        icon: const Icon(Icons.check_circle_outline),
-                        label: const Text(ArabicStrings.completeReadingAction),
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(52),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppRadius.mdBR,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FilledButton.icon(
+                            key: const ValueKey('complete-reading-button'),
+                            onPressed: () =>
+                                context.read<ReaderCubit>().completePortion(),
+                            icon: const Icon(Icons.check_circle_outline),
+                            label: const Text(
+                              ArabicStrings.completeReadingAction,
+                            ),
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size.fromHeight(52),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: AppRadius.mdBR,
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: AppSpacing.xs),
+                          OutlinedButton(
+                            key: const ValueKey('reader-completion-back'),
+                            onPressed: () {
+                              final pages = _pages;
+                              if (pages?.hasClients == true) {
+                                pages!.previousPage(
+                                  duration: const Duration(milliseconds: 150),
+                                  curve: Curves.easeOut,
+                                );
+                              }
+                            },
+                            child: const Text(ArabicStrings.readerBackAction),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : state.isCompletionPage && state.isCompleted
+                ? SafeArea(
+                    child: Padding(
+                      padding: AppSpacing.screen,
+                      child: OutlinedButton(
+                        key: const ValueKey('reader-completion-back'),
+                        onPressed: () => Navigator.of(context).maybePop(),
+                        child: const Text(ArabicStrings.readerBackAction),
                       ),
                     ),
                   )
@@ -518,6 +575,53 @@ class _SurahTitleBand extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReaderCompletionPage extends StatelessWidget {
+  const _ReaderCompletionPage({required this.completed});
+
+  final bool completed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return SingleChildScrollView(
+      key: const ValueKey('reader-completion-page'),
+      padding: AppSpacing.screenH,
+      child: Column(
+        children: [
+          const SizedBox(height: AppSpacing.lg),
+          IslamicOrnamentBand(
+            refined: true,
+            child: Center(
+              child: Icon(
+                Icons.check_circle_outline_rounded,
+                size: AppSpacing.xxl,
+                color: colors.primary,
+                semanticLabel: ArabicStrings.completeReadingAction,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            completed
+                ? ArabicStrings.readerCompletionRecorded
+                : ArabicStrings.readerCompletionTitle,
+            textAlign: TextAlign.center,
+            style: AppTypography.headline.copyWith(color: colors.ink),
+          ),
+          if (!completed) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              ArabicStrings.readerCompletionMessage,
+              textAlign: TextAlign.center,
+              style: AppTypography.body.copyWith(color: colors.inkMuted),
+            ),
+          ],
         ],
       ),
     );

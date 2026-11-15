@@ -237,7 +237,6 @@ void main() {
     final storage = _Storage();
     final cubit = ReaderCubit(repository: repo, storage: storage);
     await cubit.openPortion(PortionUnit.juz, 1, assignmentId: 'assign-1');
-    await cubit.turnTo(2);
     await tester.pumpWidget(
       buildArabicTestApp(
         BlocProvider.value(
@@ -251,8 +250,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    tester
+        .widget<PageView>(find.byKey(const ValueKey('mushaf-page-view')))
+        .controller!
+        .jumpToPage(2);
+    await tester.pumpAndSettle();
 
-    // End page offers complete reading
+    // The completion page offers the primary action after the portion pages.
     expect(find.text(ArabicStrings.completeReadingAction), findsWidgets);
 
     await tester.pumpWidget(const SizedBox.shrink());
@@ -348,6 +352,178 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await cubit.close();
   });
+
+  testWidgets('portion pager is bounded and advances to its completion page', (
+    tester,
+  ) async {
+    final repo = _RichRepository();
+    final storage = _Storage();
+    final cubit = ReaderCubit(repository: repo, storage: storage);
+    await cubit.openPortion(PortionUnit.juz, 1, assignmentId: 'assign-1');
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: ReaderScreen(
+            repository: repo,
+            storage: storage,
+            metadata: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    var pager = tester.widget<PageView>(
+      find.byKey(const ValueKey('mushaf-page-view')),
+    );
+    expect(pager.childrenDelegate.estimatedChildCount, 3);
+
+    pager.controller!.jumpToPage(2);
+    await tester.pumpAndSettle();
+    expect(cubit.state.isCompletionPage, isTrue);
+    expect(
+      find.byKey(const ValueKey('reader-completion-page')),
+      findsOneWidget,
+    );
+    expect(find.text(ArabicStrings.readerCompletionTitle), findsOneWidget);
+    expect(find.text(ArabicStrings.readerCompletionMessage), findsOneWidget);
+    expect(find.text(ArabicStrings.completeReadingAction), findsOneWidget);
+    expect(find.text(ArabicStrings.readerBackAction), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await cubit.close();
+  });
+
+  testWidgets('bounds portion pager for juz, hizb, and page units', (
+    tester,
+  ) async {
+    final repo = _RichRepository();
+    final storage = _Storage();
+    for (final (unit, expectedCount) in [
+      (PortionUnit.juz, 3),
+      (PortionUnit.hizb, 4),
+      (PortionUnit.page, 2),
+    ]) {
+      final cubit = ReaderCubit(repository: repo, storage: storage);
+      await cubit.openPortion(unit, 1, assignmentId: 'assign-1');
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          BlocProvider.value(
+            value: cubit,
+            child: ReaderScreen(
+              repository: repo,
+              storage: storage,
+              metadata: QuranMetadataRepository(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final pager = tester.widget<PageView>(
+        find.byKey(const ValueKey('mushaf-page-view')),
+      );
+      expect(pager.childrenDelegate.estimatedChildCount, expectedCount);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await cubit.close();
+    }
+  });
+
+  testWidgets('completion marks the portion and pops the reader route', (
+    tester,
+  ) async {
+    final repo = _RichRepository();
+    final storage = _Storage();
+    var completions = 0;
+    final cubit = ReaderCubit(
+      repository: repo,
+      storage: storage,
+      onComplete: () async {
+        completions++;
+        return false;
+      },
+    );
+    await cubit.openPortion(PortionUnit.juz, 1, assignmentId: 'assign-1');
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (_) => BlocProvider.value(
+                    value: cubit,
+                    child: ReaderScreen(
+                      repository: repo,
+                      storage: storage,
+                      metadata: QuranMetadataRepository(),
+                    ),
+                  ),
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    tester
+        .widget<PageView>(find.byKey(const ValueKey('mushaf-page-view')))
+        .controller!
+        .jumpToPage(2);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('complete-reading-button')));
+    await tester.pumpAndSettle();
+
+    expect(completions, 1);
+    expect(find.text('open'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await cubit.close();
+  });
+
+  testWidgets('already-completed portion shows its recorded state and back', (
+    tester,
+  ) async {
+    final repo = _RichRepository();
+    final storage = _Storage();
+    final cubit = ReaderCubit(repository: repo, storage: storage);
+    await cubit.openPortion(
+      PortionUnit.juz,
+      1,
+      assignmentId: 'assign-1',
+      alreadyCompleted: true,
+    );
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: ReaderScreen(
+            repository: repo,
+            storage: storage,
+            metadata: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    tester
+        .widget<PageView>(find.byKey(const ValueKey('mushaf-page-view')))
+        .controller!
+        .jumpToPage(2);
+    await tester.pumpAndSettle();
+
+    expect(find.text(ArabicStrings.readerCompletionRecorded), findsOneWidget);
+    expect(find.byKey(const ValueKey('complete-reading-button')), findsNothing);
+    expect(
+      find.byKey(const ValueKey('reader-completion-back')),
+      findsOneWidget,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await cubit.close();
+  });
 }
 
 class _FlowRepository implements MushafRepository {
@@ -390,8 +566,16 @@ class _FlowRepository implements MushafRepository {
   ) => (
     start: const AyahRef(surah: 1, ayah: 1),
     end: const AyahRef(surah: 1, ayah: 2),
-    startPage: 1,
-    endPage: 2,
+    startPage: switch (unit) {
+      PortionUnit.hizb => 3,
+      PortionUnit.page => 6,
+      _ => 1,
+    },
+    endPage: switch (unit) {
+      PortionUnit.hizb => 5,
+      PortionUnit.page => 6,
+      _ => 2,
+    },
   );
 
   @override
@@ -432,8 +616,16 @@ class _RichRepository implements MushafRepository {
   ) => (
     start: const AyahRef(surah: 1, ayah: 1),
     end: const AyahRef(surah: 1, ayah: 2),
-    startPage: 1,
-    endPage: 2,
+    startPage: switch (unit) {
+      PortionUnit.hizb => 3,
+      PortionUnit.page => 6,
+      _ => 1,
+    },
+    endPage: switch (unit) {
+      PortionUnit.hizb => 5,
+      PortionUnit.page => 6,
+      _ => 2,
+    },
   );
 
   @override

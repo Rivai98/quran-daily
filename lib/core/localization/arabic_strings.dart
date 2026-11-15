@@ -10,6 +10,10 @@ class ArabicStrings {
   static const readNowAction = 'اقرأ الآن';
   static const assignmentDetailsAction = 'تفاصيل الورد';
   static const completeReadingAction = 'تمت القراءة';
+  static const readerCompletionTitle = 'أتممت قراءة وردك';
+  static const readerCompletionMessage = 'تقبّل الله منك';
+  static const readerCompletionRecorded = 'تم تسجيل وردك اليوم';
+  static const readerBackAction = 'رجوع';
   static const mushafIndexAction = 'الفهرس';
   static const surahsTab = 'السور';
   static const ajzaaTab = 'الأجزاء';

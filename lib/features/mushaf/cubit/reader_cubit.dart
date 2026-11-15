@@ -21,6 +21,7 @@ class ReaderState extends Equatable {
     this.portionUnit,
     this.portionIndex,
     this.isCompleted = false,
+    this.isCompletionPage = false,
     this.isOffline = false,
     this.error,
     this.quranTextScale = 1,
@@ -36,6 +37,7 @@ class ReaderState extends Equatable {
   final PortionUnit? portionUnit;
   final int? portionIndex;
   final bool isCompleted;
+  final bool isCompletionPage;
   final bool isOffline;
   final Object? error;
   final double quranTextScale;
@@ -43,7 +45,10 @@ class ReaderState extends Equatable {
   bool get isPortion => startAyah != null;
   bool get isStartPage => page?.number == startPage;
   bool get isEndPage => page?.number == endPage;
-  bool get canComplete => isPortion && isEndPage && !isCompleted;
+  int get portionPageCount => isPortion && startPage != null && endPage != null
+      ? endPage! - startPage! + 1
+      : 0;
+  bool get canComplete => isPortion && isCompletionPage && !isCompleted;
 
   ReaderState copyWith({
     ReaderStatus? status,
@@ -56,6 +61,7 @@ class ReaderState extends Equatable {
     PortionUnit? portionUnit,
     int? portionIndex,
     bool? isCompleted,
+    bool? isCompletionPage,
     bool? isOffline,
     Object? error,
     double? quranTextScale,
@@ -70,6 +76,7 @@ class ReaderState extends Equatable {
     portionUnit: portionUnit ?? this.portionUnit,
     portionIndex: portionIndex ?? this.portionIndex,
     isCompleted: isCompleted ?? this.isCompleted,
+    isCompletionPage: isCompletionPage ?? this.isCompletionPage,
     isOffline: isOffline ?? this.isOffline,
     error: error,
     quranTextScale: quranTextScale ?? this.quranTextScale,
@@ -87,6 +94,7 @@ class ReaderState extends Equatable {
     endPage,
     assignmentId,
     isCompleted,
+    isCompletionPage,
     isOffline,
     quranTextScale,
     error,
@@ -175,12 +183,15 @@ class ReaderCubit extends Cubit<ReaderState> {
   }
 
   Future<void> turnTo(int number) async {
-    if (number < 1 || number > _repository.pageCount) return;
+    final minimum = state.isPortion ? state.startPage! : 1;
+    final maximum = state.isPortion ? state.endPage! : _repository.pageCount;
+    if (number < minimum || number > maximum) return;
     try {
       emit(
         state.copyWith(
           page: _repository.page(number),
           status: ReaderStatus.content,
+          isCompletionPage: false,
         ),
       );
       if (!state.isPortion) {
@@ -193,6 +204,16 @@ class ReaderCubit extends Cubit<ReaderState> {
     } catch (error) {
       emit(state.copyWith(status: ReaderStatus.error, error: error));
     }
+  }
+
+  void showCompletionPage() {
+    if (!state.isPortion || state.isCompletionPage) return;
+    emit(
+      state.copyWith(
+        page: _repository.page(state.endPage!),
+        isCompletionPage: true,
+      ),
+    );
   }
 
   Future<void> completePortion() async {
