@@ -102,7 +102,18 @@ void main() {
 
     // 3. Open the new (forming) group.
     await pumpUntil(tester, find.text(groupName));
-    await tapAndSettle(tester, find.text(groupName).first);
+    // The list may refresh right after creation; retry the tap until the
+    // dashboard route is on screen.
+    for (var attempt = 0; attempt < 5; attempt++) {
+      await pumpUntil(tester, find.text(groupName));
+      await tapAndSettle(tester, find.text(groupName).first);
+      final end = DateTime.now().add(const Duration(seconds: 6));
+      while (DateTime.now().isBefore(end) &&
+          find.byType(GroupDashboardScreen).evaluate().isEmpty) {
+        await tester.pump(const Duration(milliseconds: 250));
+      }
+      if (find.byType(GroupDashboardScreen).evaluate().isNotEmpty) break;
+    }
     try {
       await pumpUntil(tester, find.byType(FormingGroupView));
     } on TestFailure {
@@ -119,7 +130,9 @@ void main() {
 
     // 4. A second user joins with the invite code (separate client).
     final ownerClient = Supabase.instance.client;
-    final groups = await ownerClient.rpc('get_my_groups') as List<dynamic>;
+    final myGroups =
+        await ownerClient.rpc('get_my_groups') as Map<String, dynamic>;
+    final groups = myGroups['groups'] as List<dynamic>;
     final group = groups
         .cast<Map<String, dynamic>>()
         .firstWhere((g) => g['name'] == groupName);
@@ -134,7 +147,10 @@ void main() {
     final memberClient = SupabaseClient(
       config.supabaseUrl.toString(),
       config.supabaseAnonKey,
-      authOptions: const AuthClientOptions(autoRefreshToken: false),
+      authOptions: const AuthClientOptions(
+        autoRefreshToken: false,
+        authFlowType: AuthFlowType.implicit,
+      ),
     );
     await memberClient.auth.signUp(
       email: memberEmail,
@@ -170,7 +186,8 @@ void main() {
     await pumpUntil(tester, find.text(ArabicStrings.completeAction));
 
     // 8. Back to the dashboard, then history.
-    await tester.pageBack();
+    Navigator.of(tester.element(find.byType(PersonalAssignmentScreen))).pop();
+    await tester.pump(const Duration(milliseconds: 500));
     await pumpUntil(tester, find.byTooltip(ArabicStrings.openHistoryAction));
     await tapAndSettle(tester, find.byTooltip(ArabicStrings.openHistoryAction));
     await pumpUntil(tester, find.byType(HistoryScreen));

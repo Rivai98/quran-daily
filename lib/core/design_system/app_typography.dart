@@ -20,11 +20,11 @@ class AppTypography {
     fontVariations: [FontVariation('wght', 700)],
   );
 
-  /// 22/32 · 700 · Screen titles.
+  /// 24/36 · 700 · Screen titles.
   static const TextStyle headline = TextStyle(
     fontFamily: 'Cairo',
-    fontSize: 22,
-    height: 32 / 22,
+    fontSize: 24,
+    height: 36 / 24,
     fontWeight: FontWeight.w700,
     fontVariations: [FontVariation('wght', 700)],
   );

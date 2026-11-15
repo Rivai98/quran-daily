@@ -17,10 +17,16 @@ AssignmentStatus _toDesignStatus(AssignmentStatusEnum s) =>
 
 /// Card representing one day in the history list (S10).
 class HistoryDayCard extends StatelessWidget {
-  const HistoryDayCard({super.key, required this.day, this.onTap});
+  const HistoryDayCard({
+    super.key,
+    required this.day,
+    this.onTap,
+    this.showFullKhatmaBadge = true,
+  });
 
   final HistoryDaySummary day;
   final VoidCallback? onTap;
+  final bool showFullKhatmaBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +42,6 @@ class HistoryDayCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Flexible(
                   child: Text(
@@ -46,7 +51,8 @@ class HistoryDayCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (day.fullKhatma)
+                const SizedBox(width: AppSpacing.sm),
+                if (day.fullKhatma && showFullKhatmaBadge)
                   Container(
                     padding: const EdgeInsetsDirectional.symmetric(
                       horizontal: AppSpacing.sm,
@@ -125,7 +131,10 @@ class HistoryDayCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         ArabicStrings.historyMyJuz(
-                          ArabicStrings.juzName(day.myResult!.juz),
+                          ArabicStrings.portionName(
+                            day.portionUnit,
+                            day.myResult!.portionIndex,
+                          ),
                         ),
                         style: AppTypography.caption.copyWith(
                           color: colors.ink,
@@ -135,6 +144,7 @@ class HistoryDayCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: AppSpacing.xs),
                     StatusChip(status: _toDesignStatus(day.myResult!.status)),
                   ],
                 ),
