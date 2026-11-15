@@ -165,6 +165,7 @@ class SeatMember extends Equatable {
     required this.role,
     required this.seatNumber,
     this.userId,
+    this.avatarKey = 'ornament',
   });
 
   final String membershipId;
@@ -172,9 +173,17 @@ class SeatMember extends Equatable {
   final GroupRole role;
   final int seatNumber;
   final String? userId;
+  final String avatarKey;
 
   @override
-  List<Object?> get props => [membershipId, displayName, role, seatNumber, userId];
+  List<Object?> get props => [
+    membershipId,
+    displayName,
+    role,
+    seatNumber,
+    userId,
+    avatarKey,
+  ];
 }
 
 /// Members + empty seats for the members screen / forming dashboard.
@@ -518,6 +527,7 @@ class MemberGroupProfile extends Equatable {
     required this.userId,
     required this.groupId,
     required this.displayName,
+    this.avatarKey = 'ornament',
     this.initials,
     this.bio,
     required this.role,
@@ -533,6 +543,7 @@ class MemberGroupProfile extends Equatable {
   final String userId;
   final String groupId;
   final String displayName;
+  final String avatarKey;
   final String? initials;
   final String? bio;
   final String role; // 'owner' | 'supervisor' | 'member' | 'former_member'
@@ -549,6 +560,7 @@ class MemberGroupProfile extends Equatable {
     userId,
     groupId,
     displayName,
+    avatarKey,
     initials,
     bio,
     role,
@@ -568,6 +580,7 @@ class GroupInfoMember extends Equatable {
     required this.userId,
     required this.membershipId,
     required this.displayName,
+    this.avatarKey = 'ornament',
     this.initials,
     required this.role,
     this.seatNumber,
@@ -578,6 +591,7 @@ class GroupInfoMember extends Equatable {
   final String userId;
   final String membershipId;
   final String displayName;
+  final String avatarKey;
   final String? initials;
   final GroupRole role;
   final int? seatNumber;
@@ -589,6 +603,7 @@ class GroupInfoMember extends Equatable {
     userId,
     membershipId,
     displayName,
+    avatarKey,
     initials,
     role,
     seatNumber,
@@ -711,6 +726,7 @@ class UserProfile extends Equatable {
   const UserProfile({
     required this.userId,
     required this.displayName,
+    this.avatarKey = 'ornament',
     this.initials,
     this.bio,
     this.updatedAt,
@@ -718,10 +734,18 @@ class UserProfile extends Equatable {
 
   final String userId;
   final String displayName;
+  final String avatarKey;
   final String? initials;
   final String? bio;
   final DateTime? updatedAt;
 
   @override
-  List<Object?> get props => [userId, displayName, initials, bio, updatedAt];
+  List<Object?> get props => [
+    userId,
+    displayName,
+    avatarKey,
+    initials,
+    bio,
+    updatedAt,
+  ];
 }

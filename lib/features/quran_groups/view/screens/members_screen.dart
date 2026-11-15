@@ -108,7 +108,11 @@ class _MembersScreenState extends State<MembersScreen> {
       children: [
         Row(
           children: [
-            UserAvatar(displayName: member.displayName, size: 48),
+            UserAvatar(
+              displayName: member.displayName,
+              avatarKey: member.avatarKey,
+              size: 48,
+            ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
@@ -135,21 +139,21 @@ class _MembersScreenState extends State<MembersScreen> {
                   vertical: AppSpacing.xxs,
                 ),
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .extension<AppColors>()!
-                      .primaryContainer,
+                  color: Theme.of(
+                    context,
+                  ).extension<AppColors>()!.primaryContainer,
                   borderRadius: AppRadius.pillBR,
                 ),
                 child: Text(
                   member.role == GroupRole.owner
                       ? ArabicStrings.groupOwner
                       : member.role == GroupRole.supervisor
-                          ? ArabicStrings.roleSupervisor
-                          : ArabicStrings.memberRole,
+                      ? ArabicStrings.roleSupervisor
+                      : ArabicStrings.memberRole,
                   style: AppTypography.caption.copyWith(
-                    color: Theme.of(context)
-                        .extension<AppColors>()!
-                        .onPrimaryContainer,
+                    color: Theme.of(
+                      context,
+                    ).extension<AppColors>()!.onPrimaryContainer,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

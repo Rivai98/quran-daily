@@ -36,21 +36,21 @@ class ProfileModel {
       final code = codeStr != null ? ProfileBadgeCode.fromCode(codeStr) : null;
       if (code != null) {
         final earnedStr = map['earned_at'] as String?;
-        final earnedAt = earnedStr != null ? DateTime.tryParse(earnedStr) : null;
+        final earnedAt = earnedStr != null
+            ? DateTime.tryParse(earnedStr)
+            : null;
         earnedMap[code] = earnedAt ?? DateTime.now();
       }
     }
 
     // Always provide all 5 badges so the UI can render earned vs locked
     final badges = ProfileBadgeCode.values.map((code) {
-      return ProfileBadge(
-        code: code,
-        earnedAt: earnedMap[code],
-      );
+      return ProfileBadge(code: code, earnedAt: earnedMap[code]);
     }).toList();
 
     return UserProfile(
       displayName: displayName,
+      avatarKey: _avatarKey(json['avatar_key'] as String?),
       memberSince: memberSince,
       streak: streak,
       bestStreak: bestStreak,
@@ -65,6 +65,7 @@ class ProfileModel {
   static Map<String, Object?> toJson(UserProfile profile) {
     return {
       'display_name': profile.displayName,
+      'avatar_key': profile.avatarKey,
       'member_since': profile.memberSince != null
           ? _formatDate(profile.memberSince!)
           : null,
@@ -79,15 +80,12 @@ class ProfileModel {
           'completed': k.completed,
         };
       }).toList(),
-      'badges': profile.badges
-          .where((b) => b.isEarned)
-          .map((b) {
-            return {
-              'code': b.code.code,
-              'earned_at': b.earnedAt != null ? _formatDate(b.earnedAt!) : null,
-            };
-          })
-          .toList(),
+      'badges': profile.badges.where((b) => b.isEarned).map((b) {
+        return {
+          'code': b.code.code,
+          'earned_at': b.earnedAt != null ? _formatDate(b.earnedAt!) : null,
+        };
+      }).toList(),
     };
   }
 
@@ -97,4 +95,9 @@ class ProfileModel {
     final d = dt.day.toString().padLeft(2, '0');
     return '$y-$m-$d';
   }
+
+  static String _avatarKey(String? key) =>
+      const {'ornament', 'man_kufi', 'woman_hijab'}.contains(key)
+      ? key!
+      : 'ornament';
 }

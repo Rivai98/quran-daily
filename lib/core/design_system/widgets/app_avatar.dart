@@ -10,6 +10,7 @@ import '../app_colors.dart';
 import '../app_radius.dart';
 import '../app_typography.dart';
 import 'islamic_ornament.dart';
+import 'illustrated_avatar.dart';
 
 /// User initials avatar (Constitution Principle VI & Spec 007).
 class UserAvatar extends StatelessWidget {
@@ -19,12 +20,14 @@ class UserAvatar extends StatelessWidget {
     this.displayName,
     this.size = 36,
     this.isVacant = false,
+    this.avatarKey = 'ornament',
   });
 
   final String? initials;
   final String? displayName;
   final double size;
   final bool isVacant;
+  final String avatarKey;
 
   @override
   Widget build(BuildContext context) {
@@ -47,29 +50,7 @@ class UserAvatar extends StatelessWidget {
       );
     }
 
-    final letterText = initials?.trim().isNotEmpty == true
-        ? initials!.trim()
-        : displayInitials(displayName);
-
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: colors.primaryContainer,
-        shape: BoxShape.circle,
-      ),
-      child: Center(
-        child: Text(
-          letterText,
-          style: AppTypography.label.copyWith(
-            color: colors.onPrimaryContainer,
-            fontSize: size * 0.42,
-            fontWeight: FontWeight.w700,
-            fontVariations: const [FontVariation('wght', 700)],
-          ),
-        ),
-      ),
-    );
+    return IllustratedAvatar(avatarKey: avatarKey, size: size);
   }
 }
 

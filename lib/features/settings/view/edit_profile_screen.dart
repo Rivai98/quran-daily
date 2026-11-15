@@ -6,6 +6,9 @@ import '../../../core/design_system/widgets/app_card.dart';
 import '../../../core/design_system/widgets/app_page_content.dart';
 import '../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../core/design_system/widgets/app_text_field.dart';
+import '../../../core/design_system/widgets/illustrated_avatar.dart';
+import '../../../core/design_system/app_typography.dart';
+import '../../../core/design_system/app_radius.dart';
 import '../../../core/di/service_locator.dart';
 import '../../../core/localization/arabic_strings.dart';
 import '../../../core/auth/session_gateway.dart';
@@ -42,11 +45,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _edited = false;
   bool _nameTouched = false;
   bool _bioTouched = false;
+  String _avatarKey = 'ornament';
+  String _originalAvatarKey = 'ornament';
+  bool _avatarTouched = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.initialDisplayName ?? '');
+    _nameController = TextEditingController(
+      text: widget.initialDisplayName ?? '',
+    );
     _bioController = TextEditingController(text: widget.initialBio ?? '');
     _originalName = _nameController.text.trim();
     _originalBio = _bioController.text.trim();
@@ -64,21 +72,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _loadCurrentProfile() async {
-    final profileRepo = widget.profileRepository ??
+    final profileRepo =
+        widget.profileRepository ??
         (serviceLocator.isRegistered<ProfileRepository>()
             ? serviceLocator<ProfileRepository>()
             : null);
-    final groupsRepo = widget.repository ??
+    final groupsRepo =
+        widget.repository ??
         (serviceLocator.isRegistered<GroupsRepository>()
             ? serviceLocator<GroupsRepository>()
             : null);
-    if (profileRepo != null && widget.initialDisplayName == null) {
+    if (profileRepo != null) {
       final result = await profileRepo.getProfile();
-      if (mounted && !_nameTouched) {
+      if (mounted) {
         result.when(
           success: (profile) {
-            _originalName = profile.displayName.trim();
-            _nameController.text = profile.displayName;
+            if (widget.initialDisplayName == null && !_nameTouched) {
+              _originalName = profile.displayName.trim();
+              _nameController.text = profile.displayName;
+            }
+            _originalAvatarKey = profile.avatarKey;
+            if (!_avatarTouched) _avatarKey = profile.avatarKey;
+            _onChanged();
           },
           failure: (_) {},
         );
@@ -114,8 +129,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _onChanged() {
-    final edited = _nameController.text.trim() != _originalName ||
-        _bioController.text.trim() != _originalBio;
+    final edited =
+        _nameController.text.trim() != _originalName ||
+        _bioController.text.trim() != _originalBio ||
+        _avatarKey != _originalAvatarKey;
     if (edited != _edited && mounted) setState(() => _edited = edited);
   }
 
@@ -160,6 +177,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final result = await repo.updateMyProfile(
       name,
       bio: bio.isEmpty ? null : bio,
+      avatarKey: _avatarKey,
     );
 
     if (!mounted) return;
@@ -182,9 +200,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(ArabicStrings.editProfile),
-      ),
+      appBar: AppBar(title: const Text(ArabicStrings.editProfile)),
       body: AppPageContent(
         child: SingleChildScrollView(
           padding: AppSpacing.screenContent,
@@ -196,6 +212,68 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Text(
+                      ArabicStrings.avatarPickerTitle,
+                      style: AppTypography.title,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      runSpacing: AppSpacing.sm,
+                      children: [
+                        for (final option in const [
+                          ('ornament', ArabicStrings.avatarOrnament),
+                          ('man_kufi', ArabicStrings.avatarManKufi),
+                          ('woman_hijab', ArabicStrings.avatarWomanHijab),
+                        ])
+                          SizedBox(
+                            width: 92,
+                            child: Semantics(
+                              button: true,
+                              selected: _avatarKey == option.$1,
+                              label: option.$2,
+                              child: InkWell(
+                                borderRadius: AppRadius.mdBR,
+                                onTap: () {
+                                  _avatarTouched = true;
+                                  setState(() {
+                                    _avatarKey = option.$1;
+                                    _edited =
+                                        _nameController.text.trim() !=
+                                            _originalName ||
+                                        _bioController.text.trim() !=
+                                            _originalBio ||
+                                        _avatarKey != _originalAvatarKey;
+                                  });
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(AppSpacing.xs),
+                                  child: Column(
+                                    children: [
+                                      IllustratedAvatar(
+                                        avatarKey: option.$1,
+                                        size: 56,
+                                      ),
+                                      const SizedBox(height: AppSpacing.xxs),
+                                      Text(
+                                        option.$2,
+                                        textAlign: TextAlign.center,
+                                        style: AppTypography.caption,
+                                      ),
+                                      if (_avatarKey == option.$1)
+                                        const Icon(
+                                          Icons.check_circle,
+                                          size: 20,
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       label: ArabicStrings.displayName,
                       hint: ArabicStrings.displayNameHint,

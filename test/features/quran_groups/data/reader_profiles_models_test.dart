@@ -272,6 +272,7 @@ void main() {
       final json = {
         'user_id': 'u-me',
         'display_name': 'زيد بن ثابت',
+        'avatar_key': 'man_kufi',
         'initials': 'ز ث',
         'bio': 'حفظ القرآن وتدبره',
         'updated_at': '2026-11-15T12:00:00.000Z',
@@ -280,12 +281,14 @@ void main() {
       final profile = userProfileFromJson(json);
       expect(profile.userId, 'u-me');
       expect(profile.displayName, 'زيد بن ثابت');
+      expect(profile.avatarKey, 'man_kufi');
       expect(profile.initials, 'ز ث');
       expect(profile.bio, 'حفظ القرآن وتدبره');
       expect(profile.updatedAt, DateTime.parse('2026-11-15T12:00:00.000Z'));
 
       final serialized = userProfileToJson(profile);
       expect(serialized['display_name'], 'زيد بن ثابت');
+      expect(serialized['avatar_key'], 'man_kufi');
       final restored = userProfileFromJson(serialized);
       expect(restored, profile);
     });

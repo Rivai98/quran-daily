@@ -25,12 +25,12 @@ class GroupsRepositoryImpl implements GroupsRepository {
     required SessionGateway sessionGateway,
     required ConnectivityService connectivity,
     SupabaseClientProvider? clientProvider,
-  })  : _rpc = rpc,
-        _remote = remote,
-        _cache = cache,
-        _session = sessionGateway,
-        _connectivity = connectivity,
-        _clientProvider = clientProvider;
+  }) : _rpc = rpc,
+       _remote = remote,
+       _cache = cache,
+       _session = sessionGateway,
+       _connectivity = connectivity,
+       _clientProvider = clientProvider;
 
   final RpcClient _rpc;
   final GroupsRemoteDataSource _remote;
@@ -55,22 +55,24 @@ class GroupsRepositoryImpl implements GroupsRepository {
         final json = (payload! as Map).cast<String, Object?>();
         final overview = MyGroupsOverview(
           groups: ((json['groups'] ?? const []) as List)
-              .map((e) => myGroupSummaryFromJson(
-                  (e as Map).cast<String, Object?>()))
+              .map(
+                (e) =>
+                    myGroupSummaryFromJson((e as Map).cast<String, Object?>()),
+              )
               .toList(),
           pendingRequests: ((json['pending_requests'] ?? const []) as List)
-              .map((e) => pendingJoinRequestFromJson(
-                  (e as Map).cast<String, Object?>()))
+              .map(
+                (e) => pendingJoinRequestFromJson(
+                  (e as Map).cast<String, Object?>(),
+                ),
+              )
               .toList(),
           isStale: false,
         );
-        await _cache.upsert(
-          userId,
-          {
-            'groups': json['groups'] ?? [],
-            'pending_requests': json['pending_requests'] ?? [],
-          },
-        );
+        await _cache.upsert(userId, {
+          'groups': json['groups'] ?? [],
+          'pending_requests': json['pending_requests'] ?? [],
+        });
         return Success(overview);
       },
       failure: (failure) async {
@@ -82,18 +84,26 @@ class GroupsRepositoryImpl implements GroupsRepository {
           return FailureResult(failure);
         }
         final json = cached.json;
-        return Success(MyGroupsOverview(
-          groups: ((json['groups'] ?? const []) as List)
-              .map((e) =>
-                  myGroupSummaryFromJson((e as Map).cast<String, Object?>()))
-              .toList(),
-          pendingRequests: ((json['pending_requests'] ?? const []) as List)
-              .map((e) =>
-                  pendingJoinRequestFromJson((e as Map).cast<String, Object?>()))
-              .toList(),
-          isStale: true,
-          cachedAt: cached.cachedAt,
-        ));
+        return Success(
+          MyGroupsOverview(
+            groups: ((json['groups'] ?? const []) as List)
+                .map(
+                  (e) => myGroupSummaryFromJson(
+                    (e as Map).cast<String, Object?>(),
+                  ),
+                )
+                .toList(),
+            pendingRequests: ((json['pending_requests'] ?? const []) as List)
+                .map(
+                  (e) => pendingJoinRequestFromJson(
+                    (e as Map).cast<String, Object?>(),
+                  ),
+                )
+                .toList(),
+            isStale: true,
+            cachedAt: cached.cachedAt,
+          ),
+        );
       },
     );
   }
@@ -120,10 +130,12 @@ class GroupsRepositoryImpl implements GroupsRepository {
     return result.when(
       success: (payload) {
         final json = (payload! as Map).cast<String, Object?>();
-        return Success(CreatedGroup(
-          groupId: json['group_id']! as String,
-          inviteCode: json['invite_code']! as String,
-        ));
+        return Success(
+          CreatedGroup(
+            groupId: json['group_id']! as String,
+            inviteCode: json['invite_code']! as String,
+          ),
+        );
       },
       failure: (failure) => FailureResult(failure),
     );
@@ -131,7 +143,9 @@ class GroupsRepositoryImpl implements GroupsRepository {
 
   @override
   Future<Result<MyGroupSummary>> updateGroupSettings(
-      String groupId, GroupSettingsPatch patch) async {
+    String groupId,
+    GroupSettingsPatch patch,
+  ) async {
     if (!await _online) {
       return const FailureResult(
         NetworkFailure(message: 'offline', code: 'network'),
@@ -152,7 +166,9 @@ class GroupsRepositoryImpl implements GroupsRepository {
 
   @override
   Future<Result<DashboardSnapshot>> startKhatma(
-      String groupId, int startPortion) async {
+    String groupId,
+    int startPortion,
+  ) async {
     if (!await _online) {
       return const FailureResult(
         NetworkFailure(message: 'offline', code: 'network'),
@@ -165,10 +181,9 @@ class GroupsRepositoryImpl implements GroupsRepository {
     if (result.isFailure) return FailureResult(result.failureOrNull!);
     // start_khatma returns a summary ({today: true, status, ...}), not the
     // dashboard read model, so load the fresh dashboard after starting.
-    final dashboard = await _rpc.call<dynamic>(
-      'get_dashboard',
-      {'p_group_id': groupId},
-    );
+    final dashboard = await _rpc.call<dynamic>('get_dashboard', {
+      'p_group_id': groupId,
+    });
     return dashboard.when(
       success: (payload) {
         final json = (payload! as Map).cast<String, Object?>();
@@ -184,11 +199,12 @@ class GroupsRepositoryImpl implements GroupsRepository {
 
   @override
   Future<Result<void>> transferOwnership(
-          String groupId, String membershipId) async =>
-      _simpleCall(
-        'transfer_ownership',
-        GroupsParams.transfer(groupId, membershipId),
-      );
+    String groupId,
+    String membershipId,
+  ) async => _simpleCall(
+    'transfer_ownership',
+    GroupsParams.transfer(groupId, membershipId),
+  );
 
   @override
   Future<Result<String>> regenerateInvite(String groupId) async {
@@ -197,8 +213,10 @@ class GroupsRepositoryImpl implements GroupsRepository {
         NetworkFailure(message: 'offline', code: 'network'),
       );
     }
-    final result =
-        await _rpc.call<dynamic>('regenerate_invite', GroupsParams.byGroupId(groupId));
+    final result = await _rpc.call<dynamic>(
+      'regenerate_invite',
+      GroupsParams.byGroupId(groupId),
+    );
     return result.when(
       success: (payload) {
         final json = (payload! as Map).cast<String, Object?>();
@@ -227,10 +245,15 @@ class GroupsRepositoryImpl implements GroupsRepository {
       'p_offset': offset,
     });
     return result.when(
-      success: (payload) => Success(((payload ?? const []) as List)
-          .map((e) =>
-              publicGroupProfileFromJson((e as Map).cast<String, Object?>()))
-          .toList()),
+      success: (payload) => Success(
+        ((payload ?? const []) as List)
+            .map(
+              (e) => publicGroupProfileFromJson(
+                (e as Map).cast<String, Object?>(),
+              ),
+            )
+            .toList(),
+      ),
       failure: (failure) => FailureResult(failure),
     );
   }
@@ -242,8 +265,9 @@ class GroupsRepositoryImpl implements GroupsRepository {
         NetworkFailure(message: 'offline', code: 'network'),
       );
     }
-    final result = await _rpc
-        .call<dynamic>('get_invite_preview', {'p_invite_code': code});
+    final result = await _rpc.call<dynamic>('get_invite_preview', {
+      'p_invite_code': code,
+    });
     return result.when(
       success: (payload) => Success(
         publicGroupProfileFromJson((payload! as Map).cast<String, Object?>()),
@@ -265,11 +289,16 @@ class GroupsRepositoryImpl implements GroupsRepository {
     }
     final result = await _rpc.call<dynamic>(
       'join_group',
-      GroupsParams.join(groupId: groupId, inviteCode: inviteCode, source: source),
+      GroupsParams.join(
+        groupId: groupId,
+        inviteCode: inviteCode,
+        source: source,
+      ),
     );
     return result.when(
-      success: (payload) => Success(joinOutcomeFromJson(
-          (payload! as Map).cast<String, Object?>())),
+      success: (payload) => Success(
+        joinOutcomeFromJson((payload! as Map).cast<String, Object?>()),
+      ),
       failure: (failure) => FailureResult(failure),
     );
   }
@@ -286,8 +315,9 @@ class GroupsRepositoryImpl implements GroupsRepository {
       GroupsParams.joinAny(deviceTimezone),
     );
     return result.when(
-      success: (payload) => Success(joinOutcomeFromJson(
-          (payload! as Map).cast<String, Object?>())),
+      success: (payload) => Success(
+        joinOutcomeFromJson((payload! as Map).cast<String, Object?>()),
+      ),
       failure: (failure) => FailureResult(failure),
     );
   }
@@ -301,41 +331,45 @@ class GroupsRepositoryImpl implements GroupsRepository {
 
   @override
   Future<Result<List<PublicJoinRequestInfo>>> listJoinRequests(
-      String groupId) async {
+    String groupId,
+  ) async {
     if (!await _online) {
       return const FailureResult(
         NetworkFailure(message: 'offline', code: 'network'),
       );
     }
-    final result =
-        await _rpc.call<dynamic>('list_join_requests', GroupsParams.byGroupId(groupId));
+    final result = await _rpc.call<dynamic>(
+      'list_join_requests',
+      GroupsParams.byGroupId(groupId),
+    );
     return result.when(
-      success: (payload) => Success(((payload ?? const []) as List)
-          .map((e) {
-            final json = (e as Map).cast<String, Object?>();
-            return PublicJoinRequestInfo(
-              joinRequestId: json['join_request_id']! as String,
-              userDisplayName: json['user_display_name']! as String,
-              requestedAt: DateTime.parse(json['requested_at']! as String),
-              source: (json['source']! as String) == 'invite'
-                  ? JoinSource.invite
-                  : ((json['source']! as String) == 'match'
+      success: (payload) => Success(
+        ((payload ?? const []) as List).map((e) {
+          final json = (e as Map).cast<String, Object?>();
+          return PublicJoinRequestInfo(
+            joinRequestId: json['join_request_id']! as String,
+            userDisplayName: json['user_display_name']! as String,
+            requestedAt: DateTime.parse(json['requested_at']! as String),
+            source: (json['source']! as String) == 'invite'
+                ? JoinSource.invite
+                : ((json['source']! as String) == 'match'
                       ? JoinSource.match
                       : JoinSource.discovery),
-            );
-          })
-          .toList()),
+          );
+        }).toList(),
+      ),
       failure: (failure) => FailureResult(failure),
     );
   }
 
   @override
   Future<Result<void>> reviewJoinRequest(
-      String joinRequestId, bool approve) async =>
-      _simpleCall(
-        'review_join_request',
-        GroupsParams.review(joinRequestId, approve),
-      );
+    String joinRequestId,
+    bool approve,
+  ) async => _simpleCall(
+    'review_join_request',
+    GroupsParams.review(joinRequestId, approve),
+  );
 
   @override
   Future<Result<SeatMap>> getMembers(String groupId) async {
@@ -344,8 +378,10 @@ class GroupsRepositoryImpl implements GroupsRepository {
         NetworkFailure(message: 'offline', code: 'network'),
       );
     }
-    final result =
-        await _rpc.call<dynamic>('get_group_members', GroupsParams.byGroupId(groupId));
+    final result = await _rpc.call<dynamic>(
+      'get_group_members',
+      GroupsParams.byGroupId(groupId),
+    );
     return result.when(
       success: (payload) {
         final json = (payload! as Map).cast<String, Object?>();
@@ -357,20 +393,29 @@ class GroupsRepositoryImpl implements GroupsRepository {
 
   @override
   Future<Result<void>> moveMemberSeat(
-      String groupId, String membershipId, int targetSeat) async =>
-      _simpleCall(
-        'move_member_seat',
-        GroupsParams.moveSeat(groupId, membershipId, targetSeat),
-      );
+    String groupId,
+    String membershipId,
+    int targetSeat,
+  ) async => _simpleCall(
+    'move_member_seat',
+    GroupsParams.moveSeat(groupId, membershipId, targetSeat),
+  );
 
   @override
   Future<Result<void>> setMemberRole(
-      String groupId, String membershipId, GroupRole role) async =>
-      _simpleCall('set_member_role', GroupsParams.setRole(groupId, membershipId, role));
+    String groupId,
+    String membershipId,
+    GroupRole role,
+  ) async => _simpleCall(
+    'set_member_role',
+    GroupsParams.setRole(groupId, membershipId, role),
+  );
 
   @override
   Future<Result<void>> removeMember(
-          String groupId, String membershipId) async =>
+    String groupId,
+    String membershipId,
+  ) async =>
       _simpleCall('remove_member', GroupsParams.remove(groupId, membershipId));
 
   @override
@@ -390,9 +435,8 @@ class GroupsRepositoryImpl implements GroupsRepository {
       GroupsParams.byGroupId(groupId),
     );
     return result.when(
-      success: (payload) => Success(
-        groupInfoFromJson((payload! as Map).cast<String, Object?>()),
-      ),
+      success: (payload) =>
+          Success(groupInfoFromJson((payload! as Map).cast<String, Object?>())),
       failure: (failure) => FailureResult(failure),
     );
   }
@@ -423,6 +467,7 @@ class GroupsRepositoryImpl implements GroupsRepository {
   Future<Result<UserProfile>> updateMyProfile(
     String displayName, {
     String? bio,
+    String avatarKey = 'ornament',
   }) async {
     if (!await _online) {
       return const FailureResult(
@@ -431,7 +476,7 @@ class GroupsRepositoryImpl implements GroupsRepository {
     }
     final result = await _remote.call(
       'update_my_profile',
-      GroupsParams.updateMyProfile(displayName, bio),
+      GroupsParams.updateMyProfile(displayName, bio, avatarKey),
     );
     return result.when(
       success: (payload) => Success(
@@ -492,7 +537,9 @@ class GroupsRepositoryImpl implements GroupsRepository {
       final path = '$groupId/$fileName';
       final u8Bytes = Uint8List.fromList(bytes);
 
-      await client.storage.from('group-photos').uploadBinary(
+      await client.storage
+          .from('group-photos')
+          .uploadBinary(
             path,
             u8Bytes,
             fileOptions: FileOptions(contentType: mime, upsert: true),
@@ -526,8 +573,9 @@ class GroupsRepositoryImpl implements GroupsRepository {
       );
     }
     try {
-      final bytes =
-          await client.storage.from('group-photos').download(photoPath);
+      final bytes = await client.storage
+          .from('group-photos')
+          .download(photoPath);
       _photoCache[photoPath] = bytes;
       return Success(bytes);
     } catch (e) {
@@ -538,7 +586,9 @@ class GroupsRepositoryImpl implements GroupsRepository {
   }
 
   Future<Result<void>> _simpleCall(
-      String function, Map<String, Object?> params) async {
+    String function,
+    Map<String, Object?> params,
+  ) async {
     if (!await _online) {
       return const FailureResult(
         NetworkFailure(message: 'offline', code: 'network'),

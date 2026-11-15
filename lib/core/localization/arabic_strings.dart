@@ -130,8 +130,10 @@ class ArabicStrings {
   static const adminGroups = 'المجموعات';
   static const adminUsers = 'المستخدمون';
   static const adminAudit = 'سجل الإجراءات';
-  static const adminOffline = 'تحتاج لوحة الإدارة إلى اتصال بالإنترنت. تحقق من الاتصال ثم أعد المحاولة.';
-  static const adminLoadError = 'تعذر تحميل البيانات. تحقق من الاتصال والصلاحية ثم أعد المحاولة.';
+  static const adminOffline =
+      'تحتاج لوحة الإدارة إلى اتصال بالإنترنت. تحقق من الاتصال ثم أعد المحاولة.';
+  static const adminLoadError =
+      'تعذر تحميل البيانات. تحقق من الاتصال والصلاحية ثم أعد المحاولة.';
   static const adminEmpty = 'لا توجد نتائج مطابقة. غيّر البحث أو التصفية.';
   static const adminSearch = 'ابحث بالاسم أو البريد';
   static const adminAllStatuses = 'كل الحالات';
@@ -169,7 +171,8 @@ class ArabicStrings {
   static const adminDisplayName = 'الاسم الظاهر';
   static const adminEmail = 'البريد الإلكتروني';
   static const adminPassword = 'كلمة المرور';
-  static const adminSuspendedSignIn = 'أُوقف هذا الحساب مؤقتًا. تواصل مع مسؤول التطبيق للمساعدة.';
+  static const adminSuspendedSignIn =
+      'أُوقف هذا الحساب مؤقتًا. تواصل مع مسؤول التطبيق للمساعدة.';
   static const adminSuccessResult = 'نجح';
   static const adminFailureResult = 'تعذر';
   static const adminOwnerRole = 'المالك';
@@ -848,16 +851,20 @@ class ArabicStrings {
   static const profileQuickLinksSection = 'روابط سريعة';
 
   static String profileMemberSince(String date) => 'عضو منذ $date';
-  static String profileStreakDays(int days) =>
-      days == 1 ? 'يوم واحد متواصل' : '${ArabicNumerals.format(days)} أيام متواصلة';
+  static String profileStreakDays(int days) => days == 1
+      ? 'يوم واحد متواصل'
+      : '${ArabicNumerals.format(days)} أيام متواصلة';
   static String bestStreak(int days) =>
       'أفضل تتابع: ${ArabicNumerals.format(days)} ${days == 1 ? "يوم" : "أيام"}';
   static String portionsReadCount(int count) =>
       '${ArabicNumerals.format(count)} جزءًا مقروءًا';
   static String portionsLateCount(int count) =>
       '${ArabicNumerals.format(count)} قُرئت متأخرة';
-  static String khatmasCount(int count) =>
-      count == 1 ? 'ختمة واحدة' : count == 2 ? 'ختمتان' : '${ArabicNumerals.format(count)} ختمات';
+  static String khatmasCount(int count) => count == 1
+      ? 'ختمة واحدة'
+      : count == 2
+      ? 'ختمتان'
+      : '${ArabicNumerals.format(count)} ختمات';
   static const noKhatmasYet = 'لا توجد ختمات مكتملة بعد';
 
   static const profileLogNavigation = 'السجل اليومي';
@@ -879,4 +886,13 @@ class ArabicStrings {
 
   static String badgeEarned(String date) => 'مكتسب في $date';
   static const badgeLocked = 'لم يُكتسب بعد';
+  static const avatarPickerTitle = 'اختر صورتك';
+  static const avatarOrnament = 'زخرفة';
+  static const avatarManKufi = 'رجل بقلنسوة';
+  static const avatarWomanHijab = 'امرأة بحجاب';
+  static String badgeProgress(int current, int target, String unit) =>
+      '${ArabicNumerals.format(current)} من ${ArabicNumerals.format(target)} $unit';
+  static const badgeProgressDays = 'أيام';
+  static const badgeProgressPortions = 'أجزاء';
+  static const badgeProgressKhatmas = 'ختمة';
 }

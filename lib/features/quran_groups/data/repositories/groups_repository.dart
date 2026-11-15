@@ -148,6 +148,7 @@ abstract class GroupsRepository {
   Future<Result<UserProfile>> updateMyProfile(
     String displayName, {
     String? bio,
+    String avatarKey = 'ornament',
   });
   Future<Result<void>> updateGroupDetails(
     String groupId,
