@@ -8,6 +8,7 @@ import '../../../core/design_system/app_radius.dart';
 import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/widgets/app_card.dart';
+import '../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../core/design_system/widgets/app_page_content.dart';
 import '../../../core/design_system/widgets/app_section_header.dart';
 import '../../../core/design_system/widgets/confirm_sheet.dart';
@@ -67,9 +68,10 @@ class _SettingsView extends StatelessWidget {
             resetToGate();
           } else if (state.status == SettingsStatus.failure &&
               state.failure != null) {
-            ScaffoldMessenger.of(
+            AppSnackBar.show(
               context,
-            ).showSnackBar(SnackBar(content: Text(state.failure!.message)));
+              ArabicStrings.authError(state.failure!.code),
+            );
           }
         },
         builder: (context, state) {
@@ -240,7 +242,7 @@ class _SettingsView extends StatelessWidget {
                   child: ListTile(
                     leading: const Icon(Icons.policy_outlined),
                     title: const Text(ArabicStrings.settingsLicensesEntry),
-                    trailing: const Icon(Icons.chevron_left_rounded),
+                    trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => Navigator.of(
                       context,
                     ).pushNamed(AppRoutes.mushafLicenses),

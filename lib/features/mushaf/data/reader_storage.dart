@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -92,6 +93,15 @@ abstract interface class ReaderSyncStore {
 }
 
 abstract class ReaderStorage {
+  static final StreamController<int> _positionChanges =
+      StreamController<int>.broadcast();
+
+  /// Emits the page every time a reading position is saved, so screens that
+  /// stay alive (the المصحف tab's "تابع القراءة" card) can refresh.
+  static Stream<int> get positionChanges => _positionChanges.stream;
+
+  static void notifyPositionSaved(int page) => _positionChanges.add(page);
+
   Future<int?> lastPage();
   Future<void> savePage(int page);
   Future<List<ReaderBookmark>> bookmarks();
@@ -132,6 +142,7 @@ class SqfliteReaderStorage implements ReaderStorage, ReaderSyncStore {
       'page': page,
       'updated_at': updatedAt,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
+    ReaderStorage.notifyPositionSaved(page);
     await _enqueue(db, 'position_upsert', {
       'user_id': userId,
       'page': page,

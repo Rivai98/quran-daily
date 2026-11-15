@@ -113,20 +113,19 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
                   ),
                 if (!widget.joinAnyMode && state.failure != null) ...[
                   const SizedBox(height: AppSpacing.sm),
-                  StatePanel(
-                    icon: Icons.error_outline_rounded,
-                    title: state.failure!.code == 'validation_failed'
-                        ? ArabicStrings.inviteCodeInvalid
-                        : ArabicStrings.joinError,
-                    message: state.failure!.code == 'invite_invalid'
-                        ? ArabicStrings.inviteUnavailable
-                        : ArabicStrings.authError(state.failure!.code),
-                    actionLabel: ArabicStrings.retry,
-                    onAction: () => context.read<JoinCubit>().previewInvite(
-                      _codeController.text,
+                  AppBanner.error(
+                    key: const ValueKey('invite-error-banner'),
+                    message: ArabicStrings.inviteFailureMessage(
+                      state.failure!.code,
                     ),
-                    isError: true,
-                    actionIcon: const Icon(Icons.refresh_rounded),
+                    actionLabel: state.failure!.code == 'network'
+                        ? ArabicStrings.retry
+                        : null,
+                    onAction: state.failure!.code == 'network'
+                        ? () => context.read<JoinCubit>().previewInvite(
+                            _codeController.text,
+                          )
+                        : null,
                   ),
                   if (state.failure!.code == 'membership_limit')
                     TextButton.icon(

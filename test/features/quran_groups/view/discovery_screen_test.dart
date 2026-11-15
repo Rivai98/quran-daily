@@ -182,6 +182,50 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+    'a search with no results keeps the field and its text on screen',
+    (tester) async {
+      final pending = Completer<Result<List<PublicGroupProfile>>>();
+      when(
+        () => repository.searchPublicGroups(
+          query: any(named: 'query'),
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+        ),
+      ).thenAnswer((invocation) async {
+        final query = invocation.namedArguments[#query] as String?;
+        if (query == null || query.isEmpty) return const Success([_group]);
+        if (query == 'zzzq') return pending.future;
+        return const Success([]);
+      });
+
+      await tester.pumpWidget(buildArabicTestApp(_screen(repository)));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'zzz');
+      await tester.pump(DiscoveryCubit.debounceDuration);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('discovery-no-results')), findsOneWidget);
+      expect(find.text(ArabicStrings.discoveryNoResultsTitle), findsOneWidget);
+
+      // Another keystroke while the list is empty: still no skeleton, the
+      // field keeps the typed text.
+      await tester.enterText(find.byType(TextField), 'zzzq');
+      await tester.pump(DiscoveryCubit.debounceDuration);
+      await tester.pump();
+      expect(find.byType(SkeletonBox), findsNothing);
+      expect(find.byType(TextField), findsOneWidget);
+      expect(find.text('zzzq'), findsOneWidget);
+      pending.complete(const Success([]));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), '');
+      await tester.pump(DiscoveryCubit.debounceDuration);
+      await tester.pumpAndSettle();
+      expect(find.text('حلقة الفجر'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('tapping search does not issue another request', (tester) async {
     when(
       () => repository.searchPublicGroups(

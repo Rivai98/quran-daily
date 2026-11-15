@@ -21,6 +21,9 @@ class DiscoveryScreen extends StatefulWidget {
 
 class _DiscoveryScreenState extends State<DiscoveryScreen> {
   late final ScrollController _scrollController;
+  // Owns the query text so it survives every rebuild (loading, empty,
+  // failure) while the user is typing.
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -51,6 +54,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     _scrollController
       ..removeListener(_loadMoreWhenNeeded)
       ..dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -79,14 +83,18 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
         ),
         child: BlocBuilder<DiscoveryCubit, DiscoveryState>(
           builder: (context, state) {
+            final searching = state.query.trim().isNotEmpty;
+            // The skeleton is only for the very first load; once the user
+            // searches, the field and the page stay on screen.
             if (state.status == DiscoveryStatus.initial ||
                 (state.status == DiscoveryStatus.loading &&
-                    state.groups.isEmpty)) {
+                    state.groups.isEmpty &&
+                    !searching)) {
               return const _DiscoverySkeleton();
             }
             if (state.groups.isEmpty &&
                 state.status == DiscoveryStatus.empty &&
-                state.query.trim().isEmpty) {
+                !searching) {
               return StatePanel.empty(
                 icon: Icons.search_off_rounded,
                 title: ArabicStrings.noPublicGroups,
@@ -97,9 +105,10 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 illustration: const HalaqaLogo(size: 80),
               );
             }
-            if (state.groups.isEmpty &&
-                (state.status == DiscoveryStatus.failure ||
-                    state.status == DiscoveryStatus.offline)) {
+            final failed =
+                state.status == DiscoveryStatus.failure ||
+                state.status == DiscoveryStatus.offline;
+            if (state.groups.isEmpty && failed && !searching) {
               return StatePanel(
                 icon: state.status == DiscoveryStatus.offline
                     ? Icons.wifi_off_rounded
@@ -122,6 +131,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 padding: AppSpacing.screenContent,
                 children: [
                   AppTextField(
+                    controller: _searchController,
                     label: ArabicStrings.searchGroupLabel,
                     prefixIcon: Icons.search_rounded,
                     onChanged: context.read<DiscoveryCubit>().search,
@@ -138,41 +148,16 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                     const LinearProgressIndicator(),
                   ],
                   const SizedBox(height: AppSpacing.md),
-                  if (state.groups.isEmpty &&
+                  if (state.groups.isEmpty && searching && failed)
+                    AppBanner.error(
+                      message: ArabicStrings.authError(
+                        state.failure?.code ?? 'network',
+                      ),
+                    )
+                  else if (state.groups.isEmpty &&
                       state.status != DiscoveryStatus.loading &&
-                      state.query.trim().isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.lg,
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.search_off_rounded,
-                            size: 40,
-                            color: Theme.of(context)
-                                .extension<AppColors>()!
-                                .inkMuted,
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            'لا توجد مجموعات عامة بهذا الاسم',
-                            textAlign: TextAlign.center,
-                            style: AppTypography.title,
-                          ),
-                          const SizedBox(height: AppSpacing.xxs),
-                          Text(
-                            'جرّب كلمة أخرى، أو اطلب رابط الدعوة إن كانت المجموعة خاصة.',
-                            textAlign: TextAlign.center,
-                            style: AppTypography.body.copyWith(
-                              color: Theme.of(context)
-                                  .extension<AppColors>()!
-                                  .inkMuted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                      searching)
+                    const _NoSearchResults(),
                   for (final group in state.groups) ...[
                     PublicGroupCard(
                       group: group,
@@ -194,6 +179,36 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class _NoSearchResults extends StatelessWidget {
+  const _NoSearchResults();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return Padding(
+      key: const ValueKey('discovery-no-results'),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+      child: Column(
+        children: [
+          Icon(Icons.search_off_rounded, size: 40, color: colors.inkMuted),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            ArabicStrings.discoveryNoResultsTitle,
+            textAlign: TextAlign.center,
+            style: AppTypography.title,
+          ),
+          const SizedBox(height: AppSpacing.xxs),
+          Text(
+            ArabicStrings.discoveryNoResultsHint,
+            textAlign: TextAlign.center,
+            style: AppTypography.body.copyWith(color: colors.inkMuted),
+          ),
+        ],
       ),
     );
   }

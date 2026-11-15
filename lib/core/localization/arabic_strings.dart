@@ -50,6 +50,7 @@ class ArabicStrings {
   static const tanzilLicense = 'المشاع الإبداعي نَسب المُصنّف (CC-BY 3.0)';
   static const ayahWord = 'آية';
   static const surahWord = 'سورة';
+  static const continueReadingTitle = 'تابع القراءة';
   static String portionPageProgress(int current, int total) =>
       'صفحة ${ArabicNumerals.format(current)} من ${ArabicNumerals.format(total)}';
   static String surahAyahMeta(int page, int ayahs) =>
@@ -208,6 +209,10 @@ class ArabicStrings {
   static const otherGroupsTitle = 'أوراد مجموعاتك الأخرى';
   static const todayCompleteTitle = 'أتممت وردك اليوم، تقبّل الله';
   static const setMainGroupAction = 'اجعلها مجموعتي الرئيسية';
+  static const mainGroupSet = 'صارت هذه مجموعتك الرئيسية في الصفحة الرئيسية';
+  static const groupSettingsSaved = 'حُفظت إعدادات المجموعة';
+  static const bookmarkOptions = 'خيارات العلامة';
+  static const bookmarkDeleted = 'حُذفت العلامة';
   static const portionCompleteAction = 'تمت القراءة';
   static const portionUndoAction = 'تراجع عن الإتمام';
   static const todayLoadError = 'تعذر تحميل وردك اليوم';
@@ -469,6 +474,18 @@ class ArabicStrings {
   static const joinError =
       '\u{62a}\u{639}\u{630}\u{631} \u{627}\u{644}\u{627}\u{646}\u{636}\u{645}\u{627}\u{645}. \u{62a}\u{62d}\u{642}\u{642} \u{645}\u{646} \u{627}\u{644}\u{627}\u{62a}\u{635}\u{627}\u{644} \u{648}\u{623}\u{639}\u{62f} \u{627}\u{644}\u{645}\u{62d}\u{627}\u{648}\u{644}\u{629}.';
 
+  static const inviteCodeFormatError =
+      'رمز الدعوة يتكوّن من ٨ أحرف وأرقام إنجليزية. تحقّق منه وأعد المحاولة.';
+  static const inviteCodeNotFound =
+      'لم نجد مجموعة بهذا الرمز. تأكد من الرمز كما وصلك، فربما تغيّر.';
+
+  /// The real reason an invite code could not be previewed or used.
+  static String inviteFailureMessage(String code) => switch (code) {
+    'validation_failed' => inviteCodeFormatError,
+    'invite_invalid' || 'not_found' => inviteCodeNotFound,
+    _ => authError(code),
+  };
+
   // Field-level validation copy.
   static const invalidEmailError = 'أدخل بريدًا إلكترونيًا صحيحًا';
   static const shortPasswordError = 'كلمة المرور ٨ أحرف على الأقل';
@@ -513,6 +530,9 @@ class ArabicStrings {
       '\u{62a}\u{631}\u{627}\u{62c}\u{639} \u{639}\u{646} \u{627}\u{644}\u{625}\u{62a}\u{645}\u{627}\u{645}';
   static const offlineStale =
       '\u{623}\u{646}\u{62a} \u{62a}\u{639}\u{631}\u{636} \u{628}\u{64a}\u{627}\u{646}\u{627}\u{62a} \u{645}\u{62d}\u{641}\u{648}\u{638}\u{629}. \u{642}\u{62f} \u{644}\u{627} \u{62a}\u{643}\u{648}\u{646} \u{645}\u{62a}\u{627}\u{628}\u{639}\u{629} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{645}\u{62d}\u{62f}\u{62b}\u{629}.';
+  static const discoveryNoResultsTitle = 'لا توجد مجموعات عامة بهذا الاسم';
+  static const discoveryNoResultsHint =
+      'جرّب كلمة أخرى، أو اطلب رابط الدعوة إن كانت المجموعة خاصة.';
   static const noApprovedGroups = 'لم تنضم إلى حلقة بعد';
   static const groupSelectionEmptyMessage =
       'اختر حلقة متاحة أو ابدأ حلقتك الخاصة.';

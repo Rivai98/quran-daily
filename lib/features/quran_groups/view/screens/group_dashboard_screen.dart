@@ -380,6 +380,9 @@ class GroupDashboardScreen extends StatelessWidget {
         onSelected: (route) async {
           if (route == 'set-main') {
             await context.read<DashboardCubit>().pinAsMain();
+            if (context.mounted) {
+              AppSnackBar.show(context, ArabicStrings.mainGroupSet);
+            }
             return;
           }
           if (route == AppRoutes.history) {

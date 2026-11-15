@@ -35,7 +35,7 @@ class ProfileNavigationTile extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(child: Text(title, style: AppTypography.title)),
               Icon(
-                Icons.chevron_left_rounded,
+                Icons.chevron_right_rounded,
                 color: colors.inkMuted,
                 size: 24,
               ),
