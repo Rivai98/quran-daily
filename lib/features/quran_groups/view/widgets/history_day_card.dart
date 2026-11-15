@@ -17,11 +17,7 @@ AssignmentStatus _toDesignStatus(AssignmentStatusEnum s) =>
 
 /// Card representing one day in the history list (S10).
 class HistoryDayCard extends StatelessWidget {
-  const HistoryDayCard({
-    super.key,
-    required this.day,
-    this.onTap,
-  });
+  const HistoryDayCard({super.key, required this.day, this.onTap});
 
   final HistoryDaySummary day;
   final VoidCallback? onTap;
@@ -39,116 +35,120 @@ class HistoryDayCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                ArabicNumerals.format(day.groupDate),
-                style: AppTypography.title,
-              ),
-              if (day.fullKhatma)
-                Container(
-                  padding: const EdgeInsetsDirectional.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: AppSpacing.xxs,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Text(
+                    ArabicNumerals.format(day.groupDate),
+                    style: AppTypography.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  decoration: BoxDecoration(
-                    color: colors.statusBg(AssignmentStatus.completed),
-                    borderRadius: AppRadius.pillBR,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.check_circle,
-                        size: 16,
-                        color: colors.statusFg(AssignmentStatus.completed),
-                      ),
-                      const SizedBox(width: AppSpacing.xxs),
-                      Text(
-                        ArabicStrings.fullKhatmaBadge,
-                        style: AppTypography.caption.copyWith(
+                ),
+                if (day.fullKhatma)
+                  Container(
+                    padding: const EdgeInsetsDirectional.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: AppSpacing.xxs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.statusBg(AssignmentStatus.completed),
+                      borderRadius: AppRadius.pillBR,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          size: 16,
                           color: colors.statusFg(AssignmentStatus.completed),
-                          fontWeight: FontWeight.bold,
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          ProgressHeader(
-            completed: totalCompleted,
-            total: 30,
-            variant: ProgressVariant.bar,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Wrap(
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xs,
-            children: [
-              _CountChip(
-                status: AssignmentStatus.completed,
-                count: day.completedCount,
-              ),
-              if (day.lateCount > 0)
-                _CountChip(
-                  status: AssignmentStatus.late,
-                  count: day.lateCount,
-                ),
-              if (day.missedCount > 0)
-                _CountChip(
-                  status: AssignmentStatus.missed,
-                  count: day.missedCount,
-                ),
-              if (day.unreadCount > 0)
-                _CountChip(
-                  status: AssignmentStatus.unread,
-                  count: day.unreadCount,
-                ),
-            ],
-          ),
-          if (day.myResult != null) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Container(
-              padding: const EdgeInsetsDirectional.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: AppSpacing.xs,
-              ),
-              decoration: BoxDecoration(
-                color: colors.surfaceMuted,
-                borderRadius: AppRadius.smBR,
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    ArabicStrings.historyMyJuz(ArabicStrings.juzName(day.myResult!.juz)),
-                    style: AppTypography.caption.copyWith(
-                      color: colors.ink,
-                      fontWeight: FontWeight.w600,
+                        const SizedBox(width: AppSpacing.xxs),
+                        Text(
+                          ArabicStrings.fullKhatmaBadge,
+                          style: AppTypography.caption.copyWith(
+                            color: colors.statusFg(AssignmentStatus.completed),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const Spacer(),
-                  StatusChip(
-                    status: _toDesignStatus(day.myResult!.status),
-                  ),
-                ],
-              ),
+              ],
             ),
+            const SizedBox(height: AppSpacing.sm),
+            ProgressHeader(
+              completed: totalCompleted,
+              total: 30,
+              variant: ProgressVariant.bar,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: [
+                _CountChip(
+                  status: AssignmentStatus.completed,
+                  count: day.completedCount,
+                ),
+                if (day.lateCount > 0)
+                  _CountChip(
+                    status: AssignmentStatus.late,
+                    count: day.lateCount,
+                  ),
+                if (day.missedCount > 0)
+                  _CountChip(
+                    status: AssignmentStatus.missed,
+                    count: day.missedCount,
+                  ),
+                if (day.unreadCount > 0)
+                  _CountChip(
+                    status: AssignmentStatus.unread,
+                    count: day.unreadCount,
+                  ),
+              ],
+            ),
+            if (day.myResult != null) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Container(
+                padding: const EdgeInsetsDirectional.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: colors.surfaceMuted,
+                  borderRadius: AppRadius.smBR,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        ArabicStrings.historyMyJuz(
+                          ArabicStrings.juzName(day.myResult!.juz),
+                        ),
+                        style: AppTypography.caption.copyWith(
+                          color: colors.ink,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    StatusChip(status: _toDesignStatus(day.myResult!.status)),
+                  ],
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 class _CountChip extends StatelessWidget {
-  const _CountChip({
-    required this.status,
-    required this.count,
-  });
+  const _CountChip({required this.status, required this.count});
 
   final AssignmentStatus status;
   final int count;
@@ -164,10 +164,7 @@ class _CountChip extends StatelessWidget {
         horizontal: AppSpacing.sm,
         vertical: AppSpacing.xxs,
       ),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: AppRadius.pillBR,
-      ),
+      decoration: BoxDecoration(color: bg, borderRadius: AppRadius.pillBR),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

@@ -34,7 +34,8 @@ class HistoryScreen extends StatelessWidget {
       }
     } catch (_) {}
 
-    final effectiveGroupId = groupId ??
+    final effectiveGroupId =
+        groupId ??
         context.read<SelectedGroupCubit?>()?.state.selectedGroupId ??
         '';
 
@@ -42,10 +43,8 @@ class HistoryScreen extends StatelessWidget {
       create: (context) {
         if (serviceLocator.isRegistered<KhatmaRepository>()) {
           final repo = serviceLocator<KhatmaRepository>();
-          return HistoryCubit(
-            groupId: effectiveGroupId,
-            repository: repo,
-          )..loadHistory();
+          return HistoryCubit(groupId: effectiveGroupId, repository: repo)
+            ..loadHistory();
         }
         return HistoryCubit(
           groupId: effectiveGroupId,
@@ -59,14 +58,19 @@ class HistoryScreen extends StatelessWidget {
 
 class _FallbackKhatmaRepository implements KhatmaRepository {
   @override
-  Future<Result<List<HistoryDaySummary>>> getHistory(String groupId,
-          {String? beforeDate, int limit = 30}) async =>
-      const Success([]);
+  Future<Result<List<HistoryDaySummary>>> getHistory(
+    String groupId, {
+    String? beforeDate,
+    int limit = 30,
+  }) async => const Success([]);
 
   @override
   Future<Result<HistoryDaySummary>> getHistoryDay(
-          String groupId, String groupDate) async =>
-      const FailureResult(UnknownFailure(message: 'not found', code: 'not_found'));
+    String groupId,
+    String groupDate,
+  ) async => const FailureResult(
+    UnknownFailure(message: 'not found', code: 'not_found'),
+  );
 
   @override
   Future<Result<DashboardSnapshot>> getDashboard(String groupId) =>
@@ -78,8 +82,9 @@ class _FallbackKhatmaRepository implements KhatmaRepository {
 
   @override
   Future<Result<DashboardSnapshot>> markComplete(
-          String assignmentId, DateTime clientRecordedAt) =>
-      throw UnimplementedError();
+    String assignmentId,
+    DateTime clientRecordedAt,
+  ) => throw UnimplementedError();
 
   @override
   Future<Result<DashboardSnapshot>> undoCompletion(String assignmentId) =>
@@ -91,8 +96,9 @@ class _FallbackKhatmaRepository implements KhatmaRepository {
 
   @override
   Future<Result<DashboardSnapshot>> overrideAssignment(
-          String assignmentId, String membershipId) =>
-      throw UnimplementedError();
+    String assignmentId,
+    String membershipId,
+  ) => throw UnimplementedError();
 
   @override
   Future<SyncReport> syncPending() => throw UnimplementedError();
@@ -122,9 +128,7 @@ class _HistoryViewState extends State<_HistoryView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(ArabicStrings.historyScreenTitle),
-      ),
+      appBar: AppBar(title: const Text(ArabicStrings.historyScreenTitle)),
       body: BlocBuilder<HistoryCubit, HistoryState>(
         builder: (context, state) {
           if (state.selectedDay != null) {
@@ -201,7 +205,7 @@ class _DaysList extends StatelessWidget {
     return ListView.separated(
       padding: AppSpacing.screen,
       itemCount: days.length + (hasMore ? 1 : 0),
-      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (context, index) {
         if (index == days.length) {
           return AppButton(
@@ -215,7 +219,8 @@ class _DaysList extends StatelessWidget {
         final day = days[index];
         return HistoryDayCard(
           day: day,
-          onTap: () => context.read<HistoryCubit>().loadDayDetail(day.groupDate),
+          onTap: () =>
+              context.read<HistoryCubit>().loadDayDetail(day.groupDate),
         );
       },
     );
@@ -230,10 +235,8 @@ class _SkeletonList extends StatelessWidget {
     return ListView.separated(
       padding: AppSpacing.screen,
       itemCount: 4,
-      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (_, index) => const SkeletonBox(
-        height: 120,
-      ),
+      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+      itemBuilder: (_, index) => const SkeletonBox(height: 120),
     );
   }
 }
