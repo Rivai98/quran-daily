@@ -10,6 +10,19 @@ import 'package:quran_daily/features/mushaf/data/reader_storage.dart';
 import 'package:quran_daily/features/mushaf/view/mushaf_index_screen.dart';
 
 void main() {
+  testWidgets('surah search matches Arabic spelling variants', (tester) async {
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        MushafIndexScreen(repository: _SearchRepository(), onOpenPage: (_) {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'حلقه');
+    await tester.pumpAndSettle();
+    expect(find.text('حلقة الذكر'), findsOneWidget);
+    expect(find.text('باب'), findsNothing);
+  });
+
   testWidgets(
     'continue-reading card follows a position saved while the tab is alive',
     (tester) async {
@@ -214,4 +227,12 @@ class _PositionStorage implements ReaderStorage {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _SearchRepository extends _Repository {
+  @override
+  List<({int surah, String name, int ayahs, int startPage})> surahIndex() => [
+    (surah: 1, name: 'حلقة الذكر', ayahs: 3, startPage: 1),
+    (surah: 2, name: 'باب', ayahs: 4, startPage: 2),
+  ];
 }

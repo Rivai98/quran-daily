@@ -9,6 +9,7 @@ import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/di/service_locator.dart';
 import '../../../core/localization/arabic_numerals.dart';
+import '../../../core/localization/arabic_search.dart';
 import '../../../core/localization/arabic_strings.dart';
 import '../../../core/quran/mushaf/mushaf_repository.dart';
 import '../../../core/quran/portion_unit.dart';
@@ -133,7 +134,9 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
   Widget _surahs() {
     final colors = Theme.of(context).extension<AppColors>()!;
     final all = widget.repository.surahIndex();
-    final filtered = all.where((item) => item.name.contains(_query)).toList();
+    final filtered = all
+        .where((item) => ArabicSearch.matches(item.name, _query))
+        .toList();
     return Column(
       children: [
         Padding(
