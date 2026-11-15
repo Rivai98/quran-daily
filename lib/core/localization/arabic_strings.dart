@@ -302,4 +302,10 @@ class ArabicStrings {
   static const closeDetailAction = 'إغلاق التفاصيل';
   static const loadMoreHistory = 'عرض أيام سابقة';
   static const unassignedSeat = 'مقعد شاغر';
+
+  // --- S11: Settings strings ---
+  static const signOutConfirmTitle = 'تأكيد تسجيل الخروج';
+  static const signOutConfirmMessage = 'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
+  static const quranTextSizeTitle = 'حجم خط قراءة الأجزاء';
+  static const quranPreviewText = 'الجزء الأول';
 }

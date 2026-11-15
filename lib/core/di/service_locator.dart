@@ -9,6 +9,7 @@ import '../settings/settings_repository.dart';
 import '../settings/settings_repository_impl.dart';
 import '../storage/local_database.dart';
 import '../../features/auth/cubit/auth_cubit.dart';
+import '../../features/settings/cubit/settings_cubit.dart';
 import '../../features/quran_groups/cubit/selected_group/selected_group_cubit.dart';
 import '../../features/auth/data/data_sources/supabase_auth_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
@@ -85,6 +86,15 @@ void configureServiceLocator({
     if (!locator.isRegistered<SelectedGroupCubit>()) {
       locator.registerFactory<SelectedGroupCubit>(
         () => SelectedGroupCubit(
+          settingsRepository: locator<SettingsRepository>(),
+          sessionGateway: locator<SessionGateway>(),
+        ),
+      );
+    }
+
+    if (!locator.isRegistered<SettingsCubit>()) {
+      locator.registerFactory<SettingsCubit>(
+        () => SettingsCubit(
           settingsRepository: locator<SettingsRepository>(),
           sessionGateway: locator<SessionGateway>(),
         ),

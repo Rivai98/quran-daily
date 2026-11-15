@@ -222,7 +222,7 @@ Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its 
 
 ## Phase 10: Polish & Cross-Cutting
 
-- [ ] T110 [P] App settings S11: `SettingsCubit` (depends on `SettingsRepository` + `SessionGateway`, not `AuthCubit`) + tests + `lib/features/settings/view/settings_screen.dart` (text scale 0.85-1.6 applied to `quranLabel`, sign-out with confirm); remove `lib/features/quran_groups/view/screens/settings_screen.dart`
+- [X] T110 [P] App settings S11: `SettingsCubit` (depends on `SettingsRepository` + `SessionGateway`, not `AuthCubit`) + tests + `lib/features/settings/view/settings_screen.dart` (text scale 0.85-1.6 applied to `quranLabel`, sign-out with confirm); remove `lib/features/quran_groups/view/screens/settings_screen.dart`
 - [ ] T111 [P] Integration test `integration_test/group_flow_test.dart`: sign up → create → invite second user → start → complete → undo → history (hosted dev project via .env)
 - [ ] T112 [P] Integration test `integration_test/offline_completion_test.dart`: cached dashboard offline → complete → reconnect → synced
 - [ ] T113 Remove remaining legacy files under `lib/features/quran_groups/view/` and legacy tests not replaced; ensure `test/widget_test.dart` is a real smoke test or deleted

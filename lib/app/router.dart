@@ -9,7 +9,7 @@ import '../features/quran_groups/view/screens/organizer_assignment_review_screen
 import '../features/quran_groups/view/screens/organizer_join_requests_screen.dart';
 import '../features/quran_groups/view/screens/personal_assignment_detail_screen.dart';
 import '../features/quran_groups/view/screens/public_group_discovery_screen.dart';
-import '../features/quran_groups/view/screens/settings_screen.dart';
+import '../features/settings/view/settings_screen.dart';
 
 /// Global navigator key so the auth gate can clear any pushed private
 /// routes when the session ends (sign-out/expiry): back navigation and
