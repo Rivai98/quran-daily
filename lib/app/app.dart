@@ -1,16 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'dart:async';
 import 'package:app_links/app_links.dart';
 
 import '../core/di/service_locator.dart';
+import '../core/auth/session_gateway.dart';
 import '../core/localization/arabic_strings.dart';
 import '../core/design_system/app_theme.dart';
 import '../features/auth/cubit/auth_cubit.dart';
 import '../features/auth/view/auth_entry_screen.dart';
 import '../features/quran_groups/view/screens/group_selection_screen.dart';
 import '../features/quran_groups/cubit/group_list/group_list_cubit.dart';
+import '../features/quran_groups/data/repositories/khatma_repository.dart';
 import 'router.dart';
 
 class QuranDailyApp extends StatefulWidget {
@@ -23,7 +26,8 @@ class QuranDailyApp extends StatefulWidget {
   State<QuranDailyApp> createState() => _QuranDailyAppState();
 }
 
-class _QuranDailyAppState extends State<QuranDailyApp> {
+class _QuranDailyAppState extends State<QuranDailyApp>
+    with WidgetsBindingObserver {
   final AppLinks _appLinks = AppLinks();
   StreamSubscription<Uri>? _linkSubscription;
   String? _pendingInviteCode;
@@ -34,6 +38,7 @@ class _QuranDailyAppState extends State<QuranDailyApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _linkSubscription = _appLinks.uriLinkStream.listen(_handleUri);
     _appLinks
         .getInitialLink()
@@ -74,7 +79,26 @@ class _QuranDailyAppState extends State<QuranDailyApp> {
   @override
   void dispose() {
     _linkSubscription?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed &&
+        serviceLocator.isRegistered<KhatmaRepository>() &&
+        serviceLocator.isRegistered<SessionGateway>() &&
+        serviceLocator<SessionGateway>().currentUserId != null) {
+      unawaited(_syncPendingSafely());
+    }
+  }
+
+  Future<void> _syncPendingSafely() async {
+    try {
+      await serviceLocator<KhatmaRepository>().syncPending();
+    } catch (_) {
+      // The dashboard remains available if background sync cannot reach the server.
+    }
   }
 
   @override

@@ -8,6 +8,9 @@ import '../core/localization/arabic_strings.dart';
 import '../core/quran/quran_metadata_repository.dart';
 import '../core/design_system/widgets/state_panel.dart';
 import '../features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
+import '../features/quran_groups/cubit/assignment/assignment_cubit.dart';
+import '../features/quran_groups/data/entities/entities.dart';
+import '../features/quran_groups/data/repositories/khatma_repository.dart';
 import '../features/quran_groups/view/screens/daily_history_screen.dart';
 import '../features/quran_groups/view/screens/group_dashboard_screen.dart';
 import '../features/quran_groups/view/screens/create_group_screen.dart';
@@ -16,9 +19,9 @@ import '../features/quran_groups/cubit/join_requests/join_requests_cubit.dart';
 import '../features/quran_groups/cubit/members/members_cubit.dart';
 import '../features/quran_groups/view/screens/join_requests_screen.dart';
 import '../features/quran_groups/view/screens/members_screen.dart';
-import '../features/quran_groups/view/screens/personal_assignment_detail_screen.dart';
 import '../features/quran_groups/view/screens/discovery_screen.dart';
 import '../features/quran_groups/view/screens/invite_join_screen.dart';
+import '../features/quran_groups/view/screens/personal_assignment_screen.dart';
 import '../features/quran_groups/view/screens/settings_screen.dart';
 
 String? inviteCodeFromDeepLink(Uri uri) {
@@ -93,7 +96,34 @@ class AppRoutes {
           ),
         );
       },
-      assignment: (_) => const PersonalAssignmentDetailScreen(),
+      assignment: (context) {
+        final snapshot = ModalRoute.of(context)?.settings.arguments;
+        if (snapshot is! DashboardSnapshot || snapshot.myAssignments.isEmpty) {
+          return Scaffold(
+            body: StatePanel(
+              icon: Icons.menu_book,
+              title: ArabicStrings.noAssignmentToday,
+              message: ArabicStrings.noAssignmentToday,
+            ),
+          );
+        }
+        final assignment = snapshot.myAssignments.firstWhere(
+          (item) => item.isMe,
+          orElse: () => snapshot.myAssignments.first,
+        );
+        return BlocProvider(
+          create: (_) => AssignmentCubit(
+            repository: serviceLocator<KhatmaRepository>(),
+            assignment: assignment,
+            groupId: snapshot.groupId,
+            dayState: snapshot.today?.state ?? DayState.open,
+          ),
+          child: PersonalAssignmentScreen(
+            snapshot: snapshot,
+            metadataRepository: serviceLocator<QuranMetadataRepository>(),
+          ),
+        );
+      },
       joinRequests: (context) {
         final args =
             ModalRoute.of(context)!.settings.arguments! as Map<String, Object?>;

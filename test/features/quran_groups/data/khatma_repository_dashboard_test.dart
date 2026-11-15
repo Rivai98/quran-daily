@@ -91,12 +91,14 @@ void main() {
 
   test('cache watcher emits the initial cached snapshot', () async {
     final cachedAt = DateTime.parse('2026-11-14T22:00:00Z');
-    when(() => cache.read('g1')).thenAnswer((_) async => (
-          json: snapshotJson,
-          cachedAt: cachedAt,
-        ));
+    when(
+      () => cache.read('g1'),
+    ).thenAnswer((_) async => (json: snapshotJson, cachedAt: cachedAt));
 
-    final snapshots = await repository.watchCachedDashboard('g1').take(1).toList();
+    final snapshots = await repository
+        .watchCachedDashboard('g1')
+        .take(1)
+        .toList();
 
     expect(snapshots.single?.isStale, isTrue);
     expect(snapshots.single?.cachedAt, cachedAt);
@@ -105,7 +107,10 @@ void main() {
   test('cache watcher emits null when no dashboard was cached', () async {
     when(() => cache.read('g1')).thenAnswer((_) async => null);
 
-    final snapshots = await repository.watchCachedDashboard('g1').take(1).toList();
+    final snapshots = await repository
+        .watchCachedDashboard('g1')
+        .take(1)
+        .toList();
 
     expect(snapshots, [null]);
   });

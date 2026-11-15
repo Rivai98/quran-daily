@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../app/router.dart';
 import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
@@ -146,7 +147,8 @@ class _MyGroupRow extends StatelessWidget {
     return AppCard(
       child: InkWell(
         borderRadius: const BorderRadius.all(Radius.circular(16)),
-        onTap: () => Navigator.pushNamed(context, '/g/${group.groupId}'),
+        onTap: () => Navigator.pushNamed(context, AppRoutes.dashboard,
+            arguments: group.groupId),
         child: Padding(
           padding: AppSpacing.card,
           child: Column(

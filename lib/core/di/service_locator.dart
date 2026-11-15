@@ -14,6 +14,7 @@ import '../../features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
 import '../../features/quran_groups/data/data_sources/khatma_remote_data_source.dart';
 import '../../features/quran_groups/data/repositories/khatma_repository.dart';
 import '../../features/quran_groups/data/repositories/khatma_repository_impl.dart';
+import '../../features/quran_groups/data/use_cases/completion_use_cases.dart';
 import '../storage/daos/daos.dart';
 import '../../features/auth/data/data_sources/supabase_auth_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
@@ -81,6 +82,12 @@ void configureServiceLocator({
       );
     }
 
+    if (!locator.isRegistered<SyncQueueDao>()) {
+      locator.registerLazySingleton<SyncQueueDao>(
+        () => SyncQueueDao(locator<LocalDatabase>()),
+      );
+    }
+
     if (!locator.isRegistered<KhatmaRemoteDataSource>()) {
       locator.registerLazySingleton<KhatmaRemoteDataSource>(
         () => KhatmaRemoteDataSourceImpl(locator<RpcClient>()),
@@ -92,6 +99,7 @@ void configureServiceLocator({
         () => KhatmaRepositoryImpl(
           remote: locator<KhatmaRemoteDataSource>(),
           cache: locator<CachedSnapshotsDao>(),
+          queue: locator<SyncQueueDao>(),
         ),
       );
     }
@@ -101,6 +109,8 @@ void configureServiceLocator({
         (groupId, _) => DashboardCubit(
           repository: locator<KhatmaRepository>(),
           groupId: groupId,
+          syncPending: SyncPendingCompletions(locator<KhatmaRepository>()),
+          connectivityService: locator<ConnectivityService>(),
         ),
       );
     }

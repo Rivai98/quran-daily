@@ -384,4 +384,21 @@ class ArabicStrings {
       '\u{633}\u{64a}\u{646}\u{636}\u{645} \u{635}\u{627}\u{62d}\u{628} \u{627}\u{644}\u{637}\u{644}\u{628} \u{648}\u{64a}\u{62e}\u{62a}\u{627}\u{631} \u{644}\u{647} \u{645}\u{642}\u{639}\u{62f} \u{645}\u{62a}\u{627}\u{62d}.';
   static const rejectRequestConfirm =
       '\u{633}\u{64a}\u{62a}\u{645} \u{631}\u{641}\u{636} \u{637}\u{644}\u{628} \u{627}\u{644}\u{627}\u{646}\u{636}\u{645}\u{627}\u{645}.';
+  // --- US3 completion screen ---
+  static const gracePeriodNotice =
+      '\u{627}\u{644}\u{64a}\u{648}\u{645} \u{641}\u{64a} \u{641}\u{62a}\u{631}\u{629} \u{627}\u{644}\u{633}\u{645}\u{627}\u{62d} \u{644}\u{644}\u{625}\u{62a}\u{645}\u{627}\u{645} \u{627}\u{644}\u{645}\u{62a}\u{623}\u{62e}\u{631}.';
+  static const confirmUndoAction =
+      '\u{62a}\u{623}\u{643}\u{64a}\u{62f} \u{627}\u{644}\u{62a}\u{631}\u{627}\u{62c}\u{639}';
+  static const completionDayClosed =
+      '\u{627}\u{646}\u{62a}\u{647}\u{649} \u{648}\u{642}\u{62a} \u{625}\u{62a}\u{645}\u{627}\u{645} \u{648}\u{631}\u{62f} \u{627}\u{644}\u{64a}\u{648}\u{645}';
+  static String errorMessage(String code) {
+    switch (code) {
+      case 'network':
+        return networkFailure;
+      case 'day_closed':
+        return completionDayClosed;
+      default:
+        return dashboardLoadError;
+    }
+  }
 }

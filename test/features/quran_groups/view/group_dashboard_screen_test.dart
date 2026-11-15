@@ -14,7 +14,11 @@ import '../../../helpers/widget_test_app.dart';
 
 class _Repository extends Mock implements KhatmaRepository {}
 
-DashboardSnapshot _snapshot({bool full = false, bool stale = false}) {
+DashboardSnapshot _snapshot({
+  bool full = false,
+  bool stale = false,
+  DayState dayState = DayState.open,
+}) {
   final assignments = List.generate(
     30,
     (i) => Assignment(
@@ -38,7 +42,7 @@ DashboardSnapshot _snapshot({bool full = false, bool stale = false}) {
     serverGeneratedAt: DateTime.parse('2026-11-15T10:00:00Z'),
     today: GroupDayInfo(
       groupDate: '2026-11-15',
-      state: DayState.open,
+      state: dayState,
       completedCount: 0,
       lateCount: 0,
       missedCount: 0,
@@ -55,6 +59,31 @@ DashboardSnapshot _snapshot({bool full = false, bool stale = false}) {
 }
 
 void main() {
+  testWidgets('grace day banner is visible on dashboard', (tester) async {
+    final snapshot = _snapshot(dayState: DayState.grace);
+    final cubit = DashboardCubit(
+      repository: _Repository(),
+      groupId: 'g1',
+      initialState: DashboardState(
+        status: DashboardStatus.success,
+        snapshot: snapshot,
+      ),
+    );
+    addTearDown(cubit.close);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: GroupDashboardScreen(
+            metadataRepository: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    expect(find.text(ArabicStrings.gracePeriodNotice), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('loading state announces progress', (tester) async {
     final cubit = DashboardCubit(
       repository: _Repository(),
@@ -62,12 +91,16 @@ void main() {
       initialState: const DashboardState(status: DashboardStatus.loading),
     );
     addTearDown(cubit.close);
-    await tester.pumpWidget(buildArabicTestApp(
-      BlocProvider.value(
-        value: cubit,
-        child: GroupDashboardScreen(metadataRepository: QuranMetadataRepository()),
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: GroupDashboardScreen(
+            metadataRepository: QuranMetadataRepository(),
+          ),
+        ),
       ),
-    ));
+    );
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -79,12 +112,16 @@ void main() {
       initialState: const DashboardState(status: DashboardStatus.failure),
     );
     addTearDown(cubit.close);
-    await tester.pumpWidget(buildArabicTestApp(
-      BlocProvider.value(
-        value: cubit,
-        child: GroupDashboardScreen(metadataRepository: QuranMetadataRepository()),
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: GroupDashboardScreen(
+            metadataRepository: QuranMetadataRepository(),
+          ),
+        ),
       ),
-    ));
+    );
     expect(find.text(ArabicStrings.dashboardLoadError), findsOneWidget);
     expect(find.text(ArabicStrings.retry), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -122,7 +159,10 @@ void main() {
       expect(find.byType(PartTile), findsNWidgets(30));
       expect(find.text('مجموعة'), findsOneWidget);
       expect(find.text(ArabicStrings.myWirdToday), findsOneWidget);
-    expect(tester.getTopLeft(find.text(ArabicStrings.myWirdToday)).dy, lessThan(640));
+      expect(
+        tester.getTopLeft(find.text(ArabicStrings.myWirdToday)).dy,
+        lessThan(640),
+      );
       expect(tester.takeException(), isNull);
     },
   );
@@ -150,10 +190,10 @@ void main() {
         ),
         (tester, variant) async {
           expect(find.byType(PartTile), findsNWidgets(30));
-        expect(find.text(ArabicStrings.offlineStale), findsOneWidget);
-        expect(find.text(ArabicStrings.fullKhatmaBanner), findsOneWidget);
-        expect(find.text(ArabicStrings.khatmaDuaNote), findsOneWidget);
-        expect(find.text(ArabicStrings.availableJuzTitle), findsOneWidget);
+          expect(find.text(ArabicStrings.offlineStale), findsOneWidget);
+          expect(find.text(ArabicStrings.fullKhatmaBanner), findsOneWidget);
+          expect(find.text(ArabicStrings.khatmaDuaNote), findsOneWidget);
+          expect(find.text(ArabicStrings.availableJuzTitle), findsOneWidget);
           expect(tester.takeException(), isNull);
         },
       );
