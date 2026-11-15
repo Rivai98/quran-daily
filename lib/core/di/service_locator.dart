@@ -31,6 +31,11 @@ import '../../features/quran_groups/cubit/create_group/create_group_cubit.dart';
 import '../../features/quran_groups/cubit/members/members_cubit.dart';
 import '../../features/quran_groups/cubit/join_requests/join_requests_cubit.dart';
 import '../../features/quran_groups/cubit/group_list/group_list_cubit.dart';
+import '../../features/profile/cubit/profile_cubit.dart';
+import '../../features/profile/data/repositories/profile_repository.dart';
+import '../../features/profile/data/repositories/profile_repository_impl.dart';
+import '../../features/profile/data/sources/profile_local_data_source.dart';
+import '../../features/profile/data/sources/profile_remote_data_source.dart';
 
 final serviceLocator = GetIt.instance;
 
@@ -244,6 +249,36 @@ void configureServiceLocator({
           settingsRepository: locator<SettingsRepository>(),
           sessionGateway: locator<SessionGateway>(),
         ),
+      );
+    }
+
+    // --- 005 profile ---
+    if (!locator.isRegistered<ProfileRemoteDataSource>()) {
+      locator.registerLazySingleton<ProfileRemoteDataSource>(
+        () => ProfileRemoteDataSourceImpl(locator<RpcClient>()),
+      );
+    }
+
+    if (!locator.isRegistered<ProfileLocalDataSource>()) {
+      locator.registerLazySingleton<ProfileLocalDataSource>(
+        () => ProfileLocalDataSourceImpl(locator<LocalDatabase>()),
+      );
+    }
+
+    if (!locator.isRegistered<ProfileRepository>()) {
+      locator.registerLazySingleton<ProfileRepository>(
+        () => ProfileRepositoryImpl(
+          remote: locator<ProfileRemoteDataSource>(),
+          cache: locator<ProfileLocalDataSource>(),
+          sessionGateway: locator<SessionGateway>(),
+          connectivity: locator<ConnectivityService>(),
+        ),
+      );
+    }
+
+    if (!locator.isRegistered<ProfileCubit>()) {
+      locator.registerFactory<ProfileCubit>(
+        () => ProfileCubit(repository: locator<ProfileRepository>()),
       );
     }
   }

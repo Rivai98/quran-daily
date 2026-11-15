@@ -46,13 +46,13 @@ Test-first (constitution III): write each test task before its implementation.
 - [ ] T033 DI (marked block) and strings (marked block)
 
 ## Phase 3b: Profile tab حسابي (agy) — FR-011
-- [ ] T038 [P] pgTAP `supabase/tests/005_my_profile_test.sql`: streak/best streak, totals, khatmas per group, badges (first_khatma, streak_7/30/100, portions_100) from fixture history; only the caller's data
-- [ ] T039 Migration `supabase/migrations/20261115100005_get_my_profile.sql`: `get_my_profile()` per plan; apply to DEV
-- [ ] T040 [P] Parsing + cubit tests `test/features/profile/`
-- [ ] T041 `lib/features/profile/` data (remote + sqflite cache), ProfileCubit
-- [ ] T042 ProfileScreen: header (avatar initials, name, member since), streak card, totals, khatmas list, badges grid (earned vs locked), entry rows to السجل (LogScreen) and الإعدادات (SettingsScreen); calm, no shaming
-- [ ] T043 [P] Widget tests (RTL, dark, 320dp, 200% text)
-- [ ] T044 Strings block `// --- 005 profile ---`, DI block
+- [X] T038 [P] pgTAP `supabase/tests/005_my_profile_test.sql`: streak/best streak, totals, khatmas per group, badges (first_khatma, streak_7/30/100, portions_100) from fixture history; only the caller's data
+- [X] T039 Migration `supabase/migrations/20261115100005_get_my_profile.sql`: `get_my_profile()` per plan; apply to DEV
+- [X] T040 [P] Parsing + cubit tests `test/features/profile/`
+- [X] T041 `lib/features/profile/` data (remote + sqflite cache), ProfileCubit
+- [X] T042 ProfileScreen: header (avatar initials, name, member since), streak card, totals, khatmas list, badges grid (earned vs locked), entry rows to السجل (LogScreen) and الإعدادات (SettingsScreen); calm, no shaming
+- [X] T043 [P] Widget tests (RTL, dark, 320dp, 200% text)
+- [X] T044 Strings block `// --- 005 profile ---`, DI block
 
 ## Phase 4: Integration + validation (orchestrator)
 
