@@ -20,6 +20,7 @@ import '../storage/daos/daos.dart';
 import '../../features/auth/data/data_sources/supabase_auth_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/auth/data/data_sources/google_auth_client.dart';
 import '../../features/quran_groups/data/data_sources/groups_remote_data_source.dart';
 import '../../features/quran_groups/data/repositories/groups_repository.dart';
 import '../../features/quran_groups/data/repositories/groups_repository_impl.dart';
@@ -130,7 +131,19 @@ void configureServiceLocator({
 
     if (!locator.isRegistered<AuthRepository>()) {
       locator.registerLazySingleton<AuthRepository>(
-        () => AuthRepositoryImpl(dataSource: locator<SupabaseAuthDataSource>()),
+        () => AuthRepositoryImpl(
+          dataSource: locator<SupabaseAuthDataSource>(),
+          googleAuthClient: locator<GoogleAuthClient>(),
+        ),
+      );
+    }
+
+    if (!locator.isRegistered<GoogleAuthClient>()) {
+      locator.registerLazySingleton<GoogleAuthClient>(
+        () => GoogleSignInAuthClient(
+          webClientId: locator<AppConfig>().googleWebClientId,
+          iosClientId: locator<AppConfig>().googleIosClientId,
+        ),
       );
     }
 
@@ -143,7 +156,10 @@ void configureServiceLocator({
 
     if (!locator.isRegistered<AuthCubit>()) {
       locator.registerLazySingleton<AuthCubit>(
-        () => AuthCubit(repository: locator<AuthRepository>()),
+        () => AuthCubit(
+          repository: locator<AuthRepository>(),
+          googleSignInEnabled: locator<AppConfig>().googleWebClientId.isNotEmpty,
+        ),
       );
     }
 

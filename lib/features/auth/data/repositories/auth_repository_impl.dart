@@ -1,6 +1,7 @@
 import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/result.dart';
 import '../data_sources/supabase_auth_data_source.dart';
+import '../data_sources/google_auth_client.dart';
 import '../entities/app_user.dart';
 import '../entities/user_profile.dart';
 import 'auth_repository.dart';
@@ -8,9 +9,10 @@ import 'auth_repository.dart';
 final _emailRe = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl({required this.dataSource});
+  AuthRepositoryImpl({required this.dataSource, required this.googleAuthClient});
 
   final SupabaseAuthDataSource dataSource;
+  final GoogleAuthClient googleAuthClient;
 
   @override
   String? get currentUserId => dataSource.currentUserId();
@@ -74,6 +76,33 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Result<AuthenticatedUser>?> signInWithGoogle() async {
+    try {
+      final tokens = await googleAuthClient.authenticate();
+      if (tokens == null) return null;
+      final idToken = tokens.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        return const FailureResult(AuthFailure(
+          message: 'missing Google ID token', code: 'google_auth_failed'));
+      }
+      await dataSource.signInWithGoogleIdToken(idToken: idToken);
+      final userId = currentUserId;
+      if (userId == null) {
+        return const FailureResult(AuthFailure(
+          message: 'no session', code: 'unauthenticated'));
+      }
+      final profile = await loadCurrentProfile();
+      return profile.when(
+        success: (value) => Success(AuthenticatedUser(
+          user: AppUser(id: userId, email: ''), profile: value)),
+        failure: FailureResult.new,
+      );
+    } catch (error) {
+      return FailureResult(_mapError(error));
+    }
+  }
+
+  @override
   Future<Result<UserProfile>> loadCurrentProfile() async {
     final userId = currentUserId;
     if (userId == null) {
@@ -98,6 +127,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Result<void>> signOut() async {
     try {
       await dataSource.signOut();
+      await googleAuthClient.signOut();
       return const Success<void>(null);
     } catch (error) {
       return FailureResult(_mapError(error));

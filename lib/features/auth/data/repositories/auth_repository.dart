@@ -18,6 +18,8 @@ abstract class AuthRepository implements SessionGateway {
     required String password,
   });
 
+  Future<Result<AuthenticatedUser>?> signInWithGoogle();
+
   Future<Result<UserProfile>> loadCurrentProfile();
 
   @override
