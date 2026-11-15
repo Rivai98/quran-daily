@@ -117,11 +117,12 @@ class AppButton extends StatelessWidget {
       return Text(label);
     }
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
         IconTheme(data: const IconThemeData(size: 20), child: leading),
         const SizedBox(width: 8),
-        Text(label),
+        Flexible(child: Text(label, textAlign: TextAlign.center)),
       ],
     );
   }
