@@ -408,6 +408,22 @@ void main() {
       );
       await settle(tester, 1500);
       await shot(tester, '20_mushaf_reader_portion_start');
+      // Turn two pages forward (RTL: next page is on the left, so drag right).
+      for (final name in ['20b_mushaf_portion_page2', '20c_mushaf_portion_page3']) {
+        await tester.fling(
+          find.byKey(const ValueKey('mushaf-page-view')),
+          const Offset(400, 0),
+          1500,
+        );
+        await settle(tester, 2500);
+        await shot(tester, name);
+      }
+      // Tap the page to hide the chrome (immersive) and capture it.
+      await tester.tapAt(tester.getCenter(find.byKey(const ValueKey('mushaf-page-view'))));
+      await settle(tester, 800);
+      await shot(tester, '20d_mushaf_immersive');
+      await tester.tapAt(tester.getCenter(find.byKey(const ValueKey('mushaf-page-view'))));
+      await settle(tester, 800);
 
       await optional(tester, 'mushaf_index', () async {
         await tapAndSettle(
@@ -532,6 +548,21 @@ void main() {
       await pumpUntil(tester, find.byType(MushafIndexScreen).hitTestable());
       await settle(tester, 1500);
       await shot(tester, '30_mushaf_tab');
+      // Open surah rows 2 and 5 from the index (page 2 and a surah-start page).
+      for (final entry in const {1: '30b_mushaf_free_row2', 4: '30c_mushaf_free_row5'}.entries) {
+        await optional(tester, entry.value, () async {
+          await tapAndSettle(tester, find.byType(ListTile).at(entry.key));
+          await pumpUntil(
+            tester,
+            find.byKey(const ValueKey('mushaf-page-view')),
+            timeout: const Duration(seconds: 60),
+          );
+          await settle(tester, 3000);
+          await shot(tester, entry.value);
+          await tester.pageBack();
+          await settle(tester, 1500);
+        });
+      }
     });
 
     // حسابي: profile, personal log, edit profile.
