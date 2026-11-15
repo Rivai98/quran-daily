@@ -35,6 +35,11 @@ import '../../features/quran_groups/cubit/create_group/create_group_cubit.dart';
 import '../../features/quran_groups/cubit/members/members_cubit.dart';
 import '../../features/quran_groups/cubit/join_requests/join_requests_cubit.dart';
 import '../../features/quran_groups/cubit/group_list/group_list_cubit.dart';
+import '../../features/reminders/data/notification_scheduler.dart';
+import '../../features/reminders/data/reminders_repository.dart';
+import '../../features/reminders/data/reminders_repository_impl.dart';
+import '../../features/reminders/cubit/reminders_cubit.dart';
+import '../../features/reminders/data/reminder_planning_service.dart';
 
 final serviceLocator = GetIt.instance;
 
@@ -70,6 +75,12 @@ void configureServiceLocator({
   if (!locator.isRegistered<MushafRepository>()) {
     locator.registerLazySingleton<MushafRepository>(
       () => MushafRepositoryImpl(metadata: locator<QuranMetadataRepository>()),
+    );
+  }
+
+  if (!locator.isRegistered<NotificationScheduler>()) {
+    locator.registerLazySingleton<NotificationScheduler>(
+      NotificationScheduler.new,
     );
   }
 
@@ -127,6 +138,36 @@ void configureServiceLocator({
       );
     }
 
+    if (!locator.isRegistered<RemindersRepository>()) {
+      locator.registerLazySingleton<RemindersRepository>(
+        () => RemindersRepositoryImpl(
+          rpc: locator<RpcClient>(),
+          onChanged: () => locator<ReminderPlanningService>().refresh(),
+        ),
+      );
+    }
+    if (!locator.isRegistered<ReminderPlanningService>()) {
+      locator.registerLazySingleton<ReminderPlanningService>(
+        () => ReminderPlanningService(
+          snapshots: locator<CachedSnapshotsDao>(),
+          metadata: locator<QuranMetadataRepository>(),
+          preferences: locator<RemindersRepository>(),
+          notifications: locator<NotificationScheduler>(),
+        ),
+      );
+    }
+    if (!locator.isRegistered<RemindersCubit>()) {
+      locator.registerFactory<RemindersCubit>(
+        () => RemindersCubit(
+          repository: locator<RemindersRepository>(),
+          showTestNotification: () =>
+              locator<NotificationScheduler>().showTestNotification(),
+          requestPermissions: () =>
+              locator<NotificationScheduler>().requestPermissions(),
+        ),
+      );
+    }
+
     if (!locator.isRegistered<CachedSnapshotsDao>()) {
       locator.registerLazySingleton<CachedSnapshotsDao>(
         () => CachedSnapshotsDao(locator<LocalDatabase>()),
@@ -152,6 +193,8 @@ void configureServiceLocator({
           cache: locator<CachedSnapshotsDao>(),
           queue: locator<SyncQueueDao>(),
           historyDao: CachedHistoryDao(locator<LocalDatabase>()),
+          onCompletionChanged: (_) =>
+              locator<ReminderPlanningService>().refresh(),
         ),
       );
     }

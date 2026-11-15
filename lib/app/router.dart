@@ -199,6 +199,7 @@ class AppRoutes {
             inviteCode: inviteCode,
             portionUnit: args['portionUnit'] as PortionUnit? ?? PortionUnit.juz,
             isActive: args['isActive'] == true,
+            groupName: args['groupName'] as String?,
             onKhatmaStarted: () => Navigator.of(context).pop(),
           ),
         );

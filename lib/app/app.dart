@@ -15,6 +15,8 @@ import '../features/mushaf/data/mushaf_sync_repository.dart';
 import '../features/quran_groups/view/screens/group_selection_screen.dart';
 import '../features/quran_groups/cubit/group_list/group_list_cubit.dart';
 import '../features/quran_groups/data/repositories/khatma_repository.dart';
+import '../features/reminders/data/notification_scheduler.dart';
+import '../features/reminders/data/reminder_planning_service.dart';
 import 'router.dart';
 
 class QuranDailyApp extends StatefulWidget {
@@ -47,6 +49,21 @@ class _QuranDailyAppState extends State<QuranDailyApp>
           if (uri != null) _handleUri(uri);
         })
         .catchError((_) {});
+    if (serviceLocator.isRegistered<NotificationScheduler>()) {
+      unawaited(
+        serviceLocator<NotificationScheduler>()
+            .initialize(
+              onTap: (_) =>
+                  navigatorKey.currentState?.pushNamed(AppRoutes.groups),
+            )
+            .then((_) async {
+              if (serviceLocator.isRegistered<ReminderPlanningService>()) {
+                await serviceLocator<ReminderPlanningService>().refresh();
+              }
+            })
+            .catchError((_) {}),
+      );
+    }
   }
 
   void _handleUri(Uri uri) {
@@ -109,6 +126,9 @@ class _QuranDailyAppState extends State<QuranDailyApp>
   Future<void> _syncPendingSafely() async {
     try {
       await serviceLocator<KhatmaRepository>().syncPending();
+      if (serviceLocator.isRegistered<ReminderPlanningService>()) {
+        await serviceLocator<ReminderPlanningService>().refresh();
+      }
     } catch (_) {
       // The dashboard remains available if background sync cannot reach the server.
     }
@@ -130,6 +150,13 @@ class _QuranDailyAppState extends State<QuranDailyApp>
             if (state.status == AuthStatus.authenticated) {
               _openPendingInvite();
               unawaited(_syncMushafSafely());
+              if (serviceLocator.isRegistered<ReminderPlanningService>()) {
+                unawaited(
+                  serviceLocator<ReminderPlanningService>()
+                      .refresh()
+                      .catchError((_) {}),
+                );
+              }
             }
           },
           child: MaterialApp(

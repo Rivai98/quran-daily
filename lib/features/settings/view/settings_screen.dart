@@ -11,6 +11,8 @@ import '../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../core/di/service_locator.dart';
 import '../../../core/localization/arabic_numerals.dart';
 import '../../../core/localization/arabic_strings.dart';
+import '../../reminders/cubit/reminders_cubit.dart';
+import '../../reminders/view/reminder_settings_section.dart';
 import '../cubit/settings_cubit.dart';
 import '../cubit/settings_state.dart';
 
@@ -107,6 +109,15 @@ class _SettingsView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
+                if (serviceLocator.isRegistered<RemindersCubit>()) ...[
+                  BlocProvider<RemindersCubit>(
+                    create: (_) =>
+                        serviceLocator<RemindersCubit>()
+                          ..loadPersonalSettings(),
+                    child: const ReminderSettingsSection(),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                ],
                 AppButton(
                   label: ArabicStrings.signOut,
                   icon: const Icon(Icons.logout),
