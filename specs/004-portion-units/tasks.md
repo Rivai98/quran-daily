@@ -14,10 +14,10 @@ migration repair --remote --yes --status applied <version>` (never db push).
 
 ## Phase 2: Database (US1, US2, US3, US4)
 
-- [ ] T004 pgTAP `supabase/tests/004_portion_units_test.sql`: `portion_count`; `portion_for_seat` for every unit — one full cycle covers 1..N exactly once, rest days only on the last partial page day, next cycle shift +1, juz equals `juz_for_seat`; `create_group` with unit; `start_khatma` with start portion; day generation stores unit/cycle fields; pending unit applies only at cycle boundary (immediately while forming); full_khatma per cycle incl. late; volunteer/override/leave on non-juz days
-- [ ] T005 Migration `20261115090001_portion_units.sql`: enum, columns (groups, group_days, assignments.portion_index + backfill), `portion_count`, `portion_for_seat`, updated `create_group`, `start_khatma`, `update_group_settings`, `create_day_assignments`, `ensure_current_group_day`/`generate_due_group_days` (pending unit at boundary), `recompute_day_counts` + cycle full_khatma
-- [ ] T006 Migration `20261115090002_portion_reads.sql`: `get_dashboard` (portion_unit, cycle block, pending unit, assignments with portion_index), `get_history`/`get_history_day` by cycle, `get_invite_preview`, `search_public_groups`, `get_my_groups` add portion_unit
-- [ ] T007 Run all existing pgTAP files: juz behavior unchanged (SC-003)
+- [X] T004 pgTAP `supabase/tests/004_portion_units_test.sql`: `portion_count`; `portion_for_seat` for every unit — one full cycle covers 1..N exactly once, rest days only on the last partial page day, next cycle shift +1, juz equals `juz_for_seat`; `create_group` with unit; `start_khatma` with start portion; day generation stores unit/cycle fields; pending unit applies only at cycle boundary (immediately while forming); full_khatma per cycle incl. late; volunteer/override/leave on non-juz days
+- [X] T005 Migration `20261115090001_portion_units.sql`: enum, columns (groups, group_days, assignments.portion_index + backfill), `portion_count`, `portion_for_seat`, updated `create_group`, `start_khatma`, `update_group_settings`, `create_day_assignments`, `ensure_current_group_day`/`generate_due_group_days` (pending unit at boundary), `recompute_day_counts` + cycle full_khatma
+- [X] T006 Migration `20261115090002_portion_reads.sql`: `get_dashboard` (portion_unit, cycle block, pending unit, assignments with portion_index), `get_history`/`get_history_day` by cycle, `get_invite_preview`, `search_public_groups`, `get_my_groups` add portion_unit
+- [X] T007 Run all existing pgTAP files: juz behavior unchanged (SC-003)
 
 ## Phase 3: App data layer
 
