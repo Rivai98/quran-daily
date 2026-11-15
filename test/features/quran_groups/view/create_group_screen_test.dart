@@ -95,12 +95,12 @@ void main() {
     );
   });
 
-  testWidgets('limit error surfaces the 3-group cap explanation', (
+  testWidgets('membership limit shows the two-group explanation', (
     tester,
   ) async {
     when(() => repo.createGroup(any())).thenAnswer(
       (_) async => const FailureResult(
-        AuthFailure(message: 'owner_group_limit', code: 'owner_group_limit'),
+        AuthFailure(message: 'membership_limit', code: 'membership_limit'),
       ),
     );
 
@@ -112,7 +112,7 @@ void main() {
     await tester.tap(find.text(ArabicStrings.createTheGroup));
     await tester.pumpAndSettle();
 
-    expect(find.text(ArabicStrings.ownerGroupLimitCopy), findsOneWidget);
+    expect(find.text(ArabicStrings.membershipLimitMessage), findsOneWidget);
   });
 
   testWidgets('renders in all constitution variants without overflow', (

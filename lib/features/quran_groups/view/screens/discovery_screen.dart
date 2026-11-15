@@ -84,8 +84,12 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
               message: ArabicStrings.authError(
                 state.failure?.code ?? 'network',
               ),
-              actionLabel: ArabicStrings.retry,
-              onAction: () => context.read<DiscoveryCubit>().load(),
+              actionLabel: state.failure?.code == 'membership_limit'
+                  ? ArabicStrings.groupSelectionTitle
+                  : ArabicStrings.retry,
+              onAction: state.failure?.code == 'membership_limit'
+                  ? () => Navigator.of(context).pushNamed('/groups')
+                  : () => context.read<DiscoveryCubit>().load(),
               isError: state.status == DiscoveryStatus.failure,
             );
           }

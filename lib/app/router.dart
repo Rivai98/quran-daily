@@ -27,6 +27,9 @@ import '../features/quran_groups/view/screens/discovery_screen.dart';
 import '../features/quran_groups/view/screens/invite_join_screen.dart';
 import '../features/quran_groups/view/screens/personal_assignment_screen.dart';
 import '../features/settings/view/settings_screen.dart';
+import '../features/log/cubit/log_cubit.dart';
+import '../features/log/data/repositories/log_repository.dart';
+import '../features/log/view/log_screen.dart';
 
 String? inviteCodeFromDeepLink(Uri uri) {
   if (uri.scheme != 'qurandaily' ||
@@ -64,6 +67,7 @@ class AppRoutes {
   static const history = '/groups/history';
   static const groupSettings = '/groups/settings';
   static const settings = '/settings';
+  static const log = '/account/log';
 
   static Map<String, WidgetBuilder> get routes {
     // The root "/" is owned by the auth gate in app.dart (home), so it is
@@ -188,10 +192,21 @@ class AppRoutes {
           ),
         );
       },
-      history: (context) => HistoryScreen(
-        groupId: ModalRoute.of(context)?.settings.arguments as String?,
-      ),
+      history: (context) {
+        final arguments = ModalRoute.of(context)?.settings.arguments;
+        if (arguments is Map<String, Object?>) {
+          return HistoryScreen(
+            groupId: arguments['groupId'] as String?,
+            initialDate: arguments['date'] as String?,
+          );
+        }
+        return HistoryScreen(groupId: arguments as String?);
+      },
       settings: (_) => const SettingsScreen(),
+      log: (_) => BlocProvider(
+        create: (_) => serviceLocator<LogCubit>()..load(),
+        child: LogScreen(repository: serviceLocator<LogRepository>()),
+      ),
     };
   }
 

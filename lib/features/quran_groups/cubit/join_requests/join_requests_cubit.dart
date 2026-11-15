@@ -13,6 +13,7 @@ enum JoinRequestsStatus {
   failure,
   offline,
   groupFull,
+  membershipLimit,
 }
 
 class JoinRequestsState extends Equatable {
@@ -72,7 +73,9 @@ class JoinRequestsCubit extends Cubit<JoinRequestsState> {
       success: (_) => load(_groupId!),
       failure: (failure) => emit(
         JoinRequestsState(
-          status: failure.code == 'group_full'
+          status: failure.code == 'membership_limit'
+              ? JoinRequestsStatus.membershipLimit
+              : failure.code == 'group_full'
               ? JoinRequestsStatus.groupFull
               : failure.kind == FailureKind.network
               ? JoinRequestsStatus.offline

@@ -6,7 +6,8 @@ class ArabicStrings {
 
   // --- spec 002 Google sign-in ---
   static const googleSignIn = 'تسجيل الدخول باستخدام Google';
-  static const googleSignInHint = 'إذا كنت مسجلاً عبر Google فاستخدم زر Google.';
+  static const googleSignInHint =
+      'إذا كنت مسجلاً عبر Google فاستخدم زر Google.';
   static const or = 'أو';
 
   // --- US1 dashboard ---
@@ -234,6 +235,8 @@ class ArabicStrings {
   /// names the next action (spec 002 error contract).
   static String authError(String code) {
     switch (code) {
+      case 'membership_limit':
+        return membershipLimitMessage;
       case 'invalid_credentials':
         return 'تحقق من البريد الإلكتروني وكلمة المرور، أو تواصل مع مسؤول التطبيق. $googleSignInHint';
       case 'google_auth_failed':
@@ -524,12 +527,14 @@ class ArabicStrings {
   static const logEmptyTitle = 'سيظهر سجلك هنا';
   static const logEmptyMessage = 'سجل أول ورد لترى ملخص أيامك وتتابعك.';
   static const logErrorTitle = 'تعذر تحميل السجل';
-  static const logErrorMessage = 'حدث خلل أثناء تحميل السجل. تحقق من الاتصال وأعد المحاولة.';
+  static const logErrorMessage =
+      'حدث خلل أثناء تحميل السجل. تحقق من الاتصال وأعد المحاولة.';
   static const logDayDetails = 'تفاصيل الورد';
   static const logWeekLabel = 'هذا الأسبوع';
   static const logGroupHistoryAction = 'عرض سجل المجموعة';
   static const membershipLimitMessage = 'يمكنك الانضمام إلى مجموعتين بحد أقصى';
-  static const membershipLimitNextStep = 'اذهب إلى مجموعاتي لمغادرة مجموعة قبل المتابعة.';
+  static const membershipLimitNextStep =
+      'اذهب إلى مجموعاتي لمغادرة مجموعة قبل المتابعة.';
   // --- end 005 log ---
 
   static String portionRange(

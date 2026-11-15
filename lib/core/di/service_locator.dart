@@ -31,6 +31,10 @@ import '../../features/quran_groups/cubit/create_group/create_group_cubit.dart';
 import '../../features/quran_groups/cubit/members/members_cubit.dart';
 import '../../features/quran_groups/cubit/join_requests/join_requests_cubit.dart';
 import '../../features/quran_groups/cubit/group_list/group_list_cubit.dart';
+import '../../features/log/data/data_sources/log_remote_data_source.dart';
+import '../../features/log/data/repositories/log_repository.dart';
+import '../../features/log/data/repositories/log_repository_impl.dart';
+import '../../features/log/cubit/log_cubit.dart';
 
 final serviceLocator = GetIt.instance;
 
@@ -158,7 +162,8 @@ void configureServiceLocator({
       locator.registerLazySingleton<AuthCubit>(
         () => AuthCubit(
           repository: locator<AuthRepository>(),
-          googleSignInEnabled: locator<AppConfig>().googleWebClientId.isNotEmpty,
+          googleSignInEnabled:
+              locator<AppConfig>().googleWebClientId.isNotEmpty,
         ),
       );
     }
@@ -237,6 +242,28 @@ void configureServiceLocator({
         () => JoinCubit(repository: locator<GroupsRepository>()),
       );
     }
+
+    // --- 005 log ---
+    if (!locator.isRegistered<LogRemoteDataSource>()) {
+      locator.registerLazySingleton<LogRemoteDataSource>(
+        () => LogRemoteDataSource(locator<RpcClient>()),
+      );
+    }
+    if (!locator.isRegistered<LogRepository>()) {
+      locator.registerLazySingleton<LogRepository>(
+        () => LogRepositoryImpl(
+          remote: locator<LogRemoteDataSource>(),
+          cache: CachedHistoryDao(locator<LocalDatabase>()),
+          session: locator<SessionGateway>(),
+        ),
+      );
+    }
+    if (!locator.isRegistered<LogCubit>()) {
+      locator.registerFactory<LogCubit>(
+        () => LogCubit(repository: locator<LogRepository>()),
+      );
+    }
+    // --- end 005 log ---
 
     if (!locator.isRegistered<SettingsCubit>()) {
       locator.registerFactory<SettingsCubit>(
