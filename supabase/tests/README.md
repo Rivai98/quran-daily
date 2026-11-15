@@ -38,6 +38,8 @@ The test suite consists of 10 test files mapping to architecture foundations and
 | `001_us5_volunteer_test.sql` | US5 Volunteering | Available juz claiming, concurrent volunteer race condition safety (SC-006). |
 | `001_us6_manage_test.sql` | US6 Management | Request review, seat swap, member removal, leave, transfer ownership, today-only override. |
 | `001_us7_history_test.sql` | US7 History | Paged history, regular member privacy vs owner/supervisor detail, full khatma flags. |
+| `008_admin_guard_test.sql` | Spec 008 Admin guard | Every `admin_*` RPC refuses non-admins (`not_admin`), works for admins; grants; `suspended_at` is server-only. |
+| `008_admin_actions_test.sql` | Spec 008 Admin actions | Overview deltas, list/search, group actions, suspension cleanup, delete prep, admin role, audit rows, self/last-admin protections. |
 
 ### Helpers
 

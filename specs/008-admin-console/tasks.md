@@ -3,13 +3,13 @@
 **Plan**: [plan.md](./plan.md). Test-first.
 
 ## Phase 1: Backend
-- [ ] T001 [P] pgTAP `supabase/tests/008_admin_guard_test.sql`: EVERY admin_* RPC raises `not_admin` for a normal user; works for an admin
-- [ ] T002 [P] pgTAP `supabase/tests/008_admin_actions_test.sql`: overview numbers on fixtures; list/search groups and users; archive/restore/delete group; remove member; transfer ownership; audit row per action; self and last-admin protections
-- [ ] T003 Migration `supabase/migrations/20261115150001_admin_guard_and_audit.sql`: `require_app_admin()`, `admin_is_admin()`, audit table/actions, `profiles.suspended_at`
-- [ ] T004 Migration `20261115150002_admin_read_rpcs.sql`: overview, list/detail groups and users, audit list
-- [ ] T005 Migration `20261115150003_admin_group_actions.sql`: group actions + `admin_suspend_cleanup`
-- [ ] T006 Edge Function `supabase/functions/admin-user-action/` (ban/unban/delete/grant/revoke) reusing `_shared` auth + audit; Deno tests
-- [ ] T007 Apply migrations to DEV; run ALL pgTAP: 0 failed
+- [x] T001 [P] pgTAP `supabase/tests/008_admin_guard_test.sql`: EVERY admin_* RPC raises `not_admin` for a normal user; works for an admin
+- [x] T002 [P] pgTAP `supabase/tests/008_admin_actions_test.sql`: overview numbers on fixtures; list/search groups and users; archive/restore/delete group; remove member; transfer ownership; audit row per action; self and last-admin protections
+- [x] T003 Migration `supabase/migrations/20261115150001_admin_guard_and_audit.sql`: `require_app_admin()`, `admin_is_admin()`, audit table/actions, `profiles.suspended_at`
+- [x] T004 Migration `20261115150002_admin_read_rpcs.sql`: overview, list/detail groups and users, audit list
+- [x] T005 Migration `20261115150003_admin_group_actions.sql`: group actions + `admin_suspend_cleanup`
+- [x] T006 Edge Function `supabase/functions/admin-user-action/` (ban/unban/delete/grant/revoke) reusing `_shared` auth + audit; Deno tests
+- [x] T007 Apply migrations to DEV; run ALL pgTAP: 0 failed
 - [ ] T008 Deploy Edge Functions (admin-create-user, admin-reset-password, admin-user-action) with `supabase functions deploy` (orchestrator, after owner approval)
 
 ## Phase 2: App
