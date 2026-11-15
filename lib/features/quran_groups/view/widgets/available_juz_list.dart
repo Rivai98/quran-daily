@@ -88,14 +88,14 @@ class _AvailableJuzListState extends State<AvailableJuzList> {
                     const SizedBox(height: AppSpacing.xs),
                     if (assignment.kind == AssignmentKind.volunteer)
                       ValidationBanner(
-                        icon: Icons.volunteer_activism,
+                        icon: Icons.volunteer_activism_rounded,
                         message: ArabicStrings.volunteerTaken,
                         color: colors.primary,
                       )
                     else
                       AppButton(
                         label: ArabicStrings.volunteerForJuz,
-                        icon: const Icon(Icons.volunteer_activism),
+                        icon: const Icon(Icons.volunteer_activism_rounded),
                         variant: AppButtonVariant.tonal,
                         expanded: true,
                         loading:

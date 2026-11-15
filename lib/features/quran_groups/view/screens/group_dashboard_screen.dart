@@ -13,8 +13,9 @@ import '../../../../core/design_system/widgets/app_card.dart';
 import '../../../../core/design_system/widgets/app_section_header.dart';
 import '../../../../core/design_system/widgets/status_chip.dart';
 import '../../../../core/design_system/widgets/app_snack_bar.dart';
+import '../../../../core/design_system/widgets/app_banner.dart';
+import '../../../../core/design_system/widgets/offline_banner.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
-import '../../../../core/design_system/widgets/halaqa_logo.dart';
 import '../../../../core/design_system/widgets/skeleton.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
@@ -24,10 +25,8 @@ import '../widgets/available_juz_list.dart';
 import '../widgets/forming_group_view.dart';
 import '../widgets/juz_grid.dart';
 import '../widgets/my_juz_card.dart';
-import '../widgets/offline_stale_banner.dart';
 import '../widgets/override_assignment_sheet.dart';
 import '../widgets/portion_detail_sheet.dart';
-import '../widgets/validation_banner.dart';
 
 class GroupDashboardScreen extends StatelessWidget {
   const GroupDashboardScreen({super.key, required this.metadataRepository});
@@ -79,7 +78,7 @@ class GroupDashboardScreen extends StatelessWidget {
                                 Row(
                                   children: [
                                     Icon(
-                                      Icons.people_alt_outlined,
+                                      Icons.people_alt_rounded,
                                       size: 16,
                                       color: Theme.of(
                                         context,
@@ -115,7 +114,7 @@ class GroupDashboardScreen extends StatelessWidget {
               IconButton(
                 tooltip: ArabicStrings.mushafTitle,
                 onPressed: () => Navigator.pushNamed(context, AppRoutes.mushaf),
-                icon: const Icon(Icons.menu_book),
+                icon: const Icon(Icons.menu_book_rounded),
               ),
               if (snapshot != null) ..._groupActions(context, snapshot),
             ],
@@ -132,13 +131,12 @@ class GroupDashboardScreen extends StatelessWidget {
       return const _DashboardSkeleton();
     }
     if (snapshot == null) {
-      return StatePanel(
-        icon: Icons.cloud_off,
+      return StatePanel.error(
+        icon: Icons.cloud_off_rounded,
         title: ArabicStrings.dashboardLoadError,
         message: ArabicStrings.networkFailure,
         actionLabel: ArabicStrings.retry,
         onAction: context.read<DashboardCubit>().refresh,
-        isError: true,
       );
     }
 
@@ -148,13 +146,12 @@ class GroupDashboardScreen extends StatelessWidget {
 
     final today = snapshot.today;
     if (today == null) {
-      return StatePanel(
-        icon: Icons.menu_book,
+      return StatePanel.empty(
+        icon: Icons.menu_book_rounded,
         title: ArabicStrings.noAssignmentToday,
-        message: ArabicStrings.noAssignmentToday,
+        message: ArabicStrings.noPublishedCycle,
         actionLabel: ArabicStrings.refresh,
         onAction: context.read<DashboardCubit>().refresh,
-        illustration: const HalaqaLogo(size: 80),
       );
     }
 
@@ -173,27 +170,27 @@ class GroupDashboardScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (snapshot.isStale) ...[
-                  const OfflineStaleBanner(),
+                  const OfflineBanner(
+                    message: ArabicStrings.offlineStale,
+                    icon: Icons.wifi_off_rounded,
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                 ],
                 if (snapshot.pendingPortionUnit != null) ...[
-                  ValidationBanner(
-                    icon: Icons.schedule,
+                  AppBanner.warning(
+                    icon: Icons.schedule_rounded,
                     message: ArabicStrings.pendingPortionChange(
                       snapshot.pendingPortionUnit!,
                     ),
-                    color: Theme.of(context).extension<AppColors>()!.pendingFg,
                   ),
                   const SizedBox(height: AppSpacing.sm),
                 ],
                 if (today.fullKhatma) ...[
                   Builder(
                     builder: (context) {
-                      final colors = Theme.of(context).extension<AppColors>()!;
-                      return ValidationBanner(
-                        icon: Icons.verified,
+                      return AppBanner.success(
+                        icon: Icons.verified_rounded,
                         message: ArabicStrings.fullKhatmaBanner,
-                        color: colors.completedFg,
                       );
                     },
                   ),
@@ -202,11 +199,9 @@ class GroupDashboardScreen extends StatelessWidget {
                 if (today.state == DayState.grace) ...[
                   Builder(
                     builder: (context) {
-                      final colors = Theme.of(context).extension<AppColors>()!;
-                      return ValidationBanner(
-                        icon: Icons.hourglass_bottom,
+                      return AppBanner.warning(
+                        icon: Icons.hourglass_bottom_rounded,
                         message: ArabicStrings.gracePeriodNotice,
-                        color: colors.pendingFg,
                       );
                     },
                   ),
@@ -223,13 +218,12 @@ class GroupDashboardScreen extends StatelessWidget {
                     ),
                   )
                 else
-                  StatePanel(
-                    icon: Icons.menu_book,
+                  StatePanel.empty(
+                    icon: Icons.menu_book_rounded,
                     title: ArabicStrings.noAssignmentToday,
-                    message: ArabicStrings.noAssignmentToday,
+                    message: ArabicStrings.noPublishedCycle,
                     actionLabel: ArabicStrings.refresh,
                     onAction: context.read<DashboardCubit>().refresh,
-                    illustration: const HalaqaLogo(size: 80),
                   ),
                 const SizedBox(height: AppSpacing.lg),
                 if (snapshot.cycle != null)
@@ -382,7 +376,7 @@ class GroupDashboardScreen extends StatelessWidget {
     return [
       PopupMenuButton<String>(
         tooltip: ArabicStrings.groupMenuTooltip,
-        icon: const Icon(Icons.manage_accounts),
+        icon: const Icon(Icons.manage_accounts_rounded),
         onSelected: (route) async {
           if (route == 'set-main') {
             await context.read<DashboardCubit>().pinAsMain();

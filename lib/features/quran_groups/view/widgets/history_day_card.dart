@@ -43,7 +43,7 @@ class HistoryDayCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.today_outlined, size: 18, color: colors.inkMuted),
+                Icon(Icons.today_rounded, size: 18, color: colors.inkMuted),
                 const SizedBox(width: AppSpacing.xs),
                 Flexible(
                   child: Text(
@@ -68,7 +68,7 @@ class HistoryDayCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.check_circle,
+                          Icons.check_circle_rounded,
                           size: 16,
                           color: colors.statusFg(AssignmentStatus.completed),
                         ),

@@ -139,7 +139,7 @@ void main() {
           );
           expect(find.byType(UserAvatar), findsOneWidget, reason: variant);
           expect(
-            find.byIcon(Icons.event_seat_outlined),
+            find.byIcon(Icons.event_seat_rounded),
             findsOneWidget,
             reason: variant,
           );

@@ -110,7 +110,7 @@ class FormingGroupView extends StatelessWidget {
                         label: ArabicStrings.shareInviteAction,
                         variant: AppButtonVariant.tonal,
                         onPressed: () => _shareInvite(context),
-                        icon: const Icon(Icons.share),
+                        icon: const Icon(Icons.share_rounded),
                       ),
                     ],
                   ),
@@ -127,7 +127,7 @@ class FormingGroupView extends StatelessWidget {
             label: ArabicStrings.startKhatmaAction,
             expanded: true,
             onPressed: () => _showStartSheet(context),
-            icon: const Icon(Icons.play_arrow),
+            icon: const Icon(Icons.play_arrow_rounded),
           ),
         const SizedBox(height: AppSpacing.lg),
       ],
@@ -180,7 +180,11 @@ class FormingGroupView extends StatelessWidget {
                         spacing: AppSpacing.xs,
                         runSpacing: AppSpacing.xs,
                         children: [
-                          for (var portion = 1; portion <= count; portion++) ...[
+                          for (
+                            var portion = 1;
+                            portion <= count;
+                            portion++
+                          ) ...[
                             SizedBox.square(
                               dimension: AppSpacing.xxl,
                               child: ChoiceChip(
@@ -201,9 +205,8 @@ class FormingGroupView extends StatelessWidget {
                                       ? colors.primary
                                       : colors.border,
                                 ),
-                                onSelected: (_) => setSheetState(
-                                  () => startPortion = portion,
-                                ),
+                                onSelected: (_) =>
+                                    setSheetState(() => startPortion = portion),
                               ),
                             ),
                           ],

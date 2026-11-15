@@ -10,6 +10,7 @@ import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/app_avatar.dart';
+import '../../../../core/design_system/widgets/app_banner.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
 import '../../../../core/design_system/widgets/app_section_header.dart';
 import '../../../../core/design_system/widgets/app_snack_bar.dart';
@@ -26,7 +27,6 @@ import '../../cubit/group_info/group_info_cubit.dart';
 import '../../data/entities/entities.dart';
 import '../../services/group_photo_service.dart';
 import '../widgets/portion_unit_chip.dart';
-import '../widgets/validation_banner.dart';
 import 'member_profile_screen.dart';
 
 class GroupInfoScreen extends StatefulWidget {
@@ -79,7 +79,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               Text(ArabicStrings.changeGroupPhoto, style: AppTypography.title),
               const SizedBox(height: AppSpacing.md),
               ListTile(
-                leading: const Icon(Icons.photo_library),
+                leading: const Icon(Icons.photo_library_rounded),
                 title: const Text(ArabicStrings.pickFromGallery),
                 onTap: () async {
                   Navigator.of(sheetContext).pop();
@@ -92,7 +92,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.camera_alt),
+                leading: const Icon(Icons.camera_alt_rounded),
                 title: const Text(ArabicStrings.takePhoto),
                 onTap: () async {
                   Navigator.of(sheetContext).pop();
@@ -107,7 +107,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               if (info.photoPath != null) ...[
                 const Divider(),
                 ListTile(
-                  leading: Icon(Icons.delete_outline, color: colors.danger),
+                  leading: Icon(Icons.delete_rounded, color: colors.danger),
                   title: Text(
                     ArabicStrings.removeGroupPhoto,
                     style: TextStyle(
@@ -249,7 +249,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
           if (state.status == GroupInfoStatus.offline &&
               state.groupInfo == null) {
             return StatePanel(
-              icon: Icons.cloud_off,
+              icon: Icons.cloud_off_rounded,
               title: ArabicStrings.networkFailure,
               message: ArabicStrings.networkFailure,
               actionLabel: ArabicStrings.retry,
@@ -261,7 +261,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
 
           if (state.groupInfo == null) {
             return StatePanel(
-              icon: Icons.error_outline,
+              icon: Icons.error_outline_rounded,
               title: ArabicStrings.operationFailed,
               message: ArabicStrings.errorMessage(state.failure?.code ?? ''),
               actionLabel: ArabicStrings.retry,
@@ -289,18 +289,18 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                     children: [
                       if (state.status == GroupInfoStatus.offline ||
                           state.status == GroupInfoStatus.failure) ...[
-                        ValidationBanner(
+                        AppBanner(
+                          variant: state.status == GroupInfoStatus.offline
+                              ? AppBannerVariant.warning
+                              : AppBannerVariant.error,
                           icon: state.status == GroupInfoStatus.offline
-                              ? Icons.cloud_off_outlined
-                              : Icons.error_outline,
+                              ? Icons.cloud_off_rounded
+                              : Icons.error_outline_rounded,
                           message: state.status == GroupInfoStatus.offline
                               ? ArabicStrings.networkFailure
                               : ArabicStrings.errorMessage(
                                   state.failure?.code ?? '',
                                 ),
-                          color: state.status == GroupInfoStatus.offline
-                              ? colors.pendingFg
-                              : colors.danger,
                         ),
                         TextButton.icon(
                           onPressed: () => context.read<GroupInfoCubit>().load(
@@ -337,7 +337,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                         dimension: AppSpacing.xxl,
                                         child: Center(
                                           child: Icon(
-                                            Icons.camera_alt,
+                                            Icons.camera_alt_rounded,
                                             size: 20,
                                             color: colors.onPrimary,
                                           ),
@@ -361,7 +361,10 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                 if (isOwner) ...[
                                   const SizedBox(width: AppSpacing.xs),
                                   IconButton(
-                                    icon: const Icon(Icons.edit, size: 20),
+                                    icon: const Icon(
+                                      Icons.edit_rounded,
+                                      size: 20,
+                                    ),
                                     tooltip: ArabicStrings.editGroupDetails,
                                     onPressed: () =>
                                         _showEditDetailsDialog(context, info),
@@ -406,7 +409,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                               spacing: AppSpacing.sm,
                               children: [
                                 _GroupStatLabel(
-                                  icon: Icons.menu_book_outlined,
+                                  icon: Icons.menu_book_rounded,
                                   label: ArabicStrings.portionSelectorTitle,
                                 ),
                                 PortionUnitChip(
@@ -423,7 +426,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                               spacing: AppSpacing.sm,
                               children: [
                                 _GroupStatLabel(
-                                  icon: Icons.calendar_today_outlined,
+                                  icon: Icons.calendar_today_rounded,
                                   label: ArabicStrings.createdDate,
                                 ),
                                 Text(
@@ -440,7 +443,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                               spacing: AppSpacing.sm,
                               children: [
                                 _GroupStatLabel(
-                                  icon: Icons.people_alt_outlined,
+                                  icon: Icons.people_alt_rounded,
                                   label: ArabicStrings.groupMembers,
                                 ),
                                 Text(
@@ -481,7 +484,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                           padding: AppSpacing.card,
                           child: Row(
                             children: [
-                              const Icon(Icons.link, size: 28),
+                              const Icon(Icons.link_rounded, size: 28),
                               const SizedBox(width: AppSpacing.sm),
                               Expanded(
                                 child: Column(
@@ -501,7 +504,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.copy),
+                                icon: const Icon(Icons.copy_rounded),
                                 tooltip: ArabicStrings.copyInviteCode,
                                 onPressed: () {
                                   Clipboard.setData(
@@ -580,7 +583,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                           spacing: AppSpacing.xxs,
                                           children: [
                                             Icon(
-                                              Icons.event_seat_outlined,
+                                              Icons.event_seat_rounded,
                                               size: 16,
                                               color: colors.inkMuted,
                                             ),

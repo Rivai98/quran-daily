@@ -53,7 +53,7 @@ class HistoryDayDetail extends StatelessWidget {
               ),
               if (onClose != null)
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close_rounded),
                   tooltip: ArabicStrings.closeDetailAction,
                   onPressed: onClose,
                 ),
@@ -81,44 +81,44 @@ class HistoryDayDetail extends StatelessWidget {
               child: AppCard(
                 padding: AppSpacing.card,
                 child: Row(
-                children: [
-                  if (day.myResult!.reader != null) ...[
-                    UserAvatar(
-                      initials: day.myResult!.reader!.initials,
-                      size: 36,
+                  children: [
+                    if (day.myResult!.reader != null) ...[
+                      UserAvatar(
+                        initials: day.myResult!.reader!.initials,
+                        size: 36,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                    ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            ArabicStrings.portionName(
+                              day.portionUnit,
+                              day.myResult!.portionIndex,
+                            ),
+                            style: AppTypography.title,
+                          ),
+                          const SizedBox(height: AppSpacing.xxs),
+                          Text(
+                            ArabicStrings.historySeat(
+                              ArabicNumerals.format(day.myResult!.seatNumber),
+                            ),
+                            style: AppTypography.caption.copyWith(
+                              color: colors.inkMuted,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(width: AppSpacing.sm),
+                    const SizedBox(width: AppSpacing.xs),
+                    StatusChip(status: _toDesignStatus(day.myResult!.status)),
                   ],
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          ArabicStrings.portionName(
-                            day.portionUnit,
-                            day.myResult!.portionIndex,
-                          ),
-                          style: AppTypography.title,
-                        ),
-                        const SizedBox(height: AppSpacing.xxs),
-                        Text(
-                          ArabicStrings.historySeat(
-                            ArabicNumerals.format(day.myResult!.seatNumber),
-                          ),
-                          style: AppTypography.caption.copyWith(
-                            color: colors.inkMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  StatusChip(status: _toDesignStatus(day.myResult!.status)),
-                ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.md),
           ],
           if ((day.portions ?? day.perJuz) case final portionsList?) ...[
             const AppSectionHeader(title: ArabicStrings.allMembersDetailTitle),
@@ -134,7 +134,9 @@ class HistoryDayDetail extends StatelessWidget {
                 ),
                 borderRadius: AppRadius.smBR,
                 child: Container(
-                  margin: const EdgeInsetsDirectional.only(bottom: AppSpacing.xs),
+                  margin: const EdgeInsetsDirectional.only(
+                    bottom: AppSpacing.xs,
+                  ),
                   padding: const EdgeInsetsDirectional.symmetric(
                     horizontal: AppSpacing.md,
                     vertical: AppSpacing.sm,
@@ -161,8 +163,8 @@ class HistoryDayDetail extends StatelessWidget {
                           ),
                           child: Icon(
                             assignment.status == AssignmentStatusEnum.available
-                                ? Icons.event_seat
-                                : Icons.person_outline,
+                                ? Icons.event_seat_rounded
+                                : Icons.person_rounded,
                             size: 18,
                             color: colors.inkMuted,
                           ),
@@ -190,36 +192,42 @@ class HistoryDayDetail extends StatelessWidget {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            if (assignment.status == AssignmentStatusEnum.completed ||
-                                assignment.status == AssignmentStatusEnum.late ||
+                            if (assignment.status ==
+                                    AssignmentStatusEnum.completed ||
+                                assignment.status ==
+                                    AssignmentStatusEnum.late ||
                                 assignment.kind == AssignmentKind.volunteer ||
                                 assignment.kind == AssignmentKind.override) ...[
                               const SizedBox(height: AppSpacing.xxs),
                               Wrap(
                                 spacing: AppSpacing.xxs,
                                 children: [
-                                  if (assignment.status == AssignmentStatusEnum.completed)
+                                  if (assignment.status ==
+                                      AssignmentStatusEnum.completed)
                                     _buildTag(
                                       context,
                                       ArabicStrings.tagOnTime,
                                       colors.completedBg,
                                       colors.completedFg,
                                     ),
-                                  if (assignment.status == AssignmentStatusEnum.late)
+                                  if (assignment.status ==
+                                      AssignmentStatusEnum.late)
                                     _buildTag(
                                       context,
                                       ArabicStrings.tagLate,
                                       colors.lateBg,
                                       colors.lateFg,
                                     ),
-                                  if (assignment.kind == AssignmentKind.volunteer)
+                                  if (assignment.kind ==
+                                      AssignmentKind.volunteer)
                                     _buildTag(
                                       context,
                                       ArabicStrings.tagVolunteer,
                                       colors.primaryContainer,
                                       colors.primary,
                                     ),
-                                  if (assignment.kind == AssignmentKind.override)
+                                  if (assignment.kind ==
+                                      AssignmentKind.override)
                                     _buildTag(
                                       context,
                                       ArabicStrings.tagOverride,
@@ -245,18 +253,10 @@ class HistoryDayDetail extends StatelessWidget {
     );
   }
 
-  Widget _buildTag(
-    BuildContext context,
-    String text,
-    Color bg,
-    Color fg,
-  ) {
+  Widget _buildTag(BuildContext context, String text, Color bg, Color fg) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: AppRadius.smBR,
-      ),
+      decoration: BoxDecoration(color: bg, borderRadius: AppRadius.smBR),
       child: Text(
         text,
         style: AppTypography.caption.copyWith(

@@ -9,7 +9,6 @@ import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/widgets/offline_banner.dart';
 import '../../../../core/design_system/widgets/skeleton.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
-import '../../../../core/design_system/widgets/halaqa_logo.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/localization/arabic_numerals.dart';
@@ -154,19 +153,18 @@ class _HistoryViewState extends State<_HistoryView> {
               return const _SkeletonList();
 
             case HistoryStatus.empty:
-              return StatePanel(
-                icon: Icons.history,
+              return StatePanel.empty(
+                icon: Icons.history_rounded,
                 title: ArabicStrings.emptyHistoryTitle,
                 message: ArabicStrings.emptyHistoryDesc,
                 actionLabel: ArabicStrings.groupSelectionTitle,
                 actionIcon: const Icon(Icons.groups_rounded),
                 onAction: () => Navigator.of(context).pushNamed('/groups'),
-                illustration: const HalaqaLogo(size: 80),
               );
 
             case HistoryStatus.failure:
-              return StatePanel(
-                icon: Icons.error_outline,
+              return StatePanel.error(
+                icon: Icons.error_outline_rounded,
                 title: ArabicStrings.historyErrorTitle,
                 message: ArabicStrings.historyErrorDesc,
                 actionLabel: ArabicStrings.retryAction,
@@ -177,18 +175,20 @@ class _HistoryViewState extends State<_HistoryView> {
             case HistoryStatus.offline:
               return Column(
                 children: [
-                  const OfflineBanner(message: ArabicStrings.offlineStale),
+                  const OfflineBanner(
+                    message: ArabicStrings.offlineStale,
+                    icon: Icons.wifi_off_rounded,
+                  ),
                   Expanded(
                     child: state.days.isEmpty
-                        ? StatePanel(
-                            icon: Icons.history,
+                        ? StatePanel.empty(
+                            icon: Icons.history_rounded,
                             title: ArabicStrings.emptyHistoryTitle,
                             message: ArabicStrings.emptyHistoryDesc,
                             actionLabel: ArabicStrings.groupSelectionTitle,
                             actionIcon: const Icon(Icons.groups_rounded),
                             onAction: () =>
                                 Navigator.of(context).pushNamed('/groups'),
-                            illustration: const HalaqaLogo(size: 80),
                           )
                         : _DaysList(days: state.days, hasMore: state.hasMore),
                   ),
@@ -273,11 +273,7 @@ class _DaysList extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               spacing: AppSpacing.xs,
               children: [
-                Icon(
-                  Icons.view_week_outlined,
-                  size: 20,
-                  color: colors.inkMuted,
-                ),
+                Icon(Icons.view_week_rounded, size: 20, color: colors.inkMuted),
                 Text(row.week!, style: Theme.of(context).textTheme.titleMedium),
               ],
             ),
@@ -298,7 +294,10 @@ class _DaysList extends StatelessWidget {
                 ),
                 if (cycle.fullKhatma)
                   Chip(
-                    avatar: Icon(Icons.verified, color: colors.completedFg),
+                    avatar: Icon(
+                      Icons.verified_rounded,
+                      color: colors.completedFg,
+                    ),
                     label: const Text(ArabicStrings.fullKhatmaBadge),
                   ),
               ],
