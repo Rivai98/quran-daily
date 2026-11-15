@@ -13,8 +13,8 @@ You do these steps once. Nothing secret goes into the app or the repo.
 | Type | Fields |
 |------|--------|
 | **Web application** | Name: `supabase-web`. Authorized redirect URI: `https://zwkvijapswwutwozbvgy.supabase.co/auth/v1/callback`. Keep the **Client ID** and **Client secret**. |
-| **Android** | Package name: `com.example.quran_daily`. SHA-1 (debug key on this PC): `BD:47:63:FA:0C:1E:BA:68:25:AE:F9:16:7F:EC:32:32:97:5E:02:87` |
-| **iOS** (optional until we build for iPhone) | Bundle ID: `com.example.quranDaily` |
+| **Android** | Package name: `com.qurandaily.app`. SHA-1 (debug key on this PC): `BD:47:63:FA:0C:1E:BA:68:25:AE:F9:16:7F:EC:32:32:97:5E:02:87` |
+| **iOS** (optional until we build for iPhone) | Bundle ID: `com.qurandaily.app` |
 
 For the release build, add a second Android client later with the release key's SHA-1.
 
