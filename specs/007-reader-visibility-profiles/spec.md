@@ -1,10 +1,12 @@
-# Feature Specification: Reader Visibility and Member Profiles
+# Feature Specification: Reader Visibility, Member Profiles, and Group Info
 
 **Feature Branch**: `007-reader-visibility-profiles`
 **Created**: 2026-11-15
 **Status**: Draft (needs `/speckit-clarify` before planning)
 **Depends on**: spec 001 (groups, seats, rotation, history, volunteering - implemented), spec 002 (email/password auth & user accounts), spec 004 (portion units), spec 005 (Today home, tabs, cards, avatar styling)
-**Input**: Owner request: "today it is not visible WHO read a portion and how. Members should see, for each portion on the dashboard and history, who read it (name, avatar), when (on time / late / volunteered / overridden), and open that member's profile."
+**Input**: Owner request: "today it is not visible WHO read a portion and how. Members should see, for each portion on the dashboard and history, who read it (name, avatar), when (on time / late / volunteered / overridden), and open that member's profile." Added 2026-11-15: "Each group needs more
+details and a group photo; tapping the group header (like WhatsApp) shows the
+group info and who is inside it."
 
 ## Clarifications
 
@@ -17,6 +19,17 @@
 - Q: What can a user edit on their own profile ("ملفي الشخصي")? → A: A user can view their account overview, edit their display name (2–50 characters), and add/edit an optional short bio of up to 120 characters.
 - Q: What are the privacy and access control boundaries? → A: Profiles are strictly visible only to co-members of shared groups. Non-members cannot view or search user profiles. A user's email address is NEVER displayed to other members, supervisors, or owners under any circumstance.
 - Q: How does this interact with empty seats, volunteering, and overrides? → A: An empty seat with no reader shows the status "متاح" (available) and an action to volunteer (for today's active day); if volunteered, the tile updates to the volunteer's avatar and name tagged as "تطوع". An override displays the assigned reader tagged as "تعيين المشرف".
+
+- Q: Can a group have a photo and richer details? → A: Yes. The owner can set
+  a group photo (picked from the gallery or camera, cropped square, stored in
+  app storage with group-member-only read access) and the group shows its
+  description, unit/schedule, created date, member count and khatma count.
+  Without a photo the group shows a generated avatar (initials over the
+  geometric ornament).
+- Q: How do members see who is in the group? → A: Like WhatsApp: tapping the
+  group header on the dashboard opens a "Group info" screen with the photo,
+  name, description, stats, invite link (owner/supervisor), and the member
+  list (avatar, name, role, seat); tapping a member opens their profile.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -101,6 +114,52 @@ The system ensures that user email addresses remain completely private and are n
 2. **Given** group query responses from backend / local cache, **When** payload is inspected, **Then** the email field is omitted from all public/member-facing queries.
 3. **Given** an owner or supervisor managing group members, **When** viewing seat assignments, **Then** members are identified solely by display name and seat number.
 
+### User Story 6 - Group Info Screen (WhatsApp-style) (Priority: P1)
+
+Tapping the group header (photo + name) on the dashboard opens "معلومات
+المجموعة": large photo, name, description, daily portion unit, created date,
+member count (e.g. "١٢ عضوًا من ٣٠"), completed khatmas count, invite link and
+code (owner/supervisor), and the member list sorted by role then seat, each
+row with avatar, name, role badge and seat. Members can leave from here; the
+owner sees management shortcuts (members, join requests, settings).
+
+**Why this priority**: Members need to know who they read with; it is the
+most familiar pattern for the target users.
+
+**Independent Test**: Open a 12-member group's dashboard, tap the header, see
+12 member rows with avatars and roles; tap one to open the profile.
+
+**Acceptance Scenarios**:
+
+1. **Given** the dashboard, **When** the user taps the group header, **Then**
+   the group info screen opens with photo/avatar, details and member list.
+2. **Given** a member row, **When** tapped, **Then** that member's profile
+   (User Story 3) opens.
+3. **Given** a plain member, **When** viewing group info, **Then** no invite
+   regeneration or management actions are shown.
+
+---
+
+### User Story 7 - Group Photo and Richer Group Card (Priority: P2)
+
+The owner sets or changes the group photo from group settings or group info.
+The photo appears on the group card in "مجموعاتي", the dashboard header, the
+invite preview and the public discovery card (public groups only).
+
+**Independent Test**: Owner uploads a photo; all four places show it; a
+non-member opening a private group's invite preview sees no photo.
+
+**Acceptance Scenarios**:
+
+1. **Given** the owner, **When** they pick and crop a photo, **Then** it is
+   uploaded (max 1 MB after compression) and shown everywhere within one
+   refresh.
+2. **Given** a failed upload (offline), **When** it fails, **Then** the old
+   photo stays and a retry action is shown.
+3. **Given** the owner removes the photo, **Then** the generated avatar shows.
+
+---
+
 ### Edge Cases
 
 - **Arabic Initials Generation**: If display name has multiple parts (e.g. "محمد عبد الله"), avatar initials take the first letter of the first word and first letter of the last significant word (e.g. "م ع"). If single word (e.g. "عمر"), it uses the first letter ("ع").
@@ -138,6 +197,15 @@ The system ensures that user email addresses remain completely private and are n
 - **FR-010**: Group history day detail views MUST display the reader avatar, name, and completion kind for each past portion.
 - **FR-011**: All numbers in profiles, stats, and timestamps MUST use Arabic-Indic numerals (٠١٢٣٤٥٦٧٨٩) and follow RTL layout rules (Principle II).
 - **FR-012**: Reader attribution and cached member profiles MUST work offline from local storage, accompanied by the `OfflineBanner` when data may be stale (Principle I).
+- **FR-013**: Tapping the group header on the dashboard MUST open the Group
+  Info screen with photo/avatar, name, description, unit, created date, member
+  count, completed khatma count and the member list (avatar, name, role, seat).
+- **FR-014**: The owner MUST be able to set, change and remove a group photo;
+  photos are compressed to at most 1 MB, square-cropped, and readable only by
+  group members (and by anyone for public groups' discovery cards).
+- **FR-015**: Groups without a photo MUST show a generated avatar (initials
+  on the geometric ornament) consistently in all places.
+- **FR-016**: Photo upload failures MUST keep the previous photo and offer retry.
 
 ### Key Entities
 
@@ -177,6 +245,8 @@ The system ensures that user email addresses remain completely private and are n
 - **SC-004**: 100% of unauthorized profile access attempts between non-shared group users are blocked.
 - **SC-005**: Updating display name or bio updates co-member screens on the next refresh or within 2 seconds under active connection.
 - **SC-006**: All profile and attribution screens render without horizontal overflow at 320dp width and support 200% text scale.
+- **SC-007**: Users reach the list of group members in one tap from the dashboard.
+- **SC-008**: A group photo set by the owner appears on card, header, preview and discovery within one refresh.
 
 ## Assumptions
 
