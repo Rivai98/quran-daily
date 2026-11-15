@@ -228,7 +228,7 @@ Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its 
 - [X] T113 Remove remaining legacy files under `lib/features/quran_groups/view/` and legacy tests not replaced; ensure `test/widget_test.dart` is a real smoke test or deleted
 - [X] T114 Design system compliance review (constitution Principle VI): no raw colors/sizes/radii in features, shared components used, RTL + 200% text scale + dark theme verified on every screen
 - [X] T115 Quran integrity review (Principle VII): grep code, tests, fixtures for any Arabic ayah text; only metadata repository reads Quran data; checksum test green
-- [ ] T116 Run `flutter analyze`, `flutter test`, `supabase test db --remote`, and all `quickstart.md` scenarios on Android emulator and iOS simulator; record results in `specs/001-track-quran-groups/quickstart.md` "Validation log" section
+- [X] T116 Run `flutter analyze`, `flutter test`, `supabase test db --remote`, and all `quickstart.md` scenarios on Android emulator and iOS simulator; record results in `specs/001-track-quran-groups/quickstart.md` "Validation log" section
 
 ---
 
