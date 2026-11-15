@@ -20,6 +20,14 @@
 - Q: How are reminders rescheduled? → A: Rescheduled automatically upon device timezone or clock change, upon date rollover, upon updating prayer settings, and upon completing all daily portions.
 - Q: Where in the interface can users configure reminders? → A: Inside the Settings tab (spec 005) under a dedicated section labeled "التذكيرات".
 
+- Q: Who decides the reminder schedule of a group? → A: The group owner
+  sets the group's reminder schedule (owner request 2026-11-15): which of the
+  three reminders are on and their times (or prayer-relative offsets), plus an
+  optional custom group message. Members receive the group's schedule by
+  default; each member may mute a group's reminders or a single slot for
+  themselves, but cannot change the group's times. Personal reminders (US1/US2)
+  still apply when the user is not in any group with a schedule.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Receive Daily Local Wird Reminders (Priority: P1)
@@ -85,6 +93,36 @@ When the user travels to a different timezone or when midnight rolls over, the a
 1. **Given** the device changes its system timezone, **When** the OS broadcasts the time change or the app is brought to foreground, **Then** the reminders are rescheduled using the new timezone.
 2. **Given** the end of a group day, **When** the next day begins, **Then** the next 24 hours of reminder triggers are queued based on the new day's prayer times.
 
+### User Story 5 - Owner sets the group's reminder schedule (Priority: P1)
+
+In group settings, the owner opens "تذكيرات المجموعة" and chooses which of the
+three slots are on (after Fajr, after Asr, night) and their times (fixed time
+or minutes after the prayer, computed from the group's timezone), and may add a
+short group message (up to 80 chars, e.g. "لا تنسوا ورد اليوم"). Every member's
+device schedules these local reminders for that group; members can mute the
+group or a slot on their own device only.
+
+**Why this priority**: The owner wants one consistent rhythm for the whole
+group.
+
+**Independent Test**: Owner sets the night reminder to 21:30; a member's
+device schedules 21:30 for that group; the member mutes it; the owner's
+schedule is unchanged for others.
+
+**Acceptance Scenarios**:
+
+1. **Given** the owner, **When** they save the group schedule, **Then** it is
+   stored with the group and every member's device reschedules on next sync
+   or app open.
+2. **Given** a member, **When** they open group settings, **Then** they see the
+   schedule read-only with "كتم تذكيرات هذه المجموعة" and per-slot mute.
+3. **Given** a user in 2 groups with different schedules, **When** both fire
+   at the same minute, **Then** one combined notification lists both portions.
+4. **Given** the user already completed today's portion in that group,
+   **When** the group reminder fires, **Then** it is skipped (FR on completion).
+
+---
+
 ### Edge Cases
 
 - **Battery Optimization / Doze Mode**: Platform power management may delay alarms; the scheduler requests exact alarms where supported and handles battery-saver constraints gracefully.
@@ -119,6 +157,13 @@ When the user travels to a different timezone or when midnight rolls over, the a
 - **FR-011**: Tapping a notification MUST open the application directly to the Today home screen (spec 005) or the corresponding assignment view.
 - **FR-012**: The system MUST request notification permissions on platforms requiring runtime consent (Android 13+ / iOS) before activating notifications, and show guidance if denied.
 - **FR-013**: The system MUST automatically recalculate prayer times and reschedule notification triggers upon device boot, timezone change, daily rollover, or settings update.
+- **FR-015**: Each group MUST have an owner-defined reminder schedule (slots
+  on/off, fixed time or prayer offset in the group's timezone, optional
+  message <= 80 chars); only the owner may change it.
+- **FR-016**: Member devices MUST schedule local reminders from the group
+  schedule and allow per-device mute of the group or of a single slot.
+- **FR-017**: Reminders from multiple groups firing within the same minute
+  MUST be merged into one notification.
 - **FR-014**: All reminder settings UI MUST comply with constitution Principles II and VI (Cairo typography, RTL layout, status tokens, 48x48dp minimum targets, 320dp responsiveness).
 
 ### Key Entities
