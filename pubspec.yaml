@@ -89,6 +89,10 @@ flutter:
     - assets/fonts/checksums.sha256
 
   fonts:
+    # Quran content uses only the matching KFGQPC QPC Hafs font.
+    - family: KfgqpcHafs
+      fonts:
+        - asset: assets/fonts/kfgqpc_hafs/UthmanicHafs_V22.ttf
     # UI font (constitution Principle VI). Single variable font, wght axis
     # 200-1000; TextStyles must set fontWeight AND FontVariation('wght', w).
     - family: Cairo
@@ -101,9 +105,6 @@ flutter:
           weight: 400
         - asset: assets/fonts/amiri/Amiri-Bold.ttf
           weight: 700
-    - family: KfgqpcHafs
-      fonts:
-        - asset: assets/fonts/kfgqpc_hafs/UthmanicHafs_V22.ttf
 
 flutter_launcher_icons:
   android: "launcher_icon"

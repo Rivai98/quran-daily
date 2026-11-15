@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/router.dart';
 import '../../../../core/design_system/assignment_status.dart' as design;
 import '../../../../core/design_system/app_button.dart';
 import '../../../../core/design_system/app_spacing.dart';
@@ -109,8 +110,27 @@ class MyJuzCard extends StatelessWidget {
           ],
           const SizedBox(height: AppSpacing.sm),
           AppButton(
-            label: ArabicStrings.openTodayWird,
+            label: ArabicStrings.readNowAction,
+            icon: const Icon(Icons.menu_book),
+            expanded: true,
+            onPressed: () => Navigator.pushNamed(
+              context,
+              AppRoutes.mushafReader,
+              arguments: {
+                'unit': snapshot.portionUnit,
+                'index': assignment.portionIndex,
+                'assignmentId': assignment.assignmentId,
+                'alreadyCompleted':
+                    assignment.status == AssignmentStatusEnum.completed ||
+                    assignment.status == AssignmentStatusEnum.late,
+              },
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          AppButton(
+            label: ArabicStrings.assignmentDetailsAction,
             icon: const Icon(Icons.open_in_new),
+            variant: AppButtonVariant.secondary,
             expanded: true,
             onPressed: onOpen,
           ),

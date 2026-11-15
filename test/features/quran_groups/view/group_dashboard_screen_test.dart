@@ -101,6 +101,7 @@ void main() {
       ),
     );
 
+    await tester.ensureVisible(find.byType(PartTile).first);
     await tester.tap(find.byType(PartTile).first);
     await tester.pumpAndSettle();
 
@@ -154,6 +155,7 @@ void main() {
         ),
       ),
     );
+    await tester.ensureVisible(find.byType(PartTile).first);
     await tester.tap(find.byType(PartTile).first);
     await tester.pumpAndSettle();
     expect(find.byType(OverrideAssignmentSheet), findsOneWidget);
@@ -266,6 +268,8 @@ void main() {
       expect(find.byType(PartTile), findsNWidgets(30));
       expect(find.text('مجموعة'), findsOneWidget);
       expect(find.text(ArabicStrings.myWirdToday), findsOneWidget);
+      expect(find.text(ArabicStrings.readNowAction), findsOneWidget);
+      expect(find.byTooltip(ArabicStrings.mushafTitle), findsOneWidget);
       expect(
         tester.getTopLeft(find.text(ArabicStrings.myWirdToday)).dy,
         lessThan(640),

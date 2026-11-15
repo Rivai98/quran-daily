@@ -20,15 +20,15 @@
 - [X] T009 DI registration; integrity exceptions prevent partial data from being exposed
 
 ## Phase 3: Reader + UI (codex)
-- [ ] T010 [P] Cubit tests `test/features/mushaf/cubit/reader_cubit_test.dart` (open page, open portion, highlight, completion, offline)
-- [ ] T011 `ReaderCubit`
-- [ ] T012 Reader screen: RTL PageView, page header, ayah rendering in KFGQPC font, highlights, portion banner, "تمت القراءة" on end page, 200% text scroll, dark mode
-- [ ] T013 [P] Widget tests for the reader (RTL, dark, 320dp, 200%)
-- [ ] T014 Index screen (surahs / juz / hizb / pages, search) + tests
+- [X] T010 [P] Cubit tests `test/features/mushaf/cubit/reader_cubit_test.dart` (open page, open portion, highlight, completion, offline)
+- [X] T011 `ReaderCubit`
+- [X] T012 Reader screen: RTL PageView, page header, ayah rendering in KFGQPC font, highlights, portion banner, "تمت القراءة" on end page, 200% text scroll, dark mode
+- [X] T013 [P] Widget tests for the reader (RTL, dark, 320dp, 200%)
+- [X] T014 Index screen (surahs / juz / hizb / pages, search) + tests
 - [ ] T015 Last position + bookmarks: sqflite + sync, long-press "إضافة علامة", bookmarks list + tests
-- [ ] T016 Enable "اقرأ الآن" entry points (assignment card, personal assignment) and "المصحف" app-bar action + tests
-- [ ] T017 Khatm dua sheet behind the asset flag + tests
-- [ ] T018 Licenses page attribution (KFGQPC, Tanzil)
+- [X] T016 Enable "اقرأ الآن" entry points (assignment card, personal assignment) and "المصحف" app-bar action + tests
+- [X] T017 Khatm dua sheet behind the asset flag + tests
+- [X] T018 Licenses page attribution (KFGQPC, Tanzil)
 
 ## Phase 4: Validation (orchestrator)
 - [ ] T019 Integration test `integration_test/mushaf_flow_test.dart`: hizb group → "اقرأ الآن" → start page → end page → "تمت القراءة" → dashboard completed

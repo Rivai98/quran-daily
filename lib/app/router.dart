@@ -4,9 +4,14 @@ import 'package:quran_daily/features/quran_groups/cubit/discovery/discovery_cubi
 import 'package:quran_daily/features/quran_groups/cubit/join/join_cubit.dart';
 
 import '../core/di/service_locator.dart';
+import '../core/errors/failures.dart';
+import '../core/auth/session_gateway.dart';
 import '../core/localization/arabic_strings.dart';
 import '../core/quran/quran_metadata_repository.dart';
+import '../core/storage/local_database.dart';
 import '../core/quran/portion_unit.dart';
+import '../core/settings/settings_repository.dart';
+import '../core/quran/mushaf/mushaf_repository.dart';
 import '../core/design_system/widgets/state_panel.dart';
 import '../features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
 import '../features/quran_groups/cubit/assignment/assignment_cubit.dart';
@@ -27,6 +32,11 @@ import '../features/quran_groups/view/screens/discovery_screen.dart';
 import '../features/quran_groups/view/screens/invite_join_screen.dart';
 import '../features/quran_groups/view/screens/personal_assignment_screen.dart';
 import '../features/settings/view/settings_screen.dart';
+import '../features/mushaf/cubit/reader_cubit.dart';
+import '../features/mushaf/data/reader_storage.dart';
+import '../features/mushaf/view/bookmarks_screen.dart';
+import '../features/mushaf/view/mushaf_index_screen.dart';
+import '../features/mushaf/view/reader_screen.dart';
 
 String? inviteCodeFromDeepLink(Uri uri) {
   if (uri.scheme != 'qurandaily' ||
@@ -64,6 +74,11 @@ class AppRoutes {
   static const history = '/groups/history';
   static const groupSettings = '/groups/settings';
   static const settings = '/settings';
+  static const mushaf = '/mushaf';
+  static const mushafReader = '/mushaf/reader';
+  static const mushafIndex = '/mushaf/index';
+  static const mushafBookmarks = '/mushaf/bookmarks';
+  static const mushafLicenses = '/mushaf/licenses';
 
   static Map<String, WidgetBuilder> get routes {
     // The root "/" is owned by the auth gate in app.dart (home), so it is
@@ -192,6 +207,101 @@ class AppRoutes {
         groupId: ModalRoute.of(context)?.settings.arguments as String?,
       ),
       settings: (_) => const SettingsScreen(),
+      mushaf: (context) {
+        final dependencies = _mushafDependencies();
+        if (dependencies == null) return _mushafUnavailable();
+        final (repository, storage) = dependencies;
+        return BlocProvider(
+          create: (_) => ReaderCubit(
+            repository: repository,
+            storage: storage,
+            settings: serviceLocator<SettingsRepository>(),
+          )..openLastPosition(),
+          child: ReaderScreen(
+            repository: repository,
+            storage: storage,
+            metadata: _metadataRepository(),
+          ),
+        );
+      },
+      mushafReader: (context) {
+        final dependencies = _mushafDependencies();
+        if (dependencies == null) return _mushafUnavailable();
+        final (repository, storage) = dependencies;
+        final args = ModalRoute.of(context)?.settings.arguments;
+        final params = args is Map<String, Object?>
+            ? args
+            : const <String, Object?>{};
+        final page = params['page'] as int?;
+        final unit = params['unit'] as PortionUnit?;
+        final index = params['index'] as int?;
+        final assignmentId = params['assignmentId'] as String?;
+        final completed = params['alreadyCompleted'] == true;
+        return BlocProvider(
+          create: (_) {
+            final cubit = ReaderCubit(
+              repository: repository,
+              storage: storage,
+              settings: serviceLocator<SettingsRepository>(),
+              onComplete: assignmentId == null
+                  ? null
+                  : () async {
+                      final result = await serviceLocator<KhatmaRepository>()
+                          .markComplete(assignmentId, DateTime.now());
+                      final failure = result.failureOrNull;
+                      if (failure?.category == FailureCategory.offlineQueued) {
+                        return true;
+                      }
+                      if (failure != null) throw StateError(failure.code);
+                      return false;
+                    },
+            );
+            if (unit != null && index != null && assignmentId != null) {
+              cubit.openPortion(
+                unit,
+                index,
+                assignmentId: assignmentId,
+                alreadyCompleted: completed,
+              );
+            } else {
+              cubit.openPage(page ?? 1);
+            }
+            return cubit;
+          },
+          child: ReaderScreen(
+            repository: repository,
+            storage: storage,
+            metadata: _metadataRepository(),
+          ),
+        );
+      },
+      mushafIndex: (context) {
+        final dependencies = _mushafDependencies();
+        if (dependencies == null) return _mushafUnavailable();
+        final (repository, _) = dependencies;
+        return MushafIndexScreen(
+          repository: repository,
+          onOpenPage: (page) => Navigator.pushReplacementNamed(
+            context,
+            mushafReader,
+            arguments: {'page': page},
+          ),
+        );
+      },
+      mushafBookmarks: (context) {
+        final dependencies = _mushafDependencies();
+        if (dependencies == null) return _mushafUnavailable();
+        final storage = dependencies.$2;
+        return BookmarksScreen(
+          storage: storage,
+          onOpenPage: (page) => Navigator.pushReplacementNamed(
+            context,
+            mushafReader,
+            arguments: {'page': page},
+          ),
+        );
+      },
+      mushafLicenses: (_) => const MushafLicensesScreen(),
     };
   }
 
@@ -221,6 +331,27 @@ class AppRoutes {
     );
   }
 }
+
+(MushafRepository, ReaderStorage)? _mushafDependencies() {
+  if (!serviceLocator.isRegistered<MushafRepository>() ||
+      !serviceLocator.isRegistered<ReaderStorage>() ||
+      !serviceLocator.isRegistered<SessionGateway>() ||
+      !serviceLocator.isRegistered<LocalDatabase>()) {
+    return null;
+  }
+  final userId = serviceLocator<SessionGateway>().currentUserId;
+  if (userId == null) return null;
+  return (serviceLocator<MushafRepository>(), serviceLocator<ReaderStorage>());
+}
+
+Widget _mushafUnavailable() => Scaffold(
+  body: StatePanel(
+    icon: Icons.menu_book,
+    title: ArabicStrings.mushafLoadError,
+    message: ArabicStrings.mushafIntegrityError,
+    isError: true,
+  ),
+);
 
 /// Clears every route above the gate (which re-decides auth vs private).
 void resetToGate() {

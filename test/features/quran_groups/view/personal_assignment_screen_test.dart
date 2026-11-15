@@ -128,8 +128,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text(ArabicStrings.completeAction), findsOneWidget);
-      expect(find.text(ArabicStrings.noQuranReader), findsNWidgets(2));
-      expect(find.text('اقرأ الآن'), findsNothing);
+      expect(find.text(ArabicStrings.noQuranReader), findsNothing);
+      expect(find.text(ArabicStrings.readNowAction), findsOneWidget);
       expect(find.text(ArabicStrings.undoAction), findsNothing);
       expect(tester.takeException(), isNull);
     },

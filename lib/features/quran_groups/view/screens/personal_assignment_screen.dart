@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../app/router.dart';
 import '../../../../core/design_system/app_button.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
@@ -108,6 +109,23 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                   isError: true,
                 ),
               const SizedBox(height: AppSpacing.sm),
+              AppButton(
+                label: ArabicStrings.readNowAction,
+                icon: const Icon(Icons.menu_book),
+                variant: AppButtonVariant.secondary,
+                expanded: true,
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.mushafReader,
+                  arguments: {
+                    'unit': widget.snapshot.portionUnit,
+                    'index': current.portionIndex,
+                    'assignmentId': current.assignmentId,
+                    'alreadyCompleted': completed,
+                  },
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
               if (!completed)
                 AppButton(
                   label: ArabicStrings.completeAction,
@@ -140,11 +158,6 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                         },
                 ),
               const SizedBox(height: AppSpacing.sm),
-              StatePanel(
-                icon: Icons.menu_book,
-                title: ArabicStrings.noQuranReader,
-                message: ArabicStrings.noQuranReader,
-              ),
             ],
           );
         },

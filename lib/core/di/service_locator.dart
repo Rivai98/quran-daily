@@ -18,6 +18,7 @@ import '../../features/quran_groups/data/repositories/khatma_repository.dart';
 import '../../features/quran_groups/data/repositories/khatma_repository_impl.dart';
 import '../../features/quran_groups/data/use_cases/completion_use_cases.dart';
 import '../storage/daos/daos.dart';
+import '../../features/mushaf/data/reader_storage.dart';
 import '../../features/auth/data/data_sources/supabase_auth_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -80,6 +81,15 @@ void configureServiceLocator({
     if (!locator.isRegistered<SupabaseClientProvider>()) {
       locator.registerLazySingleton<SupabaseClientProvider>(
         () => SupabaseClientProvider(config: locator<AppConfig>()),
+      );
+    }
+
+    if (withSupabase && !locator.isRegistered<ReaderStorage>()) {
+      locator.registerFactory<ReaderStorage>(
+        () => SqfliteReaderStorage(
+          database: locator<LocalDatabase>(),
+          userId: locator<SessionGateway>().currentUserId!,
+        ),
       );
     }
 
@@ -165,7 +175,8 @@ void configureServiceLocator({
       locator.registerLazySingleton<AuthCubit>(
         () => AuthCubit(
           repository: locator<AuthRepository>(),
-          googleSignInEnabled: locator<AppConfig>().googleWebClientId.isNotEmpty,
+          googleSignInEnabled:
+              locator<AppConfig>().googleWebClientId.isNotEmpty,
         ),
       );
     }
