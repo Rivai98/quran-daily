@@ -834,6 +834,7 @@ class _QpcPageBody extends StatelessWidget {
   final String Function(int) surahName;
 
   static const _measureSize = 100.0;
+  static final Map<String, double> _naturalWidthCache = {};
 
   double _naturalWidth(List<QpcWord> words, String family) {
     final painter = TextPainter(
@@ -859,13 +860,16 @@ class _QpcPageBody extends StatelessWidget {
         const horizontal = AppSpacing.sm;
         final width = constraints.maxWidth - 2 * horizontal;
         final lineHeight = constraints.maxHeight / 15;
-        var maxNatural = 0.0;
-        for (final line in data.lines) {
-          if (line.lineType == QpcLineType.ayah && !line.isCentered) {
-            final w = _naturalWidth(line.words, data.family);
-            if (w > maxNatural) maxNatural = w;
+        final maxNatural = _naturalWidthCache.putIfAbsent(data.family, () {
+          var widest = 0.0;
+          for (final line in data.lines) {
+            if (line.lineType == QpcLineType.ayah && !line.isCentered) {
+              final w = _naturalWidth(line.words, data.family);
+              if (w > widest) widest = w;
+            }
           }
-        }
+          return widest;
+        });
         final byWidth = maxNatural <= 0
             ? lineHeight * 0.6
             : _measureSize * width / maxNatural;

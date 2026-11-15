@@ -318,7 +318,23 @@ class QpcFontManager {
     return total;
   }
 
-  Future<String> ensureLoaded(int page) async {
+  final Map<int, Future<String>> _inFlight = {};
+
+  /// Returns the registered font family for [page]. Already-registered pages
+  /// return immediately (no file read or hash), so page turns stay instant.
+  Future<String> ensureLoaded(int page) {
+    if (_loaded.contains(page)) return Future.value('qpcv2_p$page');
+    return _inFlight.putIfAbsent(page, () async {
+      try {
+        return await _ensureLoaded(page);
+      } finally {
+        _inFlight.remove(page);
+      }
+    });
+  }
+
+  Future<String> _ensureLoaded(int page) async {
+    await layout.load();
     final info = layout.fontInfo(page);
     final dir = await _fontDirectory();
     final file = File('${dir.path}${Platform.pathSeparator}p$page.ttf');

@@ -233,16 +233,10 @@ class ReaderCubit extends Cubit<ReaderState> {
           isCompletionPage: false,
         ),
       );
-      final exact = await _loadExactPage(number);
-      if (exact.$1.isNotEmpty || exact.$3) {
-        emit(
-          state.copyWith(
-            qpcLines: exact.$1,
-            qpcFontFamily: exact.$2,
-            isFontFallback: exact.$3,
-          ),
-        );
-      }
+      // Each printed page loads its own lines and font inside the page view, so a
+      // page turn only updates the current page number (no second rebuild) and
+      // warms up the neighbouring pages' fonts in the background.
+      _prefetchAround(number);
       if (!state.isPortion) {
         try {
           await _storage.savePage(number);
@@ -273,6 +267,16 @@ class ReaderCubit extends Cubit<ReaderState> {
       emit(state.copyWith(isCompleted: true, isOffline: offline));
     } catch (error) {
       emit(state.copyWith(status: ReaderStatus.error, error: error));
+    }
+  }
+
+  void _prefetchAround(int number) {
+    final fonts = _qpcFonts;
+    if (fonts == null) return;
+    for (final page in [number - 1, number + 1, number + 2]) {
+      if (page >= 1 && page <= 604) {
+        unawaited(fonts.ensureLoaded(page).catchError((_) => ''));
+      }
     }
   }
 
