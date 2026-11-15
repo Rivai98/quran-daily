@@ -22,6 +22,8 @@ class _MockGroupsRepository extends Mock implements GroupsRepository {}
 class _MockGroupPhotoService extends Mock implements GroupPhotoService {}
 
 void main() {
+  setUpAll(loadAppFontsForGoldenTests);
+
   late _MockGroupsRepository repository;
   late _MockGroupPhotoService photoService;
   late QuranMetadataRepository metadataRepository;
@@ -88,11 +90,54 @@ void main() {
       bundle: QuranMetadataTestAssetBundle(),
     );
     await metadataRepository.load();
-    when(() => repository.getGroupInfo('g-1'))
-        .thenAnswer((_) async => Success(ownerGroupInfo));
+    when(
+      () => repository.getGroupInfo('g-1'),
+    ).thenAnswer((_) async => Success(ownerGroupInfo));
   });
 
   group('GroupInfoScreen (T016, T017, T018, T019, T020)', () {
+    testWidgets('golden: group info at 360x800 in light and dark themes', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      for (final dark in [false, true]) {
+        final cubit = GroupInfoCubit(repository)
+          ..emit(
+            GroupInfoState(
+              status: GroupInfoStatus.success,
+              groupInfo: ownerGroupInfo,
+            ),
+          );
+        addTearDown(cubit.close);
+        await tester.pumpWidget(
+          buildArabicTestApp(
+            BlocProvider.value(
+              value: cubit,
+              child: GroupInfoScreen(
+                groupId: 'g-1',
+                photoService: photoService,
+                metadataRepository: metadataRepository,
+              ),
+            ),
+            dark: dark,
+            size: const Size(360, 800),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await expectLater(
+          find.byType(GroupInfoScreen),
+          matchesGoldenFile(
+            dark
+                ? 'goldens/polish_b_group_info_dark.png'
+                : 'goldens/polish_b_group_info_light.png',
+          ),
+        );
+      }
+    });
+
     testWidgets('renders details, stats, and member list', (tester) async {
       final cubit = GroupInfoCubit(repository);
       cubit.emit(
@@ -129,7 +174,9 @@ void main() {
       expect(find.byType(UserAvatar), findsNWidgets(2));
     });
 
-    testWidgets('owner sees edit details button and photo change button', (tester) async {
+    testWidgets('owner sees edit details button and photo change button', (
+      tester,
+    ) async {
       final cubit = GroupInfoCubit(repository);
       cubit.emit(
         GroupInfoState(
@@ -155,60 +202,68 @@ void main() {
       expect(find.byIcon(Icons.camera_alt), findsOneWidget);
     });
 
-    testWidgets('plain member does not see edit details or photo change button or invite code', (tester) async {
-      final cubit = GroupInfoCubit(repository);
-      cubit.emit(
-        GroupInfoState(
-          status: GroupInfoStatus.success,
-          groupInfo: regularMemberGroupInfo,
-        ),
-      );
+    testWidgets(
+      'plain member does not see edit details or photo change button or invite code',
+      (tester) async {
+        final cubit = GroupInfoCubit(repository);
+        cubit.emit(
+          GroupInfoState(
+            status: GroupInfoStatus.success,
+            groupInfo: regularMemberGroupInfo,
+          ),
+        );
 
-      await tester.pumpWidget(
-        buildArabicTestApp(
-          BlocProvider.value(
-            value: cubit,
-            child: GroupInfoScreen(
-              groupId: 'g-1',
-              photoService: photoService,
-              metadataRepository: metadataRepository,
+        await tester.pumpWidget(
+          buildArabicTestApp(
+            BlocProvider.value(
+              value: cubit,
+              child: GroupInfoScreen(
+                groupId: 'g-1',
+                photoService: photoService,
+                metadataRepository: metadataRepository,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.byTooltip(ArabicStrings.editGroupDetails), findsNothing);
-      expect(find.byIcon(Icons.camera_alt), findsNothing);
-      expect(find.text(ArabicStrings.inviteCodeLabel), findsNothing);
-    });
+        expect(find.byTooltip(ArabicStrings.editGroupDetails), findsNothing);
+        expect(find.byIcon(Icons.camera_alt), findsNothing);
+        expect(find.text(ArabicStrings.inviteCodeLabel), findsNothing);
+      },
+    );
 
-    testWidgets('PRIVACY: never renders email addresses in group info or members list', (tester) async {
-      final cubit = GroupInfoCubit(repository);
-      cubit.emit(
-        GroupInfoState(
-          status: GroupInfoStatus.success,
-          groupInfo: ownerGroupInfo,
-        ),
-      );
+    testWidgets(
+      'PRIVACY: never renders email addresses in group info or members list',
+      (tester) async {
+        final cubit = GroupInfoCubit(repository);
+        cubit.emit(
+          GroupInfoState(
+            status: GroupInfoStatus.success,
+            groupInfo: ownerGroupInfo,
+          ),
+        );
 
-      await tester.pumpWidget(
-        buildArabicTestApp(
-          BlocProvider.value(
-            value: cubit,
-            child: GroupInfoScreen(
-              groupId: 'g-1',
-              photoService: photoService,
-              metadataRepository: metadataRepository,
+        await tester.pumpWidget(
+          buildArabicTestApp(
+            BlocProvider.value(
+              value: cubit,
+              child: GroupInfoScreen(
+                groupId: 'g-1',
+                photoService: photoService,
+                metadataRepository: metadataRepository,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.textContaining('@'), findsNothing);
-      expect(find.textContaining('.com'), findsNothing);
-    });
+        expect(find.textContaining('@'), findsNothing);
+        expect(find.textContaining('.com'), findsNothing);
+      },
+    );
 
-    testWidgets('adapts cleanly to narrow screen 320dp without overflow', (tester) async {
+    testWidgets('adapts cleanly to narrow screen 320dp without overflow', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(320 * 2, 640 * 2);
       tester.view.devicePixelRatio = 2;
       addTearDown(tester.view.resetPhysicalSize);
@@ -238,7 +293,9 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('adapts cleanly to 200% text scale without overflow', (tester) async {
+    testWidgets('adapts cleanly to 200% text scale without overflow', (
+      tester,
+    ) async {
       final cubit = GroupInfoCubit(repository);
       cubit.emit(
         GroupInfoState(
@@ -278,9 +335,7 @@ void main() {
       await tester.pumpWidget(
         buildArabicTestApp(
           Theme(
-            data: ThemeData.dark().copyWith(
-              extensions: [AppColors.dark],
-            ),
+            data: ThemeData.dark().copyWith(extensions: [AppColors.dark]),
             child: BlocProvider.value(
               value: cubit,
               child: GroupInfoScreen(

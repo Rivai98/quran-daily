@@ -35,8 +35,16 @@ class JoinRequestsCubit extends Cubit<JoinRequestsState> {
   String? _groupId;
 
   Future<void> load(String groupId) async {
+    final previousRequests = _groupId == groupId
+        ? state.requests
+        : const <PublicJoinRequestInfo>[];
     _groupId = groupId;
-    emit(const JoinRequestsState(status: JoinRequestsStatus.loading));
+    emit(
+      JoinRequestsState(
+        status: JoinRequestsStatus.loading,
+        requests: previousRequests,
+      ),
+    );
     final result = await _repository.listJoinRequests(groupId);
     result.when(
       success: (items) => emit(
@@ -52,6 +60,7 @@ class JoinRequestsCubit extends Cubit<JoinRequestsState> {
           status: failure.kind == FailureKind.network
               ? JoinRequestsStatus.offline
               : JoinRequestsStatus.failure,
+          requests: previousRequests,
           failure: failure,
         ),
       ),

@@ -18,6 +18,21 @@ Future<void> loadArabicUiFontsForGoldenTests() async {
       .load();
 }
 
+/// Load the app's bundled Arabic fonts before capturing visual goldens.
+Future<void> loadAppFontsForGoldenTests() async {
+  for (final family in const {
+    'Cairo': 'assets/fonts/cairo/Cairo-Variable.ttf',
+    'Amiri': 'assets/fonts/amiri/Amiri-Regular.ttf',
+  }.entries) {
+    final loader = FontLoader(family.key)
+      ..addFont(rootBundle.load(family.value));
+    await loader.load();
+  }
+  final materialIcons = FontLoader('MaterialIcons')
+    ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
+  await materialIcons.load();
+}
+
 /// Pumps [child] inside the real app theme: Arabic locale, RTL, Material 3
 /// design-system ThemeData (with the [AppColors] ThemeExtension), optionally
 /// dark, at [textScale], and at a logical [size] (devicePixelRatio 1).

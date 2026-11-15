@@ -14,6 +14,7 @@ import 'package:quran_daily/features/quran_groups/data/repositories/khatma_repos
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/design_system/widgets/part_tile.dart';
+import 'package:quran_daily/core/design_system/widgets/skeleton.dart';
 import 'package:quran_daily/features/quran_groups/view/widgets/override_assignment_sheet.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/group_dashboard_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/widgets/forming_group_view.dart';
@@ -77,6 +78,52 @@ DashboardSnapshot _snapshot({
 }
 
 void main() {
+  setUpAll(loadAppFontsForGoldenTests);
+
+  testWidgets('golden: active dashboard at 360x800 in light and dark themes', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final cubit = DashboardCubit(
+      repository: _Repository(),
+      groupId: 'g1',
+      initialState: DashboardState(
+        status: DashboardStatus.success,
+        snapshot: _snapshot(),
+      ),
+    );
+    addTearDown(cubit.close);
+    final metadataRepository = QuranMetadataRepository(
+      bundle: QuranMetadataTestAssetBundle(),
+    );
+    await tester.runAsync(metadataRepository.load);
+
+    for (final dark in [false, true]) {
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          BlocProvider.value(
+            value: cubit,
+            child: GroupDashboardScreen(metadataRepository: metadataRepository),
+          ),
+          dark: dark,
+          size: const Size(360, 800),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(GroupDashboardScreen),
+        matchesGoldenFile(
+          dark
+              ? 'goldens/polish_b_dashboard_dark.png'
+              : 'goldens/polish_b_dashboard_light.png',
+        ),
+      );
+    }
+  });
+
   testWidgets('non-owner juz tiles do not open the override flow', (
     tester,
   ) async {
@@ -213,7 +260,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(SkeletonBox), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 

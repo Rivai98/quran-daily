@@ -15,6 +15,7 @@ import '../../../../core/design_system/widgets/status_chip.dart';
 import '../../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/design_system/widgets/halaqa_logo.dart';
+import '../../../../core/design_system/widgets/skeleton.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
 import '../../cubit/dashboard/dashboard_cubit.dart';
@@ -128,12 +129,7 @@ class GroupDashboardScreen extends StatelessWidget {
   Widget _body(BuildContext context, DashboardState state) {
     final snapshot = state.snapshot;
     if (state.status == DashboardStatus.loading && snapshot == null) {
-      return Center(
-        child: Semantics(
-          label: ArabicStrings.loading,
-          child: const CircularProgressIndicator(),
-        ),
-      );
+      return const _DashboardSkeleton();
     }
     if (snapshot == null) {
       return StatePanel(
@@ -449,4 +445,20 @@ class GroupDashboardScreen extends StatelessWidget {
       metadataRepository: metadataRepository,
     );
   }
+}
+
+class _DashboardSkeleton extends StatelessWidget {
+  const _DashboardSkeleton();
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: AppSpacing.screen,
+    children: const [
+      SkeletonBox(height: 188),
+      SizedBox(height: AppSpacing.lg),
+      SkeletonBox(height: 112),
+      SizedBox(height: AppSpacing.lg),
+      SkeletonBox(height: 284),
+    ],
+  );
 }

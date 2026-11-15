@@ -869,6 +869,7 @@ class ArabicStrings {
   static const editGroupDetails = 'تعديل بيانات المجموعة';
   static const changeGroupPhoto = 'تغيير صورة المجموعة';
   static const removeGroupPhoto = 'حذف الصورة';
+  static const removeGroupPhotoConfirm = 'ستُحذف صورة الحلقة الحالية.';
   static const pickFromGallery = 'اختيار من المعرض';
   static const takePhoto = 'التقاط صورة';
   static const uploadingPhoto = 'جاري رفع الصورة...';

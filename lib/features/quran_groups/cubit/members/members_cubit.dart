@@ -35,8 +35,9 @@ class MembersCubit extends Cubit<MembersState> {
   String? _groupId;
 
   Future<void> load(String groupId) async {
+    final previousMembers = _groupId == groupId ? state.members : null;
     _groupId = groupId;
-    emit(const MembersState(status: MembersStatus.loading));
+    emit(MembersState(status: MembersStatus.loading, members: previousMembers));
     final result = await _repository.getMembers(groupId);
     result.when(
       success: (value) async {
@@ -57,29 +58,34 @@ class MembersCubit extends Cubit<MembersState> {
         final enriched = SeatMap(
           groupId: value.groupId,
           members: value.members
-              .map((member) => SeatMember(
-                    membershipId: member.membershipId,
-                    displayName: member.displayName,
-                    role: member.role,
-                    seatNumber: member.seatNumber,
-                    userId: userIds[member.membershipId],
-                  ))
+              .map(
+                (member) => SeatMember(
+                  membershipId: member.membershipId,
+                  displayName: member.displayName,
+                  role: member.role,
+                  seatNumber: member.seatNumber,
+                  userId: userIds[member.membershipId],
+                ),
+              )
               .toList(),
           activeMemberCount: value.activeMemberCount,
           inviteCode: value.inviteCode,
         );
-        emit(MembersState(
-          status: enriched.members.isEmpty
-              ? MembersStatus.empty
-              : MembersStatus.success,
-          members: enriched,
-        ));
+        emit(
+          MembersState(
+            status: enriched.members.isEmpty
+                ? MembersStatus.empty
+                : MembersStatus.success,
+            members: enriched,
+          ),
+        );
       },
       failure: (failure) => emit(
         MembersState(
           status: failure.kind == FailureKind.network
               ? MembersStatus.offline
               : MembersStatus.failure,
+          members: previousMembers,
           failure: failure,
         ),
       ),
