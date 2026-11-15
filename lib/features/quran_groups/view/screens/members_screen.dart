@@ -10,11 +10,13 @@ import '../../../../core/design_system/widgets/app_card.dart';
 import '../../../../core/design_system/widgets/app_avatar.dart';
 import '../../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
+import '../../../../core/design_system/widgets/skeleton.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/localization/arabic_numerals.dart';
 import '../../../../app/router.dart';
 import '../../cubit/members/members_cubit.dart';
 import '../../data/entities/entities.dart';
+import '../widgets/validation_banner.dart';
 
 class MembersScreen extends StatefulWidget {
   const MembersScreen({
@@ -44,13 +46,14 @@ class _MembersScreenState extends State<MembersScreen> {
     appBar: AppBar(title: const Text(ArabicStrings.memberManagementTitle)),
     body: BlocBuilder<MembersCubit, MembersState>(
       builder: (context, state) {
-        if (state.status == MembersStatus.loading ||
-            state.status == MembersStatus.initial ||
-            state.status == MembersStatus.submitting) {
-          return const Center(child: CircularProgressIndicator());
+        if ((state.status == MembersStatus.loading ||
+                state.status == MembersStatus.initial) &&
+            state.members == null) {
+          return const _MembersSkeleton();
         }
-        if (state.status == MembersStatus.failure ||
-            state.status == MembersStatus.offline) {
+        if ((state.status == MembersStatus.failure ||
+                state.status == MembersStatus.offline) &&
+            state.members == null) {
           return StatePanel(
             icon: state.status == MembersStatus.offline
                 ? Icons.cloud_off_outlined
@@ -59,8 +62,8 @@ class _MembersScreenState extends State<MembersScreen> {
                 ? ArabicStrings.offlineStale
                 : ArabicStrings.operationFailed,
             message: state.status == MembersStatus.offline
-                ? ArabicStrings.authError('network')
-                : ArabicStrings.operationFailed,
+                ? ArabicStrings.networkFailure
+                : ArabicStrings.errorMessage(state.failure?.code ?? ''),
             actionLabel: ArabicStrings.retry,
             onAction: () => context.read<MembersCubit>().load(widget.groupId),
           );
@@ -72,39 +75,72 @@ class _MembersScreenState extends State<MembersScreen> {
             message: ArabicStrings.noActiveMembers,
           );
         }
-        return ListView(
-          padding: AppSpacing.screen,
+        return Stack(
           children: [
-            Row(
+            ListView(
+              padding: AppSpacing.screen,
               children: [
-                Icon(
-                  Icons.people_alt_outlined,
-                  size: 20,
-                  color: Theme.of(context).extension<AppColors>()!.inkMuted,
+                if (state.status == MembersStatus.failure ||
+                    state.status == MembersStatus.offline) ...[
+                  ValidationBanner(
+                    icon: state.status == MembersStatus.offline
+                        ? Icons.cloud_off_outlined
+                        : Icons.error_outline,
+                    message: state.status == MembersStatus.offline
+                        ? ArabicStrings.networkFailure
+                        : ArabicStrings.errorMessage(state.failure?.code ?? ''),
+                    color: state.status == MembersStatus.offline
+                        ? Theme.of(context).extension<AppColors>()!.pendingFg
+                        : Theme.of(context).extension<AppColors>()!.danger,
+                  ),
+                  TextButton.icon(
+                    onPressed: () =>
+                        context.read<MembersCubit>().load(widget.groupId),
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text(ArabicStrings.retry),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                ],
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: AppSpacing.xs,
+                  runSpacing: AppSpacing.xxs,
+                  children: [
+                    Icon(
+                      Icons.people_alt_outlined,
+                      size: 20,
+                      color: Theme.of(context).extension<AppColors>()!.inkMuted,
+                    ),
+                    Text(
+                      '${ArabicStrings.activeMembersLabel}: ${ArabicNumerals.format(state.members!.activeMemberCount)}',
+                      style: AppTypography.title,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: AppSpacing.xs),
-                Text(
-                  '${ArabicStrings.activeMembersLabel}: ${ArabicNumerals.format(state.members!.activeMemberCount)}',
-                  style: AppTypography.title,
-                ),
+                const SizedBox(height: AppSpacing.md),
+                for (final member in state.members!.members) ...[
+                  _member(context, member),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                if (!widget.isOwner)
+                  AppButton(
+                    label: ArabicStrings.leaveGroupAction,
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => ConfirmSheet.show(
+                      context,
+                      title: ArabicStrings.leaveGroupAction,
+                      message: ArabicStrings.leaveGroupConfirm,
+                      confirmLabel: ArabicStrings.leaveGroupAction,
+                      onConfirm: () => context.read<MembersCubit>().leave(),
+                    ),
+                  ),
               ],
             ),
-            const SizedBox(height: AppSpacing.md),
-            for (final member in state.members!.members) ...[
-              _member(context, member),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-            if (!widget.isOwner)
-              AppButton(
-                label: ArabicStrings.leaveGroupAction,
-                variant: AppButtonVariant.secondary,
-                onPressed: () => ConfirmSheet.show(
-                  context,
-                  title: ArabicStrings.leaveGroupAction,
-                  message: ArabicStrings.leaveGroupConfirm,
-                  confirmLabel: ArabicStrings.leaveGroupAction,
-                  onConfirm: () => context.read<MembersCubit>().leave(),
-                ),
+            if (state.status == MembersStatus.submitting ||
+                state.status == MembersStatus.loading)
+              const Align(
+                alignment: AlignmentDirectional.topCenter,
+                child: LinearProgressIndicator(),
               ),
           ],
         );
@@ -206,10 +242,21 @@ class _MembersScreenState extends State<MembersScreen> {
                     child: Text(ArabicNumerals.format(i + 1)),
                   ),
                 ),
-                child: TextButton.icon(
-                  onPressed: null,
-                  icon: const Icon(Icons.swap_vert),
-                  label: Text(ArabicStrings.moveSeatAction),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.swap_vert_rounded,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: AppSpacing.xxs),
+                    Text(
+                      ArabicStrings.moveSeatAction,
+                      style: AppTypography.label.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             if (widget.isOwner && member.role != GroupRole.owner)
@@ -229,10 +276,21 @@ class _MembersScreenState extends State<MembersScreen> {
                     child: Text(ArabicStrings.roleSupervisor),
                   ),
                 ],
-                child: TextButton.icon(
-                  onPressed: null,
-                  icon: const Icon(Icons.admin_panel_settings_outlined),
-                  label: Text(ArabicStrings.roleChangeAction),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.admin_panel_settings_outlined,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: AppSpacing.xxs),
+                    Text(
+                      ArabicStrings.roleChangeAction,
+                      style: AppTypography.label.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             if (widget.isOwner && member.role != GroupRole.owner)
@@ -266,5 +324,17 @@ class _MembersScreenState extends State<MembersScreen> {
         ),
       ],
     ),
+  );
+}
+
+class _MembersSkeleton extends StatelessWidget {
+  const _MembersSkeleton();
+
+  @override
+  Widget build(BuildContext context) => ListView.separated(
+    padding: AppSpacing.screen,
+    itemCount: 5,
+    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+    itemBuilder: (_, _) => const SkeletonBox(height: 112),
   );
 }

@@ -30,6 +30,35 @@ void main() {
   );
 
   blocTest<MembersCubit, MembersState>(
+    'retains the loaded seat map when refresh fails',
+    build: () {
+      var calls = 0;
+      when(() => repository.getMembers('g')).thenAnswer((_) async {
+        calls++;
+        if (calls == 1) return const Success(members);
+        return const FailureResult(
+          NetworkFailure(message: 'offline', code: 'network'),
+        );
+      });
+      return MembersCubit(repository);
+    },
+    act: (cubit) async {
+      await cubit.load('g');
+      await cubit.load('g');
+    },
+    expect: () => [
+      const MembersState(status: MembersStatus.loading),
+      const MembersState(status: MembersStatus.empty, members: members),
+      const MembersState(status: MembersStatus.loading, members: members),
+      const MembersState(
+        status: MembersStatus.offline,
+        members: members,
+        failure: NetworkFailure(message: 'offline', code: 'network'),
+      ),
+    ],
+  );
+
+  blocTest<MembersCubit, MembersState>(
     'refreshes after moving a seat',
     build: () {
       when(

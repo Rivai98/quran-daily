@@ -14,6 +14,8 @@ import '../../../../core/design_system/widgets/app_card.dart';
 import '../../../../core/design_system/widgets/app_section_header.dart';
 import '../../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../../core/design_system/widgets/app_text_field.dart';
+import '../../../../core/design_system/widgets/confirm_sheet.dart';
+import '../../../../core/design_system/widgets/skeleton.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/localization/arabic_initials.dart';
@@ -24,6 +26,7 @@ import '../../cubit/group_info/group_info_cubit.dart';
 import '../../data/entities/entities.dart';
 import '../../services/group_photo_service.dart';
 import '../widgets/portion_unit_chip.dart';
+import '../widgets/validation_banner.dart';
 import 'member_profile_screen.dart';
 
 class GroupInfoScreen extends StatefulWidget {
@@ -64,6 +67,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
 
   void _showPhotoOptions(BuildContext context, GroupInfo info) {
     final cubit = context.read<GroupInfoCubit>();
+    final colors = Theme.of(context).extension<AppColors>()!;
     showModalBottomSheet<void>(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -103,7 +107,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               if (info.photoPath != null) ...[
                 const Divider(),
                 ListTile(
-                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  leading: Icon(Icons.delete_outline, color: colors.danger),
                   title: Text(
                     ArabicStrings.removeGroupPhoto,
                     style: TextStyle(
@@ -112,7 +116,14 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                   ),
                   onTap: () async {
                     Navigator.of(sheetContext).pop();
-                    await cubit.removePhoto();
+                    await ConfirmSheet.show(
+                      context,
+                      title: ArabicStrings.removeGroupPhoto,
+                      message: ArabicStrings.removeGroupPhotoConfirm,
+                      confirmLabel: ArabicStrings.removeGroupPhoto,
+                      destructive: true,
+                      onConfirm: cubit.removePhoto,
+                    );
                   },
                 ),
               ],
@@ -229,17 +240,14 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
           }
         },
         builder: (context, state) {
-          if (state.status == GroupInfoStatus.loading ||
-              state.status == GroupInfoStatus.initial) {
-            return Center(
-              child: Semantics(
-                label: ArabicStrings.loading,
-                child: const CircularProgressIndicator(),
-              ),
-            );
+          if ((state.status == GroupInfoStatus.loading ||
+                  state.status == GroupInfoStatus.initial) &&
+              state.groupInfo == null) {
+            return _GroupInfoSkeleton();
           }
 
-          if (state.status == GroupInfoStatus.offline) {
+          if (state.status == GroupInfoStatus.offline &&
+              state.groupInfo == null) {
             return StatePanel(
               icon: Icons.cloud_off,
               title: ArabicStrings.networkFailure,
@@ -251,12 +259,11 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             );
           }
 
-          if (state.status == GroupInfoStatus.failure ||
-              state.groupInfo == null) {
+          if (state.groupInfo == null) {
             return StatePanel(
               icon: Icons.error_outline,
               title: ArabicStrings.operationFailed,
-              message: ArabicStrings.operationFailed,
+              message: ArabicStrings.errorMessage(state.failure?.code ?? ''),
               actionLabel: ArabicStrings.retry,
               onAction: () =>
                   context.read<GroupInfoCubit>().load(widget.groupId),
@@ -280,6 +287,30 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      if (state.status == GroupInfoStatus.offline ||
+                          state.status == GroupInfoStatus.failure) ...[
+                        ValidationBanner(
+                          icon: state.status == GroupInfoStatus.offline
+                              ? Icons.cloud_off_outlined
+                              : Icons.error_outline,
+                          message: state.status == GroupInfoStatus.offline
+                              ? ArabicStrings.networkFailure
+                              : ArabicStrings.errorMessage(
+                                  state.failure?.code ?? '',
+                                ),
+                          color: state.status == GroupInfoStatus.offline
+                              ? colors.pendingFg
+                              : colors.danger,
+                        ),
+                        TextButton.icon(
+                          onPressed: () => context.read<GroupInfoCubit>().load(
+                            widget.groupId,
+                          ),
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text(ArabicStrings.retry),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                      ],
                       // Header Card
                       AppCard(
                         padding: AppSpacing.card,
@@ -607,6 +638,22 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       ),
     );
   }
+}
+
+class _GroupInfoSkeleton extends StatelessWidget {
+  const _GroupInfoSkeleton();
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: AppSpacing.screen,
+    children: const [
+      SkeletonBox(height: 208),
+      SizedBox(height: AppSpacing.lg),
+      SkeletonBox(height: 120),
+      SizedBox(height: AppSpacing.lg),
+      SkeletonBox(height: 180),
+    ],
+  );
 }
 
 class _GroupStatLabel extends StatelessWidget {

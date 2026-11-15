@@ -50,51 +50,57 @@ void main() {
       expect(cubit.state.profile, isNull);
     });
 
-    test('load emits [loading, success] on successful repository call', () async {
-      when(() => repository.getMemberProfile('u1', 'g1'))
-          .thenAnswer((_) async => Success(sampleProfile));
+    test(
+      'load emits [loading, success] on successful repository call',
+      () async {
+        when(
+          () => repository.getMemberProfile('u1', 'g1'),
+        ).thenAnswer((_) async => Success(sampleProfile));
 
-      final expectedStates = [
-        const MemberProfileState(status: MemberProfileStatus.loading),
-        MemberProfileState(
-          status: MemberProfileStatus.success,
-          profile: sampleProfile,
-        ),
-      ];
+        final expectedStates = [
+          const MemberProfileState(status: MemberProfileStatus.loading),
+          MemberProfileState(
+            status: MemberProfileStatus.success,
+            profile: sampleProfile,
+          ),
+        ];
 
-      expectLater(cubit.stream, emitsInOrder(expectedStates));
+        expectLater(cubit.stream, emitsInOrder(expectedStates));
 
-      await cubit.load('u1', 'g1');
-    });
+        await cubit.load('u1', 'g1');
+      },
+    );
 
-    test('load emits [loading, notAccessible] when permission failure occurs', () async {
-      const failure = PermissionFailure(
-        message: 'not_member',
-        code: 'not_member',
-      );
-      when(() => repository.getMemberProfile('u1', 'g1'))
-          .thenAnswer((_) async => const FailureResult(failure));
+    test(
+      'load emits [loading, notAccessible] when permission failure occurs',
+      () async {
+        const failure = PermissionFailure(
+          message: 'not_member',
+          code: 'not_member',
+        );
+        when(
+          () => repository.getMemberProfile('u1', 'g1'),
+        ).thenAnswer((_) async => const FailureResult(failure));
 
-      final expectedStates = [
-        const MemberProfileState(status: MemberProfileStatus.loading),
-        const MemberProfileState(
-          status: MemberProfileStatus.notAccessible,
-          failure: failure,
-        ),
-      ];
+        final expectedStates = [
+          const MemberProfileState(status: MemberProfileStatus.loading),
+          const MemberProfileState(
+            status: MemberProfileStatus.notAccessible,
+            failure: failure,
+          ),
+        ];
 
-      expectLater(cubit.stream, emitsInOrder(expectedStates));
+        expectLater(cubit.stream, emitsInOrder(expectedStates));
 
-      await cubit.load('u1', 'g1');
-    });
+        await cubit.load('u1', 'g1');
+      },
+    );
 
     test('load emits [loading, offline] on NetworkFailure', () async {
-      const failure = NetworkFailure(
-        message: 'offline',
-        code: 'network',
-      );
-      when(() => repository.getMemberProfile('u1', 'g1'))
-          .thenAnswer((_) async => const FailureResult(failure));
+      const failure = NetworkFailure(message: 'offline', code: 'network');
+      when(
+        () => repository.getMemberProfile('u1', 'g1'),
+      ).thenAnswer((_) async => const FailureResult(failure));
 
       final expectedStates = [
         const MemberProfileState(status: MemberProfileStatus.loading),
@@ -111,8 +117,9 @@ void main() {
 
     test('load emits [loading, failure] on generic failure', () async {
       const failure = UnknownFailure(message: 'error', code: 'server_error');
-      when(() => repository.getMemberProfile('u1', 'g1'))
-          .thenAnswer((_) async => const FailureResult(failure));
+      when(
+        () => repository.getMemberProfile('u1', 'g1'),
+      ).thenAnswer((_) async => const FailureResult(failure));
 
       final expectedStates = [
         const MemberProfileState(status: MemberProfileStatus.loading),
@@ -128,13 +135,31 @@ void main() {
     });
 
     test('refresh re-loads current profile', () async {
-      when(() => repository.getMemberProfile('u1', 'g1'))
-          .thenAnswer((_) async => Success(sampleProfile));
+      when(
+        () => repository.getMemberProfile('u1', 'g1'),
+      ).thenAnswer((_) async => Success(sampleProfile));
 
       await cubit.load('u1', 'g1');
       await cubit.refresh();
 
       verify(() => repository.getMemberProfile('u1', 'g1')).called(2);
+    });
+
+    test('offline refresh keeps the last profile visible', () async {
+      var calls = 0;
+      when(() => repository.getMemberProfile('u1', 'g1')).thenAnswer((_) async {
+        calls++;
+        if (calls == 1) return Success(sampleProfile);
+        return const FailureResult(
+          NetworkFailure(message: 'offline', code: 'network'),
+        );
+      });
+
+      await cubit.load('u1', 'g1');
+      await cubit.refresh();
+
+      expect(cubit.state.status, MemberProfileStatus.offline);
+      expect(cubit.state.profile, sampleProfile);
     });
   });
 }

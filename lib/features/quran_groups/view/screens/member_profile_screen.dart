@@ -12,6 +12,8 @@ import '../../../../core/design_system/widgets/app_avatar.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
 import '../../../../core/design_system/widgets/app_section_header.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
+import '../../../../core/design_system/widgets/skeleton.dart';
+import '../../../../core/design_system/widgets/offline_banner.dart';
 import '../../../../core/design_system/widgets/status_chip.dart';
 import '../../../../core/localization/arabic_initials.dart';
 import '../../../../core/localization/arabic_numerals.dart';
@@ -87,14 +89,10 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
       appBar: AppBar(title: const Text(ArabicStrings.memberProfileTitle)),
       body: BlocBuilder<MemberProfileCubit, MemberProfileState>(
         builder: (context, state) {
-          if (state.status == MemberProfileStatus.loading ||
-              state.status == MemberProfileStatus.initial) {
-            return Center(
-              child: Semantics(
-                label: ArabicStrings.loading,
-                child: const CircularProgressIndicator(),
-              ),
-            );
+          if ((state.status == MemberProfileStatus.loading ||
+                  state.status == MemberProfileStatus.initial) &&
+              state.profile == null) {
+            return const _MemberProfileSkeleton();
           }
 
           if (state.status == MemberProfileStatus.notAccessible) {
@@ -106,7 +104,8 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
             );
           }
 
-          if (state.status == MemberProfileStatus.offline) {
+          if (state.status == MemberProfileStatus.offline &&
+              state.profile == null) {
             return StatePanel(
               icon: Icons.cloud_off,
               title: ArabicStrings.networkFailure,
@@ -120,12 +119,11 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
             );
           }
 
-          if (state.status == MemberProfileStatus.failure ||
-              state.profile == null) {
+          if (state.profile == null) {
             return StatePanel(
               icon: Icons.error_outline,
               title: ArabicStrings.operationFailed,
-              message: ArabicStrings.operationFailed,
+              message: ArabicStrings.errorMessage(state.failure?.code ?? ''),
               actionLabel: ArabicStrings.retry,
               onAction: () => context.read<MemberProfileCubit>().load(
                 widget.userId,
@@ -153,6 +151,25 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      if (state.status == MemberProfileStatus.offline)
+                        const OfflineBanner(
+                          message: ArabicStrings.networkFailure,
+                        ),
+                      if (state.status == MemberProfileStatus.failure) ...[
+                        Text(
+                          ArabicStrings.errorMessage(state.failure?.code ?? ''),
+                          style: AppTypography.body.copyWith(
+                            color: colors.danger,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () => context
+                              .read<MemberProfileCubit>()
+                              .load(widget.userId, widget.groupId),
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text(ArabicStrings.retry),
+                        ),
+                      ],
                       // Header card with avatar & basic info
                       AppCard(
                         padding: AppSpacing.card,
@@ -455,4 +472,20 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
       ),
     );
   }
+}
+
+class _MemberProfileSkeleton extends StatelessWidget {
+  const _MemberProfileSkeleton();
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: AppSpacing.screen,
+    children: const [
+      SkeletonBox(height: 240),
+      SizedBox(height: AppSpacing.lg),
+      SkeletonBox(height: 112),
+      SizedBox(height: AppSpacing.lg),
+      SkeletonBox(height: 184),
+    ],
+  );
 }

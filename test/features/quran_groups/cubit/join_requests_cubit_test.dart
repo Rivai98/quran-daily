@@ -6,6 +6,7 @@ import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/features/quran_groups/cubit/join_requests/join_requests_cubit.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
+import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 
 class _Groups extends Mock implements GroupsRepository {}
 
@@ -46,6 +47,49 @@ void main() {
       const JoinRequestsState(
         status: JoinRequestsStatus.groupFull,
         failure: UnknownFailure(message: 'full', code: 'group_full'),
+      ),
+    ],
+  );
+
+  blocTest<JoinRequestsCubit, JoinRequestsState>(
+    'retains requests when refresh fails offline',
+    build: () {
+      var calls = 0;
+      final request = PublicJoinRequestInfo(
+        joinRequestId: 'r',
+        userDisplayName: ArabicStrings.memberRole,
+        requestedAt: DateTime.utc(2026),
+        source: JoinSource.invite,
+      );
+      when(() => repository.listJoinRequests('g')).thenAnswer((_) async {
+        calls++;
+        if (calls == 1) return Success([request]);
+        return const FailureResult(
+          NetworkFailure(message: 'offline', code: 'network'),
+        );
+      });
+      return JoinRequestsCubit(repository);
+    },
+    act: (cubit) async {
+      await cubit.load('g');
+      await cubit.load('g');
+    },
+    expect: () => [
+      const JoinRequestsState(status: JoinRequestsStatus.loading),
+      predicate<JoinRequestsState>(
+        (state) =>
+            state.status == JoinRequestsStatus.success &&
+            state.requests.length == 1,
+      ),
+      predicate<JoinRequestsState>(
+        (state) =>
+            state.status == JoinRequestsStatus.loading &&
+            state.requests.length == 1,
+      ),
+      predicate<JoinRequestsState>(
+        (state) =>
+            state.status == JoinRequestsStatus.offline &&
+            state.requests.length == 1,
       ),
     ],
   );

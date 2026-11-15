@@ -37,9 +37,17 @@ class MemberProfileCubit extends Cubit<MemberProfileState> {
   String? _groupId;
 
   Future<void> load(String userId, String groupId) async {
+    final previousProfile = _userId == userId && _groupId == groupId
+        ? state.profile
+        : null;
     _userId = userId;
     _groupId = groupId;
-    emit(const MemberProfileState(status: MemberProfileStatus.loading));
+    emit(
+      MemberProfileState(
+        status: MemberProfileStatus.loading,
+        profile: previousProfile?.userId == userId ? previousProfile : null,
+      ),
+    );
     final result = await _repository.getMemberProfile(userId, groupId);
     result.when(
       success: (profile) => emit(
@@ -54,6 +62,7 @@ class MemberProfileCubit extends Cubit<MemberProfileState> {
           emit(
             MemberProfileState(
               status: MemberProfileStatus.offline,
+              profile: previousProfile,
               failure: failure,
             ),
           );
@@ -73,6 +82,7 @@ class MemberProfileCubit extends Cubit<MemberProfileState> {
           emit(
             MemberProfileState(
               status: MemberProfileStatus.failure,
+              profile: previousProfile,
               failure: failure,
             ),
           );
