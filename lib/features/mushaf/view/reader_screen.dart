@@ -839,7 +839,7 @@ class _QpcPageBody extends StatelessWidget {
       maxLines: 1,
       text: TextSpan(
         text: words.map((w) => w.text).join(' '),
-        style: TextStyle(fontFamily: family, fontSize: _measureSize),
+        style: AppTypography.mushafPage(fontFamily: family, size: _measureSize),
       ),
     )..layout();
     return painter.width;
@@ -874,10 +874,9 @@ class _QpcPageBody extends StatelessWidget {
           final text = Text(
             word.text,
             textDirection: TextDirection.rtl,
-            style: TextStyle(
+            style: AppTypography.mushafPage(
               fontFamily: family,
-              fontSize: fontSize,
-              height: 1.0,
+              size: fontSize,
               color: colors.ink,
             ),
           );
@@ -888,7 +887,7 @@ class _QpcPageBody extends StatelessWidget {
                 ? DecoratedBox(
                     decoration: BoxDecoration(
                       color: colors.primaryContainer.withValues(alpha: 0.55),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: AppRadius.smBR,
                     ),
                     child: text,
                   )
