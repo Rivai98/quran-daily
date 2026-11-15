@@ -161,29 +161,40 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
 
             return Center(
               child: SingleChildScrollView(
-                padding: AppSpacing.screenContent,
+                padding: AppSpacing.screenH,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: AppSpacing.xl),
-                      Icon(Icons.menu_book, size: 72, color: colors.primary),
                       const SizedBox(height: AppSpacing.md),
-                      Text(
-                        ArabicStrings.appName,
-                        textAlign: TextAlign.center,
-                        style: AppTypography.headline,
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        ArabicStrings.signInHint,
-                        textAlign: TextAlign.center,
-                        style: AppTypography.body.copyWith(
-                          color: colors.inkMuted,
+                      ClipRRect(
+                        borderRadius: AppRadius.lgBR,
+                        child: IslamicOrnamentBand(height: 196, contentPadding: 8,
+                          child: Container(
+                            width: double.infinity,
+                            color: colors.primaryContainer.withValues(alpha: .7),
+                            padding: AppSpacing.card,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.menu_book, size: 56, color: colors.primary),
+                                const SizedBox(height: AppSpacing.sm),
+                                Text(ArabicStrings.appName, textAlign: TextAlign.center, style: AppTypography.headline.copyWith(color: colors.onPrimaryContainer)),
+                                const SizedBox(height: AppSpacing.xs),
+                                const OrnamentalDivider(),
+                                const SizedBox(height: AppSpacing.xs),
+                                Text(ArabicStrings.signInHint, textAlign: TextAlign.center, style: AppTypography.body.copyWith(color: colors.onPrimaryContainer)),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.lg),
+                      AppCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
                       _ModeToggle(enabled: !submitting),
                       const SizedBox(height: AppSpacing.md),
                       if (state.mode == AuthMode.signup) ...[
@@ -245,6 +256,9 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                         loading: submitting,
                         expanded: true,
                         icon: const Icon(Icons.login),
+                      ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       Row(
