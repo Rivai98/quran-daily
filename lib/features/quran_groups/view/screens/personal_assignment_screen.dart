@@ -211,7 +211,9 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
               const SizedBox(height: AppSpacing.sm),
               if (!completed)
                 AppButton(
-                  label: ArabicStrings.completeAction,
+                  label: ArabicStrings.completeActionFor(
+                    widget.snapshot.portionUnit,
+                  ),
                   icon: const Icon(Icons.check_rounded),
                   expanded: true,
                   loading: state.status == AssignmentActionStatus.loading,

@@ -782,6 +782,10 @@ class ArabicStrings {
       '\u{631}\u{628}\u{639} \u{627}\u{644}\u{62d}\u{632}\u{628}';
   static const portionUnitPage = '\u{627}\u{644}\u{635}\u{641}\u{62d}\u{629}';
 
+  /// "تأكيد إتمام" + the unit name, for the personal assignment's completion button.
+  static String completeActionFor(PortionUnit unit) =>
+      'تأكيد إتمام ${portionUnitName(unit)}';
+
   static String portionUnitName(PortionUnit unit) => switch (unit) {
     PortionUnit.juz => portionUnitJuz,
     PortionUnit.halfJuz => portionUnitHalfJuz,
