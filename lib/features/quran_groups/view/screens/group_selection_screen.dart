@@ -8,10 +8,10 @@ import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/widgets.dart';
 import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/localization/arabic_formatting.dart';
 import '../../data/entities/entities.dart';
 import '../../cubit/group_list/group_list_cubit.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
-import '../widgets/portion_unit_chip.dart';
 
 /// S1 group selection (ui-contract): my groups list + pending requests +
 /// entry points when empty.
@@ -279,7 +279,6 @@ class _MyGroupRow extends StatelessWidget {
       GroupRole.supervisor => ArabicStrings.roleSupervisor,
       GroupRole.member => ArabicStrings.roleMember,
     };
-
     return AppCard(
       child: InkWell(
         borderRadius: AppRadius.lgBR,
@@ -314,107 +313,68 @@ class _MyGroupRow extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: AppSpacing.xs),
-              Container(
-                constraints: const BoxConstraints(minHeight: 48),
-                padding: const EdgeInsetsDirectional.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xxs,
-                ),
-                decoration: ShapeDecoration(
-                  color: group.status == GroupStatus.active
-                      ? colors.completedBg
-                      : colors.infoBg,
-                  shape: const StadiumBorder(),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                Row(
                   children: [
-                    Icon(
-                      group.status == GroupStatus.active
-                          ? Icons.check_circle
-                          : Icons.schedule,
-                      size: 20,
-                      color: group.status == GroupStatus.active
-                          ? colors.completedFg
-                          : colors.infoFg,
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      group.status == GroupStatus.active
-                          ? ArabicStrings.activeLabel
-                          : ArabicStrings.formingLabel,
-                      style: AppTypography.caption.copyWith(
-                        color: group.status == GroupStatus.active
-                            ? colors.completedFg
-                            : colors.infoFg,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              PortionUnitChip(
-                unit: group.portionUnit,
-                metadataRepository: metadataRepository,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Wrap(
-                spacing: AppSpacing.xs,
-                runSpacing: AppSpacing.xxs,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsetsDirectional.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: AppSpacing.xxs,
-                    ),
-                    decoration: ShapeDecoration(
-                      color: colors.surfaceMuted,
-                      shape: const StadiumBorder(),
-                    ),
+                    Icon(Icons.menu_book_outlined, size: 18, color: colors.inkMuted),
+                  const SizedBox(width: AppSpacing.xxs),
+                  Expanded(
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          group.myRole == GroupRole.owner
-                              ? Icons.verified_user_outlined
-                              : group.myRole == GroupRole.supervisor
-                              ? Icons.admin_panel_settings_outlined
-                              : Icons.person_outline,
-                          size: 18,
-                          color: colors.inkMuted,
-                          semanticLabel: roleMarker,
+                        Flexible(
+                          child: Text(
+                            ArabicStrings.dailyUnitChip(group.portionUnit),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.caption.copyWith(
+                              color: colors.inkMuted,
+                            ),
+                          ),
                         ),
-                        const SizedBox(width: AppSpacing.xxs),
                         Text(
-                          roleMarker,
+                          ' · ',
                           style: AppTypography.caption.copyWith(
                             color: colors.inkMuted,
+                          ),
+                        ),
+                        Flexible(
+                          child: Text(
+                            roleMarker,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.caption.copyWith(
+                              color: colors.inkMuted,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          ' · ',
+                          style: AppTypography.caption.copyWith(
+                            color: colors.inkMuted,
+                          ),
+                        ),
+                        Flexible(
+                          child: Text(
+                            group.status == GroupStatus.active
+                                ? ArabicStrings.activeLabel
+                                : ArabicStrings.formingLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.caption.copyWith(
+                              color: colors.inkMuted,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.groups_outlined,
-                        size: 18,
-                        color: colors.inkMuted,
-                      ),
-                      const SizedBox(width: AppSpacing.xxs),
-                      Text(
-                        ArabicStrings.membersProgress(group.activeMemberCount),
-                        style: AppTypography.caption.copyWith(
-                          color: colors.inkMuted,
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.xs),
+              Text(
+                ArabicFormatting.membersProgress(group.activeMemberCount),
+                style: AppTypography.caption.copyWith(color: colors.inkMuted),
+              ),
+              const SizedBox(height: AppSpacing.xxs),
               ClipRRect(
                 borderRadius: AppRadius.pillBR,
                 child: LinearProgressIndicator(

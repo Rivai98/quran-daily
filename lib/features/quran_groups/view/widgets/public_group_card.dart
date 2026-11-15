@@ -4,7 +4,7 @@ import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/widgets/widgets.dart';
-import '../../../../core/localization/arabic_numerals.dart';
+import '../../../../core/localization/arabic_formatting.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../data/entities/entities.dart';
 import '../../data/models/models.dart';
@@ -68,30 +68,44 @@ class PublicGroupCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: AppSpacing.sm),
-          Wrap(
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xs,
+          const SizedBox(height: AppSpacing.xs),
+          Row(
             children: [
-              _InfoChip(
-                icon: Icons.people_outline,
-                label:
-                    '${ArabicNumerals.format(group.activeMemberCount)} / ${ArabicNumerals.format(30)} ${ArabicStrings.activeMemberCountLabel}',
+              Icon(
+                Icons.people_outline,
+                size: 18,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-              _GroupStatusBadge(
-                icon: icon,
-                label: statusLabel,
-                status: group.status,
+              const SizedBox(width: AppSpacing.xxs),
+              Flexible(
+                child: Text(
+                  ArabicFormatting.membersProgress(group.activeMemberCount),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              const SizedBox(width: AppSpacing.xs),
               PortionUnitChip(
                 unit: group.portionUnit,
                 metadataRepository:
                     metadataRepository ?? QuranMetadataRepository(),
               ),
-              _InfoChip(
-                icon: Icons.schedule,
-                label: '${ArabicStrings.groupTimezoneLabel}: ${group.timezone}',
+              const SizedBox(width: AppSpacing.xs),
+              Flexible(
+                child: Text(
+                  _timezoneCity(group.timezone),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
               ),
             ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          _GroupStatusBadge(
+            icon: icon,
+            label: statusLabel,
+            status: group.status,
           ),
           if (isPending || isJoined) ...[
             const SizedBox(height: AppSpacing.sm),
@@ -99,20 +113,7 @@ class PublicGroupCard extends StatelessWidget {
           ],
           if (onJoin != null) ...[
             const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              label: isPending || isJoined
-                  ? (isPending
-                        ? ArabicStrings.pendingApproval
-                        : ArabicStrings.joinGroupAction)
-                  : ArabicStrings.requestToJoin,
-              icon: Icon(
-                isPending || isJoined
-                    ? Icons.check_circle
-                    : Icons.group_add_outlined,
-              ),
-              variant: AppButtonVariant.tonal,
-              expanded: true,
-              loading: joinState == GroupJoinState.joining,
+            TextButton.icon(
               onPressed:
                   !group.canJoinLimit ||
                       isPending ||
@@ -120,6 +121,23 @@ class PublicGroupCard extends StatelessWidget {
                       joinState == GroupJoinState.joining
                   ? null
                   : onJoin,
+              icon: joinState == GroupJoinState.joining
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(
+                      isPending || isJoined
+                          ? Icons.check_circle
+                          : Icons.group_add_outlined,
+                    ),
+              label: Text(
+                isPending
+                    ? ArabicStrings.pendingApproval
+                    : isJoined
+                    ? ArabicStrings.joinedSuccessfully
+                    : ArabicStrings.requestToJoin,
+              ),
             ),
             if (!group.canJoinLimit) ...[
               const SizedBox(height: AppSpacing.xs),
@@ -136,6 +154,18 @@ class PublicGroupCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _timezoneCity(String timezone) {
+    final city = timezone.split('/').last.replaceAll('_', ' ');
+    return switch (city) {
+      'Cairo' => 'القاهرة',
+      'Riyadh' => 'الرياض',
+      'Makkah' => 'مكة',
+      'Madinah' => 'المدينة',
+      'UTC' => 'التوقيت العالمي',
+      _ => 'التوقيت المحلي',
+    };
   }
 }
 
@@ -184,44 +214,6 @@ class _GroupStatusBadge extends StatelessWidget {
             style: Theme.of(
               context,
             ).textTheme.labelMedium?.copyWith(color: foreground),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    return Container(
-      constraints: const BoxConstraints(minHeight: 48),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: colors.surfaceMuted,
-        border: Border.all(color: colors.border),
-        borderRadius: AppRadius.smBR,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 20, color: colors.inkMuted),
-          const SizedBox(width: AppSpacing.xs),
-          Flexible(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.labelMedium,
-              softWrap: true,
-            ),
           ),
         ],
       ),

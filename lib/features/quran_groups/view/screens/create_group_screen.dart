@@ -83,89 +83,111 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               state.failure?.kind == FailureKind.limitReached;
 
           return SafeArea(
-            child: ListView(
-              padding: AppSpacing.screenContent,
+            child: Column(
               children: [
-                AppTextField(
-                  label: ArabicStrings.groupNameLabel,
-                  hint: ArabicStrings.nameLengthError,
-                  controller: _name,
-                  errorText:
-                      (state.failure?.code == 'validation_failed' &&
-                          _nameError == null)
-                      ? ArabicStrings.nameLengthError
-                      : _nameError,
+                Expanded(
+                  child: ListView(
+                    padding: AppSpacing.screenContent,
+                    children: [
+                      AppTextField(
+                        label: ArabicStrings.groupNameLabel,
+                        hint: ArabicStrings.nameLengthError,
+                        controller: _name,
+                        errorText:
+                            (state.failure?.code == 'validation_failed' &&
+                                _nameError == null)
+                            ? ArabicStrings.nameLengthError
+                            : _nameError,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      AppTextField(
+                        label: ArabicStrings.shortDescriptionLabel,
+                        hint: ArabicStrings.descriptionLengthError,
+                        controller: _description,
+                        errorText: _descriptionError,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppSectionHeader(title: ArabicStrings.groupVisibilityTitle),
+                      _SegmentedRow<GroupVisibility>(
+                        values: const [
+                          GroupVisibility.public,
+                          GroupVisibility.private,
+                        ],
+                        labelOf: (v) => v == GroupVisibility.public
+                            ? ArabicStrings.publicVisibility
+                            : ArabicStrings.privateVisibility,
+                        hintOf: (v) => v == GroupVisibility.public
+                            ? ArabicStrings.publicVisibilityHint
+                            : ArabicStrings.privateVisibilityHint,
+                        selected: _visibility,
+                        onChanged: (v) => setState(() => _visibility = v),
+                        enabled: !submitting,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      AppSectionHeader(title: ArabicStrings.joinModeTitle),
+                      _SegmentedRow<JoinMode>(
+                        values: const [JoinMode.autoAccept, JoinMode.approval],
+                        labelOf: (m) => m == JoinMode.autoAccept
+                            ? ArabicStrings.autoAcceptJoinMode
+                            : ArabicStrings.ownerApprovalJoinMode,
+                        hintOf: (v) => v == JoinMode.autoAccept
+                            ? ArabicStrings.autoAcceptJoinModeHint
+                            : ArabicStrings.ownerApprovalJoinModeHint,
+                        selected: _joinMode,
+                        onChanged: (m) => setState(() => _joinMode = m),
+                        enabled: !submitting,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppSectionHeader(
+                        title: ArabicStrings.portionSelectorTitle,
+                      ),
+                      FutureBuilder<void>(
+                        future: _metadata,
+                        builder: (context, metadataState) {
+                          if (metadataState.hasError ||
+                              metadataState.connectionState !=
+                                  ConnectionState.done) {
+                            return const SizedBox.shrink();
+                          }
+                          return Column(
+                            children: [
+                              for (final unit in PortionUnit.values)
+                                _PortionChoice(
+                                  unit: unit,
+                                  selected: state.portionUnit == unit,
+                                  count: _metadataRepository
+                                      .portions(unit)
+                                      .length,
+                                  enabled: !submitting,
+                                  onTap: () => context
+                                      .read<CreateGroupCubit>()
+                                      .selectPortionUnit(unit),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                AppTextField(
-                  label: ArabicStrings.shortDescriptionLabel,
-                  hint: ArabicStrings.descriptionLengthError,
-                  controller: _description,
-                  errorText: _descriptionError,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppSectionHeader(title: ArabicStrings.settingsTitle),
-                _SegmentedRow<GroupVisibility>(
-                  values: const [
-                    GroupVisibility.public,
-                    GroupVisibility.private,
-                  ],
-                  labelOf: (v) => v == GroupVisibility.public
-                      ? ArabicStrings.publicVisibility
-                      : ArabicStrings.privateVisibility,
-                  selected: _visibility,
-                  onChanged: (v) => setState(() => _visibility = v),
-                  enabled: !submitting,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _SegmentedRow<JoinMode>(
-                  values: const [JoinMode.autoAccept, JoinMode.approval],
-                  labelOf: (m) => m == JoinMode.autoAccept
-                      ? ArabicStrings.autoAcceptJoinMode
-                      : ArabicStrings.ownerApprovalJoinMode,
-                  selected: _joinMode,
-                  onChanged: (m) => setState(() => _joinMode = m),
-                  enabled: !submitting,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppSectionHeader(title: ArabicStrings.portionSelectorTitle),
-                FutureBuilder<void>(
-                  future: _metadata,
-                  builder: (context, metadataState) {
-                    if (metadataState.hasError ||
-                        metadataState.connectionState != ConnectionState.done) {
-                      return const SizedBox.shrink();
-                    }
-                    return Wrap(
-                      spacing: AppSpacing.xs,
-                      runSpacing: AppSpacing.xs,
-                      children: [
-                        for (final unit in PortionUnit.values)
-                          _PortionChoice(
-                            unit: unit,
-                            selected: state.portionUnit == unit,
-                            count: _metadataRepository.portions(unit).length,
-                            enabled: !submitting,
-                            onTap: () => context
-                                .read<CreateGroupCubit>()
-                                .selectPortionUnit(unit),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: AppSpacing.lg),
                 if (limitError) ...[
-                  _LimitBanner(colors: colors),
-                  const SizedBox(height: AppSpacing.md),
+                  Padding(
+                    padding: AppSpacing.screenH,
+                    child: _LimitBanner(colors: colors),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
                 ],
-                AppButton(
-                  label: ArabicStrings.createTheGroup,
-                  loading: submitting,
-                  expanded: true,
-                  onPressed: submitting ? null : _submit,
+                Padding(
+                  padding: AppSpacing.screenH,
+                  child: AppButton(
+                    label: ArabicStrings.createTheGroup,
+                    loading: submitting,
+                    expanded: true,
+                    onPressed: submitting ? null : _submit,
+                  ),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.md),
               ],
             ),
           );
@@ -179,6 +201,7 @@ class _SegmentedRow<T> extends StatelessWidget {
   const _SegmentedRow({
     required this.values,
     required this.labelOf,
+    required this.hintOf,
     required this.selected,
     required this.onChanged,
     required this.enabled,
@@ -186,6 +209,7 @@ class _SegmentedRow<T> extends StatelessWidget {
 
   final List<T> values;
   final String Function(T) labelOf;
+  final String Function(T) hintOf;
   final T selected;
   final ValueChanged<T> onChanged;
   final bool enabled;
@@ -193,26 +217,57 @@ class _SegmentedRow<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    return Row(
+    return Column(
       children: [
         for (final value in values) ...[
-          Expanded(
-            child: TextButton(
-              onPressed: enabled ? () => onChanged(value) : null,
-              style: TextButton.styleFrom(
-                backgroundColor: selected == value
-                    ? colors.primaryContainer
-                    : colors.surface,
-                foregroundColor: selected == value
-                    ? colors.onPrimaryContainer
-                    : colors.inkMuted,
-                shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBR),
-                side: BorderSide(color: colors.border),
+          Material(
+            color: selected == value ? colors.primaryContainer : colors.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: AppRadius.mdBR,
+              side: BorderSide(
+                color: selected == value ? colors.primary : colors.border,
               ),
-              child: Text(labelOf(value)),
+            ),
+            child: InkWell(
+              borderRadius: AppRadius.mdBR,
+              onTap: enabled ? () => onChanged(value) : null,
+              child: Padding(
+                padding: const EdgeInsetsDirectional.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      selected == value
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_unchecked,
+                      color: selected == value
+                          ? colors.primary
+                          : colors.inkMuted,
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(labelOf(value), style: AppTypography.label),
+                          const SizedBox(height: AppSpacing.xxs),
+                          Text(
+                            hintOf(value),
+                            style: AppTypography.caption.copyWith(
+                              color: colors.inkMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-          if (value != values.last) const SizedBox(width: AppSpacing.xs),
+          if (value != values.last) const SizedBox(height: AppSpacing.xs),
         ],
       ],
     );
@@ -291,18 +346,33 @@ class _PortionChoice extends StatelessWidget {
           ),
           padding: const EdgeInsetsDirectional.all(AppSpacing.sm),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text(
-              ArabicStrings.portionUnitName(unit),
-              style: AppTypography.label,
+            Icon(
+              selected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
+              color: selected
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            const Text(
-              ArabicStrings.dailyPortionAmount,
-              style: AppTypography.caption,
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    ArabicStrings.portionUnitName(unit),
+                    style: AppTypography.label,
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    ArabicStrings.khatmaDays(days),
+                    style: AppTypography.caption,
+                  ),
+                ],
+              ),
             ),
-            Text(ArabicStrings.khatmaDays(days), style: AppTypography.caption),
           ],
         ),
       ),

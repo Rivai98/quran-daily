@@ -7,6 +7,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/errors/failures.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
+import 'package:quran_daily/core/localization/arabic_formatting.dart';
 import 'package:quran_daily/features/quran_groups/cubit/discovery/discovery_cubit.dart';
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/models/models.dart';
@@ -57,7 +58,11 @@ void main() {
           reason: variant,
         );
         expect(find.text('حلقة الفجر'), findsOneWidget, reason: variant);
-        expect(find.text('٢٧ / ٣٠ عضو نشط'), findsOneWidget, reason: variant);
+        expect(
+          find.text(ArabicFormatting.membersProgress(27)),
+          findsOneWidget,
+          reason: variant,
+        );
         expect(tester.takeException(), isNull, reason: variant);
       });
     },

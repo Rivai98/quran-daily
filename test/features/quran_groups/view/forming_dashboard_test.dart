@@ -1,14 +1,18 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/design_system/app_button.dart';
+import 'package:quran_daily/core/design_system/app_colors.dart';
 import 'package:quran_daily/core/design_system/widgets/skeleton.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
+import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
 import 'package:quran_daily/features/quran_groups/view/widgets/forming_group_view.dart';
 
 import '../../../helpers/test_fixtures.dart';
+import '../../../helpers/quran_metadata_test_asset_bundle.dart';
 import '../../../helpers/widget_test_app.dart';
 
 class _MockRepo extends Mock implements GroupsRepository {}
@@ -60,6 +64,35 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(ArabicStrings.startKhatmaAction), findsOneWidget);
+  });
+
+  testWidgets('start portion choices are green and at least 48dp', (tester) async {
+    final metadata = QuranMetadataRepository(
+      bundle: QuranMetadataTestAssetBundle(),
+    );
+    await tester.runAsync(metadata.load);
+    await tester.pumpWidget(buildArabicTestApp(
+      FormingGroupView(
+        groupId: 'g1',
+        groupName: TestFixtures.groupName,
+        inviteCode: 'AB23CD45',
+        activeMemberCount: 1,
+        isOwner: true,
+        onStartKhatma: (_) {},
+        metadataRepository: metadata,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(ArabicStrings.startKhatmaAction));
+    await tester.pumpAndSettle();
+
+    final selected = tester.widget<ChoiceChip>(find.byType(ChoiceChip).first);
+    final colors = Theme.of(tester.element(find.byType(ChoiceChip).first))
+        .extension<AppColors>()!;
+    expect(selected.selected, isTrue);
+    expect(selected.selectedColor, colors.primaryContainer);
+    expect(tester.getSize(find.byType(ChoiceChip).first).width, greaterThanOrEqualTo(48));
+    expect(tester.getSize(find.byType(ChoiceChip).first).height, greaterThanOrEqualTo(48));
   });
 
   testWidgets('non-owner does not see the start action', (tester) async {

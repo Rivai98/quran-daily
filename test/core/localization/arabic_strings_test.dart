@@ -58,7 +58,18 @@ void main() {
   });
 
   test('maps a suspended sign-in refusal to calm Arabic guidance', () {
-    expect(ArabicStrings.authError('suspended'), ArabicStrings.adminSuspendedSignIn);
+    expect(
+      ArabicStrings.authError('suspended'),
+      ArabicStrings.adminSuspendedSignIn,
+    );
+  });
+
+  test('maps join-any no availability to useful Arabic next steps', () {
+    expect(
+      ArabicStrings.authError('no_group_available'),
+      ArabicStrings.noGroupAvailable,
+    );
+    expect(ArabicStrings.noGroupAvailable, contains('أعد المحاولة'));
   });
 
   test('keeps critical user-facing copy valid UTF-8 Arabic', () {

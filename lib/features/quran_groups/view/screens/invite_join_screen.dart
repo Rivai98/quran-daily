@@ -184,7 +184,7 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
                   const JoinStatusBadge(pending: false),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    ArabicStrings.joinGroupAction,
+                    ArabicStrings.joinedAnyGroup,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ],
@@ -208,9 +208,13 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
                     ),
                     actionLabel: state.failure?.code == 'membership_limit'
                         ? ArabicStrings.groupSelectionTitle
+                        : state.failure?.code == 'no_group_available'
+                        ? ArabicStrings.searchGroupAction
                         : ArabicStrings.retry,
                     onAction: state.failure?.code == 'membership_limit'
                         ? () => Navigator.of(context).pushNamed('/groups')
+                        : state.failure?.code == 'no_group_available'
+                        ? () => Navigator.of(context).pushNamed('/discover')
                         : _joinAny,
                     isError: state.failure?.code != 'no_group_available',
                   ),
