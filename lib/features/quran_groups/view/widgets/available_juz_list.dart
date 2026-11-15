@@ -6,9 +6,9 @@ import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
 import 'validation_banner.dart';
-import '../../../../core/localization/arabic_numerals.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
+import '../../../../core/quran/portion_unit.dart';
 import '../../data/entities/entities.dart';
 
 class AvailableJuzList extends StatefulWidget {
@@ -16,12 +16,14 @@ class AvailableJuzList extends StatefulWidget {
     super.key,
     required this.assignments,
     required this.metadataRepository,
+    this.unit = PortionUnit.juz,
     this.onVolunteer,
     this.volunteeringAssignmentId,
   });
 
   final List<Assignment> assignments;
   final QuranMetadataRepository metadataRepository;
+  final PortionUnit unit;
   final ValueChanged<Assignment>? onVolunteer;
   final String? volunteeringAssignmentId;
 
@@ -40,7 +42,12 @@ class _AvailableJuzListState extends State<AvailableJuzList> {
           (assignment.kind == AssignmentKind.volunteer &&
               assignment.status != AssignmentStatusEnum.unread),
     );
-    final sorted = rows.toList()..sort((a, b) => a.juz.compareTo(b.juz));
+    final sorted = rows.toList()
+      ..sort(
+        (a, b) => widget.unit == PortionUnit.juz
+            ? a.juz.compareTo(b.juz)
+            : a.portionIndex.compareTo(b.portionIndex),
+      );
     if (sorted.isEmpty) return const SizedBox.shrink();
 
     final colors = Theme.of(context).extension<AppColors>()!;
@@ -60,14 +67,21 @@ class _AvailableJuzListState extends State<AvailableJuzList> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      ArabicStrings.juzOrdinals[assignment.juz - 1],
+                      ArabicStrings.portionName(
+                        widget.unit,
+                        assignment.portionIndex,
+                      ),
                       style: AppTypography.label,
                     ),
                     if (metadataState.connectionState == ConnectionState.done &&
                         !metadataState.hasError) ...[
                       const SizedBox(height: AppSpacing.xxs),
                       Text(
-                        _range(widget.metadataRepository, assignment.juz),
+                        _range(
+                          widget.metadataRepository,
+                          widget.unit,
+                          assignment.portionIndex,
+                        ),
                         style: AppTypography.quranLabel,
                       ),
                     ],
@@ -102,11 +116,26 @@ class _AvailableJuzListState extends State<AvailableJuzList> {
     );
   }
 
-  String _range(QuranMetadataRepository metadataRepository, int juz) {
-    final info = metadataRepository.juz(juz);
-    final start = metadataRepository.suraName(info.startSura);
-    final end = metadataRepository.suraName(info.endSura);
-    return '$start ${ArabicNumerals.format(info.startAya)} - '
-        '$end ${ArabicNumerals.format(info.endAya)}';
+  String _range(
+    QuranMetadataRepository metadataRepository,
+    PortionUnit unit,
+    int index,
+  ) {
+    if (unit == PortionUnit.juz) {
+      final info = metadataRepository.juz(index);
+      return ArabicStrings.portionRange(
+        metadataRepository.suraName(info.startSura),
+        info.startAya,
+        metadataRepository.suraName(info.endSura),
+        info.endAya,
+      );
+    }
+    final info = metadataRepository.portion(unit, index);
+    return ArabicStrings.portionRange(
+      metadataRepository.suraName(info.startSura),
+      info.startAya,
+      metadataRepository.suraName(info.endSura),
+      info.endAya,
+    );
   }
 }

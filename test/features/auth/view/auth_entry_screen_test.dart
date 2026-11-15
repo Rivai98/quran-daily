@@ -40,6 +40,7 @@ void main() {
     );
   }
 
+
   testWidgets('login mode: LTR email, password toggle, primary, guidance, '
       'mode switch, and no Google button', (tester) async {
     await tester.pumpWidget(buildArabicTestApp(pumpAuthEntry()));
@@ -58,6 +59,23 @@ void main() {
     // No Google sign-in anywhere.
     expect(find.textContaining('Google'), findsNothing);
     expect(find.byType(Image), findsNothing);
+  });
+
+  testWidgets('golden: auth entry at 360x800 light and dark', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(360, 800);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(buildArabicTestApp(
+      pumpAuthEntry(), size: const Size(360, 800),
+    ));
+    await tester.pumpAndSettle();
+    await expectLater(find.byType(MaterialApp), matchesGoldenFile('../../../goldens/design_c_auth_light.png'));
+    await tester.pumpWidget(buildArabicTestApp(
+      pumpAuthEntry(), dark: true, size: const Size(360, 800),
+    ));
+    await tester.pumpAndSettle();
+    await expectLater(find.byType(MaterialApp), matchesGoldenFile('../../../goldens/design_c_auth_dark.png'));
   });
 
   testWidgets('switching to signup mode shows all four fields',
@@ -99,6 +117,8 @@ void main() {
       (tester) async {
     await tester.pumpWidget(buildArabicTestApp(pumpAuthEntry()));
 
+    await tester.ensureVisible(primaryButton());
+    await tester.pumpAndSettle();
     await tester.tap(primaryButton());
     await tester.pumpAndSettle();
 
@@ -146,6 +166,8 @@ void main() {
         find.byType(TextField).at(0), 'sara@test.local');
     await tester.enterText(find.byType(TextField).at(1), 'password123');
 
+    await tester.ensureVisible(primaryButton());
+    await tester.pumpAndSettle();
     await tester.tap(primaryButton());
     await tester.pump();
 

@@ -24,20 +24,47 @@ abstract class KhatmaRepository {
 
   /// Online call; offline: optimistic cache update + enqueue + offlineQueued.
   Future<Result<DashboardSnapshot>> markComplete(
-      String assignmentId, DateTime clientRecordedAt);
+    String assignmentId,
+    DateTime clientRecordedAt,
+  );
   Future<Result<DashboardSnapshot>> undoCompletion(String assignmentId);
 
   /// Network-only.
   Future<Result<DashboardSnapshot>> volunteer(String assignmentId);
   Future<Result<DashboardSnapshot>> overrideAssignment(
-      String assignmentId, String membershipId);
+    String assignmentId,
+    String membershipId,
+  );
 
   /// Network + cache last page.
-  Future<Result<List<HistoryDaySummary>>> getHistory(String groupId,
-      {String? beforeDate, int limit = 30});
+  Future<Result<List<HistoryDaySummary>>> getHistory(
+    String groupId, {
+    String? beforeDate,
+    int limit = 30,
+  });
   Future<Result<HistoryDaySummary>> getHistoryDay(
-      String groupId, String groupDate);
+    String groupId,
+    String groupDate,
+  );
 
   /// Replays the sync queue in order; `day_closed` maps to a failed item.
   Future<SyncReport> syncPending();
+}
+
+extension KhatmaHistoryCycles on KhatmaRepository {
+  Future<Result<List<HistoryCycleSummary>>> getHistoryCycles(
+    String groupId, {
+    String? beforeDate,
+    int limit = 30,
+  }) async {
+    final result = await getHistory(
+      groupId,
+      beforeDate: beforeDate,
+      limit: limit,
+    );
+    return result.when(
+      success: (days) => Success(groupHistoryByCycle(days)),
+      failure: FailureResult<List<HistoryCycleSummary>>.new,
+    );
+  }
 }

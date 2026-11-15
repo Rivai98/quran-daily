@@ -9,6 +9,8 @@ import '../../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../../core/design_system/widgets/skeleton.dart';
 import '../../../../core/localization/arabic_numerals.dart';
 import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/quran/portion_unit.dart';
+import '../../../../core/quran/quran_metadata_repository.dart';
 import '../../data/entities/entities.dart';
 
 /// Forming state of S5 (ui-contract): member ratio, missing seats, invite
@@ -26,6 +28,8 @@ class FormingGroupView extends StatelessWidget {
     this.seatMap,
     this.loading = false,
     required this.onStartKhatma,
+    this.portionUnit = PortionUnit.juz,
+    this.metadataRepository,
   });
 
   final String groupId;
@@ -36,6 +40,8 @@ class FormingGroupView extends StatelessWidget {
   final SeatMap? seatMap;
   final bool loading;
   final ValueChanged<int> onStartKhatma;
+  final PortionUnit portionUnit;
+  final QuranMetadataRepository? metadataRepository;
 
   int get _missing => 30 - activeMemberCount;
 
@@ -69,7 +75,7 @@ class FormingGroupView extends StatelessWidget {
                       child: Text(
                         ArabicStrings.formingLabel,
                         style: AppTypography.caption.copyWith(
-                          color: colors.pendingFg,
+                          color: colors.infoFg,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -131,60 +137,96 @@ class FormingGroupView extends StatelessWidget {
   }
 
   void _showStartSheet(BuildContext context) {
-    var startJuz = 1;
+    final metadata = metadataRepository ?? QuranMetadataRepository();
+    var startPortion = 1;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (sheetContext) {
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            return SingleChildScrollView(
-              padding: const EdgeInsetsDirectional.fromSTEB(
-                AppSpacing.md,
-                0,
-                AppSpacing.md,
-                AppSpacing.lg,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    ArabicStrings.startKhatmaAction,
-                    style: AppTypography.title,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(ArabicStrings.startJuzChoice, style: AppTypography.body),
-                  const SizedBox(height: AppSpacing.md),
-                  Wrap(
-                    spacing: AppSpacing.xs,
-                    runSpacing: AppSpacing.xs,
-                    children: [
-                      for (var juz = 1; juz <= 30; juz++)
-                        ChoiceChip(
-                          label: Text(ArabicNumerals.format(juz)),
-                          selected: startJuz == juz,
-                          onSelected: (_) =>
-                              setSheetState(() => startJuz = juz),
+      builder: (sheetContext) => FutureBuilder<void>(
+        future: metadata.load(),
+        builder: (sheetContext, metadataState) {
+          if (metadataState.connectionState != ConnectionState.done ||
+              metadataState.hasError) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final count = metadata.portions(portionUnit).length;
+          return StatefulBuilder(
+            builder: (context, setSheetState) {
+              return SingleChildScrollView(
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                  AppSpacing.md,
+                  0,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      ArabicStrings.startKhatmaAction,
+                      style: AppTypography.title,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      portionUnit == PortionUnit.juz
+                          ? ArabicStrings.startJuzChoice
+                          : ArabicStrings.startPortionChoice,
+                      style: AppTypography.body,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    if (portionUnit == PortionUnit.juz)
+                      Wrap(
+                        spacing: AppSpacing.xs,
+                        runSpacing: AppSpacing.xs,
+                        children: [
+                          for (var portion = 1; portion <= count; portion++)
+                            ChoiceChip(
+                              label: Text(ArabicNumerals.format(portion)),
+                              selected: startPortion == portion,
+                              onSelected: (_) =>
+                                  setSheetState(() => startPortion = portion),
+                            ),
+                        ],
+                      )
+                    else
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.sizeOf(context).height * 0.4,
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  AppButton(
-                    label: ArabicStrings.startKhatmaAction,
-                    expanded: true,
-                    onPressed: () {
-                      Navigator.of(sheetContext).pop();
-                      onStartKhatma(startJuz);
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+                        child: ListView.builder(
+                          itemCount: count,
+                          itemBuilder: (context, index) {
+                            final portion = index + 1;
+                            return ListTile(
+                              selected: startPortion == portion,
+                              title: Text(
+                                ArabicStrings.portionName(portionUnit, portion),
+                                style: AppTypography.quranLabel,
+                              ),
+                              onTap: () =>
+                                  setSheetState(() => startPortion = portion),
+                            );
+                          },
+                        ),
+                      ),
+                    const SizedBox(height: AppSpacing.md),
+                    AppButton(
+                      label: ArabicStrings.startKhatmaAction,
+                      expanded: true,
+                      onPressed: () {
+                        Navigator.of(sheetContext).pop();
+                        onStartKhatma(startPortion);
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

@@ -17,9 +17,25 @@ values
  ('d4000000-0000-0000-0000-000000000105','نشطة','d4000000-0000-0000-0000-000000000001','Asia/Riyadh','public','auto_accept','active',1,current_date,'US4E2345'),
  ('d4000000-0000-0000-0000-000000000106','مؤرشفة','d4000000-0000-0000-0000-000000000001','Africa/Cairo','private','auto_accept','archived',null,null,'US4F2345');
 
+-- Isolate join-any from pre-existing hosted DEV groups. The test transaction
+-- rolls this temporary visibility change back after assertions finish.
+update public.groups set visibility='private'
+where visibility='public' and id not in (
+  'd4000000-0000-0000-0000-000000000101',
+  'd4000000-0000-0000-0000-000000000102',
+  'd4000000-0000-0000-0000-000000000104',
+  'd4000000-0000-0000-0000-000000000105'
+);
+
 insert into public.group_memberships (group_id,user_id,role,status,seat_number)
 select g.id, 'd4000000-0000-0000-0000-000000000001', 'owner','active',1
-from public.groups g where g.id <> 'd4000000-0000-0000-0000-000000000104';
+from public.groups g where g.id in (
+  'd4000000-0000-0000-0000-000000000101',
+  'd4000000-0000-0000-0000-000000000102',
+  'd4000000-0000-0000-0000-000000000103',
+  'd4000000-0000-0000-0000-000000000105',
+  'd4000000-0000-0000-0000-000000000106'
+);
 do $$
 declare n integer;
 begin
@@ -43,11 +59,11 @@ from generate_series(1,30) s;
 
 select set_config('request.jwt.claims',json_build_object('sub','d4000000-0000-0000-0000-000000000002','role','authenticated')::text,true);
 
-select is((select count(*) from public.search_public_groups(null,true,20,0)),3::bigint,'discovery lists public groups needing seats');
-select is((select count(*) from public.search_public_groups(null,false,20,0)),4::bigint,'discovery may include full public groups');
+select is((select count(*) from public.search_public_groups(null,true,100,0) r where r->>'group_id' like 'd4000000-%'),3::bigint,'discovery lists public groups needing seats');
+select is((select count(*) from public.search_public_groups(null,false,100,0) r where r->>'group_id' like 'd4000000-%'),4::bigint,'discovery may include full public groups');
 select is((select r.value->>'group_id' from public.search_public_groups(null,false,20,0) with ordinality as r(value,ord) where r.ord=1),'d4000000-0000-0000-0000-000000000104','discovery sorts groups closest to full first');
 select is((select public.get_invite_preview('US4C2345')->>'group_id'),'d4000000-0000-0000-0000-000000000103','invite preview supports private groups');
-select is((select count(*) from jsonb_object_keys(public.get_invite_preview('US4A2345'))),9::bigint,'invite preview exposes profile and own request fields only');
+select is((select count(*) from jsonb_object_keys(public.get_invite_preview('US4A2345')) k where k not in ('portion_unit')),9::bigint,'invite preview exposes profile and own request fields');
 select ok((select not (r.value ? 'members') and not (r.value ? 'progress') from public.search_public_groups(null,true,20,0) with ordinality as r(value,ord) where r.ord=1),'public discovery exposes no member list or progress');
 select is(public.get_invite_preview('US4F2345')->>'status','archived','archived invite preview explains the unavailable group');
 select throws_ok('select public.get_invite_preview(''BADCODE1'')','P0001','invite_invalid','invalid invite code rejected');

@@ -67,7 +67,10 @@ class HistoryDayDetail extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          ArabicStrings.juzName(day.myResult!.juz),
+                          ArabicStrings.portionName(
+                            day.portionUnit,
+                            day.myResult!.portionIndex,
+                          ),
                           style: AppTypography.title,
                         ),
                         const SizedBox(height: AppSpacing.xxs),
@@ -82,6 +85,7 @@ class HistoryDayDetail extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(width: AppSpacing.xs),
                   StatusChip(status: _toDesignStatus(day.myResult!.status)),
                 ],
               ),
@@ -110,7 +114,10 @@ class HistoryDayDetail extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            ArabicStrings.juzName(assignment.juz),
+                            ArabicStrings.portionName(
+                              day.portionUnit,
+                              assignment.portionIndex,
+                            ),
                             style: AppTypography.bodyLarge.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -127,6 +134,7 @@ class HistoryDayDetail extends StatelessWidget {
                         ],
                       ),
                     ),
+                    const SizedBox(width: AppSpacing.xs),
                     StatusChip(status: _toDesignStatus(assignment.status)),
                   ],
                 ),

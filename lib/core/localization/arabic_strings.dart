@@ -1,3 +1,6 @@
+import 'arabic_numerals.dart';
+import '../quran/portion_unit.dart';
+
 class ArabicStrings {
   const ArabicStrings._();
 
@@ -13,7 +16,12 @@ class ArabicStrings {
   static const activeMembersCount = 'الأعضاء النشطون';
   static const formingDashboard = 'المجموعة في طور التكوين';
   static const memberSeats = 'مقاعد الأعضاء';
+  // --- Main design pass: dashboard and group list copy ---
   static const juzGridTitle = 'الأجزاء';
+  static const groupsHeaderSubtitle = 'وردكم اليومي يبدأ بخطوة معًا';
+  static const groupShortcutsTitle = 'طرق سريعة للانضمام';
+  static String membersProgress(int members) =>
+      '${ArabicNumerals.format(members)} من ${ArabicNumerals.format(30)} عضو';
   static const assignmentGroupDate = 'ورد اليوم';
 
   static const appName =
@@ -461,4 +469,61 @@ class ArabicStrings {
   static const signOutConfirmMessage = 'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
   static const quranTextSizeTitle = 'حجم خط قراءة الأجزاء';
   static const quranPreviewText = 'الجزء الأول';
+
+  // --- 004 portion metadata ---
+  static const portionUnitJuz = '\u{627}\u{644}\u{62c}\u{632}\u{621}';
+  static const portionUnitHalfJuz =
+      '\u{646}\u{635}\u{641} \u{627}\u{644}\u{62c}\u{632}\u{621}';
+  static const portionUnitHizb = '\u{627}\u{644}\u{62d}\u{632}\u{628}';
+  static const portionUnitQuarter =
+      '\u{631}\u{628}\u{639} \u{627}\u{644}\u{62d}\u{632}\u{628}';
+  static const portionUnitPage = '\u{627}\u{644}\u{635}\u{641}\u{62d}\u{629}';
+
+  static String portionUnitName(PortionUnit unit) => switch (unit) {
+    PortionUnit.juz => portionUnitJuz,
+    PortionUnit.halfJuz => portionUnitHalfJuz,
+    PortionUnit.hizb => portionUnitHizb,
+    PortionUnit.quarter => portionUnitQuarter,
+    PortionUnit.page => portionUnitPage,
+  };
+
+  /// Formats ordinal unit names using the shared Arabic-Indic numeral formatter.
+  static String portionName(PortionUnit unit, int index) =>
+      unit == PortionUnit.juz
+      ? juzName(index)
+      : '${portionUnitName(unit)} ${ArabicNumerals.format(index)}';
+
+  // --- 004 portion units UI ---
+  static const portionSelectorTitle = 'الورد اليومي';
+  static const startPortionChoice = 'اختر بداية الختمة';
+  static const cycleLabel = '\u{627}\u{644}\u{62e}\u{62a}\u{645}\u{629}';
+  static const dailyPortionAmount =
+      '\u{648}\u{62d}\u{62f}\u{629} \u{648}\u{627}\u{62d}\u{62f}\u{629} \u{644}\u{643}\u{644} \u{639}\u{636}\u{648} \u{64a}\u{648}\u{645}\u{64a}\u{627}';
+  static String khatmaDays(int days) => days == 1
+      ? 'ختمة يوميًا'
+      : days == 2
+      ? 'ختمة كل يومين'
+      : 'ختمة كل ${ArabicNumerals.format(days)} يومًا';
+  static String dailyUnitChip(PortionUnit unit) =>
+      '${portionUnitName(unit)} يوميًا';
+  static String portionRange(
+    String startSura,
+    int startAya,
+    String endSura,
+    int endAya,
+  ) =>
+      'من $startSura آية ${ArabicNumerals.format(startAya)} إلى $endSura آية ${ArabicNumerals.format(endAya)}';
+  static String cycleProgress(int day, int length, int completed, int total) =>
+      'اليوم ${ArabicNumerals.format(day)} من ${ArabicNumerals.format(length)} · أُنجز ${ArabicNumerals.format(completed)} من ${ArabicNumerals.format(total)}';
+  static const restDay = 'لا ورد اليوم';
+  static const volunteeredPortion = 'وحدة تطوعت بقراءتها';
+  static String restDaySeatLabel(String seat) =>
+      '${historySeat(seat)}، $restDay';
+  static String pendingPortionChange(PortionUnit unit) =>
+      'سيتغير الورد إلى ${portionUnitName(unit)} بداية الختمة القادمة';
+  static const confirmPortionChange = 'تأكيد تغيير الورد';
+  static const portionChangeAppliesNextCycle =
+      'سيبدأ التغيير مع بداية الختمة القادمة.';
+  static const portionChangeAppliesImmediately =
+      'سيبدأ هذا الورد عند بدء الختمة.';
 }

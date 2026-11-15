@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
-
 import '../../../../core/errors/result.dart';
 import '../entities/entities.dart';
+import '../../../../core/quran/portion_unit.dart';
 import '../models/models.dart';
 
 class CreateGroupInput extends EquatableInput {
@@ -12,6 +12,7 @@ class CreateGroupInput extends EquatableInput {
     required this.joinMode,
     this.shortDescription,
     this.dayStartTime = '00:00',
+    this.portionUnit = PortionUnit.juz,
   });
 
   final String name;
@@ -20,11 +21,18 @@ class CreateGroupInput extends EquatableInput {
   final String dayStartTime;
   final GroupVisibility visibility;
   final JoinMode joinMode;
+  final PortionUnit portionUnit;
 
   @override
   List<Object?> get props => [
-        name, shortDescription, timezone, dayStartTime, visibility, joinMode,
-      ];
+    name,
+    shortDescription,
+    timezone,
+    dayStartTime,
+    visibility,
+    joinMode,
+    portionUnit,
+  ];
 }
 
 class CreatedGroup extends EquatableInput {
@@ -45,6 +53,7 @@ class GroupSettingsPatch extends EquatableInput {
     this.dayStartTime,
     this.visibility,
     this.joinMode,
+    this.portionUnit,
   });
 
   final String? name;
@@ -53,6 +62,7 @@ class GroupSettingsPatch extends EquatableInput {
   final String? dayStartTime;
   final GroupVisibility? visibility;
   final JoinMode? joinMode;
+  final PortionUnit? portionUnit;
 
   bool get isEmpty =>
       name == null &&
@@ -60,12 +70,19 @@ class GroupSettingsPatch extends EquatableInput {
       timezone == null &&
       dayStartTime == null &&
       visibility == null &&
-      joinMode == null;
+      joinMode == null &&
+      portionUnit == null;
 
   @override
   List<Object?> get props => [
-        name, shortDescription, timezone, dayStartTime, visibility, joinMode,
-      ];
+    name,
+    shortDescription,
+    timezone,
+    dayStartTime,
+    visibility,
+    joinMode,
+    portionUnit,
+  ];
 }
 
 /// Non-generic base for inputs (keeps signatures simple).
@@ -80,9 +97,13 @@ abstract class GroupsRepository {
 
   Future<Result<CreatedGroup>> createGroup(CreateGroupInput input);
   Future<Result<MyGroupSummary>> updateGroupSettings(
-      String groupId, GroupSettingsPatch patch);
+    String groupId,
+    GroupSettingsPatch patch,
+  );
   Future<Result<DashboardSnapshot>> startKhatma(
-      String groupId, int startJuz);
+    String groupId,
+    int startPortion,
+  );
   Future<Result<void>> archiveGroup(String groupId);
   Future<Result<void>> transferOwnership(String groupId, String membershipId);
   Future<Result<String>> regenerateInvite(String groupId);
@@ -101,15 +122,20 @@ abstract class GroupsRepository {
   });
   Future<Result<JoinOutcome>> joinAnyGroup(String deviceTimezone);
   Future<Result<void>> cancelJoinRequest(String joinRequestId);
-  Future<Result<List<PublicJoinRequestInfo>>> listJoinRequests(
-      String groupId);
+  Future<Result<List<PublicJoinRequestInfo>>> listJoinRequests(String groupId);
   Future<Result<void>> reviewJoinRequest(String joinRequestId, bool approve);
 
   Future<Result<SeatMap>> getMembers(String groupId);
   Future<Result<void>> moveMemberSeat(
-      String groupId, String membershipId, int targetSeat);
+    String groupId,
+    String membershipId,
+    int targetSeat,
+  );
   Future<Result<void>> setMemberRole(
-      String groupId, String membershipId, GroupRole role);
+    String groupId,
+    String membershipId,
+    GroupRole role,
+  );
   Future<Result<void>> removeMember(String groupId, String membershipId);
   Future<Result<void>> leaveGroup(String groupId);
 }
@@ -128,6 +154,10 @@ class PublicJoinRequestInfo extends EquatableInput {
   final JoinSource source;
 
   @override
-  List<Object?> get props =>
-      [joinRequestId, userDisplayName, requestedAt, source];
+  List<Object?> get props => [
+    joinRequestId,
+    userDisplayName,
+    requestedAt,
+    source,
+  ];
 }

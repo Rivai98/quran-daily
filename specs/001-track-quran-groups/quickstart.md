@@ -100,10 +100,10 @@ Before public release, the project owner performs these steps:
 | Target / Suite | Command | Result | Notes |
 |---|---|---|---|
 | Static Analysis | `flutter analyze` | PASS (0 issues) | Clean run |
-| Unit & Widget Tests | `flutter test` | PASS (292 passing) | 100% passing across all feature suites |
-| pgTAP DB Tests | `python scripts/run_remote_pgtap.py supabase/tests/*.sql` | PASS (10 files green) | All 10 test suites passed against dev DB |
-| Integration: Group Flow | `flutter test integration_test/group_flow_test.dart -d <device-id> --dart-define-from-file=.env` | pending | Orchestrator fills on attached device |
-| Integration: Offline Completion | `flutter test integration_test/offline_completion_test.dart -d <device-id> --dart-define-from-file=.env` | pending | Orchestrator fills on attached device |
+| Unit & Widget Tests | `flutter test` | PASS (295 passing) | After design passes A-C and the T111 fixes |
+| pgTAP DB Tests | `python scripts/run_remote_pgtap.py supabase/tests/<file>.sql` (each file) | PASS (10/10 files, 204 assertions) | Hosted dev DB, which also carries the additive spec 004 migrations; US4 test scoped to its own groups |
+| Integration: Group Flow | `flutter test integration_test/group_flow_test.dart -d <device-id> --dart-define-from-file=.env` | PASS (Android emulator API 35) | sign up -> create -> 2nd user joins -> start -> complete -> undo -> history; found and fixed start/complete bugs |
+| Integration: Offline Completion | `flutter test integration_test/offline_completion_test.dart -d <device-id> --dart-define-from-file=.env` | PASS (Android emulator API 35) | |
 | Integration: Host Offline Journey | `flutter test test/integration_offline_completion_test.dart` | PASS | Verified in flutter test suite |
-| Android Device / Emulator | Acceptance scenarios 1–12 | pending | Orchestrator fills on device |
-| iOS Simulator | Acceptance scenarios 1–12 | pending | Orchestrator fills on simulator |
+| Android Device / Emulator | Acceptance scenarios 1–12 | PARTIAL | Owner walked through auth, group list, dashboard, members on a Samsung A53 (Android 16); scenarios 1-3, 5-6 covered by the integration test; others not run manually |
+| iOS Simulator | Acceptance scenarios 1–12 | NOT RUN | No macOS/Xcode available in this environment; must be run before an iOS release |
