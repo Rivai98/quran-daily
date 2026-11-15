@@ -21,8 +21,8 @@ migration repair --remote --yes --status applied <version>` (never db push).
 
 ## Phase 3: App data layer
 
-- [ ] T008 [P] Entities/models: `portionUnit` on MyGroupSummary, PublicGroupCard, InvitePreview, DashboardSnapshot; `portionIndex` on Assignment (fallback to juz); `CycleInfo`; `pendingPortionUnit`; JSON mappers + tests
-- [ ] T009 Repositories: `createGroup(input with unit)`, `startKhatma(groupId, startPortion)`, `updateGroupSettings(unit)`; history cycles; tests
+- [X] T008 [P] Entities/models: `portionUnit` on MyGroupSummary, PublicGroupCard, InvitePreview, DashboardSnapshot; `portionIndex` on Assignment (fallback to juz); `CycleInfo`; `pendingPortionUnit`; JSON mappers + tests
+- [X] T009 Repositories: `createGroup(input with unit)`, `startKhatma(groupId, startPortion)`, `updateGroupSettings(unit)`; history cycles; tests
 
 ## Phase 4: UI (US1-US4)
 

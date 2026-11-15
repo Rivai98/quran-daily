@@ -1,9 +1,88 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/models/models.dart';
+import 'package:quran_daily/core/quran/portion_unit.dart';
 
 void main() {
   group('mappers round-trip', () {
+    test('missing portion fields retain juz semantics', () {
+      final group = myGroupSummaryFromJson({
+        'group_id': 'g1',
+        'name': 'x',
+        'status': 'active',
+        'my_role': 'owner',
+        'active_member_count': 1,
+      });
+      expect(group.portionUnit, PortionUnit.juz);
+      expect(group.pendingPortionUnit, isNull);
+
+      final assignment = assignmentFromJson({
+        'assignment_id': 'a1',
+        'juz': 7,
+        'seat_number': 1,
+        'kind': 'seat',
+        'status': 'pending',
+      });
+      expect(assignment.portionIndex, 7);
+
+      final dashboard = dashboardSnapshotFromJson({
+        'group_id': 'g1',
+        'group_name': 'x',
+        'my_role': 'owner',
+        'status': 'active',
+        'server_generated_at': '2026-11-15T00:00:00Z',
+      });
+      expect(dashboard.portionUnit, PortionUnit.juz);
+      expect(dashboard.pendingPortionUnit, isNull);
+      expect(dashboard.cycle, isNull);
+    });
+
+    test('portion and cycle fields round-trip', () {
+      final dashboard = dashboardSnapshotFromJson({
+        'group_id': 'g1',
+        'group_name': 'x',
+        'my_role': 'owner',
+        'status': 'active',
+        'server_generated_at': '2026-11-15T00:00:00Z',
+        'portion_unit': 'hizb',
+        'pending_portion_unit': 'page',
+        'cycle': {
+          'number': 4,
+          'day': 2,
+          'length': 2,
+          'completed': 30,
+          'total': 60,
+        },
+      });
+      final restored = dashboardSnapshotFromJson(
+        dashboardSnapshotToJson(dashboard),
+      );
+      expect(restored.portionUnit, PortionUnit.hizb);
+      expect(restored.pendingPortionUnit, PortionUnit.page);
+      expect(
+        restored.cycle,
+        const CycleInfo(number: 4, day: 2, length: 2, completed: 30, total: 60),
+      );
+    });
+
+    test(
+      'history days group under their cycle and legacy dates stay separate',
+      () {
+        final cycleDays = [
+          historyDaySummaryFromJson({
+            'group_date': '2026-11-01',
+            'cycle_number': 2,
+            'cycle_day': 1,
+          }),
+          historyDaySummaryFromJson({
+            'group_date': '2026-11-02',
+            'cycle_number': 2,
+            'cycle_day': 2,
+          }),
+        ];
+        expect(groupHistoryByCycle(cycleDays).single.days, hasLength(2));
+      },
+    );
     test('MyGroupSummary', () {
       const g = MyGroupSummary(
         groupId: 'g1',
@@ -50,15 +129,19 @@ void main() {
             seatNumber: 9,
             kind: kind,
             status: status,
-            readerDisplayName:
-                kind == AssignmentKind.unassigned ? null : 'سارة',
+            readerDisplayName: kind == AssignmentKind.unassigned
+                ? null
+                : 'سارة',
             isMe: true,
             completedAt: status == AssignmentStatusEnum.completed
                 ? DateTime.parse('2026-11-14T08:00:00Z')
                 : null,
           );
-          expect(assignmentFromJson(assignmentToJson(a)), a,
-              reason: '$kind/$status');
+          expect(
+            assignmentFromJson(assignmentToJson(a)),
+            a,
+            reason: '$kind/$status',
+          );
         }
       }
     });
@@ -150,14 +233,18 @@ void main() {
         inviteCode: 'AB23CD45',
       );
 
-      final restored =
-          dashboardSnapshotFromJson(dashboardSnapshotToJson(snapshot));
+      final restored = dashboardSnapshotFromJson(
+        dashboardSnapshotToJson(snapshot),
+      );
       expect(restored.groupId, snapshot.groupId);
       expect(restored.today, snapshot.today);
       expect(restored.myAssignments, snapshot.myAssignments);
       expect(restored.assignments.length, 30);
-      expect(restored.assignments.map((a) => a.juz).toSet().length, 30,
-          reason: 'each of the 30 juz appears exactly once');
+      expect(
+        restored.assignments.map((a) => a.juz).toSet().length,
+        30,
+        reason: 'each of the 30 juz appears exactly once',
+      );
       expect(restored.isStale, isFalse);
     });
 
@@ -185,8 +272,9 @@ void main() {
         inviteCode: 'AB23CD45',
       );
 
-      final restored =
-          dashboardSnapshotFromJson(dashboardSnapshotToJson(snapshot));
+      final restored = dashboardSnapshotFromJson(
+        dashboardSnapshotToJson(snapshot),
+      );
       expect(restored.seats!.members.single.seatNumber, 1);
       expect(restored.assignments, isEmpty);
     });
@@ -244,10 +332,7 @@ void main() {
         membershipId: 'm9',
         seatNumber: 4,
       );
-      final pending = JoinOutcome(
-        joined: false,
-        joinRequestId: 'jr7',
-      );
+      final pending = JoinOutcome(joined: false, joinRequestId: 'jr7');
 
       expect(
         joinOutcomeFromJson({
@@ -258,10 +343,7 @@ void main() {
         joined,
       );
       expect(
-        joinOutcomeFromJson({
-          'result': 'pending',
-          'join_request_id': 'jr7',
-        }),
+        joinOutcomeFromJson({'result': 'pending', 'join_request_id': 'jr7'}),
         pending,
       );
     });
