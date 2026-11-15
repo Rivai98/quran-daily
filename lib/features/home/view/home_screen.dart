@@ -54,13 +54,11 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, state) {
         if (state.status == HomeStatus.initial ||
             (state.status == HomeStatus.loading && state.snapshot == null)) {
-          return const AppPageContent(
-            child: Center(child: CircularProgressIndicator()),
-          );
+          return const AppPageContent(child: _HomeSkeleton());
         }
         if (state.status == HomeStatus.failure && state.snapshot == null) {
           return StatePanel(
-            icon: Icons.wifi_off,
+            icon: Icons.wifi_off_rounded,
             title: ArabicStrings.todayLoadError,
             message: ArabicStrings.networkFailure,
             actionLabel: ArabicStrings.retry,
@@ -159,36 +157,51 @@ class _HomeScreenState extends State<HomeScreen> {
     children: [
       DateHeader(date: widget.date ?? DateTime.now()),
       const SizedBox(height: AppSpacing.lg),
-      StatePanel(
-        icon: Icons.groups,
+      StatePanel.empty(
+        icon: Icons.groups_rounded,
         title: ArabicStrings.homeEmptyTitle,
-        message: '',
-        actionLabel: ArabicStrings.joinAnyGroupAction,
-        onAction: () => Navigator.pushNamed(context, '/join-any'),
+        message: ArabicStrings.groupsNeedMembersEntry,
+        actionLabel: ArabicStrings.searchGroupAction,
+        actionIcon: const Icon(Icons.search_rounded),
+        onAction: () => Navigator.pushNamed(context, AppRoutes.discovery),
       ),
-      const SizedBox(height: AppSpacing.sm),
-      AppButton(
-        label: ArabicStrings.searchGroupAction,
-        variant: AppButtonVariant.secondary,
-        expanded: true,
-        icon: const Icon(Icons.search),
-        onPressed: () => Navigator.pushNamed(context, AppRoutes.discovery),
+    ],
+  );
+}
+
+class _HomeSkeleton extends StatelessWidget {
+  const _HomeSkeleton();
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: AppSpacing.screenContent,
+    children: const [
+      SkeletonBox(width: 150, height: 24),
+      SizedBox(height: AppSpacing.md),
+      AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SkeletonBox(width: 120, height: 20),
+            SizedBox(height: AppSpacing.sm),
+            SkeletonBox(height: 8),
+            SizedBox(height: AppSpacing.md),
+            SkeletonBox(width: 220, height: 20),
+            SizedBox(height: AppSpacing.sm),
+            SkeletonBox(height: 48),
+          ],
+        ),
       ),
-      const SizedBox(height: AppSpacing.sm),
-      AppButton(
-        label: ArabicStrings.joinByInviteAction,
-        variant: AppButtonVariant.secondary,
-        expanded: true,
-        icon: const Icon(Icons.key_outlined),
-        onPressed: () => Navigator.pushNamed(context, '/join'),
-      ),
-      const SizedBox(height: AppSpacing.sm),
-      AppButton(
-        label: ArabicStrings.createGroup,
-        variant: AppButtonVariant.secondary,
-        expanded: true,
-        icon: const Icon(Icons.add),
-        onPressed: () => Navigator.pushNamed(context, '/groups/new'),
+      SizedBox(height: AppSpacing.sm),
+      AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SkeletonBox(width: 160, height: 20),
+            SizedBox(height: AppSpacing.sm),
+            SkeletonBox(height: 20),
+          ],
+        ),
       ),
     ],
   );

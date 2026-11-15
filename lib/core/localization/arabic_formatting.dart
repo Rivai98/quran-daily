@@ -14,4 +14,13 @@ class ArabicFormatting {
 
   static String pageAyahMeta(int page, int ayahs) =>
       'صفحة ${isolate(ArabicNumerals.format(page))} · ${isolate(ArabicNumerals.format(ayahs))} آيات';
+
+  static String timezoneCity(String timezone) => switch (timezone) {
+    'Africa/Cairo' => 'القاهرة',
+    'Asia/Riyadh' => 'الرياض',
+    'Asia/Makkah' => 'مكة',
+    'Asia/Madinah' => 'المدينة',
+    'UTC' => 'التوقيت العالمي',
+    _ => 'التوقيت المحلي',
+  };
 }

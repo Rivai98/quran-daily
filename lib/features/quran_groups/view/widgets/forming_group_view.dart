@@ -147,7 +147,10 @@ class FormingGroupView extends StatelessWidget {
         builder: (sheetContext, metadataState) {
           if (metadataState.connectionState != ConnectionState.done ||
               metadataState.hasError) {
-            return const Center(child: CircularProgressIndicator());
+            return const Padding(
+              padding: AppSpacing.screenContent,
+              child: SkeletonBox(height: 192),
+            );
           }
           final count = metadata.portions(portionUnit).length;
           return StatefulBuilder(

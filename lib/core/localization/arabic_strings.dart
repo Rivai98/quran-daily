@@ -504,6 +504,9 @@ class ArabicStrings {
   static const offlineStale =
       '\u{623}\u{646}\u{62a} \u{62a}\u{639}\u{631}\u{636} \u{628}\u{64a}\u{627}\u{646}\u{627}\u{62a} \u{645}\u{62d}\u{641}\u{648}\u{638}\u{629}. \u{642}\u{62f} \u{644}\u{627} \u{62a}\u{643}\u{648}\u{646} \u{645}\u{62a}\u{627}\u{628}\u{639}\u{629} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{645}\u{62d}\u{62f}\u{62b}\u{629}.';
   static const noApprovedGroups = 'لم تنضم إلى حلقة بعد';
+  static const groupSelectionEmptyMessage =
+      'اختر حلقة متاحة أو ابدأ حلقتك الخاصة.';
+  static const groupSelectionJoinAction = 'انضم لأي حلقة';
   static const noPublicGroups =
       '\u{644}\u{627} \u{62a}\u{648}\u{62c}\u{62f} \u{646}\u{62a}\u{627}\u{626}\u{62c} \u{645}\u{637}\u{627}\u{628}\u{642}\u{629}. \u{63a}\u{64a}\u{651}\u{631} \u{643}\u{644}\u{645}\u{627}\u{62a} \u{627}\u{644}\u{628}\u{62d}\u{62b} \u{623}\u{648} \u{627}\u{645}\u{633}\u{62d} \u{627}\u{644}\u{62a}\u{635}\u{641}\u{64a}\u{629}.';
   static const noJoinRequests = 'طلبات الانضمام بانتظارك';
@@ -773,7 +776,7 @@ class ArabicStrings {
       ? 'ختمة يوميًا'
       : days == 2
       ? 'ختمة كل يومين'
-      : 'ختمة كل ${ArabicNumerals.format(days)} يومًا';
+      : 'ختمة كل ${ArabicFormatting.isolate(ArabicNumerals.format(days))} يومًا';
   static String dailyUnitChip(PortionUnit unit) =>
       '${portionUnitName(unit)} يومي';
   // --- 005 log ---
@@ -803,9 +806,9 @@ class ArabicStrings {
     String endSura,
     int endAya,
   ) =>
-      'من $startSura آية ${ArabicNumerals.format(startAya)} إلى $endSura آية ${ArabicNumerals.format(endAya)}';
+      'من $startSura آية ${ArabicFormatting.isolate(ArabicNumerals.format(startAya))} إلى $endSura آية ${ArabicFormatting.isolate(ArabicNumerals.format(endAya))}';
   static String cycleProgress(int day, int length, int completed, int total) =>
-      'اليوم ${ArabicNumerals.format(day)} من ${ArabicNumerals.format(length)} · أُنجز ${ArabicNumerals.format(completed)} من ${ArabicNumerals.format(total)}';
+      'اليوم ${ArabicFormatting.isolate(ArabicNumerals.format(day))} من ${ArabicFormatting.isolate(ArabicNumerals.format(length))} · أُنجز ${ArabicFormatting.isolate(ArabicNumerals.format(completed))} من ${ArabicFormatting.isolate(ArabicNumerals.format(total))}';
   static String homeGroupProgress(
     int day,
     int completedMembers,

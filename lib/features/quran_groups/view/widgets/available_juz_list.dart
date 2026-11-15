@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/design_system/widgets/app_banner.dart';
+
 import '../../../../core/design_system/app_button.dart';
-import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
-import 'validation_banner.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
 import '../../../../core/quran/portion_unit.dart';
@@ -50,7 +50,6 @@ class _AvailableJuzListState extends State<AvailableJuzList> {
       );
     if (sorted.isEmpty) return const SizedBox.shrink();
 
-    final colors = Theme.of(context).extension<AppColors>()!;
     return FutureBuilder<void>(
       future: _metadata,
       builder: (context, metadataState) => Column(
@@ -87,10 +86,10 @@ class _AvailableJuzListState extends State<AvailableJuzList> {
                     ],
                     const SizedBox(height: AppSpacing.xs),
                     if (assignment.kind == AssignmentKind.volunteer)
-                      ValidationBanner(
+                      AppBanner(
                         icon: Icons.volunteer_activism_rounded,
                         message: ArabicStrings.volunteerTaken,
-                        color: colors.primary,
+                        variant: AppBannerVariant.success,
                       )
                     else
                       AppButton(

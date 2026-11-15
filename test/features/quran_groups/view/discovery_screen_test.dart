@@ -8,6 +8,7 @@ import 'package:quran_daily/core/errors/failures.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/localization/arabic_formatting.dart';
+import 'package:quran_daily/core/design_system/widgets/skeleton.dart';
 import 'package:quran_daily/features/quran_groups/cubit/discovery/discovery_cubit.dart';
 import 'package:quran_daily/features/quran_groups/cubit/group_list/group_list_cubit.dart';
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
@@ -162,7 +163,7 @@ void main() {
     ).thenAnswer((_) => completer.future);
     await tester.pumpWidget(buildArabicTestApp(_screen(repository)));
     await tester.pump();
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(SkeletonBox), findsWidgets);
 
     completer.complete(const Success([]));
     await tester.pumpAndSettle();

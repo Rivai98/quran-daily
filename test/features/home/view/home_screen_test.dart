@@ -8,6 +8,7 @@ import 'package:quran_daily/core/design_system/app_theme.dart';
 import 'package:quran_daily/core/design_system/app_colors.dart';
 import 'package:quran_daily/core/design_system/app_button.dart';
 import 'package:quran_daily/core/design_system/widgets/status_chip.dart';
+import 'package:quran_daily/core/design_system/widgets/skeleton.dart';
 import 'package:quran_daily/core/errors/failures.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
@@ -31,7 +32,7 @@ void main() {
       await _setSmallScreen(tester);
       await _show(tester, Success(_emptySnapshot), largeText: true);
       expect(find.text(ArabicStrings.homeEmptyTitle), findsOneWidget);
-      expect(find.text(ArabicStrings.joinAnyGroupAction), findsOneWidget);
+      expect(find.text(ArabicStrings.searchGroupAction), findsOneWidget);
       expect(_rtl(tester), isTrue);
       expect(tester.takeException(), isNull);
     },
@@ -199,7 +200,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(SkeletonBox), findsWidgets);
     expect(tester.takeException(), isNull);
     addTearDown(cubit.close);
   });
