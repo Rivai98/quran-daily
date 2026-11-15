@@ -16,6 +16,7 @@ class StatePanel extends StatelessWidget {
     this.actionLabel,
     this.onAction,
     this.actionVariant = AppButtonVariant.tonal,
+    this.actionIcon,
     this.isError = false,
   });
 
@@ -25,6 +26,7 @@ class StatePanel extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onAction;
   final AppButtonVariant actionVariant;
+  final Icon? actionIcon;
   final bool isError;
 
   @override
@@ -63,6 +65,7 @@ class StatePanel extends StatelessWidget {
                 AppButton(
                   label: actionLabel!,
                   variant: actionVariant,
+                  icon: actionIcon,
                   onPressed: onAction,
                 ),
               ],

@@ -71,6 +71,26 @@ void main() {
         );
         expect(find.text('حلقة الفجر'), findsOneWidget, reason: variant);
         expect(
+          find.byIcon(Icons.groups_rounded),
+          findsOneWidget,
+          reason: variant,
+        );
+        expect(
+          find.byIcon(Icons.people_alt_rounded),
+          findsOneWidget,
+          reason: variant,
+        );
+        expect(
+          find.byIcon(Icons.menu_book_rounded),
+          findsOneWidget,
+          reason: variant,
+        );
+        expect(
+          find.byIcon(Icons.location_on_rounded),
+          findsOneWidget,
+          reason: variant,
+        );
+        expect(
           find.textContaining(ArabicFormatting.membersProgress(27)),
           findsOneWidget,
           reason: variant,

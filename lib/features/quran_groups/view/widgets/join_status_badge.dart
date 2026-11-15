@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/app_colors.dart';
+import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/localization/arabic_strings.dart';
 
 class JoinStatusBadge extends StatelessWidget {
@@ -15,33 +17,30 @@ class JoinStatusBadge extends StatelessWidget {
     final foreground = pending ? colors.infoFg : colors.primary;
     final background = pending ? colors.infoBg : colors.primaryContainer;
     return Container(
-      constraints: const BoxConstraints(minHeight: 48),
+      constraints: const BoxConstraints(minHeight: AppSpacing.xl),
       padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
+        horizontal: AppSpacing.xs,
+        vertical: AppSpacing.xxs,
       ),
-      decoration: ShapeDecoration(
+      decoration: BoxDecoration(
         color: background,
-        shape: StadiumBorder(
-          side: BorderSide(color: foreground.withValues(alpha: 0.32)),
-        ),
+        borderRadius: AppRadius.pillBR,
+        border: Border.all(color: foreground.withValues(alpha: 0.32)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            pending ? Icons.schedule : Icons.check_circle,
+            pending ? Icons.schedule_rounded : Icons.check_circle_rounded,
             color: foreground,
-            size: 20,
+            size: AppSpacing.md,
           ),
-          const SizedBox(width: AppSpacing.xs),
+          const SizedBox(width: AppSpacing.xxs),
           Text(
             pending
                 ? ArabicStrings.pendingApproval
                 : ArabicStrings.joinedSuccessfully,
-            style: Theme.of(
-              context,
-            ).textTheme.labelMedium?.copyWith(color: foreground),
+            style: AppTypography.caption.copyWith(color: foreground),
           ),
         ],
       ),

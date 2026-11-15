@@ -49,10 +49,11 @@ class _GroupSelectionScreenState extends State<GroupSelectionScreen> {
               return const _EmptyEntryPoints();
             case GroupListStatus.failure:
               return StatePanel(
-                icon: Icons.wifi_off,
+                icon: Icons.wifi_off_rounded,
                 title: ArabicStrings.createGroupFailure,
                 message: ArabicStrings.authError('network'),
                 actionLabel: ArabicStrings.retry,
+                actionIcon: const Icon(Icons.refresh_rounded),
                 actionVariant: AppButtonVariant.secondary,
                 onAction: () => context.read<GroupListCubit>().refresh(),
                 isError: true,
@@ -129,7 +130,7 @@ class _EmptyEntryPoints extends StatelessWidget {
             child: Column(
               children: [
                 StatePanel(
-                  icon: Icons.groups,
+                  icon: Icons.groups_rounded,
                   title: ArabicStrings.noApprovedGroups,
                   message: ArabicStrings.groupsNeedMembersEntry,
                   actionLabel: ArabicStrings.joinAnyGroupAction,
@@ -140,18 +141,23 @@ class _EmptyEntryPoints extends StatelessWidget {
                     }
                   },
                   actionVariant: AppButtonVariant.primary,
+                  actionIcon: const Icon(Icons.volunteer_activism_rounded),
                 ),
                 secondary(
                   ArabicStrings.searchGroupAction,
-                  Icons.search,
+                  Icons.search_rounded,
                   '/discover',
                 ),
                 secondary(
                   ArabicStrings.createGroup,
-                  Icons.add_circle_outline,
+                  Icons.add_circle_outline_rounded,
                   '/groups/new',
                 ),
-                secondary(ArabicStrings.iHaveInviteLink, Icons.link, '/join'),
+                secondary(
+                  ArabicStrings.iHaveInviteLink,
+                  Icons.link_rounded,
+                  '/join',
+                ),
               ],
             ),
           ),
@@ -199,13 +205,13 @@ class _ShortcutCard extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         OutlinedButton.icon(
           onPressed: () => Navigator.pushNamed(context, '/discover'),
-          icon: const Icon(Icons.search),
+          icon: const Icon(Icons.search_rounded),
           label: Text(ArabicStrings.searchGroupAction),
         ),
         const SizedBox(height: AppSpacing.xs),
         OutlinedButton.icon(
           onPressed: () => Navigator.pushNamed(context, '/join'),
-          icon: const Icon(Icons.link),
+          icon: const Icon(Icons.link_rounded),
           label: Text(ArabicStrings.iHaveInviteLink),
         ),
       ],
@@ -259,7 +265,7 @@ class _GroupList extends StatelessWidget {
                       await context.read<GroupListCubit>().refresh();
                     }
                   },
-                  icon: const Icon(Icons.add_circle_outline),
+                  icon: const Icon(Icons.add_circle_outline_rounded),
                 ),
               ],
             ),
@@ -285,8 +291,8 @@ class _MyGroupRow extends StatelessWidget {
       GroupRole.member => ArabicStrings.roleMember,
     };
     final statusIcon = group.status == GroupStatus.active
-        ? Icons.play_circle_outline
-        : Icons.hourglass_top;
+        ? Icons.play_circle_outline_rounded
+        : Icons.hourglass_top_rounded;
     final statusLabel = group.status == GroupStatus.active
         ? ArabicStrings.activeLabel
         : ArabicStrings.formingLabel;
@@ -317,36 +323,45 @@ class _MyGroupRow extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  GroupAvatar(name: group.name, size: AppSpacing.xl),
+                  GroupAvatar(name: group.name, size: AppSpacing.xxl),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
-                    child: Text(
-                      group.name,
-                      style: AppTypography.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            group.name,
+                            style: AppTypography.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        _GroupStatusBadge(
+                          icon: statusIcon,
+                          label: statusLabel,
+                          foreground: statusColor,
+                          background: statusBackground,
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.xs),
-              Row(
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.xxs,
                 children: [
-                  Icon(
-                    Icons.menu_book_outlined,
-                    size: AppSpacing.md,
+                  _MetaItem(
+                    icon: Icons.menu_book_rounded,
+                    label: ArabicStrings.dailyUnitChip(group.portionUnit),
                     color: colors.inkMuted,
                   ),
-                  const SizedBox(width: AppSpacing.xxs),
-                  Expanded(
-                    child: Text(
-                      '${ArabicStrings.dailyUnitChip(group.portionUnit)}${ArabicStrings.groupCitySeparator}$roleMarker',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.caption.copyWith(
-                        color: colors.inkMuted,
-                      ),
-                    ),
+                  _MetaItem(
+                    icon: Icons.people_alt_rounded,
+                    label: roleMarker,
+                    color: colors.inkMuted,
                   ),
                 ],
               ),
@@ -354,11 +369,10 @@ class _MyGroupRow extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    ArabicStrings.groupSeatsProgressLabel,
-                    style: AppTypography.caption.copyWith(
-                      color: colors.inkMuted,
-                    ),
+                  _MetaItem(
+                    icon: Icons.people_alt_rounded,
+                    label: ArabicStrings.groupSeatsProgressLabel,
+                    color: colors.inkMuted,
                   ),
                   const SizedBox(height: AppSpacing.xxs),
                   ClipRRect(
@@ -380,33 +394,6 @@ class _MyGroupRow extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
-                  Container(
-                    padding: const EdgeInsetsDirectional.symmetric(
-                      horizontal: AppSpacing.xs,
-                      vertical: AppSpacing.xxs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: statusBackground,
-                      borderRadius: AppRadius.pillBR,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          statusIcon,
-                          size: AppSpacing.sm,
-                          color: statusColor,
-                        ),
-                        const SizedBox(width: AppSpacing.xxs),
-                        Text(
-                          statusLabel,
-                          style: AppTypography.caption.copyWith(
-                            color: statusColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ],
@@ -431,22 +418,22 @@ class _PendingRow extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              request.groupName,
-              style: AppTypography.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: AppSpacing.xxs),
             Row(
               children: [
-                Icon(Icons.hourglass_top, size: 16, color: colors.infoFg),
-                const SizedBox(width: AppSpacing.xxs),
                 Expanded(
                   child: Text(
-                    ArabicStrings.pendingApproval,
-                    style: AppTypography.caption.copyWith(color: colors.infoFg),
+                    request.groupName,
+                    style: AppTypography.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                _GroupStatusBadge(
+                  icon: Icons.schedule_rounded,
+                  label: ArabicStrings.pendingShortLabel,
+                  foreground: colors.infoFg,
+                  background: colors.infoBg,
                 ),
               ],
             ),
@@ -454,6 +441,7 @@ class _PendingRow extends StatelessWidget {
             AppButton(
               label: ArabicStrings.cancel,
               variant: AppButtonVariant.secondary,
+              icon: const Icon(Icons.close_rounded),
               onPressed: () => context.read<GroupListCubit>().cancelJoinRequest(
                 request.joinRequestId,
               ),
@@ -463,4 +451,61 @@ class _PendingRow extends StatelessWidget {
       ),
     );
   }
+}
+
+class _GroupStatusBadge extends StatelessWidget {
+  const _GroupStatusBadge({
+    required this.icon,
+    required this.label,
+    required this.foreground,
+    required this.background,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color foreground;
+  final Color background;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    constraints: const BoxConstraints(minHeight: AppSpacing.xl),
+    padding: const EdgeInsetsDirectional.symmetric(
+      horizontal: AppSpacing.xs,
+      vertical: AppSpacing.xxs,
+    ),
+    decoration: BoxDecoration(
+      color: background,
+      borderRadius: AppRadius.pillBR,
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: AppSpacing.sm, color: foreground),
+        const SizedBox(width: AppSpacing.xxs),
+        Text(label, style: AppTypography.caption.copyWith(color: foreground)),
+      ],
+    ),
+  );
+}
+
+class _MetaItem extends StatelessWidget {
+  const _MetaItem({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(icon, size: AppSpacing.md, color: color),
+      const SizedBox(width: AppSpacing.xxs),
+      Text(label, style: AppTypography.caption.copyWith(color: color)),
+    ],
+  );
 }

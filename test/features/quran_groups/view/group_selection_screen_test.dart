@@ -42,6 +42,9 @@ void main() {
     expect(find.text(TestFixtures.groupName), findsOneWidget);
     expect(find.textContaining(ArabicStrings.roleOwner), findsOneWidget);
     expect(find.text(ArabicFormatting.membersProgress(12)), findsOneWidget);
+    expect(find.byIcon(Icons.people_alt_rounded), findsNWidgets(2));
+    expect(find.byIcon(Icons.menu_book_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.play_circle_outline_rounded), findsOneWidget);
   });
 
   testWidgets('golden: S1 at 360x800 light and dark', (tester) async {
@@ -95,7 +98,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('مجموعة الانتظار'), findsOneWidget);
-    expect(find.text(ArabicStrings.pendingApproval), findsOneWidget);
+    expect(find.text(ArabicStrings.pendingShortLabel), findsOneWidget);
+    expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
   });
 
   testWidgets('offline: stale overview shows the offline banner',
