@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../localization/arabic_strings.dart';
 import '../app_colors.dart';
+import '../app_spacing.dart';
 import '../app_typography.dart';
 
 /// Shared text field. Inherently LTR content (email addresses) uses [ltr];
@@ -62,7 +63,7 @@ class _AppTextFieldState extends State<AppTextField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(widget.label, style: AppTypography.label),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.fieldLabelGap),
         ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 52),
           child: TextField(
@@ -78,17 +79,16 @@ class _AppTextFieldState extends State<AppTextField> {
             decoration: InputDecoration(
               hintText: widget.hint,
               errorText: widget.errorText,
-              errorStyle:
-                  AppTypography.caption.copyWith(color: colors.danger),
-              prefixIcon:
-                  widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
+              errorStyle: AppTypography.caption.copyWith(color: colors.danger),
+              prefixIcon: widget.prefixIcon != null
+                  ? Icon(widget.prefixIcon)
+                  : null,
               suffixIcon: widget.obscure
                   ? IconButton(
                       tooltip: _obscured
                           ? ArabicStrings.showPassword
                           : ArabicStrings.hidePassword,
-                      onPressed: () =>
-                          setState(() => _obscured = !_obscured),
+                      onPressed: () => setState(() => _obscured = !_obscured),
                       icon: Icon(
                         _obscured ? Icons.visibility : Icons.visibility_off,
                       ),

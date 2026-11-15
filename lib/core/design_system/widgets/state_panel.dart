@@ -33,28 +33,39 @@ class StatePanel extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40, color: isError ? colors.danger : colors.inkMuted),
-            const SizedBox(height: AppSpacing.sm),
-            Text(title, style: AppTypography.title, textAlign: TextAlign.center),
-            const SizedBox(height: AppSpacing.xxs),
-            Text(
-              message,
-              style: AppTypography.body.copyWith(color: colors.inkMuted),
-              textAlign: TextAlign.center,
-            ),
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: AppSpacing.md),
-              AppButton(
-                label: actionLabel!,
-                variant: actionVariant,
-                onPressed: onAction,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 40,
+                color: isError ? colors.danger : colors.inkMuted,
               ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                title,
+                style: AppTypography.title,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              Text(
+                message,
+                style: AppTypography.body.copyWith(color: colors.inkMuted),
+                textAlign: TextAlign.center,
+              ),
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                AppButton(
+                  label: actionLabel!,
+                  variant: actionVariant,
+                  onPressed: onAction,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
