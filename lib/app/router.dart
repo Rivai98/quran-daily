@@ -11,7 +11,7 @@ import '../features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
 import '../features/quran_groups/cubit/assignment/assignment_cubit.dart';
 import '../features/quran_groups/data/entities/entities.dart';
 import '../features/quran_groups/data/repositories/khatma_repository.dart';
-import '../features/quran_groups/view/screens/daily_history_screen.dart';
+import '../features/quran_groups/view/screens/history_screen.dart';
 import '../features/quran_groups/view/screens/group_dashboard_screen.dart';
 import '../features/quran_groups/view/screens/create_group_screen.dart';
 import '../features/quran_groups/view/screens/group_selection_screen.dart';
@@ -22,7 +22,7 @@ import '../features/quran_groups/view/screens/members_screen.dart';
 import '../features/quran_groups/view/screens/discovery_screen.dart';
 import '../features/quran_groups/view/screens/invite_join_screen.dart';
 import '../features/quran_groups/view/screens/personal_assignment_screen.dart';
-import '../features/quran_groups/view/screens/settings_screen.dart';
+import '../features/settings/view/settings_screen.dart';
 
 String? inviteCodeFromDeepLink(Uri uri) {
   if (uri.scheme != 'qurandaily' ||
@@ -144,7 +144,9 @@ class AppRoutes {
           ),
         );
       },
-      history: (_) => const DailyHistoryScreen(),
+      history: (context) => HistoryScreen(
+        groupId: ModalRoute.of(context)?.settings.arguments as String?,
+      ),
       settings: (_) => const SettingsScreen(),
     };
   }

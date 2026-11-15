@@ -413,4 +413,26 @@ class ArabicStrings {
 
   static String volunteerFailureMessage(String code) =>
       code == 'juz_already_taken' ? volunteerConflict : networkFailure;
+
+  // --- US7: Daily History strings ---
+  static const historyScreenTitle = 'سجل الختمات';
+  static const emptyHistoryTitle = 'لا يوجد سجل سابق';
+  static const emptyHistoryDesc = 'لم تكتمل أي أيام سابقة في هذه المجموعة بعد.';
+  static const historyErrorTitle = 'تعذر تحميل السجل';
+  static const historyErrorDesc = 'حدث خطأ أثناء تحميل السجل. يرجى إعادة المحاولة.';
+  static const retryAction = 'إعادة المحاولة';
+  static const fullKhatmaBadge = 'ختمة كاملة';
+  static const myResultSectionTitle = 'وردك في هذا اليوم';
+  static const allMembersDetailTitle = 'تفاصيل الأجزاء والمقاعد';
+  static const closeDetailAction = 'إغلاق التفاصيل';
+  static const loadMoreHistory = 'عرض أيام سابقة';
+  static const unassignedSeat = 'مقعد شاغر';
+  static String historyMyJuz(String juzName) => 'وردك: $juzName';
+  static String historySeat(String seat) => 'مقعد $seat';
+
+  // --- S11: Settings strings ---
+  static const signOutConfirmTitle = 'تأكيد تسجيل الخروج';
+  static const signOutConfirmMessage = 'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
+  static const quranTextSizeTitle = 'حجم خط قراءة الأجزاء';
+  static const quranPreviewText = 'الجزء الأول';
 }

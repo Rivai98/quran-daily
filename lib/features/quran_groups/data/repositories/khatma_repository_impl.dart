@@ -16,13 +16,16 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
     required KhatmaRemoteDataSource remote,
     required CachedSnapshotsDao cache,
     SyncQueueDao? queue,
+    CachedHistoryDao? historyDao,
   }) : _remote = remote,
        _cache = cache,
-       _queue = queue;
+       _queue = queue,
+       _historyDao = historyDao;
 
   final KhatmaRemoteDataSource _remote;
   final CachedSnapshotsDao _cache;
   final SyncQueueDao? _queue;
+  final CachedHistoryDao? _historyDao;
   final Map<String, StreamController<DashboardSnapshot?>> _updates = {};
 
   StreamController<DashboardSnapshot?> _controllerFor(String groupId) =>
@@ -270,12 +273,68 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
     String groupId, {
     String? beforeDate,
     int limit = 30,
-  }) => _notImplemented();
+  }) async {
+    final params = <String, Object?>{
+      'p_group_id': groupId,
+      'p_before_date': ?beforeDate,
+      'p_limit': limit,
+    };
+
+    final result = await _remote.call('get_history', params);
+
+    return result.when(
+      success: (payload) async {
+        final rawList = (payload as List).cast<dynamic>();
+        final days = rawList
+            .map((e) => historyDaySummaryFromJson(
+                (e as Map).cast<String, Object?>()))
+            .toList();
+
+        if (beforeDate == null) {
+          await _historyDao?.upsert(groupId, {
+            'days': days.map(historyDaySummaryToJson).toList(),
+          });
+        }
+        return Success(days);
+      },
+      failure: (failure) async {
+        if (beforeDate == null) {
+          final cached = await _historyDao?.read(groupId);
+          if (cached != null) {
+            final rawList = (cached.json['days'] as List?) ?? const [];
+            final days = rawList
+                .map((e) => historyDaySummaryFromJson(
+                    (e as Map).cast<String, Object?>()))
+                .toList();
+            return Success(days);
+          }
+        }
+        return FailureResult(failure);
+      },
+    );
+  }
+
   @override
   Future<Result<HistoryDaySummary>> getHistoryDay(
     String groupId,
     String groupDate,
-  ) => _notImplemented();
+  ) async {
+    final params = <String, Object?>{
+      'p_group_id': groupId,
+      'p_group_date': groupDate,
+    };
+
+    final result = await _remote.call('get_history_day', params);
+
+    return result.when(
+      success: (payload) {
+        final json = (payload as Map).cast<String, Object?>();
+        return Success(historyDaySummaryFromJson(json));
+      },
+      failure: (failure) => FailureResult(failure),
+    );
+  }
+
   @override
   Future<SyncReport> syncPending() async {
     final queue = _queue;

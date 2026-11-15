@@ -9,6 +9,7 @@ import '../quran/quran_metadata_repository.dart';
 import '../settings/settings_repository.dart';
 import '../settings/settings_repository_impl.dart';
 import '../../features/auth/cubit/auth_cubit.dart';
+import '../../features/settings/cubit/settings_cubit.dart';
 import '../../features/quran_groups/cubit/selected_group/selected_group_cubit.dart';
 import '../../features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
 import '../../features/quran_groups/data/data_sources/khatma_remote_data_source.dart';
@@ -100,6 +101,7 @@ void configureServiceLocator({
           remote: locator<KhatmaRemoteDataSource>(),
           cache: locator<CachedSnapshotsDao>(),
           queue: locator<SyncQueueDao>(),
+          historyDao: CachedHistoryDao(locator<LocalDatabase>()),
         ),
       );
     }
@@ -188,6 +190,15 @@ void configureServiceLocator({
     if (!locator.isRegistered<JoinCubit>()) {
       locator.registerFactory<JoinCubit>(
         () => JoinCubit(repository: locator<GroupsRepository>()),
+      );
+    }
+
+    if (!locator.isRegistered<SettingsCubit>()) {
+      locator.registerFactory<SettingsCubit>(
+        () => SettingsCubit(
+          settingsRepository: locator<SettingsRepository>(),
+          sessionGateway: locator<SessionGateway>(),
+        ),
       );
     }
   }
