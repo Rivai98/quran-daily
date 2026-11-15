@@ -78,22 +78,31 @@ void main() {
 
     // 1. Sign up the owner through the UI.
     await pumpUntil(tester, find.text(ArabicStrings.createAccountTitle));
-    await tapAndSettle(tester, find.text(ArabicStrings.createAccountTitle).first);
+    await tapAndSettle(
+      tester,
+      find.text(ArabicStrings.createAccountTitle).first,
+    );
     await enterField(tester, 'auth-displayName', 'مالك الاختبار');
     await enterField(tester, 'auth-email', ownerEmail);
     await enterField(tester, 'auth-password', password);
     await enterField(tester, 'auth-confirmation', password);
-    await tapAndSettle(tester, find.text(ArabicStrings.createAccountTitle).last);
+    await tapAndSettle(
+      tester,
+      find.text(ArabicStrings.createAccountTitle).last,
+    );
 
     // 2. Create a group.
+    await tapAndSettle(tester, find.text(ArabicStrings.groupsTab));
     await pumpUntil(tester, find.text(ArabicStrings.createGroup));
     await tapAndSettle(tester, find.text(ArabicStrings.createGroup).last);
     await pumpUntil(tester, find.text(ArabicStrings.groupNameLabel));
     final nameField = find.descendant(
-      of: find.ancestor(
-        of: find.text(ArabicStrings.groupNameLabel),
-        matching: find.byType(Column),
-      ).first,
+      of: find
+          .ancestor(
+            of: find.text(ArabicStrings.groupNameLabel),
+            matching: find.byType(Column),
+          )
+          .first,
       matching: find.byType(EditableText),
     );
     await tester.enterText(nameField, groupName);
@@ -120,8 +129,10 @@ void main() {
       final screen = find.byType(GroupDashboardScreen);
       if (screen.evaluate().isNotEmpty) {
         final state = tester.element(screen).read<DashboardCubit>().state;
-        debugPrint('DASHBOARD STATE: ${state.status} failure=${state.failure} '
-            'snapshotStatus=${state.snapshot?.status}');
+        debugPrint(
+          'DASHBOARD STATE: ${state.status} failure=${state.failure} '
+          'snapshotStatus=${state.snapshot?.status}',
+        );
       } else {
         debugPrint('DASHBOARD SCREEN NOT FOUND');
       }
@@ -133,9 +144,9 @@ void main() {
     final myGroups =
         await ownerClient.rpc('get_my_groups') as Map<String, dynamic>;
     final groups = myGroups['groups'] as List<dynamic>;
-    final group = groups
-        .cast<Map<String, dynamic>>()
-        .firstWhere((g) => g['name'] == groupName);
+    final group = groups.cast<Map<String, dynamic>>().firstWhere(
+      (g) => g['name'] == groupName,
+    );
     final groupId = group['group_id'] ?? group['id'];
     final dashboard =
         await ownerClient.rpc('get_dashboard', params: {'p_group_id': groupId})

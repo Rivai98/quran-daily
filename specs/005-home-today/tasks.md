@@ -57,8 +57,8 @@ Test-first (constitution III): write each test task before its implementation.
 ## Phase 4: Integration + validation (orchestrator)
 
 - [ ] T034 Merge agent branches into `005-home-today`; mount Mushaf index (spec 003) as المصحف tab and ProfileScreen as حسابي tab; resolve shared-file blocks
-- [ ] T035 Integration test `integration_test/home_flow_test.dart`: sign up, create group, start, Home hero shows portion, mark complete from Home, Log shows today after refresh, 3rd group creation refused
-- [ ] T036 Update spec 001 T111 / spec 004 T016 integration tests for the new shell navigation
+- [X] T035 Integration test `integration_test/home_flow_test.dart`: sign up, create group, start, Home hero shows portion, mark complete from Home, profile shows, 3rd group creation refused (written; device run pending)
+- [X] T036 Update spec 001 T111 / spec 004 T016 integration tests for the new shell navigation (written; device run pending)
 - [ ] T037 Final validation: `flutter analyze` 0, `flutter test` all green, pgTAP all files 0 failed, integration tests on Android; record results below
 
 ## Dependencies

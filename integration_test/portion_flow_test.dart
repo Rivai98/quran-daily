@@ -69,22 +69,31 @@ void main() {
 
     // Sign up.
     await pumpUntil(tester, find.text(ArabicStrings.createAccountTitle));
-    await tapAndSettle(tester, find.text(ArabicStrings.createAccountTitle).first);
+    await tapAndSettle(
+      tester,
+      find.text(ArabicStrings.createAccountTitle).first,
+    );
     await enterField(tester, 'auth-displayName', 'اختبار الأحزاب');
     await enterField(tester, 'auth-email', 'it-hizb-$stamp@test.local');
     await enterField(tester, 'auth-password', 'it-pass-12345');
     await enterField(tester, 'auth-confirmation', 'it-pass-12345');
-    await tapAndSettle(tester, find.text(ArabicStrings.createAccountTitle).last);
+    await tapAndSettle(
+      tester,
+      find.text(ArabicStrings.createAccountTitle).last,
+    );
 
     // Create a group with the hizb unit.
+    await tapAndSettle(tester, find.text(ArabicStrings.groupsTab));
     await pumpUntil(tester, find.text(ArabicStrings.createGroup));
     await tapAndSettle(tester, find.text(ArabicStrings.createGroup).last);
     await pumpUntil(tester, find.text(ArabicStrings.groupNameLabel));
     final nameField = find.descendant(
-      of: find.ancestor(
-        of: find.text(ArabicStrings.groupNameLabel),
-        matching: find.byType(Column),
-      ).first,
+      of: find
+          .ancestor(
+            of: find.text(ArabicStrings.groupNameLabel),
+            matching: find.byType(Column),
+          )
+          .first,
       matching: find.byType(EditableText),
     );
     await tester.enterText(nameField, groupName);
