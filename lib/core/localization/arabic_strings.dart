@@ -192,12 +192,11 @@ class ArabicStrings {
   static const groupsHeaderSubtitle = 'وردكم اليومي يبدأ بخطوة معًا';
   static const groupShortcutsTitle = 'طرق سريعة للانضمام';
   static String membersProgress(int members) =>
-      '${ArabicNumerals.format(members)} من ${ArabicNumerals.format(30)} عضو';
+      '${ArabicNumerals.format(members)} من ${ArabicNumerals.format(30)} عضوًا';
   static const assignmentGroupDate = 'ورد اليوم';
 
   static const appName = '\u{62d}\u{644}\u{642}\u{629}';
-  static const signInHint =
-      '\u{62a}\u{627}\u{628}\u{639} \u{648}\u{631}\u{62f}\u{643} \u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a} \u{645}\u{639} \u{645}\u{62c}\u{645}\u{648}\u{639}\u{62a}\u{643} \u{645}\u{646} \u{634}\u{627}\u{634}\u{629} \u{639}\u{631}\u{628}\u{64a}\u{629} \u{648}\u{627}\u{636}\u{62d}\u{629}.';
+  static const signInHint = 'ختمة القرآن مع حلقتك، وردٌ كل يوم';
   static const signInError =
       '\u{62a}\u{639}\u{630}\u{631} \u{62a}\u{633}\u{62c}\u{64a}\u{644} \u{627}\u{644}\u{62f}\u{62e}\u{648}\u{644}. \u{62d}\u{627}\u{648}\u{644} \u{645}\u{631}\u{629} \u{623}\u{62e}\u{631}\u{649}.';
   static const loading =
@@ -324,7 +323,8 @@ class ArabicStrings {
   static const descriptionLengthError = 'الوصف حتى ٢٠٠ حرف';
   static const ownerGroupLimitCopy =
       'يمتلك حسابك ٣ مجموعات بالفعل. أرشف مجموعة أولًا لإنشاء مجموعة جديدة.';
-  static const groupsNeedMembersEntry = 'مجموعات تحتاج أعضاء';
+  static const groupsNeedMembersEntry =
+      'تصفّح الحلقات المتاحة أو أنشئ حلقة جديدة.';
   static const joinAnyGroupAction = 'انضم لأي مجموعة ناقصة';
   static const iHaveInviteLink = 'عندي رابط دعوة';
   static const searchGroupAction = 'ابحث عن مجموعة';
@@ -334,6 +334,7 @@ class ArabicStrings {
   static const startKhatmaAction = 'ابدأ الختمة';
   static const shareInviteAction = 'شارك الدعوة';
   static const inviteCodeLabel = 'رمز الدعوة';
+  static const showInviteCode = 'إظهار الرمز';
   static const startJuzChoice = 'اختر جزء البداية للمقعد ١';
   static const settingsApplyTomorrowNote =
       'تغييرات التوقيت تُطبق من يوم المجموعة التالي';
@@ -343,8 +344,16 @@ class ArabicStrings {
   // --- T114 design-system compliance: group lifecycle screens ---
   static const publicVisibility = 'عامة';
   static const privateVisibility = 'خاصة';
+  static const groupVisibilityTitle = 'ظهور الحلقة';
+  static const joinModeTitle = 'طريقة الانضمام';
   static const autoAcceptJoinMode = 'قبول تلقائي';
   static const ownerApprovalJoinMode = 'بموافقة المالك';
+  static const publicVisibilityHint =
+      'يمكن للجميع العثور على الحلقة وطلب الانضمام.';
+  static const privateVisibilityHint =
+      'لا تظهر في البحث؛ ينضم الأعضاء برمز الدعوة.';
+  static const autoAcceptJoinModeHint = 'ينضم العضو مباشرةً عند توفر مقعد.';
+  static const ownerApprovalJoinModeHint = 'تراجع طلب الانضمام قبل قبول العضو.';
   static const inviteShareMessage =
       'انضم إلى مجموعتي في ختمة يومية! رمز الدعوة: ';
   static const regenerateInviteAction = 'توليد رمز جديد';
@@ -365,8 +374,10 @@ class ArabicStrings {
   // --- US4 discovery and invitation screens ---
   static const discoveryScreenTitle =
       '\u{627}\u{643}\u{62a}\u{634}\u{627}\u{641} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{627}\u{62a}';
-  static const inviteJoinScreenTitle =
-      '\u{627}\u{644}\u{627}\u{646}\u{636}\u{645}\u{627}\u{645} \u{628}\u{631}\u{645}\u{632} \u{62f}\u{639}\u{648}\u{629}';
+  static const inviteJoinScreenTitle = 'انضم لأي حلقة';
+  static const noGroupAvailable =
+      'لا توجد حلقة متاحة الآن. أعد المحاولة لاحقًا أو ابحث عن حلقة.';
+  static const joinedAnyGroup = 'انضممت إلى الحلقة بنجاح.';
   static const joinGroupAction =
       '\u{627}\u{646}\u{636}\u{645} \u{625}\u{644}\u{649} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}';
   static const joinedSuccessfully =
@@ -401,6 +412,8 @@ class ArabicStrings {
     switch (code) {
       case 'membership_limit':
         return membershipLimitMessage;
+      case 'no_group_available':
+        return noGroupAvailable;
       case 'invalid_credentials':
         return 'تحقق من البريد الإلكتروني وكلمة المرور، أو تواصل مع مسؤول التطبيق. $googleSignInHint';
       case 'suspended':
@@ -430,12 +443,12 @@ class ArabicStrings {
       '\u{62a}\u{631}\u{627}\u{62c}\u{639} \u{639}\u{646} \u{627}\u{644}\u{625}\u{62a}\u{645}\u{627}\u{645}';
   static const offlineStale =
       '\u{623}\u{646}\u{62a} \u{62a}\u{639}\u{631}\u{636} \u{628}\u{64a}\u{627}\u{646}\u{627}\u{62a} \u{645}\u{62d}\u{641}\u{648}\u{638}\u{629}. \u{642}\u{62f} \u{644}\u{627} \u{62a}\u{643}\u{648}\u{646} \u{645}\u{62a}\u{627}\u{628}\u{639}\u{629} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{645}\u{62d}\u{62f}\u{62b}\u{629}.';
-  static const noApprovedGroups =
-      '\u{644}\u{627} \u{62a}\u{648}\u{62c}\u{62f} \u{645}\u{62c}\u{645}\u{648}\u{639}\u{627}\u{62a} \u{645}\u{642}\u{628}\u{648}\u{644}\u{629} \u{628}\u{639}\u{62f}. \u{623}\u{646}\u{634}\u{626} \u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{623}\u{648} \u{627}\u{628}\u{62d}\u{62b} \u{639}\u{646} \u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{639}\u{627}\u{645}\u{629}.';
+  static const noApprovedGroups = 'لم تنضم إلى حلقة بعد';
   static const noPublicGroups =
       '\u{644}\u{627} \u{62a}\u{648}\u{62c}\u{62f} \u{646}\u{62a}\u{627}\u{626}\u{62c} \u{645}\u{637}\u{627}\u{628}\u{642}\u{629}. \u{63a}\u{64a}\u{651}\u{631} \u{643}\u{644}\u{645}\u{627}\u{62a} \u{627}\u{644}\u{628}\u{62d}\u{62b} \u{623}\u{648} \u{627}\u{645}\u{633}\u{62d} \u{627}\u{644}\u{62a}\u{635}\u{641}\u{64a}\u{629}.';
-  static const noJoinRequests =
-      '\u{644}\u{627} \u{62a}\u{648}\u{62c}\u{62f} \u{637}\u{644}\u{628}\u{627}\u{62a} \u{627}\u{646}\u{636}\u{645}\u{627}\u{645} \u{62d}\u{627}\u{644}\u{64a}\u{629}. \u{64a}\u{645}\u{643}\u{646}\u{643} \u{627}\u{644}\u{639}\u{648}\u{62f}\u{629} \u{644}\u{625}\u{62f}\u{627}\u{631}\u{629} \u{627}\u{644}\u{623}\u{639}\u{636}\u{627}\u{621}.';
+  static const noJoinRequests = 'طلبات الانضمام بانتظارك';
+  static const noJoinRequestsHint =
+      'ستظهر هنا الطلبات الجديدة لتراجعها وتدير أعضاء الحلقة.';
   static const noPublishedCycle =
       '\u{644}\u{645} \u{64a}\u{646}\u{634}\u{631} \u{645}\u{627}\u{644}\u{643} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629} \u{648}\u{631}\u{62f} \u{627}\u{644}\u{64a}\u{648}\u{645} \u{628}\u{639}\u{62f}.';
   static const emptyHistory =
@@ -681,7 +694,7 @@ class ArabicStrings {
       ? 'ختمة كل يومين'
       : 'ختمة كل ${ArabicNumerals.format(days)} يومًا';
   static String dailyUnitChip(PortionUnit unit) =>
-      '${portionUnitName(unit)} يوميًا';
+      '${portionUnitName(unit)} يومي';
   // --- 005 log ---
   static const logScreenTitle = 'السجل';
   static const logCurrentStreak = 'التتابع الحالي';
@@ -818,7 +831,8 @@ class ArabicStrings {
   static const badgeStreak7Title = 'مداومة ٧ أيام';
   static const badgeStreak7Desc = 'المحافظة على الورد اليومي ٧ أيام متتالية';
   static const badgeStreak30Title = 'مداومة ٣٠ يومًا';
-  static const badgeStreak30Desc = 'ثبات على القراءة ٣٠ يومًا متواصلة بتوفيق الله';
+  static const badgeStreak30Desc =
+      'ثبات على القراءة ٣٠ يومًا متواصلة بتوفيق الله';
   static const badgeStreak100Title = 'مداومة ١٠٠ يوم';
   static const badgeStreak100Desc = 'اجتهاد مبارك وثبات على تلاوة كتاب الله';
   static const badgePortions100Title = '١٠٠ جزء';

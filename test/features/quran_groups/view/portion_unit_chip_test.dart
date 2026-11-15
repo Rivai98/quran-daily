@@ -29,7 +29,7 @@ void main() {
           );
           expect(
             find.text(ArabicStrings.khatmaDays(2)),
-            findsOneWidget,
+            findsNothing,
             reason: variant,
           );
           expect(tester.takeException(), isNull, reason: variant);

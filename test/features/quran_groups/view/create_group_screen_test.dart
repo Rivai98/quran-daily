@@ -64,6 +64,11 @@ void main() {
       buildArabicTestApp(pump(metadataRepository: metadataRepository)),
     );
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text(ArabicStrings.portionUnitName(PortionUnit.juz)),
+      160,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(
       find.text(ArabicStrings.portionUnitName(PortionUnit.juz)),
       findsOneWidget,

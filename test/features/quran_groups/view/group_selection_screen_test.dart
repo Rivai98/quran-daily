@@ -5,6 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/errors/failures.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
+import 'package:quran_daily/core/localization/arabic_formatting.dart';
 import 'package:quran_daily/features/quran_groups/cubit/group_list/group_list_cubit.dart';
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
@@ -40,6 +41,7 @@ void main() {
 
     expect(find.text(TestFixtures.groupName), findsOneWidget);
     expect(find.text(ArabicStrings.roleOwner), findsOneWidget);
+    expect(find.text(ArabicFormatting.membersProgress(12)), findsOneWidget);
   });
 
   testWidgets('golden: S1 at 360x800 light and dark', (tester) async {

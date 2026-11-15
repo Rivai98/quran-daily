@@ -170,7 +170,7 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                       const SizedBox(height: AppSpacing.md),
                       ClipRRect(
                         borderRadius: AppRadius.lgBR,
-                        child: IslamicOrnamentBand(height: 196, contentPadding: 8,
+                        child: IslamicOrnamentBand(height: 148, contentPadding: 4,
                           child: Container(
                             width: double.infinity,
                             color: colors.primaryContainer.withValues(alpha: .7),

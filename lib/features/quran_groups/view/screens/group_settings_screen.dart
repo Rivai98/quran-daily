@@ -156,7 +156,9 @@ class _SettingsForm extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        ArabicNumerals.format(inviteCode ?? '--------'),
+                        inviteCode == null
+                            ? ArabicStrings.showInviteCode
+                            : ArabicNumerals.format(inviteCode!),
                         style: AppTypography.bodyLarge,
                         overflow: TextOverflow.ellipsis,
                       ),

@@ -75,7 +75,7 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
           return StatePanel(
             icon: Icons.inbox_outlined,
             title: ArabicStrings.noJoinRequests,
-            message: ArabicStrings.noJoinRequests,
+            message: ArabicStrings.noJoinRequestsHint,
           );
         }
         return ListView(
