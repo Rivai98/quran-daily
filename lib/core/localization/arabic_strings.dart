@@ -1,3 +1,5 @@
+import 'arabic_numerals.dart';
+
 class ArabicStrings {
   const ArabicStrings._();
 
@@ -151,6 +153,11 @@ class ArabicStrings {
   static const searchGroupAction = 'ابحث عن مجموعة';
   static const createTheGroup = 'أنشئ المجموعة';
   static const formingLabel = 'قيد التكوين';
+  // --- design-c S1/auth copy ---
+  static const groupsHeaderSubtitle = 'وردكم اليومي يبدأ بخطوة معًا';
+  static const groupShortcutsTitle = 'طرق سريعة للانضمام';
+  static String membersProgress(int members) =>
+      '${ArabicNumerals.format(members)} من ${ArabicNumerals.format(30)} عضو';
   static const activeLabel = 'نشطة';
   static const startKhatmaAction = 'ابدأ الختمة';
   static const shareInviteAction = 'شارك الدعوة';

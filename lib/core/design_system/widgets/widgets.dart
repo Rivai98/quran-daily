@@ -13,4 +13,5 @@ export 'part_tile.dart';
 export 'progress_header.dart';
 export 'skeleton.dart';
 export 'state_panel.dart';
+export 'islamic_ornament.dart';
 export 'status_chip.dart';

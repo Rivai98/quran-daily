@@ -12,8 +12,8 @@ class JoinStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    final foreground = pending ? colors.pendingFg : colors.primary;
-    final background = pending ? colors.pendingBg : colors.primaryContainer;
+    final foreground = pending ? colors.infoFg : colors.primary;
+    final background = pending ? colors.infoBg : colors.primaryContainer;
     return Container(
       constraints: const BoxConstraints(minHeight: 48),
       padding: const EdgeInsetsDirectional.symmetric(

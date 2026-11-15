@@ -120,12 +120,12 @@ class _GroupStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final foreground = switch (status) {
-      GroupStatus.forming => colors.pendingFg,
+      GroupStatus.forming => colors.infoFg,
       GroupStatus.active => colors.primary,
       GroupStatus.archived => colors.inkMuted,
     };
     final background = switch (status) {
-      GroupStatus.forming => colors.pendingBg,
+      GroupStatus.forming => colors.infoBg,
       GroupStatus.active => colors.primaryContainer,
       GroupStatus.archived => colors.surfaceMuted,
     };
