@@ -235,6 +235,18 @@ class ArabicStrings {
       '${ArabicNumerals.format(members)} من ${ArabicNumerals.format(30)} عضوًا';
   static const assignmentGroupDate = 'ورد اليوم';
 
+  // --- 001 group detail screen polish ---
+  static String cycleDayProgress(int day, int length) =>
+      '\u{627}\u{644}\u{64a}\u{648}\u{645} ${ArabicFormatting.isolate(ArabicNumerals.format(day))} \u{645}\u{646} ${ArabicFormatting.isolate(ArabicNumerals.format(length))}';
+  static String groupProgressLabel(int completed, int activeMembers) =>
+      '\u{642}\u{631}\u{623} ${ArabicFormatting.isolate(ArabicNumerals.format(completed))} \u{645}\u{646} ${ArabicFormatting.isolate(ArabicNumerals.format(activeMembers))} \u{639}\u{636}\u{648}\u{64b}\u{627}';
+  static String groupDashboardMeta(int members, PortionUnit unit) =>
+      '${membersProgress(members)} · ${portionUnitName(unit)}';
+  static String pageRangeLabel(int start, int end) =>
+      '\u{635}\u{641}\u{62d}\u{629} ${ArabicFormatting.isolate(ArabicNumerals.format(start))} \u{625}\u{644}\u{649} ${ArabicFormatting.isolate(ArabicNumerals.format(end))}';
+  static String historyWeekOf(DateTime weekStart) =>
+      '\u{623}\u{633}\u{628}\u{648}\u{639} \u{64a}\u{628}\u{62f}\u{623} \u{641}\u{64a} ${ArabicFormatting.isolate(ArabicNumerals.format(weekStart.year))}/${ArabicFormatting.isolate(ArabicNumerals.format(weekStart.month))}/${ArabicFormatting.isolate(ArabicNumerals.format(weekStart.day))}';
+
   static const appName = '\u{62d}\u{644}\u{642}\u{629}';
   static const signInHint = 'ختمة القرآن مع حلقتك، وردٌ كل يوم';
   static const signInError =

@@ -141,6 +141,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(ProgressHeader), findsNWidgets(2));
+      expect(
+        find.text(ArabicStrings.historyWeekOf(DateTime(2026, 11, 9))),
+        findsOneWidget,
+      );
       expect(find.text(ArabicStrings.fullKhatmaBadge), findsOneWidget);
       expect(
         find.textContaining(

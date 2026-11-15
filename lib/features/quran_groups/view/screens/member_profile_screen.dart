@@ -262,6 +262,12 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
                               padding: AppSpacing.compactCard,
                               child: Column(
                                 children: [
+                                  Icon(
+                                    Icons.local_fire_department_outlined,
+                                    size: 20,
+                                    color: colors.primary,
+                                  ),
+                                  const SizedBox(height: AppSpacing.xxs),
                                   Text(
                                     ArabicStrings.currentStreak,
                                     style: AppTypography.caption.copyWith(
@@ -287,6 +293,12 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
                               padding: AppSpacing.compactCard,
                               child: Column(
                                 children: [
+                                  Icon(
+                                    Icons.donut_large_outlined,
+                                    size: 20,
+                                    color: colors.primary,
+                                  ),
+                                  const SizedBox(height: AppSpacing.xxs),
                                   Text(
                                     ArabicStrings.completionRate,
                                     style: AppTypography.caption.copyWith(
@@ -312,6 +324,12 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
                               padding: AppSpacing.compactCard,
                               child: Column(
                                 children: [
+                                  Icon(
+                                    Icons.auto_stories_outlined,
+                                    size: 20,
+                                    color: colors.primary,
+                                  ),
+                                  const SizedBox(height: AppSpacing.xxs),
                                   Text(
                                     ArabicStrings.portionsRead,
                                     style: AppTypography.caption.copyWith(

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/app_button.dart';
+import '../../../../core/design_system/widgets/app_avatar.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
 import '../../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
@@ -47,8 +48,8 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
                 ? ArabicStrings.offlineStale
                 : ArabicStrings.operationFailed,
             message: state.status == JoinRequestsStatus.offline
-                ? ArabicStrings.authError('network')
-                : ArabicStrings.operationFailed,
+                ? ArabicStrings.networkFailure
+                : ArabicStrings.networkFailure,
             actionLabel: ArabicStrings.retry,
             onAction: () =>
                 context.read<JoinRequestsCubit>().load(widget.groupId),
@@ -86,19 +87,60 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      request.userDisplayName,
-                      style: AppTypography.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      request.source == JoinSource.invite
-                          ? ArabicStrings.requestFromInvite
-                          : request.source == JoinSource.match
-                          ? ArabicStrings.requestFromMatch
-                          : ArabicStrings.requestFromDiscovery,
-                      style: AppTypography.caption,
+                    Row(
+                      children: [
+                        UserAvatar(
+                          displayName: request.userDisplayName,
+                          size: 44,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                request.userDisplayName,
+                                style: AppTypography.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: AppSpacing.xxs),
+                              Row(
+                                children: [
+                                  Icon(
+                                    request.source == JoinSource.invite
+                                        ? Icons.link_rounded
+                                        : request.source == JoinSource.match
+                                        ? Icons.auto_awesome_outlined
+                                        : Icons.public_rounded,
+                                    size: 18,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: AppSpacing.xxs),
+                                  Expanded(
+                                    child: Text(
+                                      request.source == JoinSource.invite
+                                          ? ArabicStrings.requestFromInvite
+                                          : request.source == JoinSource.match
+                                          ? ArabicStrings.requestFromMatch
+                                          : ArabicStrings.requestFromDiscovery,
+                                      style: AppTypography.caption,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Icon(
+                          Icons.schedule_rounded,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Wrap(
@@ -107,6 +149,7 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
                       children: [
                         AppButton(
                           label: ArabicStrings.approveRequestAction,
+                          icon: const Icon(Icons.check_rounded),
                           variant: AppButtonVariant.tonal,
                           onPressed: () => ConfirmSheet.show(
                             context,
@@ -120,6 +163,7 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
                         ),
                         AppButton(
                           label: ArabicStrings.rejectRequestAction,
+                          icon: const Icon(Icons.close_rounded),
                           variant: AppButtonVariant.secondary,
                           onPressed: () => ConfirmSheet.show(
                             context,

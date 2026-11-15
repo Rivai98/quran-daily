@@ -75,9 +75,19 @@ class _MembersScreenState extends State<MembersScreen> {
         return ListView(
           padding: AppSpacing.screen,
           children: [
-            Text(
-              '${ArabicStrings.activeMembersLabel}: ${ArabicNumerals.format(state.members!.activeMemberCount)}',
-              style: AppTypography.title,
+            Row(
+              children: [
+                Icon(
+                  Icons.people_alt_outlined,
+                  size: 20,
+                  color: Theme.of(context).extension<AppColors>()!.inkMuted,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  '${ArabicStrings.activeMembersLabel}: ${ArabicNumerals.format(state.members!.activeMemberCount)}',
+                  style: AppTypography.title,
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.md),
             for (final member in state.members!.members) ...[
@@ -163,7 +173,11 @@ class _MembersScreenState extends State<MembersScreen> {
         ),
         Row(
           children: [
-            const Icon(Icons.event_seat_outlined, size: 18),
+            Icon(
+              Icons.event_seat_outlined,
+              size: 18,
+              color: Theme.of(context).extension<AppColors>()!.inkMuted,
+            ),
             const SizedBox(width: AppSpacing.xxs),
             Expanded(
               child: Text(
