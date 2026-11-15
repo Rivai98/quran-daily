@@ -1,193 +1,184 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/router.dart';
-import '../../../../core/localization/arabic_strings.dart';
-import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_colors.dart';
-import '../widgets/app_section_header.dart';
-import '../widgets/assignment_list.dart';
-import '../widgets/assignment_status_grid.dart';
-import '../widgets/dashboard_progress_header.dart';
-import '../widgets/dense_info_row.dart';
+import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_typography.dart';
+import '../../../../core/design_system/widgets/progress_header.dart';
+import '../../../../core/design_system/widgets/state_panel.dart';
+import '../../../../core/localization/arabic_numerals.dart';
+import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/quran/quran_metadata_repository.dart';
+import '../../cubit/dashboard/dashboard_cubit.dart';
+import '../../data/entities/entities.dart';
+import '../widgets/available_juz_list.dart';
+import '../widgets/juz_grid.dart';
+import '../widgets/my_juz_card.dart';
 import '../widgets/offline_stale_banner.dart';
-import '../widgets/status_chip.dart';
-import '../../../../core/design_system/app_radius.dart';
+import '../widgets/validation_banner.dart';
 
 class GroupDashboardScreen extends StatelessWidget {
-  const GroupDashboardScreen({super.key});
+  const GroupDashboardScreen({super.key, required this.metadataRepository});
+
+  final QuranMetadataRepository metadataRepository;
 
   @override
   Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(ArabicStrings.dashboardTitle),
-        actions: [
-          IconButton(
-            tooltip: ArabicStrings.settingsTitle,
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.settings),
-            icon: const Icon(Icons.settings),
+    return BlocBuilder<DashboardCubit, DashboardState>(
+      builder: (context, state) {
+        final snapshot = state.snapshot;
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(snapshot?.groupName ?? ArabicStrings.dashboardTitle),
+            actions: [
+              IconButton(
+                tooltip: ArabicStrings.settingsTitle,
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.settings),
+                icon: const Icon(Icons.settings),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
+          body: _body(context, state),
+        );
+      },
+    );
+  }
+
+  Widget _body(BuildContext context, DashboardState state) {
+    final snapshot = state.snapshot;
+    if (state.status == DashboardStatus.loading && snapshot == null) {
+      return Center(
+        child: Semantics(
+          label: ArabicStrings.loading,
+          child: const CircularProgressIndicator(),
+        ),
+      );
+    }
+    if (snapshot == null) {
+      return StatePanel(
+        icon: Icons.cloud_off,
+        title: ArabicStrings.dashboardLoadError,
+        message: ArabicStrings.networkFailure,
+        actionLabel: ArabicStrings.retry,
+        onAction: context.read<DashboardCubit>().refresh,
+        isError: true,
+      );
+    }
+
+    if (snapshot.status == GroupStatus.forming) {
+      return _forming(snapshot);
+    }
+
+    final today = snapshot.today;
+    if (today == null) {
+      return StatePanel(
+        icon: Icons.menu_book,
+        title: ArabicStrings.noAssignmentToday,
+        message: ArabicStrings.noAssignmentToday,
+        actionLabel: ArabicStrings.refresh,
+        onAction: context.read<DashboardCubit>().refresh,
+      );
+    }
+
+    final myAssignment = snapshot.myAssignments.isNotEmpty;
+    final completed = snapshot.assignments
+        .where(
+          (assignment) =>
+              assignment.status == AssignmentStatusEnum.completed ||
+              assignment.status == AssignmentStatusEnum.late,
+        )
+        .length;
+
+    return RefreshIndicator(
+      onRefresh: context.read<DashboardCubit>().refresh,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: AppSpacing.screen,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-          const OfflineStaleBanner(),
-          const SizedBox(height: AppSpacing.sm),
-          const DashboardProgressHeader(),
-          const SizedBox(height: AppSpacing.md),
-          _PersonalAssignmentCard(
-            onOpen: () => Navigator.pushNamed(context, AppRoutes.assignment),
-          ),
-          const AppSectionHeader(
-            title: ArabicStrings.partsStatusTitle,
-            subtitle: ArabicStrings.partsStatusSubtitle,
-          ),
-          const _StatusLegend(),
-          const SizedBox(height: AppSpacing.xs),
-          const AssignmentStatusGrid(),
-          const AppSectionHeader(
-            title: ArabicStrings.membersListTitle,
-            subtitle: ArabicStrings.membersListSubtitle,
-          ),
-          const AssignmentList(),
-          const AppSectionHeader(title: ArabicStrings.organizerActionsTitle),
-          DenseInfoRow(
-            icon: Icons.edit_calendar,
-            title: ArabicStrings.reviewAssignmentsAction,
-            subtitle: ArabicStrings.publishBlocked,
-            accentColor: appColors.lateFg,
-            onTap: () => Navigator.pushNamed(context, AppRoutes.organizerReview),
-            trailing: const Icon(Icons.chevron_left),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          DenseInfoRow(
-            icon: Icons.person_add,
-            title: ArabicStrings.reviewJoinRequestsAction,
-            subtitle: ArabicStrings.memberCount29,
-            accentColor: appColors.pendingFg,
-            onTap: () => Navigator.pushNamed(context, AppRoutes.joinRequests),
-            trailing: const Icon(Icons.chevron_left),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          DenseInfoRow(
-            icon: Icons.groups,
-            title: ArabicStrings.manageMembersAction,
-            subtitle: ArabicStrings.activeMembersLabel,
-            accentColor: Theme.of(context).colorScheme.primary,
-            onTap: () => Navigator.pushNamed(context, AppRoutes.members),
-            trailing: const Icon(Icons.chevron_left),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          DenseInfoRow(
-            icon: Icons.history,
-            title: ArabicStrings.openHistoryAction,
-            subtitle: ArabicStrings.noMissedParts,
-            accentColor: appColors.completedFg,
-            onTap: () => Navigator.pushNamed(context, AppRoutes.history),
-            trailing: const Icon(Icons.chevron_left),
-          ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PersonalAssignmentCard extends StatelessWidget {
-  const _PersonalAssignmentCard({required this.onOpen});
-
-  final VoidCallback onOpen;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      child: Padding(
-        padding: AppSpacing.card,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                    borderRadius: AppRadius.smBR,
-                  ),
-                  child: Icon(
-                    Icons.menu_book,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        ArabicStrings.yourAssignment,
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: AppSpacing.xxs),
-                      Text(
-                        ArabicStrings.partRange2,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Flexible(
-                  child: StatusChip(
-                    label: ArabicStrings.pending,
-                    status: ReadingStatus.pending,
-                  ),
-                ),
-              ],
+            if (snapshot.isStale) ...[
+              const OfflineStaleBanner(),
+              const SizedBox(height: AppSpacing.sm),
+            ],
+            if (today.fullKhatma) ...[
+              Builder(
+                builder: (context) {
+                  final colors = Theme.of(context).extension<AppColors>()!;
+                  return ValidationBanner(
+                    icon: Icons.verified,
+                    message: ArabicStrings.fullKhatmaBanner,
+                    color: colors.completedFg,
+                  );
+                },
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
+            if (myAssignment)
+              MyJuzCard(
+                snapshot: snapshot,
+                onOpen: () =>
+                    Navigator.pushNamed(context, AppRoutes.assignment),
+              )
+            else
+              StatePanel(
+                icon: Icons.menu_book,
+                title: ArabicStrings.noAssignmentToday,
+                message: ArabicStrings.noAssignmentToday,
+              ),
+            const SizedBox(height: AppSpacing.lg),
+            ProgressHeader(
+              completed: completed,
+              total: 30,
+              variant: ProgressVariant.bar,
+              caption: ArabicStrings.assignmentGroupDate,
             ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    ArabicStrings.part2,
-                    style: theme.textTheme.headlineSmall,
-                  ),
-                ),
-                FilledButton.icon(
-                  onPressed: onOpen,
-                  icon: const Icon(Icons.open_in_new),
-                  label: const Text(ArabicStrings.openAssignmentAction),
-                ),
-              ],
+            const SizedBox(height: AppSpacing.lg),
+            JuzGrid(assignments: snapshot.assignments),
+            if (snapshot.assignments.any(
+              (assignment) =>
+                  assignment.juz == 30 &&
+                  assignment.status == AssignmentStatusEnum.completed,
+            )) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(ArabicStrings.khatmaDuaNote, style: AppTypography.body),
+            ],
+            const SizedBox(height: AppSpacing.lg),
+            AvailableJuzList(
+              assignments: snapshot.assignments,
+              metadataRepository: metadataRepository,
             ),
           ],
         ),
       ),
     );
   }
-}
 
-class _StatusLegend extends StatelessWidget {
-  const _StatusLegend();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Wrap(
-      spacing: AppSpacing.xs,
-      runSpacing: AppSpacing.xs,
+  Widget _forming(DashboardSnapshot snapshot) {
+    final members = snapshot.seats?.members ?? const <SeatMember>[];
+    return ListView(
+      padding: AppSpacing.screen,
       children: [
-        StatusChip(label: ArabicStrings.completed, status: ReadingStatus.completed),
-        StatusChip(label: ArabicStrings.pending, status: ReadingStatus.pending),
-        StatusChip(label: ArabicStrings.late, status: ReadingStatus.late),
-        StatusChip(label: ArabicStrings.missed, status: ReadingStatus.missed),
+        Text(ArabicStrings.formingDashboard, style: AppTypography.headline),
+        const SizedBox(height: AppSpacing.md),
+        ProgressHeader(
+          completed: snapshot.activeMemberCount,
+          total: 30,
+          variant: ProgressVariant.bar,
+          caption: ArabicStrings.activeMembersCount,
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Text(ArabicStrings.memberSeats, style: AppTypography.title),
+        const SizedBox(height: AppSpacing.sm),
+        for (final member in members)
+          ListTile(
+            leading: CircleAvatar(
+              child: Text(ArabicNumerals.format(member.seatNumber)),
+            ),
+            title: Text(member.displayName, style: AppTypography.body),
+          ),
       ],
     );
   }

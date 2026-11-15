@@ -3,13 +3,18 @@ import 'package:get_it/get_it.dart';
 import '../auth/session_gateway.dart';
 import '../config/app_config.dart';
 import '../network/connectivity_service.dart';
+import '../network/rpc_client.dart';
 import '../network/supabase_client_provider.dart';
 import '../quran/quran_metadata_repository.dart';
 import '../settings/settings_repository.dart';
 import '../settings/settings_repository_impl.dart';
-import '../storage/local_database.dart';
 import '../../features/auth/cubit/auth_cubit.dart';
 import '../../features/quran_groups/cubit/selected_group/selected_group_cubit.dart';
+import '../../features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
+import '../../features/quran_groups/data/data_sources/khatma_remote_data_source.dart';
+import '../../features/quran_groups/data/repositories/khatma_repository.dart';
+import '../../features/quran_groups/data/repositories/khatma_repository_impl.dart';
+import '../storage/daos/daos.dart';
 import '../../features/auth/data/data_sources/supabase_auth_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -35,23 +40,62 @@ void configureServiceLocator({
 
   if (!locator.isRegistered<SettingsRepository>()) {
     locator.registerLazySingleton<SettingsRepository>(
-        SettingsRepositoryImpl.new);
+      SettingsRepositoryImpl.new,
+    );
   }
 
   if (!locator.isRegistered<QuranMetadataRepository>()) {
     locator.registerLazySingleton<QuranMetadataRepository>(
-        QuranMetadataRepository.new);
+      QuranMetadataRepository.new,
+    );
   }
 
   if (!locator.isRegistered<ConnectivityService>()) {
     locator.registerLazySingleton<ConnectivityService>(
-        ConnectivityServiceImpl.new);
+      ConnectivityServiceImpl.new,
+    );
   }
 
   if (withSupabase) {
     if (!locator.isRegistered<SupabaseClientProvider>()) {
       locator.registerLazySingleton<SupabaseClientProvider>(
         () => SupabaseClientProvider(config: locator<AppConfig>()),
+      );
+    }
+
+    if (!locator.isRegistered<RpcClient>()) {
+      locator.registerLazySingleton<RpcClient>(
+        () => RpcClient.forClient(locator<SupabaseClientProvider>().client),
+      );
+    }
+
+    if (!locator.isRegistered<CachedSnapshotsDao>()) {
+      locator.registerLazySingleton<CachedSnapshotsDao>(
+        () => CachedSnapshotsDao(locator<LocalDatabase>()),
+      );
+    }
+
+    if (!locator.isRegistered<KhatmaRemoteDataSource>()) {
+      locator.registerLazySingleton<KhatmaRemoteDataSource>(
+        () => KhatmaRemoteDataSourceImpl(locator<RpcClient>()),
+      );
+    }
+
+    if (!locator.isRegistered<KhatmaRepository>()) {
+      locator.registerLazySingleton<KhatmaRepository>(
+        () => KhatmaRepositoryImpl(
+          remote: locator<KhatmaRemoteDataSource>(),
+          cache: locator<CachedSnapshotsDao>(),
+        ),
+      );
+    }
+
+    if (!locator.isRegistered<DashboardCubit>()) {
+      locator.registerFactoryParam<DashboardCubit, String, void>(
+        (groupId, _) => DashboardCubit(
+          repository: locator<KhatmaRepository>(),
+          groupId: groupId,
+        ),
       );
     }
 
@@ -63,9 +107,7 @@ void configureServiceLocator({
 
     if (!locator.isRegistered<AuthRepository>()) {
       locator.registerLazySingleton<AuthRepository>(
-        () => AuthRepositoryImpl(
-          dataSource: locator<SupabaseAuthDataSource>(),
-        ),
+        () => AuthRepositoryImpl(dataSource: locator<SupabaseAuthDataSource>()),
       );
     }
 
