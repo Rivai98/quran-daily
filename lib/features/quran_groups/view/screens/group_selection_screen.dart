@@ -67,14 +67,16 @@ class _SkeletonList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: AppSpacing.screen,
-      children: [
-        for (var i = 0; i < 4; i++) ...[
-          const SkeletonBox(height: 72),
-          const SizedBox(height: AppSpacing.sm),
+    return AppPageContent(
+      child: ListView(
+        padding: AppSpacing.screenContent,
+        children: [
+          for (var i = 0; i < 4; i++) ...[
+            const SkeletonBox(height: 72),
+            const SizedBox(height: AppSpacing.md),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
@@ -93,34 +95,40 @@ class _EmptyEntryPoints extends StatelessWidget {
         icon: Icon(icon),
         onPressed: () async {
           await Navigator.pushNamed(context, route);
-          if (context.mounted) await context.read<GroupListCubit>().refresh();
+          if (context.mounted) {
+            await context.read<GroupListCubit>().refresh();
+          }
         },
       ),
     );
 
     // S1 empty state (ui-contract): join-any is the one primary action.
-    return ListView(
-      padding: AppSpacing.screen,
-      children: [
-        StatePanel(
-          icon: Icons.groups,
-          title: ArabicStrings.noApprovedGroups,
-          message: ArabicStrings.groupsNeedMembersEntry,
-          actionLabel: ArabicStrings.joinAnyGroupAction,
-          onAction: () async {
-            await Navigator.pushNamed(context, '/join-any');
-            if (context.mounted) await context.read<GroupListCubit>().refresh();
-          },
-          actionVariant: AppButtonVariant.primary,
-        ),
-        secondary(ArabicStrings.searchGroupAction, Icons.search, '/discover'),
-        secondary(
-          ArabicStrings.createGroup,
-          Icons.add_circle_outline,
-          '/groups/new',
-        ),
-        secondary(ArabicStrings.iHaveInviteLink, Icons.link, '/join'),
-      ],
+    return AppPageContent(
+      child: ListView(
+        padding: AppSpacing.screenContent,
+        children: [
+          StatePanel(
+            icon: Icons.groups,
+            title: ArabicStrings.noApprovedGroups,
+            message: ArabicStrings.groupsNeedMembersEntry,
+            actionLabel: ArabicStrings.joinAnyGroupAction,
+            onAction: () async {
+              await Navigator.pushNamed(context, '/join-any');
+              if (context.mounted) {
+                await context.read<GroupListCubit>().refresh();
+              }
+            },
+            actionVariant: AppButtonVariant.primary,
+          ),
+          secondary(ArabicStrings.searchGroupAction, Icons.search, '/discover'),
+          secondary(
+            ArabicStrings.createGroup,
+            Icons.add_circle_outline,
+            '/groups/new',
+          ),
+          secondary(ArabicStrings.iHaveInviteLink, Icons.link, '/join'),
+        ],
+      ),
     );
   }
 }
@@ -133,33 +141,37 @@ class _GroupList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final overview = state.overview!;
-    return ListView(
-      padding: AppSpacing.screen,
-      children: [
-        if (state.isStale) ...[
-          const OfflineBanner(message: ArabicStrings.offlineStale),
+    return AppPageContent(
+      child: ListView(
+        padding: AppSpacing.screenContent,
+        children: [
+          if (state.isStale) ...[
+            const OfflineBanner(message: ArabicStrings.offlineStale),
+            const SizedBox(height: AppSpacing.md),
+          ],
+          for (final group in overview.groups) ...[
+            _MyGroupRow(group: group),
+            const SizedBox(height: AppSpacing.md),
+          ],
+          for (final request in overview.pendingRequests) ...[
+            _PendingRow(request: request),
+            const SizedBox(height: AppSpacing.sm),
+          ],
           const SizedBox(height: AppSpacing.md),
+          AppButton(
+            label: ArabicStrings.createGroup,
+            variant: AppButtonVariant.tonal,
+            expanded: true,
+            onPressed: () async {
+              await Navigator.pushNamed(context, '/groups/new');
+              if (context.mounted) {
+                await context.read<GroupListCubit>().refresh();
+              }
+            },
+            icon: const Icon(Icons.add_circle_outline),
+          ),
         ],
-        for (final group in overview.groups) ...[
-          _MyGroupRow(group: group),
-          const SizedBox(height: AppSpacing.sm),
-        ],
-        for (final request in overview.pendingRequests) ...[
-          _PendingRow(request: request),
-          const SizedBox(height: AppSpacing.sm),
-        ],
-        const SizedBox(height: AppSpacing.md),
-        AppButton(
-          label: ArabicStrings.createGroup,
-          variant: AppButtonVariant.tonal,
-          expanded: true,
-          onPressed: () async {
-            await Navigator.pushNamed(context, '/groups/new');
-            if (context.mounted) await context.read<GroupListCubit>().refresh();
-          },
-          icon: const Icon(Icons.add_circle_outline),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -187,7 +199,9 @@ class _MyGroupRow extends StatelessWidget {
             AppRoutes.dashboard,
             arguments: group.groupId,
           );
-          if (context.mounted) await context.read<GroupListCubit>().refresh();
+          if (context.mounted) {
+            await context.read<GroupListCubit>().refresh();
+          }
         },
         child: Padding(
           padding: AppSpacing.card,

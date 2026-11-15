@@ -8,6 +8,7 @@ import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/app_section_header.dart';
+import '../../../../core/design_system/widgets/app_page_content.dart';
 import '../../../../core/design_system/widgets/app_text_field.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../data/entities/entities.dart';
@@ -76,63 +77,65 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               state.failure?.kind == FailureKind.limitReached;
 
           return SafeArea(
-            child: ListView(
-              padding: AppSpacing.screen,
-              children: [
-                AppTextField(
-                  label: ArabicStrings.groupNameLabel,
-                  hint: ArabicStrings.nameLengthError,
-                  controller: _name,
-                  errorText:
-                      (state.failure?.code == 'validation_failed' &&
-                          _nameError == null)
-                      ? ArabicStrings.nameLengthError
-                      : _nameError,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                AppTextField(
-                  label: ArabicStrings.shortDescriptionLabel,
-                  hint: ArabicStrings.descriptionLengthError,
-                  controller: _description,
-                  errorText: _descriptionError,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppSectionHeader(title: ArabicStrings.settingsTitle),
-                _SegmentedRow<GroupVisibility>(
-                  values: const [
-                    GroupVisibility.public,
-                    GroupVisibility.private,
-                  ],
-                  labelOf: (v) => v == GroupVisibility.public
-                      ? ArabicStrings.publicVisibility
-                      : ArabicStrings.privateVisibility,
-                  selected: _visibility,
-                  onChanged: (v) => setState(() => _visibility = v),
-                  enabled: !submitting,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _SegmentedRow<JoinMode>(
-                  values: const [JoinMode.autoAccept, JoinMode.approval],
-                  labelOf: (m) => m == JoinMode.autoAccept
-                      ? ArabicStrings.autoAcceptJoinMode
-                      : ArabicStrings.ownerApprovalJoinMode,
-                  selected: _joinMode,
-                  onChanged: (m) => setState(() => _joinMode = m),
-                  enabled: !submitting,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                if (limitError) ...[
-                  _LimitBanner(colors: colors),
+            child: AppPageContent(
+              child: ListView(
+                padding: AppSpacing.screenContent,
+                children: [
+                  AppTextField(
+                    label: ArabicStrings.groupNameLabel,
+                    hint: ArabicStrings.nameLengthError,
+                    controller: _name,
+                    errorText:
+                        (state.failure?.code == 'validation_failed' &&
+                            _nameError == null)
+                        ? ArabicStrings.nameLengthError
+                        : _nameError,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  AppTextField(
+                    label: ArabicStrings.shortDescriptionLabel,
+                    hint: ArabicStrings.descriptionLengthError,
+                    controller: _description,
+                    errorText: _descriptionError,
+                  ),
                   const SizedBox(height: AppSpacing.md),
+                  AppSectionHeader(title: ArabicStrings.settingsTitle),
+                  _SegmentedRow<GroupVisibility>(
+                    values: const [
+                      GroupVisibility.public,
+                      GroupVisibility.private,
+                    ],
+                    labelOf: (v) => v == GroupVisibility.public
+                        ? ArabicStrings.publicVisibility
+                        : ArabicStrings.privateVisibility,
+                    selected: _visibility,
+                    onChanged: (v) => setState(() => _visibility = v),
+                    enabled: !submitting,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  _SegmentedRow<JoinMode>(
+                    values: const [JoinMode.autoAccept, JoinMode.approval],
+                    labelOf: (m) => m == JoinMode.autoAccept
+                        ? ArabicStrings.autoAcceptJoinMode
+                        : ArabicStrings.ownerApprovalJoinMode,
+                    selected: _joinMode,
+                    onChanged: (m) => setState(() => _joinMode = m),
+                    enabled: !submitting,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  if (limitError) ...[
+                    _LimitBanner(colors: colors),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                  AppButton(
+                    label: ArabicStrings.createTheGroup,
+                    loading: submitting,
+                    expanded: true,
+                    onPressed: submitting ? null : _submit,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
                 ],
-                AppButton(
-                  label: ArabicStrings.createTheGroup,
-                  loading: submitting,
-                  expanded: true,
-                  onPressed: submitting ? null : _submit,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-              ],
+              ),
             ),
           );
         },

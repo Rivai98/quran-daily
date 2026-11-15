@@ -3,6 +3,7 @@
 export '../app_button.dart';
 export '../assignment_status.dart';
 export 'app_card.dart';
+export 'app_page_content.dart';
 export 'app_section_header.dart';
 export 'app_snack_bar.dart';
 export 'app_text_field.dart';

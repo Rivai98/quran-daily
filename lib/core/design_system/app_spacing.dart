@@ -26,6 +26,9 @@ class AppSpacing {
   /// Padding inside a card ([md]).
   static const EdgeInsets card = EdgeInsets.all(md);
 
+  /// Comfortable page gutter for long-form screens.
+  static const EdgeInsets screenContent = EdgeInsets.fromLTRB(md, lg, md, xl);
+
   /// Compact card/list-row padding ([sm]).
   static const EdgeInsets compactCard = EdgeInsets.all(sm);
 
@@ -34,4 +37,7 @@ class AppSpacing {
 
   /// Gap between elements inside a card ([sm]).
   static const double cardGap = sm;
+
+  /// Small gap between a field label and its control.
+  static const double fieldLabelGap = xxs;
 }
