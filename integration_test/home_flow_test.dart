@@ -81,6 +81,32 @@ Future<void> createGroup(WidgetTester tester, String name) async {
   expect(find.byType(CreateGroupScreen), findsNothing);
 }
 
+Future<void> attemptCreateGroup(WidgetTester tester, String name) async {
+  await pumpUntil(tester, find.text(ArabicStrings.groupsTab));
+  await tapAndSettle(tester, find.text(ArabicStrings.groupsTab).last);
+  while (find.byType(GroupDashboardScreen).evaluate().isNotEmpty) {
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+  }
+  await pumpUntil(tester, find.text(ArabicStrings.createGroup));
+  await tapAndSettle(tester, find.text(ArabicStrings.createGroup).last);
+  await pumpUntil(tester, find.text(ArabicStrings.groupNameLabel));
+  final field = find.descendant(
+    of: find
+        .ancestor(
+          of: find.text(ArabicStrings.groupNameLabel),
+          matching: find.byType(Column),
+        )
+        .first,
+    matching: find.byType(EditableText),
+  );
+  await tester.enterText(field, name);
+  await tester.pump();
+  await tapAndSettle(tester, find.text(ArabicStrings.createTheGroup));
+  await pumpUntil(tester, find.text(ArabicStrings.membershipLimitMessage));
+  expect(find.byType(CreateGroupScreen), findsOneWidget);
+}
+
 Future<void> openGroup(WidgetTester tester, String name) async {
   for (var attempt = 0; attempt < 5; attempt++) {
     await pumpUntil(tester, find.text(name));
@@ -145,5 +171,11 @@ void main() {
     await tapAndSettle(tester, find.text(ArabicStrings.profileTab).last);
     await pumpUntil(tester, find.byType(ProfileScreen));
     await pumpUntil(tester, find.text(ArabicStrings.profileTitle));
+
+    // Spec 005 FR-004c: two active memberships are allowed; the third is not.
+    final secondGroupName = 'Home second group $stamp';
+    await createGroup(tester, secondGroupName);
+    await attemptCreateGroup(tester, 'Home third group $stamp');
+    expect(find.text(ArabicStrings.membershipLimitMessage), findsOneWidget);
   });
 }

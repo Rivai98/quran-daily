@@ -101,6 +101,7 @@ class RpcClient {
     'not_member',
     'forbidden',
     'validation_failed',
+    'membership_limit',
     'owner_group_limit',
     'invite_invalid',
     'already_member',
