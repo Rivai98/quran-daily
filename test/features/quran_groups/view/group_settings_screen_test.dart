@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/design_system/widgets/state_panel.dart';
+import 'package:quran_daily/core/design_system/widgets/app_text_field.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/features/quran_groups/cubit/group_settings/group_settings_cubit.dart';
@@ -36,6 +37,11 @@ void main() {
       ),
     );
     final unitSelector = find.byType(DropdownButtonFormField<PortionUnit>);
+    await tester.scrollUntilVisible(
+      unitSelector,
+      180,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.ensureVisible(unitSelector);
     await tester.tap(unitSelector);
     await tester.pumpAndSettle();
@@ -73,6 +79,44 @@ void main() {
         expect(tester.takeException(), isNull, reason: variant);
       },
     );
+  });
+
+  testWidgets('owner settings use shared fields and separate sections', (
+    tester,
+  ) async {
+    final repository = _MockGroupsRepository();
+    registerFallbackValue(const GroupSettingsPatch());
+    final cubit = GroupSettingsCubit(repository: repository)
+      ..load(groupId: 'group');
+    addTearDown(cubit.close);
+
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: const GroupSettingsScreen(
+            groupId: 'group',
+            isOwner: true,
+            groupName: 'حلقة تجريبية',
+            onKhatmaStarted: _noop,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.byType(DropdownButtonFormField<PortionUnit>),
+      180,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.byType(AppTextField), findsNWidgets(2));
+    expect(find.text(ArabicStrings.inviteCodeLabel), findsOneWidget);
+    expect(
+      find.text(ArabicStrings.portionSelectorTitle),
+      findsAtLeastNWidgets(1),
+    );
+    expect(tester.takeException(), isNull);
   });
 }
 

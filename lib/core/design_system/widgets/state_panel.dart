@@ -18,6 +18,7 @@ class StatePanel extends StatelessWidget {
     this.actionVariant = AppButtonVariant.tonal,
     this.actionIcon,
     this.isError = false,
+    this.illustration,
   });
 
   final IconData icon;
@@ -28,6 +29,7 @@ class StatePanel extends StatelessWidget {
   final AppButtonVariant actionVariant;
   final Icon? actionIcon;
   final bool isError;
+  final Widget? illustration;
 
   @override
   Widget build(BuildContext context) {
@@ -41,11 +43,12 @@ class StatePanel extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                size: 40,
-                color: isError ? colors.danger : colors.inkMuted,
-              ),
+              illustration ??
+                  Icon(
+                    icon,
+                    size: 40,
+                    color: isError ? colors.danger : colors.inkMuted,
+                  ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 title,

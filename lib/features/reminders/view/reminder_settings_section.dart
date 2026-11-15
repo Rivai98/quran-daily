@@ -53,9 +53,21 @@ class ReminderSettingsSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(ArabicStrings.remindersTitle, style: AppTypography.title),
+              Row(
+                children: [
+                  const Icon(Icons.notifications_active_outlined, size: 24),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: Text(
+                      ArabicStrings.remindersTitle,
+                      style: AppTypography.title,
+                    ),
+                  ),
+                ],
+              ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
+                secondary: const Icon(Icons.notifications_active_outlined),
                 title: const Text(ArabicStrings.reminderActivate),
                 value: current.enabled,
                 onChanged: (value) =>
@@ -64,6 +76,7 @@ class ReminderSettingsSection extends StatelessWidget {
               if (current.enabled) ...[
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
+                  secondary: const Icon(Icons.wb_twilight_rounded),
                   title: const Text(ArabicStrings.reminderFajr),
                   value: current.fajrEnabled,
                   onChanged: (value) => save(updated(fajrEnabled: value)),
@@ -77,6 +90,7 @@ class ReminderSettingsSection extends StatelessWidget {
                   ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
+                  secondary: const Icon(Icons.wb_sunny_outlined),
                   title: const Text(ArabicStrings.reminderAsr),
                   value: current.asrEnabled,
                   onChanged: (value) => save(updated(asrEnabled: value)),
@@ -90,6 +104,7 @@ class ReminderSettingsSection extends StatelessWidget {
                   ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
+                  secondary: const Icon(Icons.nightlight_outlined),
                   title: const Text(ArabicStrings.reminderNight),
                   value: current.nightEnabled,
                   onChanged: (value) => save(updated(nightEnabled: value)),

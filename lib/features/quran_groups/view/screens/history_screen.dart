@@ -9,6 +9,7 @@ import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/widgets/offline_banner.dart';
 import '../../../../core/design_system/widgets/skeleton.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
+import '../../../../core/design_system/widgets/halaqa_logo.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/localization/arabic_numerals.dart';
@@ -153,10 +154,14 @@ class _HistoryViewState extends State<_HistoryView> {
               return const _SkeletonList();
 
             case HistoryStatus.empty:
-              return const StatePanel(
+              return StatePanel(
                 icon: Icons.history,
                 title: ArabicStrings.emptyHistoryTitle,
                 message: ArabicStrings.emptyHistoryDesc,
+                actionLabel: ArabicStrings.groupSelectionTitle,
+                actionIcon: const Icon(Icons.groups_rounded),
+                onAction: () => Navigator.of(context).pushNamed('/groups'),
+                illustration: const HalaqaLogo(size: 80),
               );
 
             case HistoryStatus.failure:
@@ -175,10 +180,15 @@ class _HistoryViewState extends State<_HistoryView> {
                   const OfflineBanner(message: ArabicStrings.offlineStale),
                   Expanded(
                     child: state.days.isEmpty
-                        ? const StatePanel(
+                        ? StatePanel(
                             icon: Icons.history,
                             title: ArabicStrings.emptyHistoryTitle,
                             message: ArabicStrings.emptyHistoryDesc,
+                            actionLabel: ArabicStrings.groupSelectionTitle,
+                            actionIcon: const Icon(Icons.groups_rounded),
+                            onAction: () =>
+                                Navigator.of(context).pushNamed('/groups'),
+                            illustration: const HalaqaLogo(size: 80),
                           )
                         : _DaysList(days: state.days, hasMore: state.hasMore),
                   ),

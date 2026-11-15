@@ -14,6 +14,7 @@ import '../../../../core/design_system/widgets/app_section_header.dart';
 import '../../../../core/design_system/widgets/status_chip.dart';
 import '../../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
+import '../../../../core/design_system/widgets/halaqa_logo.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
 import '../../cubit/dashboard/dashboard_cubit.dart';
@@ -62,16 +63,10 @@ class GroupDashboardScreen extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          GroupAvatar(
-                            name: snapshot.groupName,
-                            size: 32,
-                          ),
+                          GroupAvatar(name: snapshot.groupName, size: 32),
                           const SizedBox(width: AppSpacing.xs),
                           Flexible(
-                            child: Text(
-                              snapshot.groupName,
-                              maxLines: 2,
-                            ),
+                            child: Text(snapshot.groupName, maxLines: 2),
                           ),
                         ],
                       ),
@@ -126,6 +121,7 @@ class GroupDashboardScreen extends StatelessWidget {
         message: ArabicStrings.noAssignmentToday,
         actionLabel: ArabicStrings.refresh,
         onAction: context.read<DashboardCubit>().refresh,
+        illustration: const HalaqaLogo(size: 80),
       );
     }
 
@@ -205,6 +201,9 @@ class GroupDashboardScreen extends StatelessWidget {
                     icon: Icons.menu_book,
                     title: ArabicStrings.noAssignmentToday,
                     message: ArabicStrings.noAssignmentToday,
+                    actionLabel: ArabicStrings.refresh,
+                    onAction: context.read<DashboardCubit>().refresh,
+                    illustration: const HalaqaLogo(size: 80),
                   ),
                 const SizedBox(height: AppSpacing.lg),
                 if (snapshot.cycle != null)
@@ -248,7 +247,8 @@ class GroupDashboardScreen extends StatelessWidget {
                         unit: snapshot.portionUnit,
                         onAssignmentTap: (assignment) {
                           if (snapshot.myRole == GroupRole.owner &&
-                              assignment.status == AssignmentStatusEnum.pending) {
+                              assignment.status ==
+                                  AssignmentStatusEnum.pending) {
                             _openOverride(context, assignment);
                           } else {
                             PortionDetailSheet.show(
@@ -335,33 +335,36 @@ class GroupDashboardScreen extends StatelessWidget {
     };
     return [
       PopupMenuButton<String>(
-          tooltip: ArabicStrings.groupMenuTooltip,
-          icon: const Icon(Icons.manage_accounts),
-          onSelected: (route) async {
-            if (route == 'set-main') {
-              await context.read<DashboardCubit>().pinAsMain();
-              return;
-            }
-            if (route == AppRoutes.history) {
-              await Navigator.pushNamed(
-                context,
-                route,
-                arguments: snapshot.groupId,
-              );
-              return;
-            }
-            await Navigator.pushNamed(context, route, arguments: args);
-            if (context.mounted) {
-              await context.read<DashboardCubit>().refresh();
-            }
-          },
-          itemBuilder: (_) => [
-            const PopupMenuItem(value: 'set-main', child: Text(ArabicStrings.setMainGroupAction)),
-            PopupMenuItem(
-              value: AppRoutes.history,
-              child: Text(ArabicStrings.openHistoryAction),
-            ),
-            if (canManage) ...[
+        tooltip: ArabicStrings.groupMenuTooltip,
+        icon: const Icon(Icons.manage_accounts),
+        onSelected: (route) async {
+          if (route == 'set-main') {
+            await context.read<DashboardCubit>().pinAsMain();
+            return;
+          }
+          if (route == AppRoutes.history) {
+            await Navigator.pushNamed(
+              context,
+              route,
+              arguments: snapshot.groupId,
+            );
+            return;
+          }
+          await Navigator.pushNamed(context, route, arguments: args);
+          if (context.mounted) {
+            await context.read<DashboardCubit>().refresh();
+          }
+        },
+        itemBuilder: (_) => [
+          const PopupMenuItem(
+            value: 'set-main',
+            child: Text(ArabicStrings.setMainGroupAction),
+          ),
+          PopupMenuItem(
+            value: AppRoutes.history,
+            child: Text(ArabicStrings.openHistoryAction),
+          ),
+          if (canManage) ...[
             const PopupMenuItem(
               value: AppRoutes.members,
               child: Text(ArabicStrings.manageMembersAction),
@@ -375,9 +378,9 @@ class GroupDashboardScreen extends StatelessWidget {
                 value: AppRoutes.groupSettings,
                 child: Text(ArabicStrings.groupSettingsAction),
               ),
-            ],
           ],
-        ),
+        ],
+      ),
     ];
   }
 

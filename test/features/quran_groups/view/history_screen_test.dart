@@ -8,6 +8,7 @@ import 'package:quran_daily/core/design_system/widgets/offline_banner.dart';
 import 'package:quran_daily/core/design_system/widgets/progress_header.dart';
 import 'package:quran_daily/core/design_system/widgets/skeleton.dart';
 import 'package:quran_daily/core/design_system/widgets/state_panel.dart';
+import 'package:quran_daily/core/design_system/widgets/halaqa_logo.dart';
 import 'package:quran_daily/core/errors/failures.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
@@ -67,6 +68,8 @@ void main() {
     expect(find.byType(StatePanel), findsOneWidget);
     expect(find.text(ArabicStrings.emptyHistoryTitle), findsOneWidget);
     expect(find.text(ArabicStrings.emptyHistoryDesc), findsOneWidget);
+    expect(find.byType(HalaqaLogo), findsOneWidget);
+    expect(find.text(ArabicStrings.groupSelectionTitle), findsOneWidget);
   });
 
   testWidgets('failure state shows StatePanel with retry action', (

@@ -100,6 +100,20 @@ void main() {
     );
   });
 
+  testWidgets('visibility and join modes have clear illustrated choices', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildArabicTestApp(pump()));
+
+    expect(find.byIcon(Icons.public_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.lock_outline_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.group_add_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.verified_user_outlined), findsOneWidget);
+    expect(find.text(ArabicStrings.publicVisibilityHint), findsOneWidget);
+    expect(find.text(ArabicStrings.ownerApprovalJoinModeHint), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('membership limit shows the two-group explanation', (
     tester,
   ) async {

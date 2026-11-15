@@ -7,6 +7,7 @@ import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/widgets/app_card.dart';
 import '../../../core/design_system/widgets/app_page_content.dart';
+import '../../../core/design_system/widgets/app_section_header.dart';
 import '../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../core/di/service_locator.dart';
 import '../../../core/localization/arabic_numerals.dart';
@@ -78,47 +79,63 @@ class _SettingsView extends StatelessWidget {
             child: ListView(
               padding: AppSpacing.screenContent,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        ArabicStrings.quranTextSizeTitle,
-                        style: AppTypography.title,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(percentLabel, style: AppTypography.label),
-                  ],
+                const _SettingsSectionHeader(
+                  icon: Icons.auto_stories_rounded,
+                  title: ArabicStrings.settingsReadingSection,
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Slider(
-                  value: state.quranTextScale,
-                  min: SettingsCubit.minQuranTextScale,
-                  max: SettingsCubit.maxQuranTextScale,
-                  divisions: 15,
-                  label: percentLabel,
-                  onChanged: (val) => cubit.setQuranTextScale(val),
+                AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              ArabicStrings.quranTextSizeTitle,
+                              style: AppTypography.title,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(percentLabel, style: AppTypography.label),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Slider(
+                        value: state.quranTextScale,
+                        min: SettingsCubit.minQuranTextScale,
+                        max: SettingsCubit.maxQuranTextScale,
+                        divisions: 15,
+                        label: percentLabel,
+                        onChanged: (val) => cubit.setQuranTextScale(val),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppCard(
+                        child: Center(
+                          child: Text(
+                            ArabicStrings.quranPreviewText,
+                            style: AppTypography.quranLabel,
+                            textScaler: TextScaler.linear(state.quranTextScale),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      if (serviceLocator
+                          .isRegistered<MushafFontDownloadCubit>()) ...[
+                        const SizedBox(height: AppSpacing.lg),
+                        BlocProvider<MushafFontDownloadCubit>(
+                          create: (_) =>
+                              serviceLocator<MushafFontDownloadCubit>()..load(),
+                          child: const MushafFontDownloadSection(),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                AppCard(
-                  child: Center(
-                    child: Text(
-                      ArabicStrings.quranPreviewText,
-                      style: AppTypography.quranLabel,
-                      textScaler: TextScaler.linear(state.quranTextScale),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+                const _SettingsSectionHeader(
+                  icon: Icons.person_outline_rounded,
+                  title: ArabicStrings.settingsAccountSection,
                 ),
-                if (serviceLocator.isRegistered<MushafFontDownloadCubit>()) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  BlocProvider<MushafFontDownloadCubit>(
-                    create: (_) =>
-                        serviceLocator<MushafFontDownloadCubit>()..load(),
-                    child: const MushafFontDownloadSection(),
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.lg),
                 AppCard(
                   padding: AppSpacing.card,
                   child: Column(
@@ -151,6 +168,7 @@ class _SettingsView extends StatelessWidget {
                         label: ArabicStrings.editProfile,
                         variant: AppButtonVariant.secondary,
                         expanded: true,
+                        icon: const Icon(Icons.edit_outlined),
                         onPressed: () => Navigator.pushNamed(
                           context,
                           AppRoutes.editMyProfile,
@@ -181,13 +199,29 @@ class _SettingsView extends StatelessWidget {
                 ],
                 AppButton(
                   label: ArabicStrings.signOut,
-                  icon: const Icon(Icons.logout),
+                  icon: const Icon(Icons.logout_rounded),
                   variant: AppButtonVariant.secondary,
                   expanded: true,
                   loading: state.status == SettingsStatus.signingOut,
                   onPressed: state.status == SettingsStatus.signingOut
                       ? null
                       : () => _onSignOut(context),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                const _SettingsSectionHeader(
+                  icon: Icons.info_outline_rounded,
+                  title: ArabicStrings.settingsAboutSection,
+                ),
+                AppCard(
+                  padding: EdgeInsets.zero,
+                  child: ListTile(
+                    leading: const Icon(Icons.policy_outlined),
+                    title: const Text(ArabicStrings.settingsLicensesEntry),
+                    trailing: const Icon(Icons.chevron_left_rounded),
+                    onTap: () => Navigator.of(
+                      context,
+                    ).pushNamed(AppRoutes.mushafLicenses),
+                  ),
                 ),
               ],
             ),
@@ -196,4 +230,23 @@ class _SettingsView extends StatelessWidget {
       ),
     );
   }
+}
+
+class _SettingsSectionHeader extends StatelessWidget {
+  const _SettingsSectionHeader({required this.icon, required this.title});
+
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsetsDirectional.only(bottom: AppSpacing.xs),
+    child: Row(
+      children: [
+        Icon(icon, size: AppSpacing.lg),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(child: AppSectionHeader(title: title)),
+      ],
+    ),
+  );
 }

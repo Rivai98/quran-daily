@@ -9,7 +9,7 @@ import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
-import '../../../../core/design_system/widgets/app_section_header.dart';
+import '../../../../core/design_system/widgets/app_text_field.dart';
 import '../../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/localization/arabic_strings.dart';
@@ -179,7 +179,10 @@ class _SettingsFormState extends State<_SettingsForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(ArabicStrings.inviteCodeLabel, style: AppTypography.label),
+                _GroupSettingsSectionTitle(
+                  icon: Icons.link_rounded,
+                  title: ArabicStrings.inviteCodeLabel,
+                ),
                 const SizedBox(height: AppSpacing.xxs),
                 Row(
                   children: [
@@ -229,23 +232,22 @@ class _SettingsFormState extends State<_SettingsForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              AppSectionHeader(title: ArabicStrings.settingsTitle),
-              TextField(
+              const _GroupSettingsSectionTitle(
+                icon: Icons.tune_rounded,
+                title: ArabicStrings.settingsTitle,
+              ),
+              AppTextField(
+                label: ArabicStrings.groupNameLabel,
                 controller: nameController,
-                textDirection: TextDirection.rtl,
-                decoration: const InputDecoration(
-                  labelText: ArabicStrings.groupNameLabel,
-                ),
+                prefixIcon: Icons.groups_outlined,
               ),
               const SizedBox(height: AppSpacing.md),
-              TextField(
+              AppTextField(
+                label: ArabicStrings.shortDescriptionLabel,
                 controller: descriptionController,
-                textDirection: TextDirection.rtl,
+                prefixIcon: Icons.notes_rounded,
                 minLines: 2,
                 maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: ArabicStrings.shortDescriptionLabel,
-                ),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
@@ -264,19 +266,28 @@ class _SettingsFormState extends State<_SettingsForm> {
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) => _GroupRemindersPage(
-                  groupId: groupId,
-                  groupName: groupName,
-                ),
+                builder: (_) =>
+                    _GroupRemindersPage(groupId: groupId, groupName: groupName),
               ),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
         ],
-        _PortionUnitSetting(
-          current: portionUnit,
-          isActive: isActive,
-          submitting: submitting,
+        AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const _GroupSettingsSectionTitle(
+                icon: Icons.menu_book_rounded,
+                title: ArabicStrings.portionSelectorTitle,
+              ),
+              _PortionUnitSetting(
+                current: portionUnit,
+                isActive: isActive,
+                submitting: submitting,
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: AppSpacing.md),
         AppButton(
@@ -296,25 +307,55 @@ class _SettingsFormState extends State<_SettingsForm> {
                 ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        AppButton(
-          label: ArabicStrings.archiveGroupAction,
-          variant: AppButtonVariant.secondary,
-          expanded: true,
-          onPressed: submitting
-              ? null
-              : () => ConfirmSheet.show(
-                  context,
-                  title: ArabicStrings.archiveGroupTitle,
-                  message: ArabicStrings.archiveGroupMessage,
-                  confirmLabel: ArabicStrings.archiveGroupConfirm,
-                  onConfirm: () => cubit.archiveGroup(),
-                ),
-          icon: const Icon(Icons.archive_outlined),
+        AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const _GroupSettingsSectionTitle(
+                icon: Icons.archive_outlined,
+                title: ArabicStrings.archiveGroupAction,
+              ),
+              AppButton(
+                label: ArabicStrings.archiveGroupAction,
+                variant: AppButtonVariant.secondary,
+                expanded: true,
+                onPressed: submitting
+                    ? null
+                    : () => ConfirmSheet.show(
+                        context,
+                        title: ArabicStrings.archiveGroupTitle,
+                        message: ArabicStrings.archiveGroupMessage,
+                        confirmLabel: ArabicStrings.archiveGroupConfirm,
+                        onConfirm: () => cubit.archiveGroup(),
+                      ),
+                icon: const Icon(Icons.archive_outlined),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: AppSpacing.lg),
       ],
     );
   }
+}
+
+class _GroupSettingsSectionTitle extends StatelessWidget {
+  const _GroupSettingsSectionTitle({required this.icon, required this.title});
+
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsetsDirectional.only(bottom: AppSpacing.sm),
+    child: Row(
+      children: [
+        Icon(icon, size: 24),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(child: Text(title, style: AppTypography.title)),
+      ],
+    ),
+  );
 }
 
 class _GroupRemindersPage extends StatelessWidget {

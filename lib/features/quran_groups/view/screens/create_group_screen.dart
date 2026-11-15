@@ -7,7 +7,6 @@ import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
-import '../../../../core/design_system/widgets/app_section_header.dart';
 import '../../../../core/design_system/widgets/app_text_field.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/quran/portion_unit.dart';
@@ -93,6 +92,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                         label: ArabicStrings.groupNameLabel,
                         hint: ArabicStrings.nameLengthError,
                         controller: _name,
+                        prefixIcon: Icons.groups_outlined,
                         errorText:
                             (state.failure?.code == 'validation_failed' &&
                                 _nameError == null)
@@ -104,15 +104,22 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                         label: ArabicStrings.shortDescriptionLabel,
                         hint: ArabicStrings.descriptionLengthError,
                         controller: _description,
+                        prefixIcon: Icons.notes_rounded,
                         errorText: _descriptionError,
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      AppSectionHeader(title: ArabicStrings.groupVisibilityTitle),
+                      const _CreateSectionHeader(
+                        icon: Icons.visibility_outlined,
+                        title: ArabicStrings.groupVisibilityTitle,
+                      ),
                       _SegmentedRow<GroupVisibility>(
                         values: const [
                           GroupVisibility.public,
                           GroupVisibility.private,
                         ],
+                        iconOf: (value) => value == GroupVisibility.public
+                            ? Icons.public_rounded
+                            : Icons.lock_outline_rounded,
                         labelOf: (v) => v == GroupVisibility.public
                             ? ArabicStrings.publicVisibility
                             : ArabicStrings.privateVisibility,
@@ -124,9 +131,15 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                         enabled: !submitting,
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      AppSectionHeader(title: ArabicStrings.joinModeTitle),
+                      const _CreateSectionHeader(
+                        icon: Icons.group_add_outlined,
+                        title: ArabicStrings.joinModeTitle,
+                      ),
                       _SegmentedRow<JoinMode>(
                         values: const [JoinMode.autoAccept, JoinMode.approval],
+                        iconOf: (mode) => mode == JoinMode.autoAccept
+                            ? Icons.group_add_rounded
+                            : Icons.verified_user_outlined,
                         labelOf: (m) => m == JoinMode.autoAccept
                             ? ArabicStrings.autoAcceptJoinMode
                             : ArabicStrings.ownerApprovalJoinMode,
@@ -138,7 +151,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                         enabled: !submitting,
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      AppSectionHeader(
+                      const _CreateSectionHeader(
+                        icon: Icons.menu_book_rounded,
                         title: ArabicStrings.portionSelectorTitle,
                       ),
                       FutureBuilder<void>(
@@ -197,9 +211,29 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   }
 }
 
+class _CreateSectionHeader extends StatelessWidget {
+  const _CreateSectionHeader({required this.icon, required this.title});
+
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsetsDirectional.only(bottom: AppSpacing.xs),
+    child: Row(
+      children: [
+        Icon(icon, size: 24),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(child: Text(title, style: AppTypography.title)),
+      ],
+    ),
+  );
+}
+
 class _SegmentedRow<T> extends StatelessWidget {
   const _SegmentedRow({
     required this.values,
+    required this.iconOf,
     required this.labelOf,
     required this.hintOf,
     required this.selected,
@@ -208,6 +242,7 @@ class _SegmentedRow<T> extends StatelessWidget {
   });
 
   final List<T> values;
+  final IconData Function(T) iconOf;
   final String Function(T) labelOf;
   final String Function(T) hintOf;
   final T selected;
@@ -238,6 +273,8 @@ class _SegmentedRow<T> extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
+                    Icon(iconOf(value), size: 22, color: colors.inkMuted),
+                    const SizedBox(width: AppSpacing.xs),
                     Icon(
                       selected == value
                           ? Icons.radio_button_checked

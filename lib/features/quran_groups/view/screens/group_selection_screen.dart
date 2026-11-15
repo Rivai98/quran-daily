@@ -142,6 +142,7 @@ class _EmptyEntryPoints extends StatelessWidget {
                   },
                   actionVariant: AppButtonVariant.primary,
                   actionIcon: const Icon(Icons.volunteer_activism_rounded),
+                  illustration: const HalaqaLogo(size: 80),
                 ),
                 secondary(
                   ArabicStrings.searchGroupAction,
