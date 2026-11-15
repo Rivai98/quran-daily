@@ -517,6 +517,8 @@ class ArabicStrings {
       'اليوم ${ArabicNumerals.format(day)} من ${ArabicNumerals.format(length)} · أُنجز ${ArabicNumerals.format(completed)} من ${ArabicNumerals.format(total)}';
   static const restDay = 'لا ورد اليوم';
   static const volunteeredPortion = 'وحدة تطوعت بقراءتها';
+  static String restDaySeatLabel(String seat) =>
+      '${historySeat(seat)}، $restDay';
   static String pendingPortionChange(PortionUnit unit) =>
       'سيتغير الورد إلى ${portionUnitName(unit)} بداية الختمة القادمة';
   static const confirmPortionChange = 'تأكيد تغيير الورد';

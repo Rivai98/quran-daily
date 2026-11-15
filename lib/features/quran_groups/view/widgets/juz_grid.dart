@@ -80,7 +80,7 @@ class _RestDayTile extends StatelessWidget {
     final colors = Theme.of(context).extension<AppColors>()!;
     return Semantics(
       label:
-          '${ArabicStrings.historySeat(ArabicNumerals.format(seat))}، ${ArabicStrings.restDay}',
+          ArabicStrings.restDaySeatLabel(ArabicNumerals.format(seat)),
       child: Container(
         constraints: const BoxConstraints(minHeight: 48),
         padding: const EdgeInsetsDirectional.all(AppSpacing.xs),

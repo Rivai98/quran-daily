@@ -35,11 +35,24 @@ migration repair --remote --yes --status applied <version>` (never db push).
 
 ## Phase 5: Polish
 
-- [ ] T016 Integration test `integration_test/portion_flow_test.dart`: create hizb group -> start -> day 1 portions 1..30 for seats
-- [ ] T017 Principle VII review: no hand-typed boundaries; Principle VI review of new UI
-- [ ] T018 flutter analyze / flutter test / all pgTAP; record in quickstart
+- [X] T016 Integration test `integration_test/portion_flow_test.dart`: create hizb group -> start -> day 1 portions 1..30 for seats
+- [X] T017 Principle VII review: no hand-typed boundaries; Principle VI review of new UI
+- [X] T018 flutter analyze / flutter test / all pgTAP; record in quickstart
 
 ## Dependencies
 
 Phase 1 ∥ Phase 2. Phase 3 needs Phase 1 (unit enum) and Phase 2 contracts.
 Phase 4 needs Phase 3. T012/T013 need T001 (metadata portions).
+
+## Validation log (2026-11-15)
+
+| Check | Result |
+|---|---|
+| flutter analyze | 0 issues |
+| flutter test | 315 passing |
+| pgTAP (11 files, hosted dev DB) | 261 passed, 0 failed (incl. 004_portion_units_test 57/57) |
+| T016 integration_test/portion_flow_test.dart (Android emulator API 35) | PASS: hizb group, day 1 = hizb 1..30 for seats 1..30, cycle length 2 |
+| Spec 001 regression: integration_test/group_flow_test.dart | PASS (juz behavior unchanged, SC-003) |
+| T017 Principle VII | no hand-typed sura names/boundaries; portions only from quran-data.xml; checksum test green |
+| T017 Principle VI | no raw colors/sizes/radii or left/right insets in features; rest-day label moved to ArabicStrings |
+| iOS | not run (no macOS) |
