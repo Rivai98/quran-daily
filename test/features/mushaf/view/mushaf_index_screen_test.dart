@@ -79,7 +79,7 @@ void main() {
 
     expect(find.text('الفاتحة'), findsOneWidget);
     expect(find.text('صفحة ١ · ٧ آيات'), findsOneWidget);
-    expect(find.byIcon(Icons.chevron_left), findsWidgets);
+    expect(find.byIcon(Icons.chevron_right), findsWidgets);
   });
 
   testWidgets('renders juz and hizb rows with start page and chevron', (tester) async {
@@ -98,13 +98,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('${ArabicStrings.juzLabel} ١'), findsOneWidget);
-    expect(find.byIcon(Icons.chevron_left), findsWidgets);
+    expect(find.byIcon(Icons.chevron_right), findsWidgets);
 
     await tester.tap(find.text(ArabicStrings.ahzabTab));
     await tester.pumpAndSettle();
 
     expect(find.text('${ArabicStrings.portionUnitHizb} ١'), findsOneWidget);
-    expect(find.byIcon(Icons.chevron_left), findsWidgets);
+    expect(find.byIcon(Icons.chevron_right), findsWidgets);
   });
 }
 

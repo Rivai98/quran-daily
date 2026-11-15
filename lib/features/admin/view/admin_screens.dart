@@ -170,7 +170,7 @@ class _AdminOverviewView extends StatelessWidget {
           child: ListTile(
             leading: Icon(icon),
             title: Text(label, style: AppTypography.title),
-            trailing: const Icon(Icons.chevron_left),
+            trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.pushNamed(context, route),
           ),
         ),

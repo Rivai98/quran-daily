@@ -40,7 +40,7 @@ class ProfileNavigationTile extends StatelessWidget {
                 ),
               ),
               Icon(
-                Icons.chevron_left,
+                Icons.chevron_right,
                 color: colors.inkMuted,
                 size: 24,
               ),

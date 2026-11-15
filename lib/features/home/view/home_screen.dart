@@ -39,7 +39,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(ArabicStrings.homeGreeting(widget.displayName))),
+    appBar: AppBar(
+      title: Text(
+        ArabicStrings.homeGreeting(widget.displayName),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppTypography.title.copyWith(
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
+    ),
     body: BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
         if (state.status == HomeStatus.initial ||

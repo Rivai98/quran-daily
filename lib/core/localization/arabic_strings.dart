@@ -53,9 +53,9 @@ class ArabicStrings {
   static String portionPageProgress(int current, int total) =>
       'صفحة ${ArabicNumerals.format(current)} من ${ArabicNumerals.format(total)}';
   static String surahAyahMeta(int page, int ayahs) =>
-      'صفحة ${ArabicNumerals.format(page)} · ${ArabicNumerals.format(ayahs)} آيات';
+      'صفحة ${ArabicFormatting.isolate(ArabicNumerals.format(page))} · ${ArabicFormatting.isolate(ArabicNumerals.format(ayahs))} آيات';
   static String juzHizbMeta(String surahName, int page) =>
-      'سورة $surahName · صفحة ${ArabicNumerals.format(page)}';
+      'سورة $surahName · صفحة ${ArabicFormatting.isolate(ArabicNumerals.format(page))}';
   // --- 006 reminders ---
   static const reminderPermissionExplain =
       '\u{62a}\u{64f}\u{633}\u{62a}\u{62e}\u{62f}\u{645}\u{20}\u{627}\u{644}\u{625}\u{634}\u{639}\u{627}\u{631}\u{627}\u{62a}\u{20}\u{644}\u{62a}\u{630}\u{643}\u{64a}\u{631}\u{643}\u{20}\u{628}\u{648}\u{631}\u{62f}\u{643}\u{20}\u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a}\u{60c}\u{20}\u{648}\u{64a}\u{64f}\u{62d}\u{633}\u{628}\u{20}\u{645}\u{648}\u{639}\u{62f}\u{647}\u{627}\u{20}\u{639}\u{644}\u{649}\u{20}\u{62c}\u{647}\u{627}\u{632}\u{643}\u{2e}';
@@ -187,8 +187,9 @@ class ArabicStrings {
     final name = displayName?.trim() ?? '';
     if (name.isEmpty) return 'السلام عليكم';
     final nameParts = name.split(RegExp(r'\s+'));
-    return 'السلام عليكم يا ${name.length > 18 ? nameParts.first : name}';
+    return 'السلام عليكم يا ${nameParts.first}';
   }
+
   static const otherGroupsTitle = 'أوراد مجموعاتك الأخرى';
   static const todayCompleteTitle = 'أتممت وردك اليوم';
   static const setMainGroupAction = 'اجعلها مجموعتي الرئيسية';

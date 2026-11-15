@@ -153,7 +153,7 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
                   style: AppTypography.caption.copyWith(color: colors.inkMuted),
                 ),
                 trailing: Icon(
-                  Icons.chevron_left,
+                  Icons.chevron_right,
                   color: colors.inkMuted,
                   size: 20,
                 ),
@@ -199,7 +199,7 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
             style: AppTypography.caption.copyWith(color: colors.inkMuted),
           ),
           trailing: Icon(
-            Icons.chevron_left,
+            Icons.chevron_right,
             color: colors.inkMuted,
             size: 20,
           ),
@@ -242,7 +242,7 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
             style: AppTypography.caption.copyWith(color: colors.inkMuted),
           ),
           trailing: Icon(
-            Icons.chevron_left,
+            Icons.chevron_right,
             color: colors.inkMuted,
             size: 20,
           ),
@@ -300,7 +300,7 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
                   ),
                 ),
                 trailing: Icon(
-                  Icons.chevron_left,
+                  Icons.chevron_right,
                   color: colors.inkMuted,
                   size: 20,
                 ),
