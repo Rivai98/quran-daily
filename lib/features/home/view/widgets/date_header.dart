@@ -27,12 +27,12 @@ class DateHeader extends StatelessWidget {
     final hijri = HijriCalendar.fromDate(date);
     final hijriText =
         '${ArabicNumerals.format(hijri.hDay)} ${_months[hijri.hMonth - 1]} ${ArabicNumerals.format(hijri.hYear)}';
-    final gregorian = DateFormat('EEEE d MMMM y', 'ar').format(date);
+    final gregorian = DateFormat('d MMMM y', 'ar').format(date);
     final localizedGregorian = ArabicNumerals.format(gregorian);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(hijriText, style: AppTypography.title),
+        Text(hijriText, style: AppTypography.caption),
         const SizedBox(height: AppSpacing.xxs),
         Text(localizedGregorian, style: AppTypography.caption),
       ],

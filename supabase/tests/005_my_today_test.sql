@@ -1,7 +1,7 @@
 create extension if not exists pgtap with schema extensions;
 \i helpers/seed_members.sql
 begin;
-select plan(13);
+select plan(15);
 select tests_seed_user('a5000000-0000-0000-0000-000000000041','p5-today@test.local','P5 today');
 select tests_seed_group('a5000000-0000-0000-0000-000000000042','P5 today group','a5000000-0000-0000-0000-000000000041','Africa/Cairo','P5ABCDEL');
 select tests_seed_group('a5000000-0000-0000-0000-000000000043','P5 today hizb','a5000000-0000-0000-0000-000000000041','Africa/Cairo','P5ABCDEM');
@@ -15,6 +15,9 @@ update public.groups set status='active', start_juz=1, start_date=current_date, 
 update public.groups set status='active', start_juz=1, start_date=current_date, portion_unit='page' where id='a5000000-0000-0000-0000-000000000042';
 update public.groups set status='active', start_juz=1, start_date=current_date where id='a5000000-0000-0000-0000-000000000045';
 update public.groups set status='archived' where id='a5000000-0000-0000-0000-000000000044';
+update public.assignments a set status='completed' from public.group_days d
+where a.group_day_id=d.id and d.group_id='a5000000-0000-0000-0000-000000000043'
+  and a.seat_number=1;
 update public.profiles set main_group_id='a5000000-0000-0000-0000-000000000043' where id='a5000000-0000-0000-0000-000000000041';
 select set_config('request.jwt.claims',json_build_object('sub','a5000000-0000-0000-0000-000000000041','role','authenticated')::text,true);
 select is(jsonb_array_length(public.get_my_today()->'groups'),3,'archived membership is excluded from today feed');
@@ -23,6 +26,8 @@ select ok((select value->'day' ? 'cycle_number' and value->'day' ? 'cycle_day' a
 select is((select value->>'portion_unit' from jsonb_array_elements(public.get_my_today()->'groups') where value->>'group_id'='a5000000-0000-0000-0000-000000000043'),'hizb','group portion unit is included');
 select ok((select value->'day' is not null and value->>'portion_unit'='juz' from jsonb_array_elements(public.get_my_today()->'groups') where value->>'group_id'='a5000000-0000-0000-0000-000000000045'),'juz group returns its day and portion unit');
 select ok((select value->'day' ? 'completed_count' and value->'day' ? 'total_count' from jsonb_array_elements(public.get_my_today()->'groups') where value->>'group_id'='a5000000-0000-0000-0000-000000000043'),'day includes counts');
+select is((select value->>'active_member_count' from jsonb_array_elements(public.get_my_today()->'groups') where value->>'group_id'='a5000000-0000-0000-0000-000000000043'),'1','today includes active group member count');
+select is((select value->'day'->>'completed_member_count' from jsonb_array_elements(public.get_my_today()->'groups') where value->>'group_id'='a5000000-0000-0000-0000-000000000043'),'1','today counts distinct members who completed an assignment');
 select is((select value->>'is_main' from jsonb_array_elements(public.get_my_today()->'groups') where value->>'group_id'='a5000000-0000-0000-0000-000000000043'),'true','pinned group is first and main');
 select is((select value->>'group_id' from jsonb_array_elements(public.get_my_today()->'groups') with ordinality e(value,ord) where ord=1),'a5000000-0000-0000-0000-000000000043','main group orders first');
 update public.assignments a set reader_membership_id=null,kind='unassigned',status='available' from public.group_days d where a.group_day_id=d.id and d.group_id='a5000000-0000-0000-0000-000000000042';

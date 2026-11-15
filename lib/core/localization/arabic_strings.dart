@@ -1,4 +1,5 @@
 import 'arabic_numerals.dart';
+import 'arabic_formatting.dart';
 import '../quran/portion_unit.dart';
 
 class ArabicStrings {
@@ -178,7 +179,12 @@ class ArabicStrings {
   static const mushafTab = 'المصحف';
   static const profileTab = 'حسابي';
   static const todayTitle = 'وردك اليوم';
-  static const homeGreeting = 'السلام عليكم';
+  static String homeGreeting(String? displayName) {
+    final name = displayName?.trim() ?? '';
+    if (name.isEmpty) return 'السلام عليكم';
+    final nameParts = name.split(RegExp(r'\s+'));
+    return 'السلام عليكم يا ${name.length > 18 ? nameParts.first : name}';
+  }
   static const otherGroupsTitle = 'أوراد مجموعاتك الأخرى';
   static const todayCompleteTitle = 'أتممت وردك اليوم';
   static const setMainGroupAction = 'اجعلها مجموعتي الرئيسية';
@@ -747,6 +753,8 @@ class ArabicStrings {
       'من $startSura آية ${ArabicNumerals.format(startAya)} إلى $endSura آية ${ArabicNumerals.format(endAya)}';
   static String cycleProgress(int day, int length, int completed, int total) =>
       'اليوم ${ArabicNumerals.format(day)} من ${ArabicNumerals.format(length)} · أُنجز ${ArabicNumerals.format(completed)} من ${ArabicNumerals.format(total)}';
+  static String homeGroupProgress(int day, int completedMembers, int activeMembers) =>
+      'اليوم ${ArabicFormatting.isolate(ArabicNumerals.format(day))} من الختمة · قرأ ${ArabicFormatting.isolate(ArabicNumerals.format(completedMembers))} من ${ArabicFormatting.isolate(ArabicNumerals.format(activeMembers))} عضوًا';
   static const restDay = 'لا ورد اليوم';
   static const volunteeredPortion = 'وحدة تطوعت بقراءتها';
   static String restDaySeatLabel(String seat) =>

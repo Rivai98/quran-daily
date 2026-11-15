@@ -19,35 +19,40 @@ class TodaySnapshot extends Equatable {
 }
 
 class TodayGroup extends Equatable {
-  const TodayGroup({required this.groupId, required this.name, required this.role, required this.status, required this.portionUnit, required this.isMain, required this.items, this.day});
+  const TodayGroup({required this.groupId, required this.name, required this.role, required this.status, required this.portionUnit, required this.isMain, required this.items, this.day, this.activeMemberCount = 0, this.photoPath});
   final String groupId, name, role, status;
   final PortionUnit portionUnit;
   final bool isMain;
+  final int activeMemberCount;
+  final String? photoPath;
   final TodayDay? day;
   final List<TodayItem> items;
   factory TodayGroup.fromJson(Map<String, Object?> j) => TodayGroup(
     groupId: j['group_id'] as String, name: j['name'] as String, role: j['role'] as String,
     status: j['status'] as String, portionUnit: PortionUnit.values.firstWhere((e) => e.name == j['portion_unit'], orElse: () => PortionUnit.juz),
     isMain: j['is_main'] == true, day: j['day'] == null ? null : TodayDay.fromJson(_map(j['day'])),
+    activeMemberCount: (j['active_member_count'] as num?)?.toInt() ?? 0, photoPath: j['photo_path'] as String?,
     items: (j['items'] as List? ?? const []).map((e) => TodayItem.fromJson(_map(e))).toList(),
   );
   Map<String, Object?> toJson() => {'group_id': groupId, 'name': name, 'role': role, 'status': status, 'portion_unit': portionUnit.name, 'is_main': isMain,
-    'day': day?.toJson(), 'items': items.map((e) => e.toJson()).toList()};
-  @override List<Object?> get props => [groupId, name, role, status, portionUnit, isMain, day, items];
+    'day': day?.toJson(), 'items': items.map((e) => e.toJson()).toList(), 'active_member_count': activeMemberCount, 'photo_path': photoPath};
+  @override List<Object?> get props => [groupId, name, role, status, portionUnit, isMain, day, items, activeMemberCount, photoPath];
 }
 
 class TodayDay extends Equatable {
-  const TodayDay({required this.groupDate, required this.state, required this.endsAt, required this.closesAt, required this.cycleNumber, required this.cycleDay, required this.cycleLength, required this.completedCount, required this.totalCount, required this.restDay});
+  const TodayDay({required this.groupDate, required this.state, required this.endsAt, required this.closesAt, required this.cycleNumber, required this.cycleDay, required this.cycleLength, required this.completedCount, required this.totalCount, required this.restDay, this.completedMemberCount = 0});
   final String groupDate, state;
   final DateTime endsAt, closesAt;
   final int cycleNumber, cycleDay, cycleLength, completedCount, totalCount;
+  final int completedMemberCount;
   final bool restDay;
   factory TodayDay.fromJson(Map<String, Object?> j) => TodayDay(groupDate: j['group_date'] as String, state: j['state'] as String,
     endsAt: _date(j['ends_at']), closesAt: _date(j['closes_at']), cycleNumber: (j['cycle_number'] as num).toInt(), cycleDay: (j['cycle_day'] as num).toInt(),
-    cycleLength: (j['cycle_length'] as num).toInt(), completedCount: (j['completed_count'] as num).toInt(), totalCount: (j['total_count'] as num).toInt(), restDay: j['rest_day'] == true);
+    cycleLength: (j['cycle_length'] as num).toInt(), completedCount: (j['completed_count'] as num).toInt(), totalCount: (j['total_count'] as num).toInt(), restDay: j['rest_day'] == true,
+    completedMemberCount: (j['completed_member_count'] as num?)?.toInt() ?? 0);
   Map<String, Object?> toJson() => {'group_date': groupDate, 'state': state, 'ends_at': endsAt.toUtc().toIso8601String(), 'closes_at': closesAt.toUtc().toIso8601String(),
-    'cycle_number': cycleNumber, 'cycle_day': cycleDay, 'cycle_length': cycleLength, 'completed_count': completedCount, 'total_count': totalCount, 'rest_day': restDay};
-  @override List<Object?> get props => [groupDate,state,endsAt,closesAt,cycleNumber,cycleDay,cycleLength,completedCount,totalCount,restDay];
+    'cycle_number': cycleNumber, 'cycle_day': cycleDay, 'cycle_length': cycleLength, 'completed_count': completedCount, 'total_count': totalCount, 'rest_day': restDay, 'completed_member_count': completedMemberCount};
+  @override List<Object?> get props => [groupDate,state,endsAt,closesAt,cycleNumber,cycleDay,cycleLength,completedCount,totalCount,restDay,completedMemberCount];
 }
 
 class TodayItem extends Equatable {

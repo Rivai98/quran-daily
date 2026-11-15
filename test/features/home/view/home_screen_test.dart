@@ -3,7 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:mocktail/mocktail.dart';
+import 'dart:async';
 import 'package:quran_daily/core/design_system/app_theme.dart';
+import 'package:quran_daily/core/design_system/app_colors.dart';
+import 'package:quran_daily/core/design_system/app_button.dart';
+import 'package:quran_daily/core/design_system/widgets/status_chip.dart';
 import 'package:quran_daily/core/errors/failures.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
@@ -53,6 +57,105 @@ void main() {
     expect(find.text('مجموعة الاختبار'), findsOneWidget);
   });
 
+  testWidgets('personalizes the greeting and shows member progress', (
+    tester,
+  ) async {
+    await _setSmallScreen(tester);
+    await _show(
+      tester,
+      Success(_pendingSnapshot),
+      displayName: 'أحمد محمد عبد الله صالح',
+    );
+
+    expect(find.text('السلام عليكم يا أحمد'), findsOneWidget);
+    expect(
+      find.text(ArabicStrings.homeGroupProgress(1, 1, 12)),
+      findsOneWidget,
+    );
+    expect(find.textContaining('من ٣٠'), findsNothing);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('shows reading actions for a pending portion', (tester) async {
+    await _setSmallScreen(tester);
+    await _show(tester, Success(_pendingSnapshot));
+
+    expect(find.text(ArabicStrings.readNowAction), findsOneWidget);
+    expect(find.text(ArabicStrings.portionCompleteAction), findsOneWidget);
+    expect(find.byType(StatusChip), findsOneWidget);
+    expect(tester.getSize(find.byType(StatusChip)).width, lessThan(220));
+  });
+
+  testWidgets('other group cards reuse the badge and action styles', (
+    tester,
+  ) async {
+    await _setSmallScreen(tester);
+    await _show(tester, Success(_withOtherGroup));
+    await tester.scrollUntilVisible(find.text('حلقة المساء'), 300);
+
+    expect(find.text(ArabicStrings.readNowAction), findsNWidgets(2));
+    expect(find.byType(StatusChip), findsNWidgets(2));
+    expect(find.byIcon(Icons.menu_book), findsNWidgets(2));
+    expect(
+      find
+          .byType(AppButton)
+          .evaluate()
+          .where(
+            (element) =>
+                (element.widget as AppButton).variant ==
+                AppButtonVariant.primary,
+          )
+          .length,
+      1,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final dark in [false, true]) {
+    testWidgets(
+      'action icons follow foreground tokens ${dark ? 'dark' : 'light'}',
+      (tester) async {
+        await _setSmallScreen(tester);
+        await _show(tester, Success(_pendingSnapshot), dark: dark);
+        final colors = dark ? AppColors.dark : AppColors.light;
+        expect(
+          IconTheme.of(tester.element(find.byIcon(Icons.menu_book))).color,
+          colors.onPrimary,
+        );
+        expect(
+          IconTheme.of(
+            tester.element(find.byIcon(Icons.check_circle_outline)),
+          ).color,
+          colors.onPrimaryContainer,
+        );
+      },
+    );
+  }
+
+  for (final theme in [false, true]) {
+    testWidgets('Home ${theme ? 'dark' : 'light'} golden at 360x800', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await _show(
+        tester,
+        Success(_pendingSnapshot),
+        dark: theme,
+        displayName: 'أحمد محمد عبد الله صالح',
+        date: DateTime(2026, 11, 15),
+      );
+      await expectLater(
+        find.byType(HomeScreen),
+        matchesGoldenFile(
+          '../../../goldens/home_${theme ? 'dark' : 'light'}_360x800.png',
+        ),
+      );
+    });
+  }
+
   testWidgets('shows an error panel when no cached Home snapshot exists', (
     tester,
   ) async {
@@ -63,6 +166,34 @@ void main() {
     );
     expect(find.text(ArabicStrings.todayLoadError), findsOneWidget);
     expect(find.text(ArabicStrings.retry), findsOneWidget);
+  });
+
+  testWidgets('shows loading state while Home data is being read', (
+    tester,
+  ) async {
+    await _setSmallScreen(tester);
+    final pending = Completer<Result<TodaySnapshot>>();
+    final cubit = HomeCubit(
+      repository: _TodayRepository.pending(pending.future),
+      khatmaRepository: _KhatmaRepository(),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: BlocProvider.value(
+            value: cubit,
+            child: HomeScreen(metadataRepository: QuranMetadataRepository()),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    addTearDown(cubit.close);
   });
 }
 
@@ -82,6 +213,8 @@ Future<void> _show(
   Result<TodaySnapshot> result, {
   bool dark = false,
   bool largeText = false,
+  String? displayName,
+  DateTime? date,
 }) async {
   final cubit = HomeCubit(
     repository: _TodayRepository(result),
@@ -100,7 +233,11 @@ Future<void> _show(
           ),
           child: BlocProvider.value(
             value: cubit,
-            child: HomeScreen(metadataRepository: QuranMetadataRepository()),
+            child: HomeScreen(
+              metadataRepository: QuranMetadataRepository(),
+              displayName: displayName,
+              date: date,
+            ),
           ),
         ),
       ),
@@ -132,6 +269,7 @@ final _group = TodayGroup(
     cycleLength: 30,
     completedCount: 1,
     totalCount: 30,
+    completedMemberCount: 1,
     restDay: false,
   ),
   items: const [
@@ -152,6 +290,7 @@ final _group = TodayGroup(
       canUndo: true,
     ),
   ],
+  activeMemberCount: 12,
 );
 final _completedSnapshot = TodaySnapshot(
   serverGeneratedAt: DateTime.utc(2026),
@@ -164,12 +303,68 @@ final _offlineSnapshot = TodaySnapshot(
   groups: [_group],
   isStale: true,
 );
+final _pendingSnapshot = TodaySnapshot(
+  serverGeneratedAt: DateTime.utc(2026),
+  mainGroupId: 'group-1',
+  groups: [
+    TodayGroup(
+      groupId: 'group-1',
+      name: 'حلقة الفجر',
+      role: 'member',
+      status: 'active',
+      portionUnit: PortionUnit.juz,
+      isMain: true,
+      activeMemberCount: 12,
+      day: _group.day,
+      items: const [
+        TodayItem(
+          assignmentId: 'assignment-pending',
+          kind: 'seat',
+          seatNumber: 1,
+          portionIndex: 1,
+          status: 'pending',
+          canUndo: false,
+        ),
+      ],
+    ),
+  ],
+);
+final _withOtherGroup = TodaySnapshot(
+  serverGeneratedAt: DateTime.utc(2026),
+  mainGroupId: 'group-1',
+  groups: [
+    ..._pendingSnapshot.groups,
+    TodayGroup(
+      groupId: 'group-2',
+      name: 'حلقة المساء',
+      role: 'member',
+      status: 'active',
+      portionUnit: PortionUnit.juz,
+      isMain: false,
+      activeMemberCount: 8,
+      day: _group.day,
+      items: const [
+        TodayItem(
+          assignmentId: 'assignment-other',
+          kind: 'seat',
+          seatNumber: 2,
+          portionIndex: 2,
+          status: 'pending',
+          canUndo: false,
+        ),
+      ],
+    ),
+  ],
+);
 
 class _TodayRepository implements TodayRepository {
-  const _TodayRepository(this.result);
-  final Result<TodaySnapshot> result;
+  const _TodayRepository(this.result) : pendingResult = null;
+  const _TodayRepository.pending(this.pendingResult) : result = null;
+  final Result<TodaySnapshot>? result;
+  final Future<Result<TodaySnapshot>>? pendingResult;
   @override
-  Future<Result<TodaySnapshot>> getToday() async => result;
+  Future<Result<TodaySnapshot>> getToday() =>
+      pendingResult ?? Future.value(result!);
   @override
   Future<Result<void>> setMainGroup(String? groupId) async =>
       const Success(null);

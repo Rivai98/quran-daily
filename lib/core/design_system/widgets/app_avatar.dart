@@ -107,17 +107,20 @@ class GroupAvatar extends StatelessWidget {
       );
     }
 
-    final initials = displayInitials(name);
+    final initials = groupInitials(name);
 
     if (photoPath != null &&
         photoPath!.isNotEmpty &&
         serviceLocator.isRegistered<GroupsRepository>()) {
       return FutureBuilder<Result<List<int>>>(
-        future:
-            serviceLocator<GroupsRepository>().getGroupPhotoBytes(photoPath!),
+        future: serviceLocator<GroupsRepository>().getGroupPhotoBytes(
+          photoPath!,
+        ),
         builder: (context, snapshot) {
-          final bytes =
-              snapshot.data?.when(success: (b) => b, failure: (_) => null);
+          final bytes = snapshot.data?.when(
+            success: (b) => b,
+            failure: (_) => null,
+          );
           if (bytes != null && bytes.isNotEmpty) {
             return ClipRRect(
               borderRadius: borderRadius,

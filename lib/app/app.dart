@@ -216,6 +216,7 @@ class _AuthGate extends StatelessWidget {
                 builder: (context) => HomeShell(
                   onHomeSelected: context.read<HomeCubit>().refresh,
                   homeBuilder: (_) => HomeScreen(
+                    displayName: state.profile?.displayName,
                     metadataRepository:
                         serviceLocator.isRegistered<QuranMetadataRepository>()
                         ? serviceLocator<QuranMetadataRepository>()

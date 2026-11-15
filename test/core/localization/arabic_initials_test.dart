@@ -13,10 +13,13 @@ void main() {
       expect(displayInitials('سعيد حسن'), 'س ح');
     });
 
-    test('three words with compound last gives first of first and prefix of compound', () {
-      expect(displayInitials('محمد عبد الله'), 'م ع');
-      expect(displayInitials('طارق أبو بكر'), 'ط أ');
-    });
+    test(
+      'three words with compound last gives first of first and prefix of compound',
+      () {
+        expect(displayInitials('محمد عبد الله'), 'م ع');
+        expect(displayInitials('طارق أبو بكر'), 'ط أ');
+      },
+    );
 
     test('two words being compound gives first letter', () {
       expect(displayInitials('عبد الله'), 'ع');
@@ -26,6 +29,15 @@ void main() {
     test('empty or null returns empty string', () {
       expect(displayInitials(null), '');
       expect(displayInitials('   '), '');
+    });
+  });
+
+  group('groupInitials', () {
+    test('uses group words and skips generic group prefixes', () {
+      expect(groupInitials('حلقة الفجر'), 'ف');
+      expect(groupInitials('مجموعة تحفيظ القرآن'), 'ت ق');
+      expect(groupInitials('مجموعة ١٢ الفجر'), 'ف');
+      expect(groupInitials('أهل القرآن'), 'أ ق');
     });
   });
 }

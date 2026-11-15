@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/router.dart';
 import '../../../core/design_system/app_spacing.dart';
+import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/widgets/widgets.dart';
 import '../../../core/localization/arabic_strings.dart';
@@ -14,8 +15,15 @@ import '../data/today_snapshot.dart';
 import 'widgets/date_header.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.metadataRepository});
+  const HomeScreen({
+    super.key,
+    required this.metadataRepository,
+    this.displayName,
+    this.date,
+  });
   final QuranMetadataRepository metadataRepository;
+  final String? displayName;
+  final DateTime? date;
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -31,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text(ArabicStrings.homeGreeting)),
+    appBar: AppBar(title: Text(ArabicStrings.homeGreeting(widget.displayName))),
     body: BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
         if (state.status == HomeStatus.initial ||
@@ -60,14 +68,19 @@ class _HomeScreenState extends State<HomeScreen> {
         return RefreshIndicator(
           onRefresh: context.read<HomeCubit>().refresh,
           child: ListView(
-            padding: AppSpacing.screenContent,
+            padding: const EdgeInsetsDirectional.fromSTEB(
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.xl,
+            ),
             children: [
-              DateHeader(date: DateTime.now()),
+              DateHeader(date: widget.date ?? DateTime.now()),
               if (state.status == HomeStatus.offline) ...[
                 const SizedBox(height: AppSpacing.md),
                 const OfflineBanner(message: ArabicStrings.offlineStale),
               ],
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.md),
               _MainGroupHeroCard(
                 group: main,
                 metadata: widget.metadataRepository,
@@ -125,9 +138,14 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   );
   Widget _empty(BuildContext context) => ListView(
-    padding: AppSpacing.screenContent,
+    padding: const EdgeInsetsDirectional.fromSTEB(
+      AppSpacing.md,
+      AppSpacing.md,
+      AppSpacing.md,
+      AppSpacing.xl,
+    ),
     children: [
-      DateHeader(date: DateTime.now()),
+      DateHeader(date: widget.date ?? DateTime.now()),
       const SizedBox(height: AppSpacing.lg),
       StatePanel(
         icon: Icons.groups,
@@ -190,26 +208,33 @@ class _MainGroupHeroCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              GroupAvatar(name: group.name, size: 40),
+              GroupAvatar(
+                name: group.name,
+                photoPath: group.photoPath,
+                size: 40,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(child: Text(group.name, style: AppTypography.title)),
             ],
           ),
         ),
-        if (group.day != null) ...[
+        if (group.day != null && group.activeMemberCount > 0) ...[
           const SizedBox(height: AppSpacing.xs),
           LinearProgressIndicator(
-            value: group.day!.totalCount == 0
+            value: group.activeMemberCount == 0
                 ? 0
-                : group.day!.completedCount / group.day!.totalCount,
+                : group.day!.completedMemberCount / group.activeMemberCount,
+            color: Theme.of(context).extension<AppColors>()!.primary,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<AppColors>()!.surfaceMuted,
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            ArabicStrings.cycleProgress(
+            ArabicStrings.homeGroupProgress(
               group.day!.cycleDay,
-              group.day!.cycleLength,
-              group.day!.completedCount,
-              group.day!.totalCount,
+              group.day!.completedMemberCount,
+              group.activeMemberCount,
             ),
             style: AppTypography.caption,
           ),
@@ -223,10 +248,9 @@ class _MainGroupHeroCard extends StatelessWidget {
             group: group,
             item: group.items.first,
             metadata: metadata,
+            status: group.items.first.status,
           ),
           const SizedBox(height: AppSpacing.sm),
-          _status(group.items.first.status),
-          const SizedBox(height: AppSpacing.xs),
           if (group.items.first.status == 'completed' ||
               group.items.first.status == 'late') ...[
             Text(ArabicStrings.todayCompleteTitle, style: AppTypography.body),
@@ -293,24 +317,41 @@ class _TodayItemCard extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (showGroupName) Text(group.name, style: AppTypography.title),
+        if (showGroupName)
+          Row(
+            children: [
+              GroupAvatar(name: group.name, photoPath: group.photoPath),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(child: Text(group.name, style: AppTypography.title)),
+            ],
+          ),
         if (item != null) ...[
           const SizedBox(height: AppSpacing.xs),
-          _PortionLabel(group: group, item: item!, metadata: metadata),
-          const SizedBox(height: AppSpacing.xs),
-          _status(item!.status),
-          const SizedBox(height: AppSpacing.xs),
-          AppButton(
-            label: ArabicStrings.openTodayWird,
-            variant: AppButtonVariant.secondary,
-            expanded: true,
-            onPressed: () => Navigator.pushNamed(
-              context,
-              AppRoutes.dashboard,
-              arguments: group.groupId,
-            ),
+          _PortionLabel(
+            group: group,
+            item: item!,
+            metadata: metadata,
+            status: item!.status,
           ),
           const SizedBox(height: AppSpacing.xs),
+          if (item!.status != 'completed' && item!.status != 'late') ...[
+            AppButton(
+              label: ArabicStrings.readNowAction,
+              variant: AppButtonVariant.secondary,
+              expanded: true,
+              icon: const Icon(Icons.menu_book),
+              onPressed: () => AppRoutes.pushReader(
+                context,
+                arguments: {
+                  'unit': group.portionUnit,
+                  'index': item!.portionIndex,
+                  'assignmentId': item!.assignmentId,
+                  'alreadyCompleted': false,
+                },
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+          ],
           _CompletionAction(
             item: item!,
             complete: complete,
@@ -334,18 +375,27 @@ class _PortionLabel extends StatelessWidget {
     required this.group,
     required this.item,
     required this.metadata,
+    required this.status,
   });
   final TodayGroup group;
   final TodayItem item;
   final QuranMetadataRepository metadata;
+  final String status;
   @override
   Widget build(BuildContext context) => FutureBuilder<void>(
     future: metadata.load(),
     builder: (context, state) {
       if (state.connectionState != ConnectionState.done || state.hasError) {
-        return Text(
-          ArabicStrings.portionName(group.portionUnit, item.portionIndex),
-          style: AppTypography.quranLabel,
+        return Row(
+          children: [
+            Expanded(
+              child: Text(
+                ArabicStrings.portionName(group.portionUnit, item.portionIndex),
+                style: AppTypography.quranLabel,
+              ),
+            ),
+            _status(status),
+          ],
         );
       }
       final portion = metadata.portion(group.portionUnit, item.portionIndex);
@@ -361,9 +411,20 @@ class _PortionLabel extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            ArabicStrings.portionName(group.portionUnit, item.portionIndex),
-            style: AppTypography.quranLabel,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  ArabicStrings.portionName(
+                    group.portionUnit,
+                    item.portionIndex,
+                  ),
+                  style: AppTypography.quranLabel,
+                ),
+              ),
+              _status(status),
+            ],
           ),
           Text(range, style: AppTypography.caption),
           if (mushaf != null)
