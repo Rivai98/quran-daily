@@ -191,8 +191,19 @@ class FormingGroupView extends StatelessWidget {
                             SizedBox.square(
                               dimension: AppSpacing.xxl,
                               child: ChoiceChip(
+                                // The number stays visible when selected (no
+                                // checkmark) and its color is explicit so it
+                                // reads in both themes.
+                                showCheckmark: false,
                                 label: Center(
-                                  child: Text(ArabicNumerals.format(portion)),
+                                  child: Text(
+                                    ArabicNumerals.format(portion),
+                                    style: AppTypography.label.copyWith(
+                                      color: startPortion == portion
+                                          ? colors.onPrimaryContainer
+                                          : colors.ink,
+                                    ),
+                                  ),
                                 ),
                                 selected: startPortion == portion,
                                 selectedColor: colors.primaryContainer,
