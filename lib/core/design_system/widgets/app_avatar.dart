@@ -42,7 +42,7 @@ class UserAvatar extends StatelessWidget {
         ),
         child: Center(
           child: Icon(
-            Icons.event_seat,
+            Icons.event_seat_rounded,
             size: size * 0.55,
             color: colors.inkMuted,
           ),

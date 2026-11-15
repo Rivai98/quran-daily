@@ -8,7 +8,11 @@ import 'package:app_links/app_links.dart';
 import '../core/di/service_locator.dart';
 import '../core/auth/session_gateway.dart';
 import '../core/localization/arabic_strings.dart';
+import '../core/design_system/app_colors.dart';
+import '../core/design_system/app_spacing.dart';
 import '../core/design_system/app_theme.dart';
+import '../core/design_system/app_typography.dart';
+import '../core/design_system/widgets/halaqa_logo.dart';
 import '../core/quran/quran_metadata_repository.dart';
 import '../features/auth/cubit/auth_cubit.dart';
 import '../features/auth/view/auth_entry_screen.dart';
@@ -192,7 +196,62 @@ class _QuranDailyAppState extends State<QuranDailyApp>
   }
 }
 
-/// Startup gate (spec 002): neutral checking state until bootstrap
+/// Serene branded splash screen during startup / session bootstrap (Constitution Principle VI & G4).
+class AppSplashScreen extends StatelessWidget {
+  const AppSplashScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return Scaffold(
+      backgroundColor: colors.background,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Semantics(
+              label: ArabicStrings.checkingSession,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const HalaqaLogo(size: HalaqaLogo.large),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    ArabicStrings.appName,
+                    style: AppTypography.display.copyWith(
+                      color: colors.primary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    ArabicStrings.signInHint,
+                    style: AppTypography.body.copyWith(
+                      color: colors.inkMuted,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: colors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Startup gate (spec 002): calm branded splash state until bootstrap
 /// resolves; private content never flashes before the decision finishes.
 class _AuthGate extends StatelessWidget {
   const _AuthGate();
@@ -203,12 +262,8 @@ class _AuthGate extends StatelessWidget {
       builder: (context, state) {
         switch (state.status) {
           case AuthStatus.checkingSession:
-            return Scaffold(
-              body: Semantics(
-                label: ArabicStrings.checkingSession,
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-            );
+          case AuthStatus.loadingProfile:
+            return const AppSplashScreen();
           case AuthStatus.authenticated:
             return BlocProvider(
               create: (_) => serviceLocator<HomeCubit>(),
@@ -231,7 +286,6 @@ class _AuthGate extends StatelessWidget {
           case AuthStatus.unauthenticated:
           case AuthStatus.failure:
           case AuthStatus.submitting:
-          case AuthStatus.loadingProfile:
           case AuthStatus.signingOut:
             return const AuthEntryScreen();
         }
