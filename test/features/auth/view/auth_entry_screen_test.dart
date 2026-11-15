@@ -73,6 +73,28 @@ void main() {
     expect(find.text(ArabicStrings.passwordHint), findsOneWidget);
   });
 
+  testWidgets('only password fields hide text after switching modes',
+      (tester) async {
+    await tester.pumpWidget(buildArabicTestApp(pumpAuthEntry()));
+
+    List<bool> obscuredFlags() => tester
+        .widgetList<EditableText>(find.byType(EditableText))
+        .map((e) => e.obscureText)
+        .toList();
+
+    // login: email, password
+    expect(obscuredFlags(), [false, true]);
+
+    await tester.tap(find.text(ArabicStrings.createAccountTitle));
+    await tester.pumpAndSettle();
+    // signup: display name, email, password, confirmation
+    expect(obscuredFlags(), [false, false, true, true]);
+
+    await tester.tap(find.text(ArabicStrings.signInTitle).first);
+    await tester.pumpAndSettle();
+    expect(obscuredFlags(), [false, true]);
+  });
+
   testWidgets('submit validates fields and shows Arabic errors',
       (tester) async {
     await tester.pumpWidget(buildArabicTestApp(pumpAuthEntry()));

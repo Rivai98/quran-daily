@@ -48,6 +48,13 @@ class _AppTextFieldState extends State<AppTextField> {
   late bool _obscured = widget.obscure;
 
   @override
+  void didUpdateWidget(covariant AppTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A reused State must not keep another field's hidden-text mode.
+    if (oldWidget.obscure != widget.obscure) _obscured = widget.obscure;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
 

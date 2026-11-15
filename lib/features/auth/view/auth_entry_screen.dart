@@ -187,6 +187,7 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                       const SizedBox(height: AppSpacing.md),
                       if (state.mode == AuthMode.signup) ...[
                         AppTextField(
+                          key: const ValueKey('auth-displayName'),
                           label: ArabicStrings.displayNameLabel,
                           controller: _displayName,
                           errorText: _displayNameError,
@@ -195,6 +196,7 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                         const SizedBox(height: AppSpacing.sm),
                       ],
                       AppTextField(
+                        key: const ValueKey('auth-email'),
                         label: ArabicStrings.emailLabel,
                         controller: _email,
                         errorText: _emailError,
@@ -205,6 +207,7 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       AppTextField(
+                        key: const ValueKey('auth-password'),
                         label: ArabicStrings.passwordLabel,
                         controller: _password,
                         errorText: _passwordError,
@@ -215,6 +218,7 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                       if (state.mode == AuthMode.signup) ...[
                         const SizedBox(height: AppSpacing.sm),
                         AppTextField(
+                          key: const ValueKey('auth-confirmation'),
                           label: ArabicStrings.confirmPasswordLabel,
                           controller: _confirmation,
                           errorText: _confirmationError,
