@@ -112,6 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _TodayItemCard(
                       group: group,
                       metadata: widget.metadataRepository,
+                      compact: true,
                       complete: context.read<HomeCubit>().complete,
                       undo: context.read<HomeCubit>().undo,
                       busyId: state.updatingId,
@@ -122,6 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       _TodayItemCard(
                         group: group,
                         item: item,
+                        compact: true,
                         metadata: widget.metadataRepository,
                         complete: context.read<HomeCubit>().complete,
                         undo: context.read<HomeCubit>().undo,
@@ -270,7 +272,7 @@ class _MainGroupHeroCard extends StatelessWidget {
           ] else ...[
             AppButton(
               label: ArabicStrings.readNowAction,
-              icon: const Icon(Icons.menu_book),
+              icon: const Icon(Icons.auto_stories_rounded),
               expanded: true,
               onPressed: () => AppRoutes.pushReader(
                 context,
@@ -301,6 +303,7 @@ class _TodayItemCard extends StatelessWidget {
     required this.group,
     this.item,
     this.showGroupName = true,
+    this.compact = false,
     required this.metadata,
     required this.complete,
     required this.undo,
@@ -309,37 +312,50 @@ class _TodayItemCard extends StatelessWidget {
   final TodayGroup group;
   final TodayItem? item;
   final bool showGroupName;
+  final bool compact;
   final QuranMetadataRepository metadata;
   final Future<void> Function(TodayItem) complete, undo;
   final String? busyId;
   @override
   Widget build(BuildContext context) => AppCard(
+    padding: compact ? AppSpacing.compactCard : AppSpacing.card,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (showGroupName)
           Row(
             children: [
-              GroupAvatar(name: group.name, photoPath: group.photoPath),
+              GroupAvatar(
+                name: group.name,
+                photoPath: group.photoPath,
+                size: compact ? 36 : 40,
+              ),
               const SizedBox(width: AppSpacing.xs),
-              Expanded(child: Text(group.name, style: AppTypography.title)),
+              Expanded(
+                child: Text(
+                  group.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.title,
+                ),
+              ),
             ],
           ),
         if (item != null) ...[
-          const SizedBox(height: AppSpacing.xs),
+          SizedBox(height: compact ? AppSpacing.xxs : AppSpacing.xs),
           _PortionLabel(
             group: group,
             item: item!,
             metadata: metadata,
             status: item!.status,
           ),
-          const SizedBox(height: AppSpacing.xs),
+          SizedBox(height: compact ? AppSpacing.xxs : AppSpacing.xs),
           if (item!.status != 'completed' && item!.status != 'late') ...[
             AppButton(
               label: ArabicStrings.readNowAction,
               variant: AppButtonVariant.secondary,
               expanded: true,
-              icon: const Icon(Icons.menu_book),
+              icon: const Icon(Icons.auto_stories_rounded),
               onPressed: () => AppRoutes.pushReader(
                 context,
                 arguments: {
@@ -426,7 +442,7 @@ class _PortionLabel extends StatelessWidget {
               _status(status),
             ],
           ),
-          Text(range, style: AppTypography.caption),
+          _MetaLine(icon: Icons.menu_book_rounded, label: range),
           if (mushaf != null)
             FutureBuilder<void>(
               future: mushaf.load(),
@@ -439,9 +455,10 @@ class _PortionLabel extends StatelessWidget {
                   group.portionUnit,
                   item.portionIndex,
                 );
-                return Text(
-                  '${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(pages.startPage)} – ${ArabicNumerals.format(pages.endPage)}',
-                  style: AppTypography.caption,
+                return _MetaLine(
+                  icon: Icons.auto_stories_rounded,
+                  label:
+                      '${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(pages.startPage)} – ${ArabicNumerals.format(pages.endPage)}',
                 );
               },
             ),
@@ -449,6 +466,32 @@ class _PortionLabel extends StatelessWidget {
       );
     },
   );
+}
+
+class _MetaLine extends StatelessWidget {
+  const _MetaLine({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).extension<AppColors>()!.inkMuted;
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(top: AppSpacing.xxs),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.only(top: AppSpacing.xxs),
+            child: Icon(icon, size: 18, color: color),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Expanded(child: Text(label, style: AppTypography.caption)),
+        ],
+      ),
+    );
+  }
 }
 
 class _CompletionAction extends StatelessWidget {
@@ -484,7 +527,7 @@ class _CompletionAction extends StatelessWidget {
       variant: AppButtonVariant.tonal,
       expanded: true,
       loading: busy,
-      icon: const Icon(Icons.check_circle_outline),
+      icon: const Icon(Icons.check_circle_outline_rounded),
       onPressed: () => complete(item),
     );
   }

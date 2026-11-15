@@ -15,6 +15,7 @@ update public.groups set status='active', start_juz=1, start_date=current_date, 
 update public.groups set status='active', start_juz=1, start_date=current_date, portion_unit='page' where id='a5000000-0000-0000-0000-000000000042';
 update public.groups set status='active', start_juz=1, start_date=current_date where id='a5000000-0000-0000-0000-000000000045';
 update public.groups set status='archived' where id='a5000000-0000-0000-0000-000000000044';
+select public.ensure_current_group_day('a5000000-0000-0000-0000-000000000043');
 update public.assignments a set status='completed' from public.group_days d
 where a.group_day_id=d.id and d.group_id='a5000000-0000-0000-0000-000000000043'
   and a.seat_number=1;

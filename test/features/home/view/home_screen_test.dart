@@ -95,7 +95,8 @@ void main() {
 
     expect(find.text(ArabicStrings.readNowAction), findsNWidgets(2));
     expect(find.byType(StatusChip), findsNWidgets(2));
-    expect(find.byIcon(Icons.menu_book), findsNWidgets(2));
+    expect(find.byIcon(Icons.auto_stories_rounded), findsNWidgets(2));
+    expect(find.text(ArabicStrings.portionCompleteAction), findsNWidgets(2));
     expect(
       find
           .byType(AppButton)
@@ -119,12 +120,14 @@ void main() {
         await _show(tester, Success(_pendingSnapshot), dark: dark);
         final colors = dark ? AppColors.dark : AppColors.light;
         expect(
-          IconTheme.of(tester.element(find.byIcon(Icons.menu_book))).color,
+          IconTheme.of(
+            tester.element(find.byIcon(Icons.auto_stories_rounded)),
+          ).color,
           colors.onPrimary,
         );
         expect(
           IconTheme.of(
-            tester.element(find.byIcon(Icons.check_circle_outline)),
+            tester.element(find.byIcon(Icons.check_circle_outline_rounded)),
           ).color,
           colors.onPrimaryContainer,
         );
