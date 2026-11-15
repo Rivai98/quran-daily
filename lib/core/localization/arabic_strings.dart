@@ -284,6 +284,9 @@ class ArabicStrings {
   static const pendingApproval =
       '\u{628}\u{627}\u{646}\u{62a}\u{638}\u{627}\u{631} \u{627}\u{644}\u{642}\u{628}\u{648}\u{644} \u{645}\u{646} \u{645}\u{627}\u{644}\u{643} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}';
   static const pendingShortLabel = 'بانتظار القبول';
+  static const pendingRequestHint =
+      'أرسلت طلب الانضمام، سيصلك الرد من المشرف.';
+  static const cancelJoinRequestAction = 'إلغاء الطلب';
   static const groupSelectionTitle =
       '\u{645}\u{62c}\u{645}\u{648}\u{639}\u{627}\u{62a}\u{64a}';
   static const dashboardTitle =

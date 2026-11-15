@@ -6,6 +6,8 @@ import 'package:quran_daily/core/errors/failures.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/localization/arabic_formatting.dart';
+import 'package:quran_daily/core/design_system/widgets/app_avatar.dart';
+import 'package:quran_daily/core/design_system/widgets/app_card.dart';
 import 'package:quran_daily/core/design_system/widgets/halaqa_logo.dart';
 import 'package:quran_daily/core/design_system/widgets/app_section_header.dart';
 import 'package:quran_daily/features/quran_groups/cubit/group_list/group_list_cubit.dart';
@@ -156,7 +158,78 @@ void main() {
     expect(find.text('مجموعة الانتظار'), findsOneWidget);
     expect(find.text(ArabicStrings.pendingShortLabel), findsOneWidget);
     expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+    expect(find.text(ArabicStrings.pendingRequestHint), findsOneWidget);
+    // Compact row: group emblem, quiet text action, no big outlined button.
+    final card = find.ancestor(
+      of: find.text('مجموعة الانتظار'),
+      matching: find.byType(AppCard),
+    );
+    expect(
+      find.descendant(of: card, matching: find.byType(GroupAvatar)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: card, matching: find.byType(OutlinedButton)),
+      findsNothing,
+    );
+    expect(
+      find.widgetWithText(TextButton, ArabicStrings.cancelJoinRequestAction),
+      findsOneWidget,
+    );
+
+    when(
+      () => repo.cancelJoinRequest('jr1'),
+    ).thenAnswer((_) async => const Success<void>(null));
+    await tester.tap(find.text(ArabicStrings.cancelJoinRequestAction));
+    await tester.pumpAndSettle();
+    verify(() => repo.cancelJoinRequest('jr1')).called(1);
+    expect(find.text('مجموعة الانتظار'), findsNothing);
+  });
+
+  testWidgets('long pending group names take two lines, then ellipsize', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(360, 800);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    const longName =
+        'حلقة الفجر للمراجعة اليومية مع الأهل والأصدقاء في الحي القديم والجديد';
+    when(() => repo.getMyGroups()).thenAnswer(
+      (_) async => Success(
+        TestFixtures.overview(
+          pending: [
+            PendingJoinRequest(
+              joinRequestId: 'jr1',
+              groupId: 'g9',
+              groupName: longName,
+              requestedAt: DateTime.parse('2026-11-14T10:00:00Z'),
+              source: JoinSource.invite,
+            ),
+          ],
+        ),
+      ),
+    );
+    for (final dark in [false, true]) {
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          pump(const GroupSelectionScreen()),
+          dark: dark,
+          size: const Size(360, 800),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final title = tester.widget<Text>(find.text(longName));
+      expect(title.maxLines, 2);
+      expect(title.overflow, TextOverflow.ellipsis);
+      expect(tester.takeException(), isNull);
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile(
+          'goldens/pending_request_${dark ? 'dark' : 'light'}.png',
+        ),
+      );
+    }
   });
 
   testWidgets('offline: stale overview shows the offline banner', (
