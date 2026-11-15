@@ -125,7 +125,21 @@ class _EmptyEntryPoints extends StatelessWidget {
                   },
                   actionVariant: AppButtonVariant.primary,
                   actionIcon: const Icon(Icons.search_rounded),
+                  secondaryActionLabel: ArabicStrings.createGroup,
+                  secondaryActionIcon: const Icon(Icons.add_circle_outline_rounded),
+                  onSecondaryAction: () async {
+                    await Navigator.pushNamed(context, '/groups/new');
+                    if (context.mounted) {
+                      await context.read<GroupListCubit>().refresh();
+                    }
+                  },
                   illustration: const HalaqaLogo(size: 80),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                TextButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, '/join'),
+                  icon: const Icon(Icons.link_rounded),
+                  label: Text(ArabicStrings.iHaveInviteLink),
                 ),
               ],
             ),

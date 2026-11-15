@@ -111,8 +111,8 @@ void main() {
     expect(find.byType(HalaqaLogo), findsOneWidget);
     expect(find.text(ArabicStrings.groupSelectionEmptyMessage), findsOneWidget);
     expect(find.text(ArabicStrings.searchGroupAction), findsOneWidget);
-    expect(find.text(ArabicStrings.createGroup), findsNothing);
-    expect(find.text(ArabicStrings.iHaveInviteLink), findsNothing);
+    expect(find.text(ArabicStrings.createGroup), findsOneWidget);
+    expect(find.text(ArabicStrings.iHaveInviteLink), findsOneWidget);
   });
 
   testWidgets('My Groups uses the standard section header', (tester) async {
