@@ -9,22 +9,28 @@ import '../../cubit/join/join_cubit.dart';
 import '../../data/entities/entities.dart';
 import '../widgets/public_group_card.dart';
 import '../widgets/join_status_badge.dart';
+import '../../../../core/quran/quran_metadata_repository.dart';
 
 class InviteJoinScreen extends StatefulWidget {
   const InviteJoinScreen({
     super.key,
     this.initialCode,
     this.joinAnyMode = false,
+    this.metadataRepository,
   });
 
   final String? initialCode;
   final bool joinAnyMode;
+  final QuranMetadataRepository? metadataRepository;
 
   @override
   State<InviteJoinScreen> createState() => _InviteJoinScreenState();
 }
 
 class _InviteJoinScreenState extends State<InviteJoinScreen> {
+  final _fallbackMetadataRepository = QuranMetadataRepository();
+  QuranMetadataRepository get _metadataRepository =>
+      widget.metadataRepository ?? _fallbackMetadataRepository;
   late final TextEditingController _codeController;
 
   @override
@@ -112,7 +118,10 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
               ],
               if (profile != null) ...[
                 const SizedBox(height: AppSpacing.lg),
-                PublicGroupCard(group: profile),
+                PublicGroupCard(
+                  group: profile,
+                  metadataRepository: _metadataRepository,
+                ),
                 if (!canJoin) ...[
                   const SizedBox(height: AppSpacing.sm),
                   StatePanel(

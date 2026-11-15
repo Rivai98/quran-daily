@@ -11,17 +11,23 @@ import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/localization/arabic_numerals.dart';
 import '../../data/entities/entities.dart';
 import '../../cubit/group_list/group_list_cubit.dart';
+import '../../../../core/quran/quran_metadata_repository.dart';
+import '../widgets/portion_unit_chip.dart';
 
 /// S1 group selection (ui-contract): my groups list + pending requests +
 /// entry points when empty.
 class GroupSelectionScreen extends StatefulWidget {
-  const GroupSelectionScreen({super.key});
+  const GroupSelectionScreen({super.key, this.metadataRepository});
+  final QuranMetadataRepository? metadataRepository;
 
   @override
   State<GroupSelectionScreen> createState() => _GroupSelectionScreenState();
 }
 
 class _GroupSelectionScreenState extends State<GroupSelectionScreen> {
+  final _fallbackMetadata = QuranMetadataRepository();
+  QuranMetadataRepository get _metadataRepository =>
+      widget.metadataRepository ?? _fallbackMetadata;
   @override
   void initState() {
     super.initState();
@@ -54,7 +60,10 @@ class _GroupSelectionScreenState extends State<GroupSelectionScreen> {
               );
             case GroupListStatus.success:
             case GroupListStatus.offline:
-              return _GroupList(state: state);
+              return _GroupList(
+                state: state,
+                metadataRepository: _metadataRepository,
+              );
           }
         },
       ),
@@ -126,9 +135,10 @@ class _EmptyEntryPoints extends StatelessWidget {
 }
 
 class _GroupList extends StatelessWidget {
-  const _GroupList({required this.state});
+  const _GroupList({required this.state, required this.metadataRepository});
 
   final GroupListState state;
+  final QuranMetadataRepository metadataRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -141,7 +151,7 @@ class _GroupList extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
         ],
         for (final group in overview.groups) ...[
-          _MyGroupRow(group: group),
+          _MyGroupRow(group: group, metadataRepository: metadataRepository),
           const SizedBox(height: AppSpacing.sm),
         ],
         for (final request in overview.pendingRequests) ...[
@@ -165,9 +175,10 @@ class _GroupList extends StatelessWidget {
 }
 
 class _MyGroupRow extends StatelessWidget {
-  const _MyGroupRow({required this.group});
+  const _MyGroupRow({required this.group, required this.metadataRepository});
 
   final MyGroupSummary group;
+  final QuranMetadataRepository metadataRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -244,6 +255,11 @@ class _MyGroupRow extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              PortionUnitChip(
+                unit: group.portionUnit,
+                metadataRepository: metadataRepository,
               ),
               const SizedBox(height: AppSpacing.xxs),
               Row(

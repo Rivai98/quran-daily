@@ -23,17 +23,21 @@ class QuranMetadataRepository {
   List<Map<String, String>>? _juzs;
   List<Map<String, String>>? _quarters;
   List<Map<String, String>>? _pages;
+  Future<void>? _loading;
 
   /// Parses the bundled metadata; throws when the asset is missing or
   /// malformed. Safe to call repeatedly (parses once).
-  Future<void> load() async {
+  Future<void> load() {
     if (_suras != null &&
         _juzs != null &&
         _quarters != null &&
         _pages != null) {
-      return;
+      return Future<void>.value();
     }
+    return _loading ??= _load().whenComplete(() => _loading = null);
+  }
 
+  Future<void> _load() async {
     final String xmlText;
     try {
       final data = await (_bundle ?? rootBundle).loadString(

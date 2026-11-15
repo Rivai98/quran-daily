@@ -4,12 +4,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/result.dart';
 import '../../../../core/design_system/app_button.dart';
+import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/widgets/offline_banner.dart';
 import '../../../../core/design_system/widgets/skeleton.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/localization/arabic_numerals.dart';
+import '../../../../core/quran/portion_unit.dart';
 import '../../cubit/history/history_cubit.dart';
 import '../../cubit/history/history_state.dart';
 import '../../cubit/selected_group/selected_group_cubit.dart';
@@ -34,7 +37,8 @@ class HistoryScreen extends StatelessWidget {
       }
     } catch (_) {}
 
-    final effectiveGroupId = groupId ??
+    final effectiveGroupId =
+        groupId ??
         context.read<SelectedGroupCubit?>()?.state.selectedGroupId ??
         '';
 
@@ -42,10 +46,8 @@ class HistoryScreen extends StatelessWidget {
       create: (context) {
         if (serviceLocator.isRegistered<KhatmaRepository>()) {
           final repo = serviceLocator<KhatmaRepository>();
-          return HistoryCubit(
-            groupId: effectiveGroupId,
-            repository: repo,
-          )..loadHistory();
+          return HistoryCubit(groupId: effectiveGroupId, repository: repo)
+            ..loadHistory();
         }
         return HistoryCubit(
           groupId: effectiveGroupId,
@@ -59,14 +61,19 @@ class HistoryScreen extends StatelessWidget {
 
 class _FallbackKhatmaRepository implements KhatmaRepository {
   @override
-  Future<Result<List<HistoryDaySummary>>> getHistory(String groupId,
-          {String? beforeDate, int limit = 30}) async =>
-      const Success([]);
+  Future<Result<List<HistoryDaySummary>>> getHistory(
+    String groupId, {
+    String? beforeDate,
+    int limit = 30,
+  }) async => const Success([]);
 
   @override
   Future<Result<HistoryDaySummary>> getHistoryDay(
-          String groupId, String groupDate) async =>
-      const FailureResult(UnknownFailure(message: 'not found', code: 'not_found'));
+    String groupId,
+    String groupDate,
+  ) async => const FailureResult(
+    UnknownFailure(message: 'not found', code: 'not_found'),
+  );
 
   @override
   Future<Result<DashboardSnapshot>> getDashboard(String groupId) =>
@@ -78,8 +85,9 @@ class _FallbackKhatmaRepository implements KhatmaRepository {
 
   @override
   Future<Result<DashboardSnapshot>> markComplete(
-          String assignmentId, DateTime clientRecordedAt) =>
-      throw UnimplementedError();
+    String assignmentId,
+    DateTime clientRecordedAt,
+  ) => throw UnimplementedError();
 
   @override
   Future<Result<DashboardSnapshot>> undoCompletion(String assignmentId) =>
@@ -91,8 +99,9 @@ class _FallbackKhatmaRepository implements KhatmaRepository {
 
   @override
   Future<Result<DashboardSnapshot>> overrideAssignment(
-          String assignmentId, String membershipId) =>
-      throw UnimplementedError();
+    String assignmentId,
+    String membershipId,
+  ) => throw UnimplementedError();
 
   @override
   Future<SyncReport> syncPending() => throw UnimplementedError();
@@ -122,9 +131,7 @@ class _HistoryViewState extends State<_HistoryView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(ArabicStrings.historyScreenTitle),
-      ),
+      appBar: AppBar(title: const Text(ArabicStrings.historyScreenTitle)),
       body: BlocBuilder<HistoryCubit, HistoryState>(
         builder: (context, state) {
           if (state.selectedDay != null) {
@@ -198,12 +205,22 @@ class _DaysList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cycles = groupHistoryByCycle(days.cast<HistoryDaySummary>());
+    final rows = <({HistoryCycleSummary cycle, HistoryDaySummary? day})>[];
+    for (final cycle in cycles) {
+      if (cycle.portionUnit != PortionUnit.juz) {
+        rows.add((cycle: cycle, day: null));
+      }
+      for (final day in cycle.days) {
+        rows.add((cycle: cycle, day: day));
+      }
+    }
     return ListView.separated(
       padding: AppSpacing.screen,
-      itemCount: days.length + (hasMore ? 1 : 0),
+      itemCount: rows.length + (hasMore ? 1 : 0),
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, index) {
-        if (index == days.length) {
+        if (index == rows.length) {
           return AppButton(
             label: ArabicStrings.loadMoreHistory,
             variant: AppButtonVariant.tonal,
@@ -212,10 +229,35 @@ class _DaysList extends StatelessWidget {
           );
         }
 
-        final day = days[index];
+        final row = rows[index];
+        if (row.day == null) {
+          final cycle = row.cycle;
+          final colors = Theme.of(context).extension<AppColors>()!;
+          return Padding(
+            padding: const EdgeInsetsDirectional.only(top: AppSpacing.sm),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${ArabicStrings.cycleLabel} ${ArabicNumerals.format(cycle.cycleNumber)} · ${ArabicStrings.portionUnitName(cycle.portionUnit)}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                if (cycle.fullKhatma)
+                  Chip(
+                    avatar: Icon(Icons.verified, color: colors.completedFg),
+                    label: const Text(ArabicStrings.fullKhatmaBadge),
+                  ),
+              ],
+            ),
+          );
+        }
+        final day = row.day!;
         return HistoryDayCard(
           day: day,
-          onTap: () => context.read<HistoryCubit>().loadDayDetail(day.groupDate),
+          showFullKhatmaBadge: row.cycle.portionUnit == PortionUnit.juz,
+          onTap: () =>
+              context.read<HistoryCubit>().loadDayDetail(day.groupDate),
         );
       },
     );
@@ -231,9 +273,7 @@ class _SkeletonList extends StatelessWidget {
       padding: AppSpacing.screen,
       itemCount: 4,
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (_, index) => const SkeletonBox(
-        height: 120,
-      ),
+      itemBuilder: (_, index) => const SkeletonBox(height: 120),
     );
   }
 }

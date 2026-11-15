@@ -1,6 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/material.dart' show FlutterError;
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/errors/failures.dart';
@@ -8,32 +6,19 @@ import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/design_system/widgets/offline_banner.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
+import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/features/quran_groups/cubit/assignment/assignment_cubit.dart';
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/khatma_repository.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/personal_assignment_screen.dart';
 
 import '../../../helpers/widget_test_app.dart';
+import '../../../helpers/quran_metadata_test_asset_bundle.dart';
 
 class _Repository extends Mock implements KhatmaRepository {}
 
-class _MetadataBundle extends CachingAssetBundle {
-  @override
-  Future<ByteData> load(String key) async {
-    if (key != QuranMetadataRepository.assetPath) {
-      throw FlutterError('Unexpected asset: $key');
-    }
-    final xml =
-        '<quran>'
-        '${List.generate(114, (i) => '<sura index="${i + 1}" ayas="1" name="sura"/>').join()}'
-        '${List.generate(30, (i) => '<juz index="${i + 1}" sura="1" aya="${i == 0 ? 1 : 2}"/>').join()}'
-        '</quran>';
-    return ByteData.sublistView(Uint8List.fromList(xml.codeUnits));
-  }
-}
-
 QuranMetadataRepository _metadata() =>
-    QuranMetadataRepository(bundle: _MetadataBundle());
+    QuranMetadataRepository(bundle: QuranMetadataTestAssetBundle());
 
 Assignment _assignment(AssignmentStatusEnum status) => Assignment(
   assignmentId: 'a-1',
@@ -47,6 +32,7 @@ Assignment _assignment(AssignmentStatusEnum status) => Assignment(
 DashboardSnapshot _snapshot({
   AssignmentStatusEnum status = AssignmentStatusEnum.pending,
   DayState dayState = DayState.open,
+  PortionUnit portionUnit = PortionUnit.juz,
 }) {
   final assignment = _assignment(status);
   return DashboardSnapshot(
@@ -69,10 +55,55 @@ DashboardSnapshot _snapshot({
     ),
     myAssignments: [assignment],
     assignments: [assignment],
+    portionUnit: portionUnit,
   );
 }
 
 void main() {
+  testWidgets(
+    'portion assignment shows metadata name and reading range in every variant',
+    (tester) async {
+      final metadata = _metadata();
+      await tester.runAsync(metadata.load);
+      const unit = PortionUnit.hizb;
+      final snapshot = _snapshot(portionUnit: unit);
+      final cubit = AssignmentCubit(
+        repository: _Repository(),
+        assignment: snapshot.myAssignments.single,
+      );
+      addTearDown(cubit.close);
+      final portion = metadata.portion(
+        unit,
+        snapshot.myAssignments.single.portionIndex,
+      );
+      final range = ArabicStrings.portionRange(
+        metadata.suraName(portion.startSura),
+        portion.startAya,
+        metadata.suraName(portion.endSura),
+        portion.endAya,
+      );
+      await pumpAllVariants(
+        tester,
+        BlocProvider.value(
+          value: cubit,
+          child: PersonalAssignmentScreen(
+            snapshot: snapshot,
+            metadataRepository: metadata,
+          ),
+        ),
+        (tester, variant) async {
+          expect(
+            find.text(ArabicStrings.portionName(unit, 1)),
+            findsOneWidget,
+            reason: variant,
+          );
+          expect(find.text(range), findsOneWidget, reason: variant);
+          expect(tester.takeException(), isNull, reason: variant);
+        },
+      );
+    },
+  );
+
   testWidgets(
     'pending assignment offers one completion action and hides reader slot',
     (tester) async {

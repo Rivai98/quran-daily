@@ -26,12 +26,12 @@ migration repair --remote --yes --status applied <version>` (never db push).
 
 ## Phase 4: UI (US1-US4)
 
-- [ ] T010 [US1] Create group S4: unit selector (5 options with daily amount + khatma days) + CreateGroupCubit field; widget tests (RTL, 200%, dark, 320dp)
-- [ ] T011 [US1] Unit chip on group card S1, discovery card S2, invite preview S3
-- [ ] T012 [US2] Dashboard S5: portion card (name + range from metadata), cycle header (day k of C, completed of N), seat tiles labelled by portion, rest-day state "لا ورد اليوم"; forming start sheet picks start portion 1..N; tests
-- [ ] T013 [US2] Personal assignment S6: portion name + range; tests
-- [ ] T014 [US3] History S10 grouped by cycle with full-khatma badge per cycle; day detail; tests
-- [ ] T015 [US4] Group settings S9: owner unit change with confirm + pending notice on dashboard; tests
+- [X] T010 [US1] Create group S4: unit selector (5 options with daily amount + khatma days) + CreateGroupCubit field; widget tests (RTL, 200%, dark, 320dp)
+- [X] T011 [US1] Unit chip on group card S1, discovery card S2, invite preview S3
+- [X] T012 [US2] Dashboard S5: portion card (name + range from metadata), cycle header (day k of C, completed of N), seat tiles labelled by portion, rest-day state "لا ورد اليوم"; forming start sheet picks start portion 1..N; tests
+- [X] T013 [US2] Personal assignment S6: portion name + range; tests
+- [X] T014 [US3] History S10 grouped by cycle with full-khatma badge per cycle; day detail; tests
+- [X] T015 [US4] Group settings S9: owner unit change with confirm + pending notice on dashboard; tests
 
 ## Phase 5: Polish
 

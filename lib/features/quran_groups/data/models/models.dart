@@ -386,6 +386,7 @@ HistoryDaySummary historyDaySummaryFromJson(Map<String, Object?> json) {
     perJuz: perJuz,
     cycleNumber: (json['cycle_number'] as num?)?.toInt(),
     cycleDay: (json['cycle_day'] as num?)?.toInt(),
+    portionUnit: portionUnitOf(json['portion_unit']),
   );
 }
 
@@ -398,6 +399,8 @@ Map<String, Object?> historyDaySummaryToJson(HistoryDaySummary h) => {
   'full_khatma': h.fullKhatma,
   if (h.cycleNumber != null) 'cycle_number': h.cycleNumber,
   if (h.cycleDay != null) 'cycle_day': h.cycleDay,
+  if (h.portionUnit != PortionUnit.juz)
+    'portion_unit': portionUnitName(h.portionUnit),
   if (h.myResult != null) 'my_result': assignmentToJson(h.myResult!),
   if (h.perJuz != null) 'per_juz': h.perJuz!.map(assignmentToJson).toList(),
 };

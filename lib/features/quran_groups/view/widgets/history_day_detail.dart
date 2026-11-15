@@ -18,11 +18,7 @@ AssignmentStatus _toDesignStatus(AssignmentStatusEnum s) =>
 
 /// Detail sheet/panel for a specific historical day (S10).
 class HistoryDayDetail extends StatelessWidget {
-  const HistoryDayDetail({
-    super.key,
-    required this.day,
-    this.onClose,
-  });
+  const HistoryDayDetail({super.key, required this.day, this.onClose});
 
   final HistoryDaySummary day;
   final VoidCallback? onClose;
@@ -70,13 +66,20 @@ class HistoryDayDetail extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        ArabicStrings.juzName(day.myResult!.juz),
+                        ArabicStrings.portionName(
+                          day.portionUnit,
+                          day.myResult!.portionIndex,
+                        ),
                         style: AppTypography.title,
                       ),
                       const SizedBox(height: AppSpacing.xxs),
                       Text(
-                        ArabicStrings.historySeat(ArabicNumerals.format(day.myResult!.seatNumber)),
-                        style: AppTypography.caption.copyWith(color: colors.inkMuted),
+                        ArabicStrings.historySeat(
+                          ArabicNumerals.format(day.myResult!.seatNumber),
+                        ),
+                        style: AppTypography.caption.copyWith(
+                          color: colors.inkMuted,
+                        ),
                       ),
                     ],
                   ),
@@ -108,13 +111,20 @@ class HistoryDayDetail extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          ArabicStrings.juzName(assignment.juz),
-                          style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.w600),
+                          ArabicStrings.portionName(
+                            day.portionUnit,
+                            assignment.portionIndex,
+                          ),
+                          style: AppTypography.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.xxs),
                         Text(
                           '${assignment.readerDisplayName ?? ArabicStrings.unassignedSeat} · ${ArabicStrings.historySeat(ArabicNumerals.format(assignment.seatNumber))}',
-                          style: AppTypography.caption.copyWith(color: colors.inkMuted),
+                          style: AppTypography.caption.copyWith(
+                            color: colors.inkMuted,
+                          ),
                         ),
                       ],
                     ),

@@ -391,6 +391,7 @@ class HistoryDaySummary extends Equatable {
     this.perJuz,
     this.cycleNumber,
     this.cycleDay,
+    this.portionUnit = PortionUnit.juz,
   });
 
   final String groupDate;
@@ -407,6 +408,7 @@ class HistoryDaySummary extends Equatable {
   final List<Assignment>? perJuz;
   final int? cycleNumber;
   final int? cycleDay;
+  final PortionUnit portionUnit;
 
   @override
   List<Object?> get props => [
@@ -420,16 +422,22 @@ class HistoryDaySummary extends Equatable {
     perJuz,
     cycleNumber,
     cycleDay,
+    portionUnit,
   ];
 }
 
 class HistoryCycleSummary extends Equatable {
-  const HistoryCycleSummary({required this.cycleNumber, required this.days});
+  const HistoryCycleSummary({
+    required this.cycleNumber,
+    required this.days,
+    this.portionUnit = PortionUnit.juz,
+  });
   final int cycleNumber;
   final List<HistoryDaySummary> days;
-  bool get fullKhatma => days.isNotEmpty && days.last.fullKhatma;
+  final PortionUnit portionUnit;
+  bool get fullKhatma => days.any((day) => day.fullKhatma);
   @override
-  List<Object?> get props => [cycleNumber, days];
+  List<Object?> get props => [cycleNumber, days, portionUnit];
 }
 
 List<HistoryCycleSummary> groupHistoryByCycle(List<HistoryDaySummary> days) {
@@ -441,8 +449,11 @@ List<HistoryCycleSummary> groupHistoryByCycle(List<HistoryDaySummary> days) {
   }
   return grouped.entries
       .map(
-        (entry) =>
-            HistoryCycleSummary(cycleNumber: entry.key, days: entry.value),
+        (entry) => HistoryCycleSummary(
+          cycleNumber: entry.key,
+          days: entry.value,
+          portionUnit: entry.value.first.portionUnit,
+        ),
       )
       .toList();
 }

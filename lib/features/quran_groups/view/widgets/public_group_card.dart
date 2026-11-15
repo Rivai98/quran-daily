@@ -8,8 +8,10 @@ import '../../../../core/localization/arabic_numerals.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../data/entities/entities.dart';
 import '../../data/models/models.dart';
+import '../../../../core/quran/quran_metadata_repository.dart';
 import '../../cubit/discovery/discovery_cubit.dart';
 import 'join_status_badge.dart';
+import 'portion_unit_chip.dart';
 
 class PublicGroupCard extends StatelessWidget {
   const PublicGroupCard({
@@ -17,11 +19,13 @@ class PublicGroupCard extends StatelessWidget {
     required this.group,
     this.onJoin,
     this.joinState,
+    this.metadataRepository,
   });
 
   final PublicGroupProfile group;
   final VoidCallback? onJoin;
   final GroupJoinState? joinState;
+  final QuranMetadataRepository? metadataRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +70,11 @@ class PublicGroupCard extends StatelessWidget {
                 icon: icon,
                 label: statusLabel,
                 status: group.status,
+              ),
+              PortionUnitChip(
+                unit: group.portionUnit,
+                metadataRepository:
+                    metadataRepository ?? QuranMetadataRepository(),
               ),
               _InfoChip(
                 icon: Icons.schedule,
