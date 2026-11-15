@@ -42,33 +42,37 @@ void main() {
       sessionGateway: session,
       connectivity: connectivity,
     );
-    registerFallbackValue(const CreateGroupInput(
-      name: 'x',
-      timezone: 'Africa/Cairo',
-      visibility: GroupVisibility.private,
-      joinMode: JoinMode.approval,
-    ));
+    registerFallbackValue(
+      const CreateGroupInput(
+        name: 'x',
+        timezone: 'Africa/Cairo',
+        visibility: GroupVisibility.private,
+        joinMode: JoinMode.approval,
+      ),
+    );
   });
 
   group('getMyGroups', () {
     test('network success caches and returns the overview', () async {
       when(() => session.currentUserId).thenReturn('u1');
       when(() => connectivity.isOnline).thenAnswer((_) async => true);
-      when(() => remote.call('get_my_groups', null))
-          .thenAnswer((_) async => const Success<dynamic>({
-                'groups': [
-                  {
-                    'group_id': 'g1',
-                    'name': 'حلقة',
-                    'status': 'active',
-                    'my_role': 'owner',
-                    'active_member_count': 5,
-                  }
-                ],
-                'pending_requests': [],
-              }));
-      when(() => cache.upsert('u1', any()))
-          .thenAnswer((_) async => Future<void>.value());
+      when(() => remote.call('get_my_groups', null)).thenAnswer(
+        (_) async => const Success<dynamic>({
+          'groups': [
+            {
+              'group_id': 'g1',
+              'name': 'حلقة',
+              'status': 'active',
+              'my_role': 'owner',
+              'active_member_count': 5,
+            },
+          ],
+          'pending_requests': [],
+        }),
+      );
+      when(
+        () => cache.upsert('u1', any()),
+      ).thenAnswer((_) async => Future<void>.value());
 
       final result = await repository.getMyGroups();
 
@@ -86,18 +90,17 @@ void main() {
     test('network failure falls back to cache flagged stale', () async {
       when(() => session.currentUserId).thenReturn('u1');
       when(() => connectivity.isOnline).thenAnswer((_) async => false);
-      when(() => remote.call('get_my_groups', null))
-          .thenAnswer((_) async => const FailureResult<dynamic>(NetworkFailure(
-                message: 'network',
-                code: 'network',
-              )));
-      when(() => cache.read('u1')).thenAnswer((_) async => (
-            json: {
-              'groups': <Object?>[],
-              'pending_requests': <Object?>[],
-            },
-            cachedAt: DateTime.parse('2026-11-14T08:12:00Z'),
-          ));
+      when(() => remote.call('get_my_groups', null)).thenAnswer(
+        (_) async => const FailureResult<dynamic>(
+          NetworkFailure(message: 'network', code: 'network'),
+        ),
+      );
+      when(() => cache.read('u1')).thenAnswer(
+        (_) async => (
+          json: {'groups': <Object?>[], 'pending_requests': <Object?>[]},
+          cachedAt: DateTime.parse('2026-11-14T08:12:00Z'),
+        ),
+      );
 
       final result = await repository.getMyGroups();
 
@@ -113,11 +116,11 @@ void main() {
     test('network failure without cache returns failure', () async {
       when(() => session.currentUserId).thenReturn('u1');
       when(() => connectivity.isOnline).thenAnswer((_) async => false);
-      when(() => remote.call('get_my_groups', null))
-          .thenAnswer((_) async => const FailureResult<dynamic>(NetworkFailure(
-                message: 'network',
-                code: 'network',
-              )));
+      when(() => remote.call('get_my_groups', null)).thenAnswer(
+        (_) async => const FailureResult<dynamic>(
+          NetworkFailure(message: 'network', code: 'network'),
+        ),
+      );
       when(() => cache.read('u1')).thenAnswer((_) async => null);
 
       final result = await repository.getMyGroups();
@@ -139,17 +142,19 @@ void main() {
     test('maps validation failure kind', () async {
       when(() => connectivity.isOnline).thenAnswer((_) async => true);
       when(() => rpc.call<dynamic>('create_group', any())).thenAnswer(
-          (_) async => const FailureResult<dynamic>(AuthFailure(
-                message: 'validation_failed',
-                code: 'validation_failed',
-              )));
+        (_) async => const FailureResult<dynamic>(
+          AuthFailure(message: 'validation_failed', code: 'validation_failed'),
+        ),
+      );
 
-      final result = await repository.createGroup(const CreateGroupInput(
-        name: 'حلقة',
-        timezone: 'Africa/Cairo',
-        visibility: GroupVisibility.public,
-        joinMode: JoinMode.approval,
-      ));
+      final result = await repository.createGroup(
+        const CreateGroupInput(
+          name: 'حلقة',
+          timezone: 'Africa/Cairo',
+          visibility: GroupVisibility.public,
+          joinMode: JoinMode.approval,
+        ),
+      );
 
       expect(result.failureOrNull!.kind, FailureKind.validation);
     });
@@ -157,15 +162,19 @@ void main() {
     test('maps owner_group_limit to limitReached', () async {
       when(() => connectivity.isOnline).thenAnswer((_) async => true);
       when(() => rpc.call<dynamic>('create_group', any())).thenAnswer(
-          (_) async => const FailureResult<dynamic>(
-              AuthFailure(message: 'owner_group_limit', code: 'owner_group_limit')));
+        (_) async => const FailureResult<dynamic>(
+          AuthFailure(message: 'owner_group_limit', code: 'owner_group_limit'),
+        ),
+      );
 
-      final result = await repository.createGroup(const CreateGroupInput(
-        name: 'حلقة',
-        timezone: 'Africa/Cairo',
-        visibility: GroupVisibility.public,
-        joinMode: JoinMode.approval,
-      ));
+      final result = await repository.createGroup(
+        const CreateGroupInput(
+          name: 'حلقة',
+          timezone: 'Africa/Cairo',
+          visibility: GroupVisibility.public,
+          joinMode: JoinMode.approval,
+        ),
+      );
 
       expect(result.failureOrNull!.kind, FailureKind.limitReached);
     });
@@ -173,12 +182,14 @@ void main() {
     test('offline returns network failure without queueing', () async {
       when(() => connectivity.isOnline).thenAnswer((_) async => false);
 
-      final result = await repository.createGroup(const CreateGroupInput(
-        name: 'حلقة',
-        timezone: 'Africa/Cairo',
-        visibility: GroupVisibility.public,
-        joinMode: JoinMode.approval,
-      ));
+      final result = await repository.createGroup(
+        const CreateGroupInput(
+          name: 'حلقة',
+          timezone: 'Africa/Cairo',
+          visibility: GroupVisibility.public,
+          joinMode: JoinMode.approval,
+        ),
+      );
 
       expect(result.failureOrNull!.kind, FailureKind.network);
       verifyNever(() => rpc.call<dynamic>('create_group', any()));
@@ -186,18 +197,21 @@ void main() {
 
     test('success returns CreatedGroup with invite code', () async {
       when(() => connectivity.isOnline).thenAnswer((_) async => true);
-      when(() => rpc.call<dynamic>('create_group', any()))
-          .thenAnswer((_) async => const Success<dynamic>({
-                'group_id': 'g9',
-                'invite_code': 'AB23CD45',
-              }));
+      when(() => rpc.call<dynamic>('create_group', any())).thenAnswer(
+        (_) async => const Success<dynamic>({
+          'group_id': 'g9',
+          'invite_code': 'AB23CD45',
+        }),
+      );
 
-      final result = await repository.createGroup(const CreateGroupInput(
-        name: 'حلقة',
-        timezone: 'Africa/Cairo',
-        visibility: GroupVisibility.public,
-        joinMode: JoinMode.approval,
-      ));
+      final result = await repository.createGroup(
+        const CreateGroupInput(
+          name: 'حلقة',
+          timezone: 'Africa/Cairo',
+          visibility: GroupVisibility.public,
+          joinMode: JoinMode.approval,
+        ),
+      );
 
       result.when(
         success: (created) => expect(created.inviteCode, 'AB23CD45'),
@@ -209,71 +223,84 @@ void main() {
   group('startKhatma', () {
     test('delegates to rpc with the start juz', () async {
       when(() => connectivity.isOnline).thenAnswer((_) async => true);
-      when(() => rpc.call<dynamic>(
-            'start_khatma',
-            any(that: containsPair('p_start_juz', 5)),
-          )).thenAnswer((_) async => const Success<dynamic>({
-                'group_id': 'g1',
-                'group_name': 'حلقة',
-                'my_role': 'owner',
-                'status': 'active',
-                'server_generated_at': '2026-11-14T09:00:00Z',
-                'active_member_count': 2,
-                'invite_code': 'AB23CD45',
-              }));
+      when(
+        () => rpc.call<dynamic>(
+          'start_khatma',
+          any(that: containsPair('p_start_portion', 5)),
+        ),
+      ).thenAnswer(
+        (_) async => const Success<dynamic>({
+          'group_id': 'g1',
+          'group_name': 'حلقة',
+          'my_role': 'owner',
+          'status': 'active',
+          'server_generated_at': '2026-11-14T09:00:00Z',
+          'active_member_count': 2,
+          'invite_code': 'AB23CD45',
+        }),
+      );
       when(() => rpc.call<dynamic>('get_dashboard', any())).thenAnswer(
-          (_) async => const Success<dynamic>({
-                'group_id': 'g1',
-                'group_name': 'حلقة',
-                'my_role': 'owner',
-                'status': 'active',
-                'server_generated_at': '2026-11-14T09:00:00Z',
-                'active_member_count': 2,
-              }));
+        (_) async => const Success<dynamic>({
+          'group_id': 'g1',
+          'group_name': 'حلقة',
+          'my_role': 'owner',
+          'status': 'active',
+          'server_generated_at': '2026-11-14T09:00:00Z',
+          'active_member_count': 2,
+        }),
+      );
 
       final result = await repository.startKhatma('g1', 5);
 
       expect(result.isSuccess, isTrue);
-      verify(() => rpc.call<dynamic>(
-            'start_khatma',
-            any(that: containsPair('p_group_id', 'g1')),
-          )).called(1);
+      verify(
+        () => rpc.call<dynamic>(
+          'start_khatma',
+          any(that: containsPair('p_group_id', 'g1')),
+        ),
+      ).called(1);
     });
 
     test('real server shape (today: true) refetches the dashboard', () async {
       when(() => connectivity.isOnline).thenAnswer((_) async => true);
       when(() => rpc.call<dynamic>('start_khatma', any())).thenAnswer(
-          (_) async => const Success<dynamic>({
-                'today': true,
-                'status': 'active',
-                'my_role': 'owner',
-                'group_id': 'g1',
-              }));
+        (_) async => const Success<dynamic>({
+          'today': true,
+          'status': 'active',
+          'my_role': 'owner',
+          'group_id': 'g1',
+        }),
+      );
       when(() => rpc.call<dynamic>('get_dashboard', any())).thenAnswer(
-          (_) async => const Success<dynamic>({
-                'group_id': 'g1',
-                'group_name': 'حلقة',
-                'my_role': 'owner',
-                'status': 'active',
-                'server_generated_at': '2026-11-14T09:00:00Z',
-                'active_member_count': 2,
-              }));
+        (_) async => const Success<dynamic>({
+          'group_id': 'g1',
+          'group_name': 'حلقة',
+          'my_role': 'owner',
+          'status': 'active',
+          'server_generated_at': '2026-11-14T09:00:00Z',
+          'active_member_count': 2,
+        }),
+      );
 
       final result = await repository.startKhatma('g1', 1);
 
       expect(result.valueOrNull?.status, GroupStatus.active);
       expect(result.valueOrNull?.groupName, 'حلقة');
-      verify(() => rpc.call<dynamic>(
-            'get_dashboard',
-            any(that: containsPair('p_group_id', 'g1')),
-          )).called(1);
+      verify(
+        () => rpc.call<dynamic>(
+          'get_dashboard',
+          any(that: containsPair('p_group_id', 'g1')),
+        ),
+      ).called(1);
     });
 
     test('group_not_forming maps to conflict', () async {
       when(() => connectivity.isOnline).thenAnswer((_) async => true);
       when(() => rpc.call<dynamic>('start_khatma', any())).thenAnswer(
-          (_) async => const FailureResult<dynamic>(AuthFailure(
-              message: 'group_not_forming', code: 'group_not_forming')));
+        (_) async => const FailureResult<dynamic>(
+          AuthFailure(message: 'group_not_forming', code: 'group_not_forming'),
+        ),
+      );
 
       final result = await repository.startKhatma('g1', 1);
 

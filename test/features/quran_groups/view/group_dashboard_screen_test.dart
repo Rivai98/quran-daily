@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
+import 'package:quran_daily/core/quran/portion_unit.dart';
+import '../../../helpers/quran_metadata_test_asset_bundle.dart';
 import 'package:quran_daily/features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/khatma_repository.dart';
@@ -25,6 +27,9 @@ DashboardSnapshot _snapshot({
   bool stale = false,
   GroupRole role = GroupRole.member,
   DayState dayState = DayState.open,
+  PortionUnit? pendingPortionUnit,
+  PortionUnit portionUnit = PortionUnit.juz,
+  CycleInfo? cycle,
 }) {
   final assignments = List.generate(
     30,
@@ -62,6 +67,9 @@ DashboardSnapshot _snapshot({
     assignments: assignments,
     myAssignments: [assignments.first],
     isStale: stale,
+    pendingPortionUnit: pendingPortionUnit,
+    portionUnit: portionUnit,
+    cycle: cycle,
   );
 }
 
@@ -80,13 +88,15 @@ void main() {
       ),
     );
     addTearDown(cubit.close);
+    final metadataRepository = QuranMetadataRepository(
+      bundle: QuranMetadataTestAssetBundle(),
+    );
+    await tester.runAsync(metadataRepository.load);
     await tester.pumpWidget(
       buildArabicTestApp(
         BlocProvider.value(
           value: cubit,
-          child: GroupDashboardScreen(
-            metadataRepository: QuranMetadataRepository(),
-          ),
+          child: GroupDashboardScreen(metadataRepository: metadataRepository),
         ),
       ),
     );
@@ -132,13 +142,15 @@ void main() {
       ),
     );
     addTearDown(cubit.close);
+    final metadataRepository = QuranMetadataRepository(
+      bundle: QuranMetadataTestAssetBundle(),
+    );
+    await tester.runAsync(metadataRepository.load);
     await tester.pumpWidget(
       buildArabicTestApp(
         BlocProvider.value(
           value: cubit,
-          child: GroupDashboardScreen(
-            metadataRepository: QuranMetadataRepository(),
-          ),
+          child: GroupDashboardScreen(metadataRepository: metadataRepository),
         ),
       ),
     );
@@ -334,6 +346,8 @@ void main() {
     WidgetTester tester, {
     required GroupRole role,
     GroupStatus status = GroupStatus.active,
+    PortionUnit? pendingPortionUnit,
+    PortionUnit portionUnit = PortionUnit.juz,
   }) async {
     final groups = _GroupsRepository();
     final khatma = _Repository();
@@ -355,7 +369,20 @@ void main() {
               inviteCode: 'ABC123',
             ),
           )
-        : _snapshot(role: role);
+        : _snapshot(
+            role: role,
+            pendingPortionUnit: pendingPortionUnit,
+            portionUnit: portionUnit,
+            cycle: portionUnit == PortionUnit.juz
+                ? null
+                : const CycleInfo(
+                    number: 1,
+                    day: 1,
+                    length: 2,
+                    completed: 1,
+                    total: 60,
+                  ),
+          );
     final cubit = DashboardCubit(
       repository: khatma,
       groupsRepository: groups,
@@ -368,13 +395,15 @@ void main() {
       ),
     );
     addTearDown(cubit.close);
+    final metadataRepository = QuranMetadataRepository(
+      bundle: QuranMetadataTestAssetBundle(),
+    );
+    await tester.runAsync(metadataRepository.load);
     await tester.pumpWidget(
       buildArabicTestApp(
         BlocProvider.value(
           value: cubit,
-          child: GroupDashboardScreen(
-            metadataRepository: QuranMetadataRepository(),
-          ),
+          child: GroupDashboardScreen(metadataRepository: metadataRepository),
         ),
       ),
     );
@@ -390,9 +419,9 @@ void main() {
       role: GroupRole.owner,
       status: GroupStatus.forming,
     );
-    when(() => groups.startKhatma('g1', any())).thenAnswer(
-      (_) async => Success(_snapshot(role: GroupRole.owner)),
-    );
+    when(
+      () => groups.startKhatma('g1', any()),
+    ).thenAnswer((_) async => Success(_snapshot(role: GroupRole.owner)));
 
     expect(find.byType(FormingGroupView), findsOneWidget);
     expect(find.text(ArabicStrings.shareInviteAction), findsOneWidget);
@@ -416,6 +445,26 @@ void main() {
     );
     expect(find.byType(FormingGroupView), findsOneWidget);
     expect(find.text(ArabicStrings.startKhatmaAction), findsNothing);
+  });
+
+  testWidgets('dashboard announces a pending portion unit change', (
+    tester,
+  ) async {
+    await pumpWithRole(
+      tester,
+      role: GroupRole.member,
+      pendingPortionUnit: PortionUnit.hizb,
+      portionUnit: PortionUnit.hizb,
+    );
+    expect(
+      find.text(ArabicStrings.pendingPortionChange(PortionUnit.hizb)),
+      findsOneWidget,
+    );
+    expect(
+      find.text(ArabicStrings.portionName(PortionUnit.hizb, 1)),
+      findsOneWidget,
+    );
+    expect(find.text(ArabicStrings.cycleProgress(1, 2, 1, 60)), findsOneWidget);
   });
 
   testWidgets('owner reaches history, members, requests and group settings', (

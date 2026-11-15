@@ -4,8 +4,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/errors/failures.dart';
 import '../../data/entities/entities.dart';
 import '../../data/repositories/groups_repository.dart';
+import '../../../../core/quran/portion_unit.dart';
 
-enum GroupSettingsStatus { initial, loading, submitting, success, started, archived, failure }
+enum GroupSettingsStatus {
+  initial,
+  loading,
+  submitting,
+  success,
+  started,
+  archived,
+  failure,
+}
 
 class GroupSettingsState extends Equatable {
   const GroupSettingsState({
@@ -40,8 +49,13 @@ class GroupSettingsState extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [groupId, status, inviteCode, startedSnapshot, failure];
+  List<Object?> get props => [
+    groupId,
+    status,
+    inviteCode,
+    startedSnapshot,
+    failure,
+  ];
 }
 
 /// S9 group settings: settings form, start khatma, invite regenerate,
@@ -49,20 +63,19 @@ class GroupSettingsState extends Equatable {
 /// the failure kinds.
 class GroupSettingsCubit extends Cubit<GroupSettingsState> {
   GroupSettingsCubit({required GroupsRepository repository})
-      : _repository = repository,
-        super(const GroupSettingsState());
+    : _repository = repository,
+      super(const GroupSettingsState());
 
   final GroupsRepository _repository;
 
-  void load({
-    required String groupId,
-    String? inviteCode,
-  }) {
-    emit(state.copyWith(
-      groupId: groupId,
-      inviteCode: inviteCode,
-      status: GroupSettingsStatus.initial,
-    ));
+  void load({required String groupId, String? inviteCode}) {
+    emit(
+      state.copyWith(
+        groupId: groupId,
+        inviteCode: inviteCode,
+        status: GroupSettingsStatus.initial,
+      ),
+    );
   }
 
   Future<void> startKhatma({required int startJuz}) async {
@@ -70,21 +83,32 @@ class GroupSettingsCubit extends Cubit<GroupSettingsState> {
     if (groupId == null) return;
     if (state.status == GroupSettingsStatus.submitting) return;
     if (startJuz < 1 || startJuz > 30) {
-      emit(state.copyWith(
-        status: GroupSettingsStatus.failure,
-        failure: const ValidationFailure(
-            message: 'invalid start juz', code: 'validation_failed'),
-      ));
+      emit(
+        state.copyWith(
+          status: GroupSettingsStatus.failure,
+          failure: const ValidationFailure(
+            message: 'invalid start juz',
+            code: 'validation_failed',
+          ),
+        ),
+      );
       return;
     }
 
-    emit(state.copyWith(status: GroupSettingsStatus.submitting, clearFailure: true));
+    emit(
+      state.copyWith(
+        status: GroupSettingsStatus.submitting,
+        clearFailure: true,
+      ),
+    );
     final result = await _repository.startKhatma(groupId, startJuz);
     result.when(
-      success: (DashboardSnapshot snapshot) => emit(state.copyWith(
-        status: GroupSettingsStatus.started,
-        startedSnapshot: snapshot,
-      )),
+      success: (DashboardSnapshot snapshot) => emit(
+        state.copyWith(
+          status: GroupSettingsStatus.started,
+          startedSnapshot: snapshot,
+        ),
+      ),
       failure: (AppFailure failure) => emit(
         state.copyWith(status: GroupSettingsStatus.failure, failure: failure),
       ),
@@ -98,6 +122,7 @@ class GroupSettingsCubit extends Cubit<GroupSettingsState> {
     String? dayStartTime,
     GroupVisibility? visibility,
     JoinMode? joinMode,
+    PortionUnit? portionUnit,
   }) async {
     final groupId = state.groupId;
     if (groupId == null) return;
@@ -110,17 +135,27 @@ class GroupSettingsCubit extends Cubit<GroupSettingsState> {
       dayStartTime: dayStartTime,
       visibility: visibility,
       joinMode: joinMode,
+      portionUnit: portionUnit,
     );
     if (patch.isEmpty) {
-      emit(state.copyWith(
-        status: GroupSettingsStatus.failure,
-        failure: const ValidationFailure(
-            message: 'empty patch', code: 'validation_failed'),
-      ));
+      emit(
+        state.copyWith(
+          status: GroupSettingsStatus.failure,
+          failure: const ValidationFailure(
+            message: 'empty patch',
+            code: 'validation_failed',
+          ),
+        ),
+      );
       return;
     }
 
-    emit(state.copyWith(status: GroupSettingsStatus.submitting, clearFailure: true));
+    emit(
+      state.copyWith(
+        status: GroupSettingsStatus.submitting,
+        clearFailure: true,
+      ),
+    );
     final result = await _repository.updateGroupSettings(groupId, patch);
     result.when(
       success: (_) => emit(state.copyWith(status: GroupSettingsStatus.success)),
@@ -135,13 +170,17 @@ class GroupSettingsCubit extends Cubit<GroupSettingsState> {
     if (groupId == null) return;
     if (state.status == GroupSettingsStatus.submitting) return;
 
-    emit(state.copyWith(status: GroupSettingsStatus.submitting, clearFailure: true));
+    emit(
+      state.copyWith(
+        status: GroupSettingsStatus.submitting,
+        clearFailure: true,
+      ),
+    );
     final result = await _repository.regenerateInvite(groupId);
     result.when(
-      success: (String code) => emit(state.copyWith(
-        status: GroupSettingsStatus.success,
-        inviteCode: code,
-      )),
+      success: (String code) => emit(
+        state.copyWith(status: GroupSettingsStatus.success, inviteCode: code),
+      ),
       failure: (AppFailure failure) => emit(
         state.copyWith(status: GroupSettingsStatus.failure, failure: failure),
       ),
@@ -153,10 +192,16 @@ class GroupSettingsCubit extends Cubit<GroupSettingsState> {
     if (groupId == null) return;
     if (state.status == GroupSettingsStatus.submitting) return;
 
-    emit(state.copyWith(status: GroupSettingsStatus.submitting, clearFailure: true));
+    emit(
+      state.copyWith(
+        status: GroupSettingsStatus.submitting,
+        clearFailure: true,
+      ),
+    );
     final result = await _repository.archiveGroup(groupId);
     result.when(
-      success: (_) => emit(state.copyWith(status: GroupSettingsStatus.archived)),
+      success: (_) =>
+          emit(state.copyWith(status: GroupSettingsStatus.archived)),
       failure: (AppFailure failure) => emit(
         state.copyWith(status: GroupSettingsStatus.failure, failure: failure),
       ),
