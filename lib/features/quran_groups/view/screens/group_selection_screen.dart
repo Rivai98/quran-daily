@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/router.dart';
 import '../../../../core/design_system/app_colors.dart';
+import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/widgets.dart';
@@ -146,9 +147,12 @@ class _MyGroupRow extends StatelessWidget {
 
     return AppCard(
       child: InkWell(
-        borderRadius: const BorderRadius.all(Radius.circular(16)),
-        onTap: () => Navigator.pushNamed(context, AppRoutes.dashboard,
-            arguments: group.groupId),
+        borderRadius: AppRadius.lgBR,
+        onTap: () => Navigator.pushNamed(
+          context,
+          AppRoutes.dashboard,
+          arguments: group.groupId,
+        ),
         child: Padding(
           padding: AppSpacing.card,
           child: Column(
@@ -157,30 +161,50 @@ class _MyGroupRow extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(group.name,
-                        style: AppTypography.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis),
+                    child: Text(
+                      group.name,
+                      style: AppTypography.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm, vertical: 2),
+                    constraints: const BoxConstraints(minHeight: 48),
+                    padding: const EdgeInsetsDirectional.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: AppSpacing.xxs,
+                    ),
                     decoration: ShapeDecoration(
                       color: group.status == GroupStatus.active
                           ? colors.completedBg
                           : colors.pendingBg,
                       shape: const StadiumBorder(),
                     ),
-                    child: Text(
-                      group.status == GroupStatus.active
-                          ? ArabicStrings.activeLabel
-                          : ArabicStrings.formingLabel,
-                      style: AppTypography.caption.copyWith(
-                        color: group.status == GroupStatus.active
-                            ? colors.completedFg
-                            : colors.pendingFg,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          group.status == GroupStatus.active
+                              ? Icons.check_circle
+                              : Icons.schedule,
+                          size: 20,
+                          color: group.status == GroupStatus.active
+                              ? colors.completedFg
+                              : colors.pendingFg,
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          group.status == GroupStatus.active
+                              ? ArabicStrings.activeLabel
+                              : ArabicStrings.formingLabel,
+                          style: AppTypography.caption.copyWith(
+                            color: group.status == GroupStatus.active
+                                ? colors.completedFg
+                                : colors.pendingFg,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -188,13 +212,17 @@ class _MyGroupRow extends StatelessWidget {
               const SizedBox(height: AppSpacing.xxs),
               Row(
                 children: [
-                  Text(roleMarker,
-                      style: AppTypography.caption
-                          .copyWith(color: colors.inkMuted)),
+                  Text(
+                    roleMarker,
+                    style: AppTypography.caption.copyWith(
+                      color: colors.inkMuted,
+                    ),
+                  ),
                   Text(
                     ' · ${ArabicNumerals.ratio(group.activeMemberCount, 30)}',
-                    style: AppTypography.caption
-                        .copyWith(color: colors.inkMuted),
+                    style: AppTypography.caption.copyWith(
+                      color: colors.inkMuted,
+                    ),
                   ),
                 ],
               ),
@@ -220,10 +248,12 @@ class _PendingRow extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(request.groupName,
-                style: AppTypography.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis),
+            Text(
+              request.groupName,
+              style: AppTypography.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
             const SizedBox(height: AppSpacing.xxs),
             Row(
               children: [
@@ -232,8 +262,9 @@ class _PendingRow extends StatelessWidget {
                 Expanded(
                   child: Text(
                     ArabicStrings.pendingApproval,
-                    style:
-                        AppTypography.caption.copyWith(color: colors.pendingFg),
+                    style: AppTypography.caption.copyWith(
+                      color: colors.pendingFg,
+                    ),
                   ),
                 ),
               ],
@@ -242,9 +273,9 @@ class _PendingRow extends StatelessWidget {
             AppButton(
               label: ArabicStrings.cancel,
               variant: AppButtonVariant.secondary,
-              onPressed: () => context
-                  .read<GroupListCubit>()
-                  .cancelJoinRequest(request.joinRequestId),
+              onPressed: () => context.read<GroupListCubit>().cancelJoinRequest(
+                request.joinRequestId,
+              ),
             ),
           ],
         ),

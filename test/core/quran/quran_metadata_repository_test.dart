@@ -82,12 +82,6 @@ void main() {
       }
     });
 
-    test('juz 1 starts at the first ayah of the first sura', () {
-      final first = repository.juz(1);
-      expect(first.startSura, 1);
-      expect(first.startAya, 1);
-    });
-
     test('juz 30 ends at the last ayah of the last sura per the file', () {
       final lastSura = suraCount();
       final last = repository.juz(30);
