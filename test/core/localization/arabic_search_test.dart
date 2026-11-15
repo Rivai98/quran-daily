@@ -9,7 +9,7 @@ void main() {
 
     test('folds every alef form into a bare alef', () {
       for (final alef in ['أ', 'إ', 'آ', 'ٱ']) {
-        expect(ArabicSearch.normalize('${alef}مل'), 'امل', reason: alef);
+        expect(ArabicSearch.normalize(alef + 'مل'), 'امل', reason: alef);
       }
     });
 
