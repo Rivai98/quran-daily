@@ -49,6 +49,8 @@ class ProgressHeader extends StatelessWidget {
           LinearProgressIndicator(
             value: _value,
             minHeight: 8,
+            color: colors.primary,
+            backgroundColor: colors.surfaceMuted,
             borderRadius: const BorderRadius.all(Radius.circular(4)),
           ),
           if (caption != null) ...[

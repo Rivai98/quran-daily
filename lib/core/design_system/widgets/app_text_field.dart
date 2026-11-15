@@ -5,7 +5,9 @@ import '../app_colors.dart';
 import '../app_spacing.dart';
 import '../app_typography.dart';
 
-/// Shared text field. Inherently LTR content (email addresses) uses [ltr];
+/// Shared text field (Constitution Principle VI & ui-craft.md).
+///
+/// Inherently LTR content (email addresses) uses [ltr];
 /// the field then renders LTR inside its own box while the app stays RTL.
 class AppTextField extends StatefulWidget {
   const AppTextField({
@@ -14,32 +16,48 @@ class AppTextField extends StatefulWidget {
     this.controller,
     this.hint,
     this.prefixIcon,
+    this.suffixIcon,
     this.errorText,
     this.helpText,
     this.obscure = false,
     this.ltr = false,
+    this.enabled = true,
+    this.readOnly = false,
     this.keyboardType,
+    this.textCapitalization = TextCapitalization.none,
     this.validator,
     this.onSubmitted,
+    this.onChanged,
     this.focusNode,
     this.autofocus = false,
     this.textInputAction,
+    this.autofillHints,
+    this.minLines = 1,
+    this.maxLines = 1,
   });
 
   final String label;
   final TextEditingController? controller;
   final String? hint;
   final IconData? prefixIcon;
+  final Widget? suffixIcon;
   final String? errorText;
   final String? helpText;
   final bool obscure;
   final bool ltr;
+  final bool enabled;
+  final bool readOnly;
   final TextInputType? keyboardType;
+  final TextCapitalization textCapitalization;
   final String? Function(String?)? validator;
   final ValueChanged<String>? onSubmitted;
+  final ValueChanged<String>? onChanged;
   final FocusNode? focusNode;
   final bool autofocus;
   final TextInputAction? textInputAction;
+  final Iterable<String>? autofillHints;
+  final int minLines;
+  final int? maxLines;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -59,6 +77,25 @@ class _AppTextFieldState extends State<AppTextField> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
 
+    Widget? effectiveSuffix;
+    if (widget.obscure) {
+      effectiveSuffix = IconButton(
+        tooltip: _obscured
+            ? ArabicStrings.showPassword
+            : ArabicStrings.hidePassword,
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+        onPressed: widget.enabled
+            ? () => setState(() => _obscured = !_obscured)
+            : null,
+        icon: Icon(
+          _obscured ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+          color: colors.inkMuted,
+        ),
+      );
+    } else if (widget.suffixIcon != null) {
+      effectiveSuffix = widget.suffixIcon;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -70,30 +107,27 @@ class _AppTextFieldState extends State<AppTextField> {
             controller: widget.controller,
             focusNode: widget.focusNode,
             autofocus: widget.autofocus,
+            enabled: widget.enabled,
+            readOnly: widget.readOnly,
             obscureText: _obscured,
             keyboardType: widget.keyboardType,
+            textCapitalization: widget.textCapitalization,
             textInputAction: widget.textInputAction,
+            autofillHints: widget.autofillHints,
+            minLines: widget.minLines,
+            maxLines: widget.maxLines,
             textDirection: widget.ltr ? TextDirection.ltr : null,
             style: AppTypography.bodyLarge,
             onSubmitted: widget.onSubmitted,
+            onChanged: widget.onChanged,
             decoration: InputDecoration(
               hintText: widget.hint,
               errorText: widget.errorText,
               errorStyle: AppTypography.caption.copyWith(color: colors.danger),
               prefixIcon: widget.prefixIcon != null
-                  ? Icon(widget.prefixIcon)
+                  ? Icon(widget.prefixIcon, color: colors.inkMuted)
                   : null,
-              suffixIcon: widget.obscure
-                  ? IconButton(
-                      tooltip: _obscured
-                          ? ArabicStrings.showPassword
-                          : ArabicStrings.hidePassword,
-                      onPressed: () => setState(() => _obscured = !_obscured),
-                      icon: Icon(
-                        _obscured ? Icons.visibility : Icons.visibility_off,
-                      ),
-                    )
-                  : null,
+              suffixIcon: effectiveSuffix,
             ),
           ),
         ),

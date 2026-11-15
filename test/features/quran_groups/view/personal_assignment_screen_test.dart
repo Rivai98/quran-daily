@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -134,6 +135,41 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('completion button names the group portion unit', (
+    tester,
+  ) async {
+    for (final unit in PortionUnit.values) {
+      final snapshot = _snapshot(portionUnit: unit);
+      final cubit = AssignmentCubit(
+        repository: _Repository(),
+        assignment: snapshot.myAssignments.single,
+      );
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          BlocProvider.value(
+            value: cubit,
+            child: PersonalAssignmentScreen(
+              snapshot: snapshot,
+              metadataRepository: _metadata(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text(ArabicStrings.completeActionFor(unit)),
+        findsOneWidget,
+        reason: unit.name,
+      );
+      expect(
+        ArabicStrings.completeActionFor(unit),
+        contains(ArabicStrings.portionUnitName(unit)),
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await cubit.close();
+    }
+  });
 
   testWidgets('undo waits for confirmation before reverting completion', (
     tester,

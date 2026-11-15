@@ -3,13 +3,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/router.dart';
 import '../../../../core/design_system/app_colors.dart';
+import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
+import '../../../../core/design_system/assignment_status.dart';
+import '../../../../core/design_system/widgets/app_avatar.dart';
 import '../../../../core/design_system/widgets/progress_header.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
 import '../../../../core/design_system/widgets/app_section_header.dart';
+import '../../../../core/design_system/widgets/status_chip.dart';
 import '../../../../core/design_system/widgets/app_snack_bar.dart';
+import '../../../../core/design_system/widgets/app_banner.dart';
+import '../../../../core/design_system/widgets/offline_banner.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
+import '../../../../core/design_system/widgets/skeleton.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
 import '../../cubit/dashboard/dashboard_cubit.dart';
@@ -18,10 +25,8 @@ import '../widgets/available_juz_list.dart';
 import '../widgets/forming_group_view.dart';
 import '../widgets/juz_grid.dart';
 import '../widgets/my_juz_card.dart';
-import '../widgets/offline_stale_banner.dart';
 import '../widgets/override_assignment_sheet.dart';
-import '../widgets/validation_banner.dart';
-import '../widgets/portion_unit_chip.dart';
+import '../widgets/portion_detail_sheet.dart';
 
 class GroupDashboardScreen extends StatelessWidget {
   const GroupDashboardScreen({super.key, required this.metadataRepository});
@@ -42,20 +47,76 @@ class GroupDashboardScreen extends StatelessWidget {
         final snapshot = state.snapshot;
         return Scaffold(
           appBar: AppBar(
-            title: Text(snapshot?.groupName ?? ArabicStrings.dashboardTitle),
+            title: snapshot != null
+                ? InkWell(
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      AppRoutes.groupInfo,
+                      arguments: snapshot.groupId,
+                    ),
+                    borderRadius: AppRadius.smBR,
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.symmetric(
+                        horizontal: AppSpacing.xs,
+                        vertical: AppSpacing.xs,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GroupAvatar(name: snapshot.groupName, size: 32),
+                          const SizedBox(width: AppSpacing.xs),
+                          Flexible(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  snapshot.groupName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.people_alt_rounded,
+                                      size: 16,
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<AppColors>()!.inkMuted,
+                                    ),
+                                    const SizedBox(width: AppSpacing.xxs),
+                                    Flexible(
+                                      child: Text(
+                                        ArabicStrings.groupDashboardMeta(
+                                          snapshot.activeMemberCount,
+                                          snapshot.portionUnit,
+                                        ),
+                                        style: AppTypography.caption.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).extension<AppColors>()!.inkMuted,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : const Text(ArabicStrings.dashboardTitle),
             actions: [
               IconButton(
                 tooltip: ArabicStrings.mushafTitle,
                 onPressed: () => Navigator.pushNamed(context, AppRoutes.mushaf),
-                icon: const Icon(Icons.menu_book),
+                icon: const Icon(Icons.menu_book_rounded),
               ),
               if (snapshot != null) ..._groupActions(context, snapshot),
-              IconButton(
-                tooltip: ArabicStrings.settingsTitle,
-                onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.settings),
-                icon: const Icon(Icons.settings),
-              ),
             ],
           ),
           body: _body(context, state),
@@ -67,21 +128,15 @@ class GroupDashboardScreen extends StatelessWidget {
   Widget _body(BuildContext context, DashboardState state) {
     final snapshot = state.snapshot;
     if (state.status == DashboardStatus.loading && snapshot == null) {
-      return Center(
-        child: Semantics(
-          label: ArabicStrings.loading,
-          child: const CircularProgressIndicator(),
-        ),
-      );
+      return const _DashboardSkeleton();
     }
     if (snapshot == null) {
-      return StatePanel(
-        icon: Icons.cloud_off,
+      return StatePanel.error(
+        icon: Icons.cloud_off_rounded,
         title: ArabicStrings.dashboardLoadError,
         message: ArabicStrings.networkFailure,
         actionLabel: ArabicStrings.retry,
         onAction: context.read<DashboardCubit>().refresh,
-        isError: true,
       );
     }
 
@@ -91,24 +146,17 @@ class GroupDashboardScreen extends StatelessWidget {
 
     final today = snapshot.today;
     if (today == null) {
-      return StatePanel(
-        icon: Icons.menu_book,
+      return StatePanel.empty(
+        icon: Icons.menu_book_rounded,
         title: ArabicStrings.noAssignmentToday,
-        message: ArabicStrings.noAssignmentToday,
+        message: ArabicStrings.noPublishedCycle,
         actionLabel: ArabicStrings.refresh,
         onAction: context.read<DashboardCubit>().refresh,
       );
     }
 
+    final completedMembers = today.completedCount + today.lateCount;
     final myAssignment = snapshot.myAssignments.isNotEmpty;
-    final completed = snapshot.assignments
-        .where(
-          (assignment) =>
-              assignment.status == AssignmentStatusEnum.completed ||
-              assignment.status == AssignmentStatusEnum.late,
-        )
-        .length;
-
     return RefreshIndicator(
       onRefresh: context.read<DashboardCubit>().refresh,
       child: SingleChildScrollView(
@@ -122,34 +170,27 @@ class GroupDashboardScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (snapshot.isStale) ...[
-                  const OfflineStaleBanner(),
+                  const OfflineBanner(
+                    message: ArabicStrings.offlineStale,
+                    icon: Icons.wifi_off_rounded,
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                 ],
                 if (snapshot.pendingPortionUnit != null) ...[
-                  ValidationBanner(
-                    icon: Icons.schedule,
+                  AppBanner.warning(
+                    icon: Icons.schedule_rounded,
                     message: ArabicStrings.pendingPortionChange(
                       snapshot.pendingPortionUnit!,
                     ),
-                    color: Theme.of(context).extension<AppColors>()!.pendingFg,
                   ),
                   const SizedBox(height: AppSpacing.sm),
                 ],
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: PortionUnitChip(
-                    unit: snapshot.portionUnit,
-                    metadataRepository: metadataRepository,
-                  ),
-                ),
                 if (today.fullKhatma) ...[
                   Builder(
                     builder: (context) {
-                      final colors = Theme.of(context).extension<AppColors>()!;
-                      return ValidationBanner(
-                        icon: Icons.verified,
+                      return AppBanner.success(
+                        icon: Icons.verified_rounded,
                         message: ArabicStrings.fullKhatmaBanner,
-                        color: colors.completedFg,
                       );
                     },
                   ),
@@ -158,11 +199,9 @@ class GroupDashboardScreen extends StatelessWidget {
                 if (today.state == DayState.grace) ...[
                   Builder(
                     builder: (context) {
-                      final colors = Theme.of(context).extension<AppColors>()!;
-                      return ValidationBanner(
-                        icon: Icons.hourglass_bottom,
+                      return AppBanner.warning(
+                        icon: Icons.hourglass_bottom_rounded,
                         message: ArabicStrings.gracePeriodNotice,
-                        color: colors.pendingFg,
                       );
                     },
                   ),
@@ -179,10 +218,12 @@ class GroupDashboardScreen extends StatelessWidget {
                     ),
                   )
                 else
-                  StatePanel(
-                    icon: Icons.menu_book,
+                  StatePanel.empty(
+                    icon: Icons.menu_book_rounded,
                     title: ArabicStrings.noAssignmentToday,
-                    message: ArabicStrings.noAssignmentToday,
+                    message: ArabicStrings.noPublishedCycle,
+                    actionLabel: ArabicStrings.refresh,
+                    onAction: context.read<DashboardCubit>().refresh,
                   ),
                 const SizedBox(height: AppSpacing.lg),
                 if (snapshot.cycle != null)
@@ -190,14 +231,24 @@ class GroupDashboardScreen extends StatelessWidget {
                     padding: const EdgeInsetsDirectional.only(
                       bottom: AppSpacing.sm,
                     ),
-                    child: Text(
-                      ArabicStrings.cycleProgress(
-                        snapshot.cycle!.day,
-                        snapshot.cycle!.length,
-                        snapshot.cycle!.completed,
-                        snapshot.cycle!.total,
-                      ),
-                      style: AppTypography.title,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today_rounded,
+                          size: 20,
+                          color: Theme.of(
+                            context,
+                          ).extension<AppColors>()!.inkMuted,
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          ArabicStrings.cycleDayProgress(
+                            snapshot.cycle!.day,
+                            snapshot.cycle!.length,
+                          ),
+                          style: AppTypography.title,
+                        ),
+                      ],
                     ),
                   ),
                 AppCard(
@@ -208,9 +259,16 @@ class GroupDashboardScreen extends StatelessWidget {
                         title: ArabicStrings.assignmentGroupDate,
                       ),
                       ProgressHeader(
-                        completed: snapshot.cycle?.completed ?? completed,
-                        total: snapshot.cycle?.total ?? 30,
+                        completed: completedMembers.clamp(
+                          0,
+                          snapshot.activeMemberCount,
+                        ),
+                        total: snapshot.activeMemberCount,
                         variant: ProgressVariant.bar,
+                        caption: ArabicStrings.groupProgressLabel(
+                          completedMembers.clamp(0, snapshot.activeMemberCount),
+                          snapshot.activeMemberCount,
+                        ),
                       ),
                     ],
                   ),
@@ -224,9 +282,40 @@ class GroupDashboardScreen extends StatelessWidget {
                       JuzGrid(
                         assignments: snapshot.assignments,
                         unit: snapshot.portionUnit,
-                        onAssignmentTap: snapshot.myRole == GroupRole.owner
-                            ? (assignment) => _openOverride(context, assignment)
-                            : null,
+                        showMissed:
+                            snapshot.myRole == GroupRole.owner ||
+                            snapshot.myRole == GroupRole.supervisor,
+                        onAssignmentTap: (assignment) {
+                          if (snapshot.myRole == GroupRole.owner &&
+                              assignment.status ==
+                                  AssignmentStatusEnum.pending) {
+                            _openOverride(context, assignment);
+                          } else {
+                            PortionDetailSheet.show(
+                              context,
+                              assignment: assignment,
+                              unit: snapshot.portionUnit,
+                              groupId: snapshot.groupId,
+                              metadataRepository: metadataRepository,
+                              onVolunteer: () => context
+                                  .read<DashboardCubit>()
+                                  .volunteer(assignment.assignmentId),
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Wrap(
+                        spacing: AppSpacing.xs,
+                        runSpacing: AppSpacing.xs,
+                        children: [
+                          const StatusChip(status: AssignmentStatus.completed),
+                          const StatusChip(status: AssignmentStatus.pending),
+                          if (snapshot.myRole == GroupRole.owner ||
+                              snapshot.myRole == GroupRole.supervisor)
+                            const StatusChip(status: AssignmentStatus.missed),
+                          const StatusChip(status: AssignmentStatus.available),
+                        ],
                       ),
                     ],
                   ),
@@ -277,6 +366,7 @@ class GroupDashboardScreen extends StatelessWidget {
     final canManage = isOwner || snapshot.myRole == GroupRole.supervisor;
     final args = <String, Object?>{
       'groupId': snapshot.groupId,
+      'groupName': snapshot.groupName,
       'isOwner': isOwner,
       'isSupervisor': snapshot.myRole == GroupRole.supervisor,
       'inviteCode': snapshot.seats?.inviteCode,
@@ -284,41 +374,71 @@ class GroupDashboardScreen extends StatelessWidget {
       'isActive': snapshot.status == GroupStatus.active,
     };
     return [
-      IconButton(
-        tooltip: ArabicStrings.openHistoryAction,
-        onPressed: () => Navigator.pushNamed(
-          context,
-          AppRoutes.history,
-          arguments: snapshot.groupId,
-        ),
-        icon: const Icon(Icons.history),
-      ),
-      if (canManage)
-        PopupMenuButton<String>(
-          tooltip: ArabicStrings.groupMenuTooltip,
-          icon: const Icon(Icons.manage_accounts),
-          onSelected: (route) async {
-            await Navigator.pushNamed(context, route, arguments: args);
+      PopupMenuButton<String>(
+        tooltip: ArabicStrings.groupMenuTooltip,
+        icon: const Icon(Icons.manage_accounts_rounded),
+        onSelected: (route) async {
+          if (route == 'set-main') {
+            await context.read<DashboardCubit>().pinAsMain();
             if (context.mounted) {
-              await context.read<DashboardCubit>().refresh();
+              AppSnackBar.show(context, ArabicStrings.mainGroupSet);
             }
-          },
-          itemBuilder: (_) => [
+            return;
+          }
+          if (route == AppRoutes.history) {
+            await Navigator.pushNamed(
+              context,
+              route,
+              arguments: snapshot.groupId,
+            );
+            return;
+          }
+          await Navigator.pushNamed(context, route, arguments: args);
+          if (context.mounted) {
+            await context.read<DashboardCubit>().refresh();
+          }
+        },
+        itemBuilder: (_) => [
+          const PopupMenuItem(
+            value: 'set-main',
+            child: _GroupMenuRow(
+              icon: Icons.push_pin_rounded,
+              label: ArabicStrings.setMainGroupAction,
+            ),
+          ),
+          const PopupMenuItem(
+            value: AppRoutes.history,
+            child: _GroupMenuRow(
+              icon: Icons.history_rounded,
+              label: ArabicStrings.openHistoryAction,
+            ),
+          ),
+          if (canManage) ...[
             const PopupMenuItem(
               value: AppRoutes.members,
-              child: Text(ArabicStrings.manageMembersAction),
+              child: _GroupMenuRow(
+                icon: Icons.people_alt_rounded,
+                label: ArabicStrings.manageMembersAction,
+              ),
             ),
             const PopupMenuItem(
               value: AppRoutes.joinRequests,
-              child: Text(ArabicStrings.reviewJoinRequestsAction),
+              child: _GroupMenuRow(
+                icon: Icons.person_add_alt_1_rounded,
+                label: ArabicStrings.reviewJoinRequestsAction,
+              ),
             ),
             if (isOwner)
               const PopupMenuItem(
                 value: AppRoutes.groupSettings,
-                child: Text(ArabicStrings.groupSettingsAction),
+                child: _GroupMenuRow(
+                  icon: Icons.tune_rounded,
+                  label: ArabicStrings.groupSettingsAction,
+                ),
               ),
           ],
-        ),
+        ],
+      ),
     ];
   }
 
@@ -337,4 +457,40 @@ class GroupDashboardScreen extends StatelessWidget {
       metadataRepository: metadataRepository,
     );
   }
+}
+
+/// Overflow menu row: leading icon tinted with the item's text color.
+class _GroupMenuRow extends StatelessWidget {
+  const _GroupMenuRow({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = DefaultTextStyle.of(context).style.color;
+    return Row(
+      children: [
+        Icon(icon, size: 22, color: color),
+        const SizedBox(width: AppSpacing.sm),
+        Flexible(child: Text(label)),
+      ],
+    );
+  }
+}
+
+class _DashboardSkeleton extends StatelessWidget {
+  const _DashboardSkeleton();
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: AppSpacing.screen,
+    children: const [
+      SkeletonBox(height: 188),
+      SizedBox(height: AppSpacing.lg),
+      SkeletonBox(height: 112),
+      SizedBox(height: AppSpacing.lg),
+      SkeletonBox(height: 284),
+    ],
+  );
 }

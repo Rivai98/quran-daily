@@ -96,7 +96,9 @@ void main() {
     await enterField(tester, 'auth-confirmation', 'it-pass-12345');
     await tapAndSettle(tester, find.text(ArabicStrings.createAccountTitle).last);
 
-    // Create a group with the hizb unit.
+    // Create a group with the hizb unit (from the مجموعاتي tab).
+    await pumpUntil(tester, find.text(ArabicStrings.groupsTab));
+    await tapAndSettle(tester, find.text(ArabicStrings.groupsTab).last);
     await pumpUntil(tester, find.text(ArabicStrings.createGroup));
     await tapAndSettle(tester, find.text(ArabicStrings.createGroup).last);
     await pumpUntil(tester, find.text(ArabicStrings.groupNameLabel));

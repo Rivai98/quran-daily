@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/app_colors.dart';
-import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/widgets.dart';
-import '../../../../core/localization/arabic_numerals.dart';
+import '../../../../core/localization/arabic_formatting.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../data/entities/entities.dart';
 import '../../data/models/models.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
 import '../../cubit/discovery/discovery_cubit.dart';
-import 'join_status_badge.dart';
-import 'portion_unit_chip.dart';
 
 class PublicGroupCard extends StatelessWidget {
   const PublicGroupCard({
@@ -20,12 +18,14 @@ class PublicGroupCard extends StatelessWidget {
     this.onJoin,
     this.joinState,
     this.metadataRepository,
+    this.membershipLimitReached = false,
   });
 
   final PublicGroupProfile group;
   final VoidCallback? onJoin;
   final GroupJoinState? joinState;
   final QuranMetadataRepository? metadataRepository;
+  final bool membershipLimitReached;
 
   @override
   Widget build(BuildContext context) {
@@ -33,173 +33,131 @@ class PublicGroupCard extends StatelessWidget {
         joinState == GroupJoinState.pending ||
         group.myRequestStatus == 'pending';
     final isJoined = joinState == GroupJoinState.joined;
-    final icon = switch (group.status) {
-      GroupStatus.forming => Icons.hourglass_top,
-      GroupStatus.active => Icons.play_circle_outline,
-      GroupStatus.archived => Icons.archive_outlined,
+    final canJoin = group.canJoinLimit && !membershipLimitReached;
+    final status = switch (group.status) {
+      GroupStatus.forming => (
+        Icons.hourglass_top_rounded,
+        ArabicStrings.formingLabel,
+      ),
+      GroupStatus.active => (
+        Icons.play_circle_outline_rounded,
+        ArabicStrings.activeLabel,
+      ),
+      GroupStatus.archived => (
+        Icons.archive_rounded,
+        ArabicStrings.groupArchivedLabel,
+      ),
     };
-    final statusLabel = switch (group.status) {
-      GroupStatus.forming => ArabicStrings.formingLabel,
-      GroupStatus.active => ArabicStrings.activeLabel,
-      GroupStatus.archived => ArabicStrings.groupArchivedLabel,
-    };
-
+    final portionLabel = ArabicStrings.dailyUnitChip(group.portionUnit);
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(group.name, style: Theme.of(context).textTheme.titleMedium),
-          if ((group.shortDescription ?? '').isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.xxs),
-            Text(
-              group.shortDescription!,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-          const SizedBox(height: AppSpacing.sm),
-          Wrap(
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xs,
+          Row(
             children: [
-              _InfoChip(
-                icon: Icons.people_outline,
-                label:
-                    '${ArabicNumerals.format(group.activeMemberCount)} / ${ArabicNumerals.format(30)} ${ArabicStrings.activeMemberCountLabel}',
-              ),
-              _GroupStatusBadge(
-                icon: icon,
-                label: statusLabel,
-                status: group.status,
-              ),
-              PortionUnitChip(
-                unit: group.portionUnit,
-                metadataRepository:
-                    metadataRepository ?? QuranMetadataRepository(),
-              ),
-              _InfoChip(
-                icon: Icons.schedule,
-                label: '${ArabicStrings.groupTimezoneLabel}: ${group.timezone}',
+              GroupAvatar(name: group.name, size: AppSpacing.xxl),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        group.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.title,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    AppBadge(
+                      icon: status.$1,
+                      label: status.$2,
+                      variant: switch (group.status) {
+                        GroupStatus.forming => AppBadgeVariant.info,
+                        GroupStatus.active => AppBadgeVariant.primary,
+                        GroupStatus.archived => AppBadgeVariant.neutral,
+                      },
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          if (isPending || isJoined) ...[
-            const SizedBox(height: AppSpacing.sm),
-            JoinStatusBadge(pending: isPending),
-          ],
-          if (onJoin != null) ...[
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              label: isPending || isJoined
-                  ? (isPending
-                        ? ArabicStrings.pendingApproval
-                        : ArabicStrings.joinGroupAction)
-                  : ArabicStrings.requestToJoin,
-              icon: Icon(
-                isPending || isJoined
-                    ? Icons.check_circle
-                    : Icons.group_add_outlined,
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xxs,
+            children: [
+              _MetadataItem(
+                icon: Icons.people_alt_rounded,
+                label: ArabicFormatting.membersProgress(
+                  group.activeMemberCount,
+                ),
               ),
-              variant: AppButtonVariant.tonal,
-              expanded: true,
-              loading: joinState == GroupJoinState.joining,
-              onPressed:
-                  isPending || isJoined || joinState == GroupJoinState.joining
-                  ? null
-                  : onJoin,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _GroupStatusBadge extends StatelessWidget {
-  const _GroupStatusBadge({
-    required this.icon,
-    required this.label,
-    required this.status,
-  });
-
-  final IconData icon;
-  final String label;
-  final GroupStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    final foreground = switch (status) {
-      GroupStatus.forming => colors.infoFg,
-      GroupStatus.active => colors.primary,
-      GroupStatus.archived => colors.inkMuted,
-    };
-    final background = switch (status) {
-      GroupStatus.forming => colors.infoBg,
-      GroupStatus.active => colors.primaryContainer,
-      GroupStatus.archived => colors.surfaceMuted,
-    };
-    return Container(
-      constraints: const BoxConstraints(minHeight: 48),
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: background,
-        border: Border.all(color: foreground.withValues(alpha: 0.32)),
-        borderRadius: AppRadius.smBR,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 20, color: foreground),
-          const SizedBox(width: AppSpacing.xs),
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.labelMedium?.copyWith(color: foreground),
+              _MetadataItem(icon: Icons.menu_book_rounded, label: portionLabel),
+              _MetadataItem(
+                icon: Icons.location_on_rounded,
+                label: ArabicFormatting.timezoneCity(group.timezone),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xxs,
+            children: [
+              if (onJoin != null)
+                TextButton.icon(
+                  label: Text(
+                    isPending
+                        ? ArabicStrings.pendingApproval
+                        : isJoined
+                        ? ArabicStrings.joinedSuccessfully
+                        : membershipLimitReached || !group.canJoinLimit
+                        ? ArabicStrings.membershipLimitReachedAction
+                        : ArabicStrings.requestToJoin,
+                  ),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(0, AppSpacing.xxl),
+                  ),
+                  icon: Icon(
+                    isPending || isJoined
+                        ? Icons.check_circle_rounded
+                        : Icons.group_add_rounded,
+                    size: AppSpacing.lg,
+                  ),
+                  onPressed:
+                      canJoin &&
+                          !isPending &&
+                          !isJoined &&
+                          joinState != GroupJoinState.joining
+                      ? onJoin
+                      : null,
+                ),
+            ],
           ),
         ],
       ),
     );
   }
-}
 
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({required this.icon, required this.label});
+}
+class _MetadataItem extends StatelessWidget {
+  const _MetadataItem({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    return Container(
-      constraints: const BoxConstraints(minHeight: 48),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: colors.surfaceMuted,
-        border: Border.all(color: colors.border),
-        borderRadius: AppRadius.smBR,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 20, color: colors.inkMuted),
-          const SizedBox(width: AppSpacing.xs),
-          Flexible(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.labelMedium,
-              softWrap: true,
-            ),
-          ),
-        ],
-      ),
+    final color = Theme.of(context).extension<AppColors>()!.inkMuted;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: AppSpacing.md, color: color),
+        const SizedBox(width: AppSpacing.xxs),
+        Text(label, style: AppTypography.caption.copyWith(color: color)),
+      ],
     );
   }
 }

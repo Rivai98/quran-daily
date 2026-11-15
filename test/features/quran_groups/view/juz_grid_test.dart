@@ -8,6 +8,29 @@ import 'package:quran_daily/features/quran_groups/view/widgets/juz_grid.dart';
 import '../../../helpers/widget_test_app.dart';
 
 void main() {
+  testWidgets('missed details are hidden from members', (tester) async {
+    final assignment = Assignment(
+      assignmentId: 'missed-1',
+      juz: 1,
+      seatNumber: 1,
+      kind: AssignmentKind.seat,
+      status: AssignmentStatusEnum.missed,
+    );
+
+    await tester.pumpWidget(
+      buildArabicTestApp(JuzGrid(assignments: [assignment], showMissed: false)),
+    );
+
+    expect(
+      find.bySemanticsLabel(RegExp('.*${ArabicStrings.unread}.*')),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel(RegExp('.*${ArabicStrings.missed}.*')),
+      findsNothing,
+    );
+  });
+
   testWidgets(
     'partial page cycle labels remaining seats as rest days in every variant',
     (tester) async {

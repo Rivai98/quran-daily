@@ -178,6 +178,7 @@ PublicGroupProfile publicGroupProfileFromJson(Map<String, Object?> json) {
     myRequestStatus: json['my_request_status'] as String?,
     myJoinRequestId: json['my_join_request_id'] as String?,
     portionUnit: portionUnitOf(json['portion_unit']),
+    canJoinLimit: json['can_join_limit'] as bool? ?? true,
   );
 }
 
@@ -193,10 +194,25 @@ class PublicGroupProfile extends GroupSummary {
     super.myRequestStatus,
     super.myJoinRequestId,
     super.portionUnit,
+    this.canJoinLimit = true,
   });
+  final bool canJoinLimit;
 }
 
+ReaderInfo readerInfoFromJson(Map<String, Object?> json) => ReaderInfo(
+  userId: json['user_id']! as String,
+  displayName: json['display_name']! as String,
+  initials: json['initials'] as String?,
+);
+
+Map<String, Object?> readerInfoToJson(ReaderInfo r) => {
+  'user_id': r.userId,
+  'display_name': r.displayName,
+  if (r.initials != null) 'initials': r.initials,
+};
+
 Assignment assignmentFromJson(Map<String, Object?> json) {
+  final readerJson = json['reader'] as Map<String, Object?>?;
   return Assignment(
     assignmentId: json['assignment_id']! as String,
     juz: ((json['juz'] ?? json['portion_index']) as num).toInt(),
@@ -205,6 +221,7 @@ Assignment assignmentFromJson(Map<String, Object?> json) {
     kind: assignmentKindOf(json['kind']! as String),
     status: assignmentStatusOf(json['status']! as String),
     readerDisplayName: json['reader_display_name'] as String?,
+    reader: readerJson == null ? null : readerInfoFromJson(readerJson),
     isMe: json['is_me'] == true,
     completedAt: json['completed_at'] == null
         ? null
@@ -220,6 +237,7 @@ Map<String, Object?> assignmentToJson(Assignment a) => {
   'kind': assignmentKindName(a.kind),
   'status': assignmentStatusName(a.status),
   if (a.readerDisplayName != null) 'reader_display_name': a.readerDisplayName,
+  if (a.reader != null) 'reader': readerInfoToJson(a.reader!),
   'is_me': a.isMe,
   if (a.completedAt != null) 'completed_at': a.completedAt!.toIso8601String(),
 };
@@ -277,6 +295,8 @@ SeatMember seatMemberFromJson(Map<String, Object?> json) {
     displayName: json['display_name']! as String,
     role: groupRoleOf(json['role']! as String),
     seatNumber: (json['seat_number']! as num).toInt(),
+    userId: json['user_id'] as String?,
+    avatarKey: _profileAvatarKey(json['avatar_key'] as String?),
   );
 }
 
@@ -371,6 +391,11 @@ HistoryDaySummary historyDaySummaryFromJson(Map<String, Object?> json) {
       : ((json['per_juz']!) as List)
             .map((e) => assignmentFromJson((e as Map).cast<String, Object?>()))
             .toList();
+  final portions = json['portions'] == null
+      ? null
+      : ((json['portions']!) as List)
+            .map((e) => assignmentFromJson((e as Map).cast<String, Object?>()))
+            .toList();
   return HistoryDaySummary(
     groupDate: json['group_date']! as String,
     completedCount: (json['completed_count'] as num?)?.toInt() ?? 0,
@@ -384,6 +409,7 @@ HistoryDaySummary historyDaySummaryFromJson(Map<String, Object?> json) {
             (json['my_result']! as Map).cast<String, Object?>(),
           ),
     perJuz: perJuz,
+    portions: portions,
     cycleNumber: (json['cycle_number'] as num?)?.toInt(),
     cycleDay: (json['cycle_day'] as num?)?.toInt(),
     portionUnit: portionUnitOf(json['portion_unit']),
@@ -403,6 +429,8 @@ Map<String, Object?> historyDaySummaryToJson(HistoryDaySummary h) => {
     'portion_unit': portionUnitName(h.portionUnit),
   if (h.myResult != null) 'my_result': assignmentToJson(h.myResult!),
   if (h.perJuz != null) 'per_juz': h.perJuz!.map(assignmentToJson).toList(),
+  if (h.portions != null)
+    'portions': h.portions!.map(assignmentToJson).toList(),
 };
 
 JoinOutcome joinOutcomeFromJson(Map<String, Object?> json) {
@@ -413,3 +441,165 @@ JoinOutcome joinOutcomeFromJson(Map<String, Object?> json) {
     joinRequestId: json['join_request_id'] as String?,
   );
 }
+
+GroupVisibility groupVisibilityOf(String raw) =>
+    raw == 'public' ? GroupVisibility.public : GroupVisibility.private;
+
+String groupVisibilityName(GroupVisibility visibility) =>
+    visibility == GroupVisibility.public ? 'public' : 'private';
+
+MemberRecentDay memberRecentDayFromJson(Map<String, Object?> json) =>
+    MemberRecentDay(
+      groupDate: json['group_date']! as String,
+      portionIndex:
+          (json['portion_index'] as num?)?.toInt() ??
+          ((json['juz'] as num).toInt()),
+      juz: (json['juz'] as num).toInt(),
+      kind: assignmentKindOf(json['kind']! as String),
+      status: assignmentStatusOf(json['status']! as String),
+      completedAt: json['completed_at'] == null
+          ? null
+          : DateTime.parse(json['completed_at']! as String),
+    );
+
+Map<String, Object?> memberRecentDayToJson(MemberRecentDay d) => {
+  'group_date': d.groupDate,
+  'portion_index': d.portionIndex,
+  'juz': d.juz,
+  'kind': assignmentKindName(d.kind),
+  'status': assignmentStatusName(d.status),
+  if (d.completedAt != null) 'completed_at': d.completedAt!.toIso8601String(),
+};
+
+MemberGroupProfile memberGroupProfileFromJson(Map<String, Object?> json) =>
+    MemberGroupProfile(
+      userId: json['user_id']! as String,
+      groupId: json['group_id']! as String,
+      displayName: json['display_name']! as String,
+      avatarKey: _profileAvatarKey(json['avatar_key'] as String?),
+      initials: json['initials'] as String?,
+      bio: json['bio'] as String?,
+      role: json['role']! as String,
+      seatNumber: (json['seat_number'] as num?)?.toInt(),
+      memberSince: DateTime.parse(json['member_since']! as String),
+      isMe: json['is_me'] == true,
+      currentStreak: (json['current_streak'] as num?)?.toInt() ?? 0,
+      completionRate: (json['completion_rate'] as num?)?.toInt(),
+      portionsRead: (json['portions_read'] as num?)?.toInt() ?? 0,
+      recentDays: ((json['recent_days'] ?? const []) as List)
+          .map(
+            (e) => memberRecentDayFromJson((e as Map).cast<String, Object?>()),
+          )
+          .toList(),
+    );
+
+Map<String, Object?> memberGroupProfileToJson(MemberGroupProfile p) => {
+  'user_id': p.userId,
+  'group_id': p.groupId,
+  'display_name': p.displayName,
+  'avatar_key': p.avatarKey,
+  if (p.initials != null) 'initials': p.initials,
+  if (p.bio != null) 'bio': p.bio,
+  'role': p.role,
+  if (p.seatNumber != null) 'seat_number': p.seatNumber,
+  'member_since': p.memberSince.toIso8601String(),
+  'is_me': p.isMe,
+  'current_streak': p.currentStreak,
+  if (p.completionRate != null) 'completion_rate': p.completionRate,
+  'portions_read': p.portionsRead,
+  'recent_days': p.recentDays.map(memberRecentDayToJson).toList(),
+};
+
+GroupInfoMember groupInfoMemberFromJson(Map<String, Object?> json) =>
+    GroupInfoMember(
+      userId: json['user_id']! as String,
+      membershipId: json['membership_id']! as String,
+      displayName: json['display_name']! as String,
+      avatarKey: _profileAvatarKey(json['avatar_key'] as String?),
+      initials: json['initials'] as String?,
+      role: groupRoleOf(json['role']! as String),
+      seatNumber: (json['seat_number'] as num?)?.toInt(),
+      joinedAt: DateTime.parse(json['joined_at']! as String),
+      isMe: json['is_me'] == true,
+    );
+
+String _profileAvatarKey(String? key) =>
+    const {'ornament', 'man_kufi', 'woman_hijab'}.contains(key)
+    ? key!
+    : 'ornament';
+
+Map<String, Object?> groupInfoMemberToJson(GroupInfoMember m) => {
+  'user_id': m.userId,
+  'membership_id': m.membershipId,
+  'display_name': m.displayName,
+  'avatar_key': m.avatarKey,
+  if (m.initials != null) 'initials': m.initials,
+  'role': groupRoleName(m.role),
+  if (m.seatNumber != null) 'seat_number': m.seatNumber,
+  'joined_at': m.joinedAt.toIso8601String(),
+  'is_me': m.isMe,
+};
+
+GroupInfo groupInfoFromJson(Map<String, Object?> json) => GroupInfo(
+  groupId: json['group_id']! as String,
+  name: json['name']! as String,
+  description: json['description'] as String?,
+  photoPath: json['photo_path'] as String?,
+  status: groupStatusOf(json['status']! as String),
+  visibility: groupVisibilityOf(json['visibility']! as String),
+  joinMode: joinModeOf(json['join_mode']! as String),
+  portionUnit: portionUnitOf(json['portion_unit']),
+  timezone: json['timezone']! as String,
+  dayStartTime: json['day_start_time'] as String?,
+  createdAt: DateTime.parse(json['created_at']! as String),
+  startDate: json['start_date'] as String?,
+  myRole: groupRoleOf(json['my_role']! as String),
+  memberCount: (json['member_count'] as num?)?.toInt() ?? 0,
+  seatCapacity: (json['seat_capacity'] as num?)?.toInt() ?? 30,
+  khatmaCount: (json['khatma_count'] as num?)?.toInt() ?? 0,
+  inviteCode: json['invite_code'] as String?,
+  members: ((json['members'] ?? const []) as List)
+      .map((e) => groupInfoMemberFromJson((e as Map).cast<String, Object?>()))
+      .toList(),
+);
+
+Map<String, Object?> groupInfoToJson(GroupInfo g) => {
+  'group_id': g.groupId,
+  'name': g.name,
+  if (g.description != null) 'description': g.description,
+  if (g.photoPath != null) 'photo_path': g.photoPath,
+  'status': g.status.name,
+  'visibility': groupVisibilityName(g.visibility),
+  'join_mode': joinModeName(g.joinMode),
+  'portion_unit': portionUnitName(g.portionUnit),
+  'timezone': g.timezone,
+  if (g.dayStartTime != null) 'day_start_time': g.dayStartTime,
+  'created_at': g.createdAt.toIso8601String(),
+  if (g.startDate != null) 'start_date': g.startDate,
+  'my_role': groupRoleName(g.myRole),
+  'member_count': g.memberCount,
+  'seat_capacity': g.seatCapacity,
+  'khatma_count': g.khatmaCount,
+  if (g.inviteCode != null) 'invite_code': g.inviteCode,
+  'members': g.members.map(groupInfoMemberToJson).toList(),
+};
+
+UserProfile userProfileFromJson(Map<String, Object?> json) => UserProfile(
+  userId: (json['user_id'] ?? json['id'])! as String,
+  displayName: json['display_name']! as String,
+  avatarKey: _profileAvatarKey(json['avatar_key'] as String?),
+  initials: json['initials'] as String?,
+  bio: json['bio'] as String?,
+  updatedAt: json['updated_at'] == null
+      ? null
+      : DateTime.parse(json['updated_at']! as String),
+);
+
+Map<String, Object?> userProfileToJson(UserProfile p) => {
+  'user_id': p.userId,
+  'display_name': p.displayName,
+  'avatar_key': p.avatarKey,
+  if (p.initials != null) 'initials': p.initials,
+  if (p.bio != null) 'bio': p.bio,
+  if (p.updatedAt != null) 'updated_at': p.updatedAt!.toIso8601String(),
+};

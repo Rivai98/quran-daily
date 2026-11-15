@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>quran_daily</string>
+	<string>&#x62D;&#x644;&#x642;&#x629;</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -70,5 +70,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>التقاط صورة للمجموعة</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>اختيار صورة للمجموعة من مكتبة الصور</string>
 </dict>
 </plist>

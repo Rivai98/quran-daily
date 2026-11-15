@@ -32,6 +32,7 @@ Widget _screen(GroupsRepository repository) => BlocProvider(
 );
 
 void main() {
+  setUpAll(loadArabicUiFontsForGoldenTests);
   late _Repository repository;
   setUp(() => repository = _Repository());
 
@@ -49,7 +50,7 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(
-        find.text(ArabicStrings.inviteJoinScreenTitle),
+        find.text(ArabicStrings.joinByInviteTitle),
         findsOneWidget,
         reason: variant,
       );
@@ -61,6 +62,56 @@ void main() {
       );
       expect(tester.takeException(), isNull, reason: variant);
     });
+  });
+
+  testWidgets('invite form has a title that describes joining by invite code', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider(
+          create: (_) => JoinCubit(repository: repository),
+          child: const InviteJoinScreen(),
+        ),
+      ),
+    );
+
+    expect(find.text(ArabicStrings.joinByInviteTitle), findsOneWidget);
+    expect(find.text(ArabicStrings.inviteJoinScreenTitle), findsNothing);
+  });
+
+  testWidgets('invite preview has light and dark 360x800 goldens', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(360, 800);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    when(
+      () => repository.getInvitePreview('AB234567'),
+    ).thenAnswer((_) async => const Success(_profile));
+
+    await tester.pumpWidget(
+      buildArabicTestApp(_screen(repository), size: const Size(360, 800)),
+    );
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('../../../goldens/join_invite_light_360x800.png'),
+    );
+
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        _screen(repository),
+        dark: true,
+        size: const Size(360, 800),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('../../../goldens/join_invite_dark_360x800.png'),
+    );
   });
 
   testWidgets('invite screen presents full and invalid-link explanations', (
@@ -102,8 +153,29 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text(ArabicStrings.inviteUnavailable), findsOneWidget);
+    expect(find.text(ArabicStrings.inviteCodeNotFound), findsOneWidget);
+    expect(find.text(ArabicStrings.joinError), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a malformed code shows a calm format reason, not a network one', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider(
+          create: (_) => JoinCubit(repository: repository),
+          child: const InviteJoinScreen(),
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextField), 'abc');
+    await tester.tap(find.text(ArabicStrings.previewInviteAction));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('invite-error-banner')), findsOneWidget);
+    expect(find.text(ArabicStrings.inviteCodeFormatError), findsOneWidget);
+    expect(find.text(ArabicStrings.joinError), findsNothing);
+    verifyNever(() => repository.getInvitePreview(any()));
   });
 
   testWidgets(
@@ -139,7 +211,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text(ArabicStrings.joinError), findsOneWidget);
+      expect(find.text(ArabicStrings.authError('network')), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox.shrink());
       when(

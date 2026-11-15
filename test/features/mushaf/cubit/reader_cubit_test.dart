@@ -45,10 +45,23 @@ void main() {
     expect(cubit.state.isEndPage, isTrue);
   });
 
+  test('portion page turns stay inside the selected portion range', () async {
+    await cubit.openPortion(PortionUnit.hizb, 1, assignmentId: 'assignment');
+    expect(cubit.state.page?.number, 3);
+
+    await cubit.turnTo(2);
+    expect(cubit.state.page?.number, 3);
+    await cubit.turnTo(4);
+    expect(cubit.state.page?.number, 4);
+    await cubit.turnTo(6);
+    expect(cubit.state.page?.number, 4);
+  });
+
   test(
     'completion on the end page calls completion once and updates state',
     () async {
       await cubit.openPortion(PortionUnit.juz, 1, assignmentId: 'assignment');
+      cubit.showCompletionPage();
       await cubit.completePortion();
       expect(completed, 1);
       expect(cubit.state.isCompleted, isTrue);
@@ -76,6 +89,7 @@ void main() {
         onComplete: () async => true,
       );
       await cubit.openPortion(PortionUnit.juz, 1, assignmentId: 'assignment');
+      cubit.showCompletionPage();
       await cubit.completePortion();
       expect(cubit.state.isCompleted, isTrue);
       expect(cubit.state.isOffline, isTrue);
@@ -112,18 +126,20 @@ void main() {
       expect(syncingCubit.state.page?.number, 2);
     });
 
-    test('portion reading does not overwrite the free-reading position',
-        () async {
-      storage.savedPage = 1;
-      await syncingCubit.openPortion(
-        PortionUnit.juz,
-        1,
-        assignmentId: 'assignment',
-      );
-      await syncingCubit.turnTo(1);
-      expect(storage.savedPage, 1);
-      expect(scheduled, 0);
-    });
+    test(
+      'portion reading does not overwrite the free-reading position',
+      () async {
+        storage.savedPage = 1;
+        await syncingCubit.openPortion(
+          PortionUnit.juz,
+          1,
+          assignmentId: 'assignment',
+        );
+        await syncingCubit.turnTo(1);
+        expect(storage.savedPage, 1);
+        expect(scheduled, 0);
+      },
+    );
   });
 }
 
@@ -136,7 +152,7 @@ class _Repository implements MushafRepository {
   Future<void> load() async {}
 
   @override
-  int get pageCount => 2;
+  int get pageCount => 10;
 
   @override
   MushafPage page(int number) => MushafPage(
@@ -153,7 +169,12 @@ class _Repository implements MushafRepository {
   ({AyahRef start, AyahRef end, int startPage, int endPage}) portionRange(
     PortionUnit unit,
     int index,
-  ) => (start: ayahs.first.ref, end: ayahs[1].ref, startPage: 2, endPage: 2);
+  ) => (
+    start: ayahs.first.ref,
+    end: ayahs[1].ref,
+    startPage: unit == PortionUnit.hizb ? 3 : 2,
+    endPage: unit == PortionUnit.hizb ? 5 : 2,
+  );
 
   @override
   List<({int surah, String name, int ayahs, int startPage})> surahIndex() => [];

@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/result.dart';
 import '../../data/entities/entities.dart';
 import '../../data/repositories/groups_repository.dart';
 import '../../../../core/quran/portion_unit.dart';
@@ -23,9 +24,13 @@ class GroupSettingsState extends Equatable {
     this.inviteCode,
     this.startedSnapshot,
     this.failure,
+    this.description,
   });
 
   final String? groupId;
+
+  /// Current short description, fetched so the form starts prefilled.
+  final String? description;
   final GroupSettingsStatus status;
   final String? inviteCode;
   final DashboardSnapshot? startedSnapshot;
@@ -38,8 +43,10 @@ class GroupSettingsState extends Equatable {
     DashboardSnapshot? startedSnapshot,
     AppFailure? failure,
     bool clearFailure = false,
+    String? description,
   }) {
     return GroupSettingsState(
+      description: description ?? this.description,
       groupId: groupId ?? this.groupId,
       status: status ?? this.status,
       inviteCode: inviteCode ?? this.inviteCode,
@@ -55,6 +62,7 @@ class GroupSettingsState extends Equatable {
     inviteCode,
     startedSnapshot,
     failure,
+    description,
   ];
 }
 
@@ -68,13 +76,29 @@ class GroupSettingsCubit extends Cubit<GroupSettingsState> {
 
   final GroupsRepository _repository;
 
-  void load({required String groupId, String? inviteCode}) {
+  Future<void> load({required String groupId, String? inviteCode}) async {
     emit(
       state.copyWith(
         groupId: groupId,
         inviteCode: inviteCode,
         status: GroupSettingsStatus.initial,
       ),
+    );
+    final Result<GroupInfo> result;
+    try {
+      result = await _repository.getGroupInfo(groupId);
+    } on Object {
+      return; // The form still works without the prefill.
+    }
+    if (isClosed || state.groupId != groupId) return;
+    result.when(
+      success: (info) {
+        final description = info.description?.trim();
+        if (description != null && description.isNotEmpty) {
+          emit(state.copyWith(description: description));
+        }
+      },
+      failure: (_) {},
     );
   }
 

@@ -68,26 +68,32 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text(ArabicStrings.inviteJoinScreenTitle)),
+      appBar: AppBar(
+        title: Text(
+          widget.joinAnyMode
+              ? ArabicStrings.inviteJoinScreenTitle
+              : ArabicStrings.joinByInviteTitle,
+        ),
+      ),
       body: BlocBuilder<JoinCubit, JoinState>(
         builder: (context, state) {
           final profile = state.preview;
           final canJoin =
               profile != null &&
               profile.status != GroupStatus.archived &&
-              profile.activeMemberCount < 30;
+              profile.activeMemberCount < 30 &&
+              profile.canJoinLimit;
           return AppPageContent(
             child: ListView(
               padding: AppSpacing.screenContent,
               children: [
                 if (!widget.joinAnyMode)
-                  TextField(
+                  AppTextField(
                     controller: _codeController,
+                    label: ArabicStrings.inviteCodeLabel,
+                    prefixIcon: Icons.link_rounded,
+                    ltr: true,
                     textCapitalization: TextCapitalization.characters,
-                    textDirection: TextDirection.ltr,
-                    decoration: const InputDecoration(
-                      labelText: ArabicStrings.inviteCodeLabel,
-                    ),
                     onSubmitted: context.read<JoinCubit>().previewInvite,
                   ),
                 if (!widget.joinAnyMode) const SizedBox(height: AppSpacing.sm),
@@ -96,6 +102,7 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
                     label: ArabicStrings.previewInviteAction,
                     variant: AppButtonVariant.tonal,
                     expanded: true,
+                    icon: const Icon(Icons.search_rounded),
                     loading:
                         state.status == JoinStatus.loading && profile == null,
                     onPressed: state.status == JoinStatus.loading
@@ -106,16 +113,27 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
                   ),
                 if (!widget.joinAnyMode && state.failure != null) ...[
                   const SizedBox(height: AppSpacing.sm),
-                  StatePanel(
-                    icon: Icons.error_outline,
-                    title: state.failure!.code == 'validation_failed'
-                        ? ArabicStrings.inviteCodeInvalid
-                        : ArabicStrings.joinError,
-                    message: state.failure!.code == 'invite_invalid'
-                        ? ArabicStrings.inviteUnavailable
-                        : ArabicStrings.authError(state.failure!.code),
-                    isError: true,
+                  AppBanner.error(
+                    key: const ValueKey('invite-error-banner'),
+                    message: ArabicStrings.inviteFailureMessage(
+                      state.failure!.code,
+                    ),
+                    actionLabel: state.failure!.code == 'network'
+                        ? ArabicStrings.retry
+                        : null,
+                    onAction: state.failure!.code == 'network'
+                        ? () => context.read<JoinCubit>().previewInvite(
+                            _codeController.text,
+                          )
+                        : null,
                   ),
+                  if (state.failure!.code == 'membership_limit')
+                    TextButton.icon(
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed('/groups'),
+                      icon: const Icon(Icons.groups_rounded),
+                      label: Text(ArabicStrings.groupSelectionTitle),
+                    ),
                 ],
                 if (profile != null) ...[
                   const SizedBox(height: AppSpacing.lg),
@@ -127,13 +145,24 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
                     const SizedBox(height: AppSpacing.sm),
                     StatePanel(
                       icon: profile.status == GroupStatus.archived
-                          ? Icons.archive_outlined
-                          : Icons.group_off_outlined,
-                      title: profile.status == GroupStatus.archived
+                          ? Icons.archive_rounded
+                          : Icons.group_off_rounded,
+                      title: !profile.canJoinLimit
+                          ? ArabicStrings.joinError
+                          : profile.status == GroupStatus.archived
                           ? ArabicStrings.groupArchivedLabel
                           : ArabicStrings.groupFull,
-                      message: ArabicStrings.inviteUnavailable,
+                      message: !profile.canJoinLimit
+                          ? ArabicStrings.membershipLimitMessage
+                          : ArabicStrings.inviteUnavailable,
                     ),
+                    if (!profile.canJoinLimit)
+                      TextButton.icon(
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed('/groups'),
+                        icon: const Icon(Icons.groups_rounded),
+                        label: Text(ArabicStrings.groupSelectionTitle),
+                      ),
                   ],
                   if (state.status == JoinStatus.pending) ...[
                     const SizedBox(height: AppSpacing.sm),
@@ -148,7 +177,7 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
                     label: state.status == JoinStatus.pending
                         ? ArabicStrings.pendingApproval
                         : ArabicStrings.joinGroupAction,
-                    icon: const Icon(Icons.group_add_outlined),
+                    icon: const Icon(Icons.group_add_rounded),
                     variant: AppButtonVariant.primary,
                     expanded: true,
                     loading: state.status == JoinStatus.loading,
@@ -167,7 +196,7 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
                   const JoinStatusBadge(pending: false),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    ArabicStrings.joinGroupAction,
+                    ArabicStrings.joinedAnyGroup,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ],
@@ -181,16 +210,31 @@ class _InviteJoinScreenState extends State<InviteJoinScreen> {
                   const SizedBox(height: AppSpacing.lg),
                   StatePanel(
                     icon: state.failure?.code == 'no_group_available'
-                        ? Icons.group_off_outlined
-                        : Icons.error_outline,
+                        ? Icons.group_off_rounded
+                        : Icons.error_outline_rounded,
                     title: state.failure?.code == 'no_group_available'
                         ? ArabicStrings.noPublicGroups
                         : ArabicStrings.joinError,
                     message: ArabicStrings.authError(
                       state.failure?.code ?? 'network',
                     ),
-                    actionLabel: ArabicStrings.retry,
-                    onAction: _joinAny,
+                    actionLabel: state.failure?.code == 'membership_limit'
+                        ? ArabicStrings.groupSelectionTitle
+                        : state.failure?.code == 'no_group_available'
+                        ? ArabicStrings.searchGroupAction
+                        : ArabicStrings.retry,
+                    onAction: state.failure?.code == 'membership_limit'
+                        ? () => Navigator.of(context).pushNamed('/groups')
+                        : state.failure?.code == 'no_group_available'
+                        ? () => Navigator.of(context).pushNamed('/discover')
+                        : _joinAny,
+                    actionIcon: Icon(
+                      state.failure?.code == 'membership_limit'
+                          ? Icons.groups_rounded
+                          : state.failure?.code == 'no_group_available'
+                          ? Icons.search_rounded
+                          : Icons.refresh_rounded,
+                    ),
                     isError: state.failure?.code != 'no_group_available',
                   ),
                 ],

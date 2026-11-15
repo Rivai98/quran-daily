@@ -57,6 +57,28 @@ void main() {
     expect(ArabicStrings.roleMember, 'عضو');
   });
 
+  test('maps a suspended sign-in refusal to calm Arabic guidance', () {
+    expect(
+      ArabicStrings.authError('suspended'),
+      ArabicStrings.adminSuspendedSignIn,
+    );
+  });
+
+  test('maps join-any no availability to useful Arabic next steps', () {
+    expect(
+      ArabicStrings.authError('no_group_available'),
+      ArabicStrings.noGroupAvailable,
+    );
+    expect(ArabicStrings.noGroupAvailable, contains('أعد المحاولة'));
+  });
+
+  test('maps membership limit to its specific Arabic explanation', () {
+    expect(
+      ArabicStrings.authError('membership_limit'),
+      'أنت في مجموعتين بالفعل (الحد الأقصى).',
+    );
+  });
+
   test('keeps critical user-facing copy valid UTF-8 Arabic', () {
     final criticalCopy = [
       ArabicStrings.appName,

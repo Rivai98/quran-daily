@@ -7,6 +7,7 @@ import '../network/rpc_client.dart';
 import '../network/supabase_client_provider.dart';
 import '../quran/quran_metadata_repository.dart';
 import '../quran/mushaf/mushaf_repository.dart';
+import '../quran/mushaf/qpc_v2_repository.dart';
 import '../settings/settings_repository.dart';
 import '../settings/settings_repository_impl.dart';
 import '../../features/auth/cubit/auth_cubit.dart';
@@ -21,6 +22,7 @@ import '../storage/daos/daos.dart';
 import '../../features/mushaf/data/mushaf_remote_data_source.dart';
 import '../../features/mushaf/data/mushaf_sync_repository.dart';
 import '../../features/mushaf/data/reader_storage.dart';
+import '../../features/mushaf/cubit/mushaf_font_download_cubit.dart';
 import '../../features/auth/data/data_sources/supabase_auth_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -35,6 +37,31 @@ import '../../features/quran_groups/cubit/create_group/create_group_cubit.dart';
 import '../../features/quran_groups/cubit/members/members_cubit.dart';
 import '../../features/quran_groups/cubit/join_requests/join_requests_cubit.dart';
 import '../../features/quran_groups/cubit/group_list/group_list_cubit.dart';
+import '../../features/reminders/data/notification_scheduler.dart';
+import '../../features/reminders/data/reminders_repository.dart';
+import '../../features/reminders/data/reminders_repository_impl.dart';
+import '../../features/reminders/cubit/reminders_cubit.dart';
+import '../../features/reminders/data/reminder_planning_service.dart';
+import '../../features/admin/cubit/admin_cubit.dart';
+import '../../features/admin/data/admin_repository.dart';
+import '../../features/admin/data/admin_repository_impl.dart';
+import '../../features/quran_groups/cubit/member_profile/member_profile_cubit.dart';
+import '../../features/quran_groups/cubit/group_info/group_info_cubit.dart';
+import '../../features/profile/cubit/profile_cubit.dart';
+import '../../features/profile/data/repositories/profile_repository.dart';
+import '../../features/profile/data/repositories/profile_repository_impl.dart';
+import '../../features/profile/data/sources/profile_local_data_source.dart';
+import '../../features/profile/data/sources/profile_remote_data_source.dart';
+// --- 005 home ---
+import '../../features/home/cubit/home_cubit.dart';
+import '../../features/home/data/today_remote_data_source.dart';
+import '../../features/home/data/today_repository.dart';
+import '../../features/home/data/today_repository_impl.dart';
+// --- end 005 home ---
+import '../../features/log/data/data_sources/log_remote_data_source.dart';
+import '../../features/log/data/repositories/log_repository.dart';
+import '../../features/log/data/repositories/log_repository_impl.dart';
+import '../../features/log/cubit/log_cubit.dart';
 
 final serviceLocator = GetIt.instance;
 
@@ -70,6 +97,26 @@ void configureServiceLocator({
   if (!locator.isRegistered<MushafRepository>()) {
     locator.registerLazySingleton<MushafRepository>(
       () => MushafRepositoryImpl(metadata: locator<QuranMetadataRepository>()),
+    );
+  }
+
+  if (!locator.isRegistered<QpcV2Repository>()) {
+    locator.registerLazySingleton<QpcV2Repository>(QpcV2Repository.new);
+  }
+  if (!locator.isRegistered<QpcFontManager>()) {
+    locator.registerLazySingleton<QpcFontManager>(
+      () => QpcFontManager(layout: locator<QpcV2Repository>()),
+    );
+  }
+  if (!locator.isRegistered<MushafFontDownloadCubit>()) {
+    locator.registerFactory<MushafFontDownloadCubit>(
+      () => MushafFontDownloadCubit(locator<QpcFontManager>()),
+    );
+  }
+
+  if (!locator.isRegistered<NotificationScheduler>()) {
+    locator.registerLazySingleton<NotificationScheduler>(
+      NotificationScheduler.new,
     );
   }
 
@@ -127,6 +174,53 @@ void configureServiceLocator({
       );
     }
 
+    if (!locator.isRegistered<RemindersRepository>()) {
+      locator.registerLazySingleton<RemindersRepository>(
+        () => RemindersRepositoryImpl(
+          rpc: locator<RpcClient>(),
+          onChanged: () => locator<ReminderPlanningService>().refresh(),
+        ),
+      );
+    }
+    if (!locator.isRegistered<ReminderPlanningService>()) {
+      locator.registerLazySingleton<ReminderPlanningService>(
+        () => ReminderPlanningService(
+          snapshots: locator<CachedSnapshotsDao>(),
+          metadata: locator<QuranMetadataRepository>(),
+          preferences: locator<RemindersRepository>(),
+          notifications: locator<NotificationScheduler>(),
+        ),
+      );
+    }
+    if (!locator.isRegistered<RemindersCubit>()) {
+      locator.registerFactory<RemindersCubit>(
+        () => RemindersCubit(
+          repository: locator<RemindersRepository>(),
+          showTestNotification: () =>
+              locator<NotificationScheduler>().showTestNotification(),
+          requestPermissions: () =>
+              locator<NotificationScheduler>().requestPermissions(),
+        ),
+      );
+    }
+    if (!locator.isRegistered<AdminRepository>()) {
+      locator.registerLazySingleton<AdminRepository>(
+        () => AdminRepositoryImpl(
+          rpc: locator<RpcClient>(),
+          invoke: (name, body) async => locator<SupabaseClientProvider>()
+              .client
+              .functions
+              .invoke(name, body: body)
+              .then((response) => response.data),
+        ),
+      );
+    }
+    if (!locator.isRegistered<AdminCubit>()) {
+      locator.registerFactory<AdminCubit>(
+        () => AdminCubit(locator<AdminRepository>()),
+      );
+    }
+
     if (!locator.isRegistered<CachedSnapshotsDao>()) {
       locator.registerLazySingleton<CachedSnapshotsDao>(
         () => CachedSnapshotsDao(locator<LocalDatabase>()),
@@ -152,6 +246,8 @@ void configureServiceLocator({
           cache: locator<CachedSnapshotsDao>(),
           queue: locator<SyncQueueDao>(),
           historyDao: CachedHistoryDao(locator<LocalDatabase>()),
+          onCompletionChanged: (_) =>
+              locator<ReminderPlanningService>().refresh(),
         ),
       );
     }
@@ -164,6 +260,10 @@ void configureServiceLocator({
           groupId: groupId,
           syncPending: SyncPendingCompletions(locator<KhatmaRepository>()),
           connectivityService: locator<ConnectivityService>(),
+          onOpened: () => locator<TodayRepository>().markGroupOpened(groupId),
+          setAsMain: () async {
+            await locator<TodayRepository>().setMainGroup(groupId);
+          },
         ),
       );
     }
@@ -238,6 +338,9 @@ void configureServiceLocator({
           cache: CachedGroupsDao(locator<LocalDatabase>()),
           sessionGateway: locator<SessionGateway>(),
           connectivity: locator<ConnectivityService>(),
+          clientProvider: locator.isRegistered<SupabaseClientProvider>()
+              ? locator<SupabaseClientProvider>()
+              : null,
         ),
       );
     }
@@ -284,14 +387,107 @@ void configureServiceLocator({
       );
     }
 
+    // --- 005 log ---
+    if (!locator.isRegistered<LogRemoteDataSource>()) {
+      locator.registerLazySingleton<LogRemoteDataSource>(
+        () => LogRemoteDataSource(locator<RpcClient>()),
+      );
+    }
+    if (!locator.isRegistered<LogRepository>()) {
+      locator.registerLazySingleton<LogRepository>(
+        () => LogRepositoryImpl(
+          remote: locator<LogRemoteDataSource>(),
+          cache: CachedHistoryDao(locator<LocalDatabase>()),
+          session: locator<SessionGateway>(),
+        ),
+      );
+    }
+    if (!locator.isRegistered<LogCubit>()) {
+      locator.registerFactory<LogCubit>(
+        () => LogCubit(repository: locator<LogRepository>()),
+      );
+    }
+    // --- end 005 log ---
+
     if (!locator.isRegistered<SettingsCubit>()) {
       locator.registerFactory<SettingsCubit>(
         () => SettingsCubit(
           settingsRepository: locator<SettingsRepository>(),
           sessionGateway: locator<SessionGateway>(),
+          adminRepository: locator<AdminRepository>(),
         ),
       );
     }
+
+    // --- 007 profiles ---
+    if (!locator.isRegistered<MemberProfileCubit>()) {
+      locator.registerFactory<MemberProfileCubit>(
+        () => MemberProfileCubit(locator<GroupsRepository>()),
+      );
+    }
+    if (!locator.isRegistered<GroupInfoCubit>()) {
+      locator.registerFactory<GroupInfoCubit>(
+        () => GroupInfoCubit(locator<GroupsRepository>()),
+      );
+    }
+    // --- 005 profile ---
+    if (!locator.isRegistered<ProfileRemoteDataSource>()) {
+      locator.registerLazySingleton<ProfileRemoteDataSource>(
+        () => ProfileRemoteDataSourceImpl(locator<RpcClient>()),
+      );
+    }
+
+    if (!locator.isRegistered<ProfileLocalDataSource>()) {
+      locator.registerLazySingleton<ProfileLocalDataSource>(
+        () => ProfileLocalDataSourceImpl(locator<LocalDatabase>()),
+      );
+    }
+
+    if (!locator.isRegistered<ProfileRepository>()) {
+      locator.registerLazySingleton<ProfileRepository>(
+        () => ProfileRepositoryImpl(
+          remote: locator<ProfileRemoteDataSource>(),
+          cache: locator<ProfileLocalDataSource>(),
+          sessionGateway: locator<SessionGateway>(),
+          connectivity: locator<ConnectivityService>(),
+        ),
+      );
+    }
+
+    if (!locator.isRegistered<ProfileCubit>()) {
+      locator.registerFactory<ProfileCubit>(
+        () => ProfileCubit(repository: locator<ProfileRepository>()),
+      );
+    }
+    // --- 005 home ---
+    if (!locator.isRegistered<CachedTodayDao>()) {
+      locator.registerLazySingleton<CachedTodayDao>(
+        () => CachedTodayDao(locator<LocalDatabase>()),
+      );
+    }
+    if (!locator.isRegistered<TodayRemoteDataSource>()) {
+      locator.registerLazySingleton<TodayRemoteDataSource>(
+        () => TodayRemoteDataSource(locator<RpcClient>()),
+      );
+    }
+    if (!locator.isRegistered<TodayRepository>()) {
+      locator.registerLazySingleton<TodayRepository>(
+        () => TodayRepositoryImpl(
+          remote: locator<TodayRemoteDataSource>(),
+          cache: locator<CachedTodayDao>(),
+          session: locator<SessionGateway>(),
+        ),
+      );
+    }
+    if (!locator.isRegistered<HomeCubit>()) {
+      locator.registerFactory<HomeCubit>(
+        () => HomeCubit(
+          repository: locator<TodayRepository>(),
+          khatmaRepository: locator<KhatmaRepository>(),
+        ),
+      );
+    }
+    // --- end 005 home ---
   }
 }
 

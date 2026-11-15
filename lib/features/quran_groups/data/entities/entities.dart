@@ -164,15 +164,26 @@ class SeatMember extends Equatable {
     required this.displayName,
     required this.role,
     required this.seatNumber,
+    this.userId,
+    this.avatarKey = 'ornament',
   });
 
   final String membershipId;
   final String displayName;
   final GroupRole role;
   final int seatNumber;
+  final String? userId;
+  final String avatarKey;
 
   @override
-  List<Object?> get props => [membershipId, displayName, role, seatNumber];
+  List<Object?> get props => [
+    membershipId,
+    displayName,
+    role,
+    seatNumber,
+    userId,
+    avatarKey,
+  ];
 }
 
 /// Members + empty seats for the members screen / forming dashboard.
@@ -259,6 +270,21 @@ class GroupDayInfo extends Equatable {
   ];
 }
 
+class ReaderInfo extends Equatable {
+  const ReaderInfo({
+    required this.userId,
+    required this.displayName,
+    this.initials,
+  });
+
+  final String userId;
+  final String displayName;
+  final String? initials;
+
+  @override
+  List<Object?> get props => [userId, displayName, initials];
+}
+
 class Assignment extends Equatable {
   const Assignment({
     required this.assignmentId,
@@ -267,6 +293,7 @@ class Assignment extends Equatable {
     required this.kind,
     required this.status,
     this.readerDisplayName,
+    this.reader,
     this.isMe = false,
     this.completedAt,
     int? portionIndex,
@@ -280,6 +307,7 @@ class Assignment extends Equatable {
   final AssignmentKind kind;
   final AssignmentStatusEnum status;
   final String? readerDisplayName;
+  final ReaderInfo? reader;
   final bool isMe;
   final DateTime? completedAt;
 
@@ -292,6 +320,7 @@ class Assignment extends Equatable {
     kind,
     status,
     readerDisplayName,
+    reader,
     isMe,
     completedAt,
   ];
@@ -389,6 +418,7 @@ class HistoryDaySummary extends Equatable {
     required this.fullKhatma,
     this.myResult,
     this.perJuz,
+    this.portions,
     this.cycleNumber,
     this.cycleDay,
     this.portionUnit = PortionUnit.juz,
@@ -406,6 +436,9 @@ class HistoryDaySummary extends Equatable {
 
   /// Per-juz detail, owner/supervisor only.
   final List<Assignment>? perJuz;
+
+  /// Complete portion assignments array, visible to all members.
+  final List<Assignment>? portions;
   final int? cycleNumber;
   final int? cycleDay;
   final PortionUnit portionUnit;
@@ -420,6 +453,7 @@ class HistoryDaySummary extends Equatable {
     fullKhatma,
     myResult,
     perJuz,
+    portions,
     cycleNumber,
     cycleDay,
     portionUnit,
@@ -456,4 +490,262 @@ List<HistoryCycleSummary> groupHistoryByCycle(List<HistoryDaySummary> days) {
         ),
       )
       .toList();
+}
+
+/// A recent day's activity on a member's group profile.
+class MemberRecentDay extends Equatable {
+  const MemberRecentDay({
+    required this.groupDate,
+    required this.portionIndex,
+    required this.juz,
+    required this.kind,
+    required this.status,
+    this.completedAt,
+  });
+
+  final String groupDate;
+  final int portionIndex;
+  final int juz;
+  final AssignmentKind kind;
+  final AssignmentStatusEnum status;
+  final DateTime? completedAt;
+
+  @override
+  List<Object?> get props => [
+    groupDate,
+    portionIndex,
+    juz,
+    kind,
+    status,
+    completedAt,
+  ];
+}
+
+/// Member profile within one group's context (spec 007).
+class MemberGroupProfile extends Equatable {
+  const MemberGroupProfile({
+    required this.userId,
+    required this.groupId,
+    required this.displayName,
+    this.avatarKey = 'ornament',
+    this.initials,
+    this.bio,
+    required this.role,
+    this.seatNumber,
+    required this.memberSince,
+    this.isMe = false,
+    this.currentStreak = 0,
+    this.completionRate,
+    this.portionsRead = 0,
+    this.recentDays = const [],
+  });
+
+  final String userId;
+  final String groupId;
+  final String displayName;
+  final String avatarKey;
+  final String? initials;
+  final String? bio;
+  final String role; // 'owner' | 'supervisor' | 'member' | 'former_member'
+  final int? seatNumber;
+  final DateTime memberSince;
+  final bool isMe;
+  final int currentStreak;
+  final int? completionRate;
+  final int portionsRead;
+  final List<MemberRecentDay> recentDays;
+
+  @override
+  List<Object?> get props => [
+    userId,
+    groupId,
+    displayName,
+    avatarKey,
+    initials,
+    bio,
+    role,
+    seatNumber,
+    memberSince,
+    isMe,
+    currentStreak,
+    completionRate,
+    portionsRead,
+    recentDays,
+  ];
+}
+
+/// A member row inside group info.
+class GroupInfoMember extends Equatable {
+  const GroupInfoMember({
+    required this.userId,
+    required this.membershipId,
+    required this.displayName,
+    this.avatarKey = 'ornament',
+    this.initials,
+    required this.role,
+    this.seatNumber,
+    required this.joinedAt,
+    this.isMe = false,
+  });
+
+  final String userId;
+  final String membershipId;
+  final String displayName;
+  final String avatarKey;
+  final String? initials;
+  final GroupRole role;
+  final int? seatNumber;
+  final DateTime joinedAt;
+  final bool isMe;
+
+  @override
+  List<Object?> get props => [
+    userId,
+    membershipId,
+    displayName,
+    avatarKey,
+    initials,
+    role,
+    seatNumber,
+    joinedAt,
+    isMe,
+  ];
+}
+
+/// Group info screen details (spec 007).
+class GroupInfo extends Equatable {
+  const GroupInfo({
+    required this.groupId,
+    required this.name,
+    this.description,
+    this.photoPath,
+    required this.status,
+    required this.visibility,
+    required this.joinMode,
+    this.portionUnit = PortionUnit.juz,
+    required this.timezone,
+    this.dayStartTime,
+    required this.createdAt,
+    this.startDate,
+    required this.myRole,
+    required this.memberCount,
+    this.seatCapacity = 30,
+    this.khatmaCount = 0,
+    this.inviteCode,
+    this.members = const [],
+  });
+
+  final String groupId;
+  final String name;
+  final String? description;
+  final String? photoPath;
+  final GroupStatus status;
+  final GroupVisibility visibility;
+  final JoinMode joinMode;
+  final PortionUnit portionUnit;
+  final String timezone;
+  final String? dayStartTime;
+  final DateTime createdAt;
+  final String? startDate;
+  final GroupRole myRole;
+  final int memberCount;
+  final int seatCapacity;
+  final int khatmaCount;
+  final String? inviteCode;
+  final List<GroupInfoMember> members;
+
+  @override
+  List<Object?> get props => [
+    groupId,
+    name,
+    description,
+    photoPath,
+    status,
+    visibility,
+    joinMode,
+    portionUnit,
+    timezone,
+    dayStartTime,
+    createdAt,
+    startDate,
+    myRole,
+    memberCount,
+    seatCapacity,
+    khatmaCount,
+    inviteCode,
+    members,
+  ];
+
+  GroupInfo copyWith({
+    String? groupId,
+    String? name,
+    String? description,
+    bool clearDescription = false,
+    String? photoPath,
+    bool clearPhotoPath = false,
+    GroupStatus? status,
+    GroupVisibility? visibility,
+    JoinMode? joinMode,
+    PortionUnit? portionUnit,
+    String? timezone,
+    String? dayStartTime,
+    DateTime? createdAt,
+    String? startDate,
+    GroupRole? myRole,
+    int? memberCount,
+    int? seatCapacity,
+    int? khatmaCount,
+    String? inviteCode,
+    List<GroupInfoMember>? members,
+  }) {
+    return GroupInfo(
+      groupId: groupId ?? this.groupId,
+      name: name ?? this.name,
+      description: clearDescription ? null : (description ?? this.description),
+      photoPath: clearPhotoPath ? null : (photoPath ?? this.photoPath),
+      status: status ?? this.status,
+      visibility: visibility ?? this.visibility,
+      joinMode: joinMode ?? this.joinMode,
+      portionUnit: portionUnit ?? this.portionUnit,
+      timezone: timezone ?? this.timezone,
+      dayStartTime: dayStartTime ?? this.dayStartTime,
+      createdAt: createdAt ?? this.createdAt,
+      startDate: startDate ?? this.startDate,
+      myRole: myRole ?? this.myRole,
+      memberCount: memberCount ?? this.memberCount,
+      seatCapacity: seatCapacity ?? this.seatCapacity,
+      khatmaCount: khatmaCount ?? this.khatmaCount,
+      inviteCode: inviteCode ?? this.inviteCode,
+      members: members ?? this.members,
+    );
+  }
+}
+
+/// User profile account details (spec 007).
+class UserProfile extends Equatable {
+  const UserProfile({
+    required this.userId,
+    required this.displayName,
+    this.avatarKey = 'ornament',
+    this.initials,
+    this.bio,
+    this.updatedAt,
+  });
+
+  final String userId;
+  final String displayName;
+  final String avatarKey;
+  final String? initials;
+  final String? bio;
+  final DateTime? updatedAt;
+
+  @override
+  List<Object?> get props => [
+    userId,
+    displayName,
+    avatarKey,
+    initials,
+    bio,
+    updatedAt,
+  ];
 }

@@ -35,23 +35,57 @@ class MembersCubit extends Cubit<MembersState> {
   String? _groupId;
 
   Future<void> load(String groupId) async {
+    final previousMembers = _groupId == groupId ? state.members : null;
     _groupId = groupId;
-    emit(const MembersState(status: MembersStatus.loading));
+    emit(MembersState(status: MembersStatus.loading, members: previousMembers));
     final result = await _repository.getMembers(groupId);
     result.when(
-      success: (value) => emit(
-        MembersState(
-          status: value.members.isEmpty
-              ? MembersStatus.empty
-              : MembersStatus.success,
-          members: value,
-        ),
-      ),
+      success: (value) async {
+        if (value.members.isEmpty) {
+          emit(MembersState(status: MembersStatus.empty, members: value));
+          return;
+        }
+        final userIds = <String, String>{};
+        final infoResult = await _repository.getGroupInfo(groupId);
+        infoResult.when(
+          success: (info) {
+            for (final member in info.members) {
+              userIds[member.membershipId] = member.userId;
+            }
+          },
+          failure: (_) {},
+        );
+        final enriched = SeatMap(
+          groupId: value.groupId,
+          members: value.members
+              .map(
+                (member) => SeatMember(
+                  membershipId: member.membershipId,
+                  displayName: member.displayName,
+                  role: member.role,
+                  seatNumber: member.seatNumber,
+                  userId: userIds[member.membershipId],
+                ),
+              )
+              .toList(),
+          activeMemberCount: value.activeMemberCount,
+          inviteCode: value.inviteCode,
+        );
+        emit(
+          MembersState(
+            status: enriched.members.isEmpty
+                ? MembersStatus.empty
+                : MembersStatus.success,
+            members: enriched,
+          ),
+        );
+      },
       failure: (failure) => emit(
         MembersState(
           status: failure.kind == FailureKind.network
               ? MembersStatus.offline
               : MembersStatus.failure,
+          members: previousMembers,
           failure: failure,
         ),
       ),

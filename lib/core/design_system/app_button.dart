@@ -8,9 +8,10 @@ import 'app_colors.dart';
 /// destructive 48 — only inside a confirmation dialog/sheet.
 enum AppButtonVariant { primary, tonal, secondary, text, destructive }
 
-/// The one shared button. At most ONE primary button is visible per screen;
-/// on action screens it is full width ([expanded]) and pinned above the
-/// keyboard.
+/// The one shared button (Constitution Principle VI & ui-craft.md).
+///
+/// At most ONE primary button is visible per screen; on action screens it is
+/// full width ([expanded]) and pinned above the keyboard.
 ///
 /// * The optional [icon] sits at the start (right in RTL), 20dp.
 /// * While [loading] the button is disabled, keeps its width, shows a 20dp
@@ -45,12 +46,24 @@ class AppButton extends StatelessWidget {
         : _defaultHeight;
     final disabled = onPressed == null;
     final effectiveOnPressed = loading ? null : onPressed;
+    final foregroundColor = switch (variant) {
+      AppButtonVariant.primary => colors.onPrimary,
+      AppButtonVariant.tonal => colors.onPrimaryContainer,
+      AppButtonVariant.secondary || AppButtonVariant.text => colors.primary,
+      AppButtonVariant.destructive =>
+        Theme.of(context).brightness == Brightness.light
+            ? colors.onPrimary
+            : colors.missedBg,
+    };
 
     final leading = loading
-        ? const SizedBox(
+        ? SizedBox(
             width: 20,
             height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2.5),
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              color: foregroundColor,
+            ),
           )
         : icon;
 
@@ -64,7 +77,7 @@ class AppButton extends StatelessWidget {
             backgroundColor: colors.primary,
             foregroundColor: colors.onPrimary,
           ),
-          child: _content(leading),
+          child: _content(leading, foregroundColor),
         );
       case AppButtonVariant.tonal:
         button = FilledButton.tonal(
@@ -74,7 +87,7 @@ class AppButton extends StatelessWidget {
             backgroundColor: colors.primaryContainer,
             foregroundColor: colors.onPrimaryContainer,
           ),
-          child: _content(leading),
+          child: _content(leading, foregroundColor),
         );
       case AppButtonVariant.secondary:
         button = OutlinedButton(
@@ -82,7 +95,7 @@ class AppButton extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             minimumSize: Size(expanded ? double.infinity : 64, height),
           ),
-          child: _content(leading),
+          child: _content(leading, foregroundColor),
         );
       case AppButtonVariant.text:
         button = TextButton(
@@ -90,7 +103,7 @@ class AppButton extends StatelessWidget {
           style: TextButton.styleFrom(
             minimumSize: Size(expanded ? double.infinity : 64, height),
           ),
-          child: _content(leading),
+          child: _content(leading, foregroundColor),
         );
       case AppButtonVariant.destructive:
         button = FilledButton(
@@ -99,10 +112,10 @@ class AppButton extends StatelessWidget {
             minimumSize: Size(expanded ? double.infinity : 64, height),
             backgroundColor: colors.danger,
             foregroundColor: Theme.of(context).brightness == Brightness.light
-                ? const Color(0xFFFFFFFF)
-                : const Color(0xFF3D1A18),
+                ? colors.onPrimary
+                : colors.missedBg,
           ),
-          child: _content(leading),
+          child: _content(leading, foregroundColor),
         );
     }
 
@@ -112,17 +125,34 @@ class AppButton extends StatelessWidget {
     return button;
   }
 
-  Widget _content(Widget? leading) {
+  Widget _content(Widget? leading, Color foregroundColor) {
     if (leading == null) {
-      return Text(label);
+      return Text(
+        label,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+      );
     }
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconTheme(data: const IconThemeData(size: 20), child: leading),
+        IconTheme(
+          data: IconThemeData(size: 20, color: foregroundColor),
+          child: leading,
+        ),
         const SizedBox(width: 8),
-        Flexible(child: Text(label, textAlign: TextAlign.center)),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ),
       ],
     );
   }

@@ -95,6 +95,7 @@ void main() {
         'join_mode': 'auto_accept',
         'my_request_status': 'pending',
         'my_join_request_id': 'r2',
+        'can_join_limit': false,
       }),
     );
 
@@ -102,6 +103,7 @@ void main() {
 
     expect(result.valueOrNull!.myRequestStatus, 'pending');
     expect(result.valueOrNull!.myJoinRequestId, 'r2');
+    expect(result.valueOrNull!.canJoinLimit, isFalse);
     verify(
       () => rpc.call<dynamic>('get_invite_preview', {
         'p_invite_code': 'AB234567',

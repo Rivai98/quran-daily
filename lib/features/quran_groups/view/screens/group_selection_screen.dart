@@ -8,10 +8,10 @@ import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/widgets.dart';
 import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/localization/arabic_formatting.dart';
 import '../../data/entities/entities.dart';
 import '../../cubit/group_list/group_list_cubit.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
-import '../widgets/portion_unit_chip.dart';
 
 /// S1 group selection (ui-contract): my groups list + pending requests +
 /// entry points when empty.
@@ -39,7 +39,15 @@ class _GroupSelectionScreenState extends State<GroupSelectionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),
-      body: BlocBuilder<GroupListCubit, GroupListState>(
+      body: BlocConsumer<GroupListCubit, GroupListState>(
+        listenWhen: (previous, current) =>
+            previous.status == current.status &&
+            previous.failure != current.failure &&
+            current.failure != null,
+        listener: (context, state) => AppSnackBar.showError(
+          context,
+          ArabicStrings.authError(state.failure!.code),
+        ),
         builder: (context, state) {
           switch (state.status) {
             case GroupListStatus.initial:
@@ -49,10 +57,11 @@ class _GroupSelectionScreenState extends State<GroupSelectionScreen> {
               return const _EmptyEntryPoints();
             case GroupListStatus.failure:
               return StatePanel(
-                icon: Icons.wifi_off,
+                icon: Icons.wifi_off_rounded,
                 title: ArabicStrings.createGroupFailure,
                 message: ArabicStrings.authError('network'),
                 actionLabel: ArabicStrings.retry,
+                actionIcon: const Icon(Icons.refresh_rounded),
                 actionVariant: AppButtonVariant.secondary,
                 onAction: () => context.read<GroupListCubit>().refresh(),
                 isError: true,
@@ -102,23 +111,6 @@ class _EmptyEntryPoints extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget secondary(String label, IconData icon, String route) => Padding(
-      padding: const EdgeInsetsDirectional.only(top: AppSpacing.sm),
-      child: AppButton(
-        label: label,
-        variant: AppButtonVariant.secondary,
-        expanded: true,
-        icon: Icon(icon),
-        onPressed: () async {
-          await Navigator.pushNamed(context, route);
-          if (context.mounted) {
-            await context.read<GroupListCubit>().refresh();
-          }
-        },
-      ),
-    );
-
-    // S1 empty state (ui-contract): join-any is the one primary action.
     return AppPageContent(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -128,30 +120,35 @@ class _EmptyEntryPoints extends StatelessWidget {
             padding: AppSpacing.screenContent,
             child: Column(
               children: [
-                StatePanel(
-                  icon: Icons.groups,
+                StatePanel.empty(
+                  icon: Icons.groups_rounded,
                   title: ArabicStrings.noApprovedGroups,
-                  message: ArabicStrings.groupsNeedMembersEntry,
-                  actionLabel: ArabicStrings.joinAnyGroupAction,
+                  message: ArabicStrings.groupSelectionEmptyMessage,
+                  actionLabel: ArabicStrings.searchGroupAction,
                   onAction: () async {
-                    await Navigator.pushNamed(context, '/join-any');
+                    await Navigator.pushNamed(context, '/discover');
                     if (context.mounted) {
                       await context.read<GroupListCubit>().refresh();
                     }
                   },
                   actionVariant: AppButtonVariant.primary,
+                  actionIcon: const Icon(Icons.search_rounded),
+                  secondaryActionLabel: ArabicStrings.createGroup,
+                  secondaryActionIcon: const Icon(Icons.add_circle_outline_rounded),
+                  onSecondaryAction: () async {
+                    await Navigator.pushNamed(context, '/groups/new');
+                    if (context.mounted) {
+                      await context.read<GroupListCubit>().refresh();
+                    }
+                  },
+                  illustration: const HalaqaLogo(size: 80),
                 ),
-                secondary(
-                  ArabicStrings.searchGroupAction,
-                  Icons.search,
-                  '/discover',
+                const SizedBox(height: AppSpacing.xs),
+                TextButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, '/join'),
+                  icon: const Icon(Icons.link_rounded),
+                  label: Text(ArabicStrings.iHaveInviteLink),
                 ),
-                secondary(
-                  ArabicStrings.createGroup,
-                  Icons.add_circle_outline,
-                  '/groups/new',
-                ),
-                secondary(ArabicStrings.iHaveInviteLink, Icons.link, '/join'),
               ],
             ),
           ),
@@ -164,22 +161,9 @@ class _EmptyEntryPoints extends StatelessWidget {
 class _GroupHeader extends StatelessWidget {
   const _GroupHeader();
   @override
-  Widget build(BuildContext context) => IslamicOrnamentBand(
-    height: 168,
-    child: LayoutBuilder(
-      builder: (context, constraints) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(ArabicStrings.appName, style: AppTypography.headline),
-          if (constraints.maxHeight > 80) ...[
-            const SizedBox(height: AppSpacing.xxs),
-            Text(ArabicStrings.groupsHeaderSubtitle, style: AppTypography.body),
-          ],
-        ],
-      ),
-    ),
+  Widget build(BuildContext context) => const Padding(
+    padding: AppSpacing.screenH,
+    child: AppSectionHeader(title: ArabicStrings.groupSelectionTitle),
   );
 }
 
@@ -194,13 +178,13 @@ class _ShortcutCard extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         OutlinedButton.icon(
           onPressed: () => Navigator.pushNamed(context, '/discover'),
-          icon: const Icon(Icons.search),
+          icon: const Icon(Icons.search_rounded),
           label: Text(ArabicStrings.searchGroupAction),
         ),
         const SizedBox(height: AppSpacing.xs),
         OutlinedButton.icon(
           onPressed: () => Navigator.pushNamed(context, '/join'),
-          icon: const Icon(Icons.link),
+          icon: const Icon(Icons.link_rounded),
           label: Text(ArabicStrings.iHaveInviteLink),
         ),
       ],
@@ -254,7 +238,7 @@ class _GroupList extends StatelessWidget {
                       await context.read<GroupListCubit>().refresh();
                     }
                   },
-                  icon: const Icon(Icons.add_circle_outline),
+                  icon: const Icon(Icons.add_circle_outline_rounded),
                 ),
               ],
             ),
@@ -279,143 +263,115 @@ class _MyGroupRow extends StatelessWidget {
       GroupRole.supervisor => ArabicStrings.roleSupervisor,
       GroupRole.member => ArabicStrings.roleMember,
     };
-
+    final statusIcon = group.status == GroupStatus.active
+        ? Icons.play_circle_outline_rounded
+        : Icons.hourglass_top_rounded;
+    final statusLabel = group.status == GroupStatus.active
+        ? ArabicStrings.activeLabel
+        : ArabicStrings.formingLabel;
     return AppCard(
-      child: InkWell(
-        borderRadius: AppRadius.lgBR,
-        onTap: () async {
-          await Navigator.pushNamed(
-            context,
-            AppRoutes.dashboard,
-            arguments: group.groupId,
-          );
-          if (context.mounted) {
-            await context.read<GroupListCubit>().refresh();
-          }
-        },
-        child: Padding(
+      padding: EdgeInsets.zero,
+      onTap: () async {
+        await Navigator.pushNamed(
+          context,
+          AppRoutes.dashboard,
+          arguments: group.groupId,
+        );
+        if (context.mounted) {
+          await context.read<GroupListCubit>().refresh();
+        }
+      },
+      child: Padding(
           padding: AppSpacing.card,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
+                  GroupAvatar(name: group.name, size: AppSpacing.xxl),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
-                    child: Text(
-                      group.name,
-                      style: AppTypography.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            group.name,
+                            style: AppTypography.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        AppBadge(
+                          icon: statusIcon,
+                          label: statusLabel,
+                          variant: group.status == GroupStatus.active
+                              ? AppBadgeVariant.primary
+                              : AppBadgeVariant.info,
+                        ),
+                      ],
                     ),
                   ),
-                  Icon(Icons.chevron_left, color: colors.inkMuted),
                 ],
               ),
               const SizedBox(height: AppSpacing.xs),
-              Container(
-                constraints: const BoxConstraints(minHeight: 48),
-                padding: const EdgeInsetsDirectional.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xxs,
-                ),
-                decoration: ShapeDecoration(
-                  color: group.status == GroupStatus.active
-                      ? colors.completedBg
-                      : colors.infoBg,
-                  shape: const StadiumBorder(),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      group.status == GroupStatus.active
-                          ? Icons.check_circle
-                          : Icons.schedule,
-                      size: 20,
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.xxs,
+                children: [
+                  _MetaItem(
+                    icon: Icons.menu_book_rounded,
+                    label: ArabicStrings.dailyUnitChip(group.portionUnit),
+                    color: colors.inkMuted,
+                  ),
+                  _MetaItem(
+                    icon: Icons.people_alt_rounded,
+                    label: roleMarker,
+                    color: colors.inkMuted,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _MetaItem(
+                    icon: Icons.people_alt_rounded,
+                    label: ArabicStrings.groupSeatsProgressLabel,
+                    color: colors.inkMuted,
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  ClipRRect(
+                    borderRadius: AppRadius.pillBR,
+                    child: LinearProgressIndicator(
+                      value: (group.activeMemberCount / 30).clamp(0.0, 1.0),
+                      minHeight: AppSpacing.xs,
+                      backgroundColor: colors.surfaceMuted,
                       color: group.status == GroupStatus.active
                           ? colors.completedFg
-                          : colors.infoFg,
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      group.status == GroupStatus.active
-                          ? ArabicStrings.activeLabel
-                          : ArabicStrings.formingLabel,
-                      style: AppTypography.caption.copyWith(
-                        color: group.status == GroupStatus.active
-                            ? colors.completedFg
-                            : colors.infoFg,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              PortionUnitChip(
-                unit: group.portionUnit,
-                metadataRepository: metadataRepository,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Wrap(
-                spacing: AppSpacing.xs,
-                runSpacing: AppSpacing.xxs,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsetsDirectional.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: AppSpacing.xxs,
-                    ),
-                    decoration: ShapeDecoration(
-                      color: colors.surfaceMuted,
-                      shape: const StadiumBorder(),
-                    ),
-                    child: Text(
-                      roleMarker,
-                      style: AppTypography.caption.copyWith(
-                        color: colors.inkMuted,
-                      ),
+                          : colors.primary,
                     ),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.groups_outlined,
-                        size: 18,
-                        color: colors.inkMuted,
-                      ),
-                      const SizedBox(width: AppSpacing.xxs),
-                      Text(
-                        ArabicStrings.membersProgress(group.activeMemberCount),
-                        style: AppTypography.caption.copyWith(
-                          color: colors.inkMuted,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    ArabicFormatting.membersProgress(group.activeMemberCount),
+                    style: AppTypography.caption.copyWith(
+                      color: colors.inkMuted,
+                    ),
                   ),
+                  const SizedBox(height: AppSpacing.xs),
                 ],
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              ClipRRect(
-                borderRadius: AppRadius.pillBR,
-                child: LinearProgressIndicator(
-                  value: (group.activeMemberCount / 30).clamp(0.0, 1.0),
-                  minHeight: AppSpacing.xs,
-                  backgroundColor: colors.surfaceMuted,
-                  color: group.status == GroupStatus.active
-                      ? colors.completedFg
-                      : colors.primary,
-                ),
               ),
             ],
           ),
         ),
-      ),
     );
   }
 }
 
+/// Compact pending join-request card, styled like the group cards above:
+/// emblem, name (2 lines max), status badge with a quiet cancel action, and
+/// one muted line explaining what happens next.
 class _PendingRow extends StatelessWidget {
   const _PendingRow({required this.request});
 
@@ -425,36 +381,58 @@ class _PendingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     return AppCard(
+      padding: EdgeInsets.zero,
       child: Padding(
         padding: AppSpacing.card,
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              request.groupName,
-              style: AppTypography.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: AppSpacing.xxs),
-            Row(
-              children: [
-                Icon(Icons.hourglass_top, size: 16, color: colors.infoFg),
-                const SizedBox(width: AppSpacing.xxs),
-                Expanded(
-                  child: Text(
-                    ArabicStrings.pendingApproval,
-                    style: AppTypography.caption.copyWith(color: colors.infoFg),
+            GroupAvatar(name: request.groupName, size: AppSpacing.xxl),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    request.groupName,
+                    style: AppTypography.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              label: ArabicStrings.cancel,
-              variant: AppButtonVariant.secondary,
-              onPressed: () => context.read<GroupListCubit>().cancelJoinRequest(
-                request.joinRequestId,
+                  const SizedBox(height: AppSpacing.xxs),
+                  Row(
+                    children: [
+                      const AppBadge(
+                        icon: Icons.schedule_rounded,
+                        label: ArabicStrings.pendingShortLabel,
+                        variant: AppBadgeVariant.warning,
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () => context
+                            .read<GroupListCubit>()
+                            .cancelJoinRequest(request.joinRequestId),
+                        style: TextButton.styleFrom(
+                          foregroundColor: colors.inkMuted,
+                          minimumSize: const Size(48, 48),
+                          padding: const EdgeInsetsDirectional.symmetric(
+                            horizontal: AppSpacing.sm,
+                          ),
+                        ),
+                        child: const Text(
+                          ArabicStrings.cancelJoinRequestAction,
+                          maxLines: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    ArabicStrings.pendingRequestHint,
+                    style: AppTypography.caption.copyWith(
+                      color: colors.inkMuted,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -462,4 +440,26 @@ class _PendingRow extends StatelessWidget {
       ),
     );
   }
+}
+
+class _MetaItem extends StatelessWidget {
+  const _MetaItem({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(icon, size: AppSpacing.md, color: color),
+      const SizedBox(width: AppSpacing.xxs),
+      Text(label, style: AppTypography.caption.copyWith(color: color)),
+    ],
+  );
 }

@@ -1,18 +1,24 @@
+import 'dart:async';
+import 'package:flutter/gestures.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../app/router.dart';
+import '../../../core/di/service_locator.dart';
 import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_radius.dart';
 import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/assignment_status.dart' as ds;
+import '../../../core/design_system/widgets/islamic_ornament.dart';
 import '../../../core/design_system/widgets/offline_banner.dart';
-import '../../../core/design_system/widgets/status_chip.dart';
 import '../../../core/localization/arabic_numerals.dart';
 import '../../../core/localization/arabic_strings.dart';
+import '../../../core/quran/mushaf/mushaf_models.dart';
 import '../../../core/quran/mushaf/mushaf_repository.dart';
+import '../../../core/quran/mushaf/qpc_v2_repository.dart';
 import '../../../core/quran/quran_metadata_repository.dart';
 import '../cubit/reader_cubit.dart';
 import '../data/reader_storage.dart';
@@ -23,11 +29,13 @@ class ReaderScreen extends StatefulWidget {
     required this.repository,
     required this.storage,
     required this.metadata,
+    this.qpcLayout,
   });
 
   final MushafRepository repository;
   final ReaderStorage storage;
   final QuranMetadataRepository metadata;
+  final QpcV2Repository? qpcLayout;
 
   @override
   State<ReaderScreen> createState() => _ReaderScreenState();
@@ -37,10 +45,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
   PageController? _pages;
   final GlobalKey _startAyahKey = GlobalKey();
   String? _dua;
+  bool _chromeVisible = true;
 
   @override
   void initState() {
     super.initState();
+    unawaited(WakelockPlus.enable());
     _loadDua();
     widget.metadata.load().then((_) {
       if (mounted) setState(() {});
@@ -61,26 +71,63 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   void dispose() {
     _pages?.dispose();
+    unawaited(WakelockPlus.disable());
+    unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
     super.dispose();
+  }
+
+  void _toggleChrome() {
+    final showChrome = !_chromeVisible;
+    setState(() => _chromeVisible = showChrome);
+    unawaited(
+      SystemChrome.setEnabledSystemUIMode(
+        showChrome ? SystemUiMode.edgeToEdge : SystemUiMode.immersiveSticky,
+      ),
+    );
+  }
+
+  int _hizbForPage(int pageNumber) {
+    try {
+      final hizbs = widget.repository.hizbIndex();
+      var current = 1;
+      for (final h in hizbs) {
+        if (h.startPage <= pageNumber) {
+          current = h.hizb;
+        } else {
+          break;
+        }
+      }
+      return current;
+    } catch (_) {
+      return 1;
+    }
+  }
+
+  String _surahName(int index) {
+    try {
+      return widget.metadata.suraName(index);
+    } on Object {
+      return ArabicStrings.mushafTitle;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<ReaderCubit, ReaderState>(
       listenWhen: (previous, current) =>
-          current.status == ReaderStatus.content &&
-          previous.page?.number != current.page?.number,
+          (current.status == ReaderStatus.content &&
+              previous.page?.number != current.page?.number) ||
+          (!previous.isCompleted && current.isCompleted),
       listener: (context, state) {
         final page = state.page?.number;
-        // The PageView only exists in the content state, so it may not be
-        // attached yet when the first page arrives: jump after the frame.
-        if (page != null) {
+        if (page != null && !state.isCompletionPage) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             final pages = _pages;
+            final firstPage = state.startPage ?? 1;
             if (pages != null &&
                 pages.hasClients &&
-                pages.page?.round() != page - 1) {
-              pages.jumpToPage(page - 1);
+                pages.page?.round() != page - firstPage) {
+              pages.jumpToPage(page - firstPage);
             }
           });
         }
@@ -96,177 +143,370 @@ class _ReaderScreenState extends State<ReaderScreen> {
             }
           });
         }
+        if (state.isCompleted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
       },
       child: BlocBuilder<ReaderCubit, ReaderState>(
         builder: (context, state) {
           final colors = Theme.of(context).extension<AppColors>()!;
           final page = state.page;
           return Scaffold(
-            appBar: AppBar(
-              title: Text(ArabicStrings.mushafTitle),
-              actions: [
-                IconButton(
-                  tooltip: ArabicStrings.mushafIndexAction,
-                  onPressed: () =>
-                      Navigator.pushNamed(context, AppRoutes.mushafIndex),
-                  icon: const Icon(Icons.list),
-                ),
-                IconButton(
-                  tooltip: ArabicStrings.bookmarksTitle,
-                  onPressed: () => Navigator.pushNamed(
-                    context,
-                    AppRoutes.mushafBookmarks,
-                    arguments: widget.storage,
-                  ),
-                  icon: const Icon(Icons.bookmark_outline),
-                ),
-                IconButton(
-                  tooltip: ArabicStrings.mushafLicensesTitle,
-                  onPressed: () =>
-                      Navigator.pushNamed(context, AppRoutes.mushafLicenses),
-                  icon: const Icon(Icons.info_outline),
-                ),
-              ],
-            ),
-            body: switch (state.status) {
-              ReaderStatus.loading => const Center(
-                child: CircularProgressIndicator(),
-              ),
-              ReaderStatus.error => Center(
-                child: Padding(
-                  padding: AppSpacing.screen,
-                  child: Text(
-                    ArabicStrings.mushafLoadError,
-                    style: AppTypography.body,
-                  ),
-                ),
-              ),
-              ReaderStatus.content => Column(
-                children: [
-                  _PageHeader(
-                    pageNumber: page!.number,
-                    surahName: _surahName(page.firstSurah),
-                    juz: page.juz,
-                    onBookmark: () => _addBookmark(
-                      context,
-                      page.number,
-                      page.firstSurah,
-                      null,
-                    ),
-                  ),
-                  if (state.isPortion)
-                    Padding(
-                      padding: AppSpacing.screenH,
-                      child: Container(
-                        width: double.infinity,
-                        padding: AppSpacing.card,
-                        decoration: ShapeDecoration(
-                          color: colors.primaryContainer,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppRadius.mdBR,
+            appBar: _chromeVisible && page != null && !state.isCompletionPage
+                ? AppBar(
+                    titleSpacing: 0,
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _surahName(page.firstSurah),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.caption.copyWith(
+                              color: colors.primary,
+                            ),
                           ),
                         ),
-                        child: Text(
-                          ArabicStrings.portionName(
-                            state.portionUnit!,
-                            state.portionIndex!,
+                        const SizedBox(width: AppSpacing.xs),
+                        Flexible(
+                          child: Text(
+                            state.isPortion
+                                ? ArabicStrings.portionPageProgress(
+                                    page.number - state.startPage! + 1,
+                                    state.portionPageCount,
+                                  )
+                                : '${ArabicStrings.juzLabel} ${ArabicNumerals.format(page.juz)}، ${ArabicStrings.portionUnitHizb} ${ArabicNumerals.format(_hizbForPage(page.number))}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.end,
+                            style: AppTypography.caption.copyWith(
+                              color: colors.inkMuted,
+                            ),
                           ),
-                          style: AppTypography.body,
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      PopupMenuButton<String>(
+                        tooltip: ArabicStrings.mushafTitle,
+                        onSelected: (action) {
+                          switch (action) {
+                            case 'bookmark':
+                              _addBookmark(
+                                context,
+                                page.number,
+                                page.firstSurah,
+                                null,
+                              );
+                            case 'bookmarks':
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.mushafBookmarks,
+                                arguments: widget.storage,
+                              );
+                            case 'index':
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.mushafIndex,
+                              );
+                            case 'info':
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.mushafLicenses,
+                              );
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'bookmark',
+                            child: _ReaderMenuItem(
+                              icon: Icons.bookmark_add_rounded,
+                              label: ArabicStrings.addBookmarkAction,
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'bookmarks',
+                            child: _ReaderMenuItem(
+                              icon: Icons.bookmarks_rounded,
+                              label: ArabicStrings.bookmarksTitle,
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'index',
+                            child: _ReaderMenuItem(
+                              icon: Icons.menu_book_rounded,
+                              label: ArabicStrings.mushafIndexAction,
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'info',
+                            child: _ReaderMenuItem(
+                              icon: Icons.info_outline_rounded,
+                              label: ArabicStrings.mushafLicensesTitle,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    bottom:
+                        state.isPortion &&
+                            state.startPage != null &&
+                            state.endPage != null
+                        ? PreferredSize(
+                            preferredSize: const Size.fromHeight(
+                              AppSpacing.xxs,
+                            ),
+                            child: Padding(
+                              padding: AppSpacing.screenH,
+                              child: LinearProgressIndicator(
+                                key: const ValueKey('reader-portion-progress'),
+                                minHeight: AppSpacing.xxs / 2,
+                                value:
+                                    ((page.number - state.startPage! + 1) /
+                                            (state.endPage! -
+                                                state.startPage! +
+                                                1))
+                                        .clamp(0.0, 1.0),
+                                backgroundColor: colors.surfaceMuted,
+                                color: colors.primary,
+                              ),
+                            ),
+                          )
+                        : null,
+                  )
+                : null,
+            body: SafeArea(
+              top: !_chromeVisible,
+              child: switch (state.status) {
+                ReaderStatus.loading => const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: AppSpacing.md),
+                      Text(ArabicStrings.mushafPagePreparing),
+                    ],
+                  ),
+                ),
+                ReaderStatus.error => Center(
+                  child: Padding(
+                    padding: AppSpacing.screen,
+                    child: Text(
+                      ArabicStrings.mushafLoadError,
+                      style: AppTypography.body,
+                    ),
+                  ),
+                ),
+                ReaderStatus.content => Column(
+                  children: [
+                    if (_chromeVisible && state.isOffline)
+                      const Padding(
+                        padding: AppSpacing.screenH,
+                        child: OfflineBanner(message: ArabicStrings.syncQueued),
+                      ),
+                    if (_chromeVisible && state.isFontFallback)
+                      const Padding(
+                        padding: AppSpacing.screenH,
+                        child: OfflineBanner(
+                          message: ArabicStrings.mushafFontFallback,
                         ),
                       ),
-                    ),
-                  if (state.isOffline)
-                    const Padding(
-                      padding: AppSpacing.screenH,
-                      child: OfflineBanner(message: ArabicStrings.syncQueued),
-                    ),
-                  if (state.isCompleted && state.isPortion)
-                    const Padding(
-                      padding: AppSpacing.screenH,
-                      child: StatusChip(status: ds.AssignmentStatus.completed),
-                    ),
-                  Expanded(
-                    child: PageView.builder(
-                      key: const ValueKey('mushaf-page-view'),
-                      controller: _pages ??= PageController(
-                        initialPage: page.number - 1,
-                      ),
-                      reverse: true,
-                      itemCount: widget.repository.pageCount,
-                      onPageChanged: (index) =>
-                          context.read<ReaderCubit>().turnTo(index + 1),
-                      itemBuilder: (context, index) {
-                        final mushafPage = widget.repository.page(index + 1);
-                        return ListView(
-                          key: PageStorageKey<int>(mushafPage.number),
-                          padding: AppSpacing.screenContent,
-                          children: [
-                            for (final ayah in mushafPage.ayahs)
-                              GestureDetector(
-                                key: ayah.ref == state.startAyah
-                                    ? _startAyahKey
-                                    : null,
-                                onLongPress: () => _addBookmark(
-                                  context,
-                                  mushafPage.number,
-                                  ayah.ref.surah,
-                                  ayah.ref.ayah,
-                                ),
-                                child: Container(
-                                  padding:
-                                      const EdgeInsetsDirectional.symmetric(
-                                        vertical: AppSpacing.xxs,
-                                        horizontal: AppSpacing.xs,
+                    Expanded(
+                      child: GestureDetector(
+                        key: const ValueKey('reader-page-tap-area'),
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _toggleChrome,
+                        child: PageView.builder(
+                          key: const ValueKey('mushaf-page-view'),
+                          controller: _pages ??= PageController(
+                            initialPage: page!.number - (state.startPage ?? 1),
+                          ),
+                          // The app is RTL, so a non-reversed horizontal PageView
+                          // already places the next page on the left, like a
+                          // printed Mushaf.
+                          itemCount: state.isPortion
+                              ? state.portionPageCount + 1
+                              : widget.repository.pageCount,
+                          onPageChanged: (index) {
+                            final cubit = context.read<ReaderCubit>();
+                            if (state.isPortion &&
+                                index >= state.portionPageCount) {
+                              cubit.showCompletionPage();
+                            } else {
+                              cubit.turnTo((state.startPage ?? 1) + index);
+                            }
+                          },
+                          itemBuilder: (context, index) {
+                            if (state.isPortion &&
+                                index == state.portionPageCount) {
+                              return _ReaderCompletionPage(
+                                completed: state.isCompleted,
+                              );
+                            }
+                            final mushafPage = widget.repository.page(
+                              (state.startPage ?? 1) + index,
+                            );
+                            final qpcFonts = _qpcFonts();
+                            if (widget.qpcLayout != null && qpcFonts != null) {
+                              return Column(
+                                children: [
+                                  Expanded(
+                                    child: _QpcPageView(
+                                      key: ValueKey<int>(mushafPage.number),
+                                      pageNumber: mushafPage.number,
+                                      layout: widget.qpcLayout!,
+                                      fonts: qpcFonts,
+                                      startAyah: state.startAyah,
+                                      endAyah: state.endAyah,
+                                      onLongPress: (word) => _addBookmark(
+                                        context,
+                                        mushafPage.number,
+                                        word.surah,
+                                        word.ayah,
                                       ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        ayah.ref == state.startAyah ||
-                                            ayah.ref == state.endAyah
-                                        ? colors.primaryContainer
-                                        : null,
-                                    borderRadius: AppRadius.smBR,
-                                  ),
-                                  child: Text(
-                                    key: const ValueKey('mushaf-ayah'),
-                                    ayah.text,
-                                    textAlign: TextAlign.justify,
-                                    textDirection: TextDirection.rtl,
-                                    style: AppTypography.quranLabel.copyWith(
-                                      fontFamily: 'KfgqpcHafs',
+                                      surahName: (surah) => _surahName(surah),
                                     ),
-                                    textScaler: TextScaler.linear(
-                                      state.quranTextScale *
-                                          MediaQuery.textScalerOf(
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: AppSpacing.xxs,
+                                    ),
+                                    child: Text(
+                                      ArabicNumerals.format(mushafPage.number),
+                                      style: AppTypography.caption.copyWith(
+                                        color: colors.inkMuted,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
+                            return Column(
+                              children: [
+                                Expanded(
+                                  child: ListView(
+                                    key: PageStorageKey<int>(mushafPage.number),
+                                    padding: const EdgeInsetsDirectional.only(
+                                      start: AppSpacing.md,
+                                      top: AppSpacing.xs,
+                                      end: AppSpacing.md,
+                                      bottom: AppSpacing.xs,
+                                    ),
+                                    children: [
+                                      for (final segment in _groupAyahs(
+                                        mushafPage.ayahs,
+                                      )) ...[
+                                        if (segment.first.ref.ayah == 1)
+                                          _SurahTitleBand(
+                                            surahName: _surahName(
+                                              segment.first.ref.surah,
+                                            ),
+                                          ),
+                                        _AyahFlowParagraph(
+                                          ayahs: segment,
+                                          startAyah: state.startAyah,
+                                          endAyah: state.endAyah,
+                                          textScale: state.quranTextScale,
+                                          onLongPress: (ayah) => _addBookmark(
                                             context,
-                                          ).scale(1),
+                                            mushafPage.number,
+                                            ayah.ref.surah,
+                                            ayah.ref.ayah,
+                                          ),
+                                          anchorKey:
+                                              segment.any(
+                                                (ayah) =>
+                                                    ayah.ref == state.startAyah,
+                                              )
+                                              ? _startAyahKey
+                                              : null,
+                                        ),
+                                      ],
+                                      if (!state.isPortion &&
+                                          mushafPage.number ==
+                                              widget.repository.pageCount &&
+                                          _dua != null)
+                                        TextButton(
+                                          onPressed: () => _showDua(context),
+                                          child: const Text(
+                                            ArabicStrings.khatmDuaTitle,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: AppSpacing.xxs,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      ArabicNumerals.format(mushafPage.number),
+                                      style: AppTypography.caption.copyWith(
+                                        color: colors.inkMuted,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            if (mushafPage.number ==
-                                    widget.repository.pageCount &&
-                                _dua != null)
-                              TextButton(
-                                onPressed: () => _showDua(context),
-                                child: const Text(ArabicStrings.khatmDuaTitle),
-                              ),
-                          ],
-                        );
-                      },
+                              ],
+                            );
+                          },
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            },
+                  ],
+                ),
+              },
+            ),
             bottomNavigationBar: state.canComplete
                 ? SafeArea(
                     child: Padding(
                       padding: AppSpacing.screen,
-                      child: FilledButton.icon(
-                        onPressed: () =>
-                            context.read<ReaderCubit>().completePortion(),
-                        icon: const Icon(Icons.check_circle_outline),
-                        label: const Text(ArabicStrings.completeReadingAction),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FilledButton.icon(
+                            key: const ValueKey('complete-reading-button'),
+                            onPressed: () =>
+                                context.read<ReaderCubit>().completePortion(),
+                            icon: const Icon(Icons.check_circle_outline),
+                            label: const Text(
+                              ArabicStrings.completeReadingAction,
+                            ),
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size.fromHeight(52),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: AppRadius.mdBR,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          OutlinedButton(
+                            key: const ValueKey('reader-completion-back'),
+                            onPressed: () {
+                              final pages = _pages;
+                              if (pages?.hasClients == true) {
+                                pages!.previousPage(
+                                  duration: const Duration(milliseconds: 150),
+                                  curve: Curves.easeOut,
+                                );
+                              }
+                            },
+                            child: const Text(ArabicStrings.readerBackAction),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : state.isCompletionPage && state.isCompleted
+                ? SafeArea(
+                    child: Padding(
+                      padding: AppSpacing.screen,
+                      child: OutlinedButton(
+                        key: const ValueKey('reader-completion-back'),
+                        onPressed: () => Navigator.of(context).maybePop(),
+                        child: const Text(ArabicStrings.readerBackAction),
                       ),
                     ),
                   )
@@ -275,14 +515,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
         },
       ),
     );
-  }
-
-  String _surahName(int index) {
-    try {
-      return widget.metadata.suraName(index);
-    } on Object {
-      return ArabicStrings.mushafTitle;
-    }
   }
 
   Future<void> _addBookmark(
@@ -353,43 +585,503 @@ class _ReaderScreenState extends State<ReaderScreen> {
   }
 }
 
-class _PageHeader extends StatelessWidget {
-  const _PageHeader({
+class _SurahTitleBand extends StatelessWidget {
+  const _SurahTitleBand({required this.surahName});
+
+  final String surahName;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      height: AppSpacing.xxl,
+      decoration: BoxDecoration(
+        color: colors.primaryContainer.withValues(alpha: 0.4),
+        borderRadius: AppRadius.mdBR,
+        border: Border.all(
+          color: colors.accent.withValues(alpha: 0.35),
+          width: 1.2,
+        ),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: AppRadius.mdBR,
+              child: CustomPaint(
+                painter: GirihPainter(colors.accent.withValues(alpha: 0.08)),
+              ),
+            ),
+          ),
+          PositionedDirectional(
+            start: AppSpacing.md,
+            child: Icon(Icons.star_rounded, size: 18, color: colors.accent),
+          ),
+          PositionedDirectional(
+            end: AppSpacing.md,
+            child: Icon(Icons.star_rounded, size: 18, color: colors.accent),
+          ),
+          Text(
+            '${ArabicStrings.surahWord} $surahName',
+            style: AppTypography.quranLabel.copyWith(
+              color: colors.onPrimaryContainer,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReaderCompletionPage extends StatelessWidget {
+  const _ReaderCompletionPage({required this.completed});
+
+  final bool completed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return SingleChildScrollView(
+      key: const ValueKey('reader-completion-page'),
+      padding: AppSpacing.screenH,
+      child: Column(
+        children: [
+          const SizedBox(height: AppSpacing.lg),
+          IslamicOrnamentBand(
+            refined: true,
+            child: Center(
+              child: Icon(
+                Icons.check_circle_outline_rounded,
+                size: AppSpacing.xxl,
+                color: colors.primary,
+                semanticLabel: ArabicStrings.completeReadingAction,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            completed
+                ? ArabicStrings.readerCompletionRecorded
+                : ArabicStrings.readerCompletionTitle,
+            textAlign: TextAlign.center,
+            style: AppTypography.headline.copyWith(color: colors.ink),
+          ),
+          if (!completed) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              ArabicStrings.readerCompletionMessage,
+              textAlign: TextAlign.center,
+              style: AppTypography.body.copyWith(color: colors.inkMuted),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ReaderMenuItem extends StatelessWidget {
+  const _ReaderMenuItem({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: colors.inkMuted),
+        const SizedBox(width: AppSpacing.sm),
+        Flexible(child: Text(label, style: AppTypography.label)),
+      ],
+    );
+  }
+}
+
+QpcFontManager? _qpcFonts() => serviceLocator.isRegistered<QpcFontManager>()
+    ? serviceLocator<QpcFontManager>()
+    : null;
+
+class _QpcPageData {
+  const _QpcPageData(this.lines, this.family, this.basmalaFamily, this.basmala);
+  final List<QpcLine> lines;
+  final String family;
+  final String? basmalaFamily;
+  final List<QpcWord> basmala;
+}
+
+/// One printed Madinah Mushaf page: the 15 lines of the KFGQPC V2 layout, each
+/// line drawn word by word in that page's own verified font and justified to
+/// the full width, like the printed page.
+class _QpcPageView extends StatefulWidget {
+  const _QpcPageView({
+    super.key,
     required this.pageNumber,
+    required this.layout,
+    required this.fonts,
+    required this.startAyah,
+    required this.endAyah,
+    required this.onLongPress,
     required this.surahName,
-    required this.juz,
-    required this.onBookmark,
   });
 
   final int pageNumber;
-  final String surahName;
-  final int juz;
-  final VoidCallback onBookmark;
+  final QpcV2Repository layout;
+  final QpcFontManager fonts;
+  final AyahRef? startAyah;
+  final AyahRef? endAyah;
+  final ValueChanged<QpcWord> onLongPress;
+  final String Function(int) surahName;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: AppSpacing.screen,
-    child: Row(
-      children: [
-        Expanded(
-          child: Wrap(
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xxs,
+  State<_QpcPageView> createState() => _QpcPageViewState();
+}
+
+class _QpcPageViewState extends State<_QpcPageView> {
+  late Future<_QpcPageData> _data = _load();
+
+  Future<_QpcPageData> _load() async {
+    await widget.layout.load();
+    final lines = widget.layout.linesForPage(widget.pageNumber);
+    final family = await widget.fonts.ensureLoaded(widget.pageNumber);
+    String? basmalaFamily;
+    var basmala = const <QpcWord>[];
+    if (lines.any((line) => line.lineType == QpcLineType.basmallah)) {
+      // The basmala glyphs are the words of 1:1, encoded for page 1's font.
+      basmalaFamily = await widget.fonts.ensureLoaded(1);
+      basmala = widget.layout.basmallahWords;
+    }
+    return _QpcPageData(lines, family, basmalaFamily, basmala);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return FutureBuilder<_QpcPageData>(
+      future: _data,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.cloud_off_rounded, color: colors.inkMuted),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'تعذّر تجهيز الصفحة. تحقّق من الاتصال لتنزيلها أول مرة.',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.body.copyWith(color: colors.inkMuted),
+                ),
+                TextButton.icon(
+                  onPressed: () => setState(() => _data = _load()),
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('إعادة المحاولة'),
+                ),
+              ],
+            ),
+          );
+        }
+        final data = snapshot.data;
+        if (data == null) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'جارٍ تجهيز الصفحة',
+                  style: AppTypography.caption.copyWith(color: colors.inkMuted),
+                ),
+              ],
+            ),
+          );
+        }
+        return _QpcPageBody(
+          data: data,
+          startAyah: widget.startAyah,
+          endAyah: widget.endAyah,
+          onLongPress: widget.onLongPress,
+          surahName: widget.surahName,
+        );
+      },
+    );
+  }
+}
+
+class _QpcPageBody extends StatelessWidget {
+  const _QpcPageBody({
+    required this.data,
+    required this.startAyah,
+    required this.endAyah,
+    required this.onLongPress,
+    required this.surahName,
+  });
+
+  final _QpcPageData data;
+  final AyahRef? startAyah;
+  final AyahRef? endAyah;
+  final ValueChanged<QpcWord> onLongPress;
+  final String Function(int) surahName;
+
+  static const _measureSize = 100.0;
+  static final Map<String, double> _naturalWidthCache = {};
+
+  double _naturalWidth(List<QpcWord> words, String family) {
+    final painter = TextPainter(
+      textDirection: TextDirection.rtl,
+      maxLines: 1,
+      text: TextSpan(
+        text: words.map((w) => w.text).join(' '),
+        style: AppTypography.mushafPage(fontFamily: family, size: _measureSize),
+      ),
+    )..layout();
+    return painter.width;
+  }
+
+  bool _highlighted(QpcWord word) =>
+      (startAyah?.surah == word.surah && startAyah?.ayah == word.ayah) ||
+      (endAyah?.surah == word.surah && endAyah?.ayah == word.ayah);
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const horizontal = AppSpacing.sm;
+        final width = constraints.maxWidth - 2 * horizontal;
+        final lineHeight = constraints.maxHeight / 15;
+        final maxNatural = _naturalWidthCache.putIfAbsent(data.family, () {
+          var widest = 0.0;
+          // Measure every ayah line, centered ones included (pages 1-2 are all
+          // centered), so no line can ever exceed the screen width.
+          for (final line in data.lines) {
+            if (line.lineType == QpcLineType.ayah) {
+              final w = _naturalWidth(line.words, data.family);
+              if (w > widest) widest = w;
+            }
+          }
+          return widest;
+        });
+        final allCentered = data.lines
+            .where((l) => l.lineType == QpcLineType.ayah)
+            .every((l) => l.isCentered);
+        // Centered pages (Al-Fatiha, start of Al-Baqarah) use a narrower text
+        // block in the printed Mushaf.
+        final blockWidth = allCentered ? width * 0.82 : width;
+        final byWidth = maxNatural <= 0
+            ? lineHeight * 0.6
+            : _measureSize * blockWidth / maxNatural;
+        final fontSize = byWidth.clamp(8.0, lineHeight * 0.7).toDouble();
+        final gap = fontSize * 0.25;
+
+        Widget wordWidget(QpcWord word, String family) {
+          final text = Text(
+            word.text,
+            textDirection: TextDirection.rtl,
+            style: AppTypography.mushafPage(
+              fontFamily: family,
+              size: fontSize,
+              color: colors.ink,
+            ),
+          );
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onLongPress: () => onLongPress(word),
+            child: _highlighted(word)
+                ? DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: colors.primaryContainer.withValues(alpha: 0.55),
+                      borderRadius: AppRadius.smBR,
+                    ),
+                    child: text,
+                  )
+                : text,
+          );
+        }
+
+        // Centered lines shrink to fit the width instead of overflowing.
+        Widget centeredRow(List<Widget> children) => FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            textDirection: TextDirection.rtl,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(surahName, style: AppTypography.quranLabel),
-              Text(
-                '${ArabicStrings.juzLabel} ${ArabicNumerals.format(juz)} · ${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(pageNumber)}',
-                style: AppTypography.caption,
-              ),
+              for (var i = 0; i < children.length; i++) ...[
+                if (i > 0) SizedBox(width: gap),
+                children[i],
+              ],
             ],
           ),
+        );
+
+        Widget lineWidget(QpcLine line) {
+          switch (line.lineType) {
+            case QpcLineType.surahName:
+              return _SurahTitleBand(
+                surahName: surahName(line.surahNumber ?? 1),
+              );
+            case QpcLineType.blank:
+              return const SizedBox.shrink();
+            case QpcLineType.basmallah:
+              final family = data.basmalaFamily ?? data.family;
+              return centeredRow([
+                for (final word in data.basmala) wordWidget(word, family),
+              ]);
+            case QpcLineType.ayah:
+              final children = [
+                for (final word in line.words) wordWidget(word, data.family),
+              ];
+              if (line.isCentered) return centeredRow(children);
+              return Row(
+                textDirection: TextDirection.rtl,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: children,
+              );
+          }
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: horizontal),
+          child: Column(
+            // Short centered pages (Al-Fatiha, start of Al-Baqarah) sit in the
+            // middle of the page like the printed Mushaf.
+            mainAxisAlignment: allCentered
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.start,
+            children: [
+              for (final line in data.lines)
+                if (!(allCentered && line.lineType == QpcLineType.blank))
+                  SizedBox(
+                    height: lineHeight,
+                    width: width,
+                    child: line.lineType == QpcLineType.surahName
+                        // The ornamental band has a fixed natural height; scale it
+                        // into the line slot so it is never clipped.
+                        ? FittedBox(
+                            fit: BoxFit.contain,
+                            child: SizedBox(
+                              width: width,
+                              height: AppSpacing.xxl + 2 * AppSpacing.sm,
+                              child: lineWidget(line),
+                            ),
+                          )
+                        : Center(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: SizedBox(
+                                width: width,
+                                child: lineWidget(line),
+                              ),
+                            ),
+                          ),
+                  ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+List<List<MushafAyah>> _groupAyahs(List<MushafAyah> ayahs) {
+  final segments = <List<MushafAyah>>[];
+  for (final ayah in ayahs) {
+    if (segments.isEmpty || segments.last.last.ref.surah != ayah.ref.surah) {
+      segments.add(<MushafAyah>[ayah]);
+    } else {
+      segments.last.add(ayah);
+    }
+  }
+  return segments;
+}
+
+class _AyahFlowParagraph extends StatefulWidget {
+  const _AyahFlowParagraph({
+    required this.ayahs,
+    required this.startAyah,
+    required this.endAyah,
+    required this.textScale,
+    required this.onLongPress,
+    this.anchorKey,
+  });
+
+  final List<MushafAyah> ayahs;
+  final AyahRef? startAyah;
+  final AyahRef? endAyah;
+  final double textScale;
+  final ValueChanged<MushafAyah> onLongPress;
+  final Key? anchorKey;
+
+  @override
+  State<_AyahFlowParagraph> createState() => _AyahFlowParagraphState();
+}
+
+class _AyahFlowParagraphState extends State<_AyahFlowParagraph> {
+  final List<GestureRecognizer> _recognizers = [];
+
+  @override
+  void dispose() {
+    _disposeRecognizers();
+    super.dispose();
+  }
+
+  void _disposeRecognizers() {
+    for (final recognizer in _recognizers) {
+      recognizer.dispose();
+    }
+    _recognizers.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _disposeRecognizers();
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final quranStyle = AppTypography.quranLabel.copyWith(
+      fontFamily: 'KfgqpcHafs',
+      color: colors.ink,
+    );
+    final spans = <InlineSpan>[];
+    for (final ayah in widget.ayahs) {
+      final highlighted =
+          ayah.ref == widget.startAyah || ayah.ref == widget.endAyah;
+      final recognizer = LongPressGestureRecognizer()
+        ..onLongPress = () => widget.onLongPress(ayah);
+      _recognizers.add(recognizer);
+      spans.add(
+        TextSpan(
+          text: ayah.text,
+          recognizer: recognizer,
+          style: quranStyle.copyWith(
+            backgroundColor: highlighted
+                ? colors.primaryContainer.withValues(alpha: 0.5)
+                : null,
+          ),
+          children: [const TextSpan(text: ' ')],
         ),
-        IconButton(
-          tooltip: ArabicStrings.addBookmarkAction,
-          onPressed: onBookmark,
-          icon: const Icon(Icons.bookmark_add_outlined),
-        ),
-      ],
-    ),
-  );
+      );
+    }
+
+    final paragraph = RichText(
+      key: ValueKey('mushaf-surah-segment-${widget.ayahs.first.ref.surah}'),
+      text: TextSpan(style: quranStyle, children: spans),
+      textAlign: TextAlign.justify,
+      textDirection: TextDirection.rtl,
+      textScaler: TextScaler.linear(
+        widget.textScale * MediaQuery.textScalerOf(context).scale(1),
+      ),
+    );
+    return widget.anchorKey == null
+        ? paragraph
+        : KeyedSubtree(key: widget.anchorKey, child: paragraph);
+  }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/router.dart';
 import '../../../../core/design_system/app_button.dart';
+import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/assignment_status.dart' as ds;
@@ -13,6 +14,8 @@ import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/design_system/widgets/status_chip.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
+import '../../../../core/quran/mushaf/mushaf_repository.dart';
+import '../../../../core/di/service_locator.dart';
 import '../../cubit/assignment/assignment_cubit.dart';
 import '../../cubit/assignment/assignment_state.dart';
 import '../../data/entities/entities.dart';
@@ -33,6 +36,11 @@ class PersonalAssignmentScreen extends StatefulWidget {
 
 class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
   late final Future<void> _metadata = widget.metadataRepository.load();
+  MushafRepository? get _mushaf =>
+      serviceLocator.isRegistered<MushafRepository>()
+      ? serviceLocator<MushafRepository>()
+      : null;
+  late final Future<void>? _mushafLoad = _mushaf?.load();
 
   @override
   Widget build(BuildContext context) {
@@ -48,26 +56,35 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
             padding: AppSpacing.screen,
             children: [
               if (state.dayState == DayState.grace)
-                const OfflineBanner(message: ArabicStrings.gracePeriodNotice),
+                const OfflineBanner(
+                  message: ArabicStrings.gracePeriodNotice,
+                  icon: Icons.hourglass_bottom_rounded,
+                ),
               AppCard(
                 padding: AppSpacing.card,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    StatusChip(
-                      status: ds.AssignmentStatus.values.byName(
-                        current.status.name,
-                      ),
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.xs,
+                      children: [
+                        Text(
+                          ArabicStrings.portionName(
+                            widget.snapshot.portionUnit,
+                            current.portionIndex,
+                          ),
+                          style: AppTypography.quranLabel,
+                        ),
+                        StatusChip(
+                          status: ds.AssignmentStatus.values.byName(
+                            current.status.name,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      ArabicStrings.portionName(
-                        widget.snapshot.portionUnit,
-                        current.portionIndex,
-                      ),
-                      style: AppTypography.quranLabel,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
                     FutureBuilder<void>(
                       future: _metadata,
                       builder: (context, metadataState) {
@@ -80,14 +97,78 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                           widget.snapshot.portionUnit,
                           current.portionIndex,
                         );
-                        return Text(
-                          ArabicStrings.portionRange(
-                            widget.metadataRepository.suraName(info.startSura),
-                            info.startAya,
-                            widget.metadataRepository.suraName(info.endSura),
-                            info.endAya,
-                          ),
-                          style: AppTypography.bodyLarge,
+                        final pageSource = _mushaf;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.auto_stories_rounded,
+                                  size: 20,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<AppColors>()!.inkMuted,
+                                ),
+                                const SizedBox(width: AppSpacing.xs),
+                                Expanded(
+                                  child: Text(
+                                    ArabicStrings.portionRange(
+                                      widget.metadataRepository.suraName(
+                                        info.startSura,
+                                      ),
+                                      info.startAya,
+                                      widget.metadataRepository.suraName(
+                                        info.endSura,
+                                      ),
+                                      info.endAya,
+                                    ),
+                                    style: AppTypography.bodyLarge,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (pageSource != null)
+                              FutureBuilder<void>(
+                                future: _mushafLoad,
+                                builder: (context, pageState) {
+                                  if (pageState.connectionState !=
+                                          ConnectionState.done ||
+                                      pageState.hasError) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  final pages = pageSource.portionRange(
+                                    widget.snapshot.portionUnit,
+                                    current.portionIndex,
+                                  );
+                                  return Padding(
+                                    padding: const EdgeInsetsDirectional.only(
+                                      top: AppSpacing.xs,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.bookmark_outline_rounded,
+                                          size: 18,
+                                          color: Theme.of(
+                                            context,
+                                          ).extension<AppColors>()!.inkMuted,
+                                        ),
+                                        const SizedBox(width: AppSpacing.xs),
+                                        Text(
+                                          ArabicStrings.pageRangeLabel(
+                                            pages.startPage,
+                                            pages.endPage,
+                                          ),
+                                          style: AppTypography.caption,
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                          ],
                         );
                       },
                     ),
@@ -96,10 +177,13 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
               ),
               const SizedBox(height: AppSpacing.sm),
               if (state.status == AssignmentActionStatus.queued)
-                const OfflineBanner(message: ArabicStrings.syncQueued),
+                const OfflineBanner(
+                  message: ArabicStrings.syncQueued,
+                  icon: Icons.cloud_upload_rounded,
+                ),
               if (state.status == AssignmentActionStatus.failure)
                 StatePanel(
-                  icon: Icons.error_outline,
+                  icon: Icons.error_outline_rounded,
                   title: ArabicStrings.dashboardLoadError,
                   message: ArabicStrings.errorMessage(
                     state.failure?.code ?? '',
@@ -111,12 +195,11 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
               const SizedBox(height: AppSpacing.sm),
               AppButton(
                 label: ArabicStrings.readNowAction,
-                icon: const Icon(Icons.menu_book),
+                icon: const Icon(Icons.menu_book_rounded),
                 variant: AppButtonVariant.secondary,
                 expanded: true,
-                onPressed: () => Navigator.pushNamed(
+                onPressed: () => AppRoutes.pushReader(
                   context,
-                  AppRoutes.mushafReader,
                   arguments: {
                     'unit': widget.snapshot.portionUnit,
                     'index': current.portionIndex,
@@ -128,8 +211,10 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
               const SizedBox(height: AppSpacing.sm),
               if (!completed)
                 AppButton(
-                  label: ArabicStrings.completeAction,
-                  icon: const Icon(Icons.check),
+                  label: ArabicStrings.completeActionFor(
+                    widget.snapshot.portionUnit,
+                  ),
+                  icon: const Icon(Icons.check_rounded),
                   expanded: true,
                   loading: state.status == AssignmentActionStatus.loading,
                   onPressed: state.status == AssignmentActionStatus.loading
@@ -142,7 +227,7 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                 AppButton(
                   label: ArabicStrings.undoAction,
                   variant: AppButtonVariant.secondary,
-                  icon: const Icon(Icons.undo),
+                  icon: const Icon(Icons.undo_rounded),
                   expanded: true,
                   onPressed: state.status == AssignmentActionStatus.loading
                       ? null

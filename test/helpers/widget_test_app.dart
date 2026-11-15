@@ -1,8 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:quran_daily/core/design_system/app_theme.dart';
+
+Future<void> loadArabicUiFontsForGoldenTests() async {
+  await (FontLoader(
+    'MaterialIcons',
+  )..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
+  await (FontLoader(
+    'Cairo',
+  )..addFont(rootBundle.load('assets/fonts/cairo/Cairo-Variable.ttf'))).load();
+  await (FontLoader('Amiri')
+        ..addFont(rootBundle.load('assets/fonts/amiri/Amiri-Regular.ttf'))
+        ..addFont(rootBundle.load('assets/fonts/amiri/Amiri-Bold.ttf')))
+      .load();
+}
+
+/// Load the app's bundled Arabic fonts before capturing visual goldens.
+Future<void> loadAppFontsForGoldenTests() async {
+  for (final family in const {
+    'Cairo': 'assets/fonts/cairo/Cairo-Variable.ttf',
+    'Amiri': 'assets/fonts/amiri/Amiri-Regular.ttf',
+  }.entries) {
+    final loader = FontLoader(family.key)
+      ..addFont(rootBundle.load(family.value));
+    await loader.load();
+  }
+  final materialIcons = FontLoader('MaterialIcons')
+    ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
+  await materialIcons.load();
+}
+
+Future<void> loadDesignSystemFonts() async {
+  final cairo = FontLoader('Cairo')
+    ..addFont(rootBundle.load('assets/fonts/cairo/Cairo-Variable.ttf'));
+  final amiri = FontLoader('Amiri')
+    ..addFont(rootBundle.load('assets/fonts/amiri/Amiri-Regular.ttf'))
+    ..addFont(rootBundle.load('assets/fonts/amiri/Amiri-Bold.ttf'));
+  final materialIcons = FontLoader('MaterialIcons')
+    ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
+  await Future.wait([cairo.load(), amiri.load(), materialIcons.load()]);
+}
 
 /// Pumps [child] inside the real app theme: Arabic locale, RTL, Material 3
 /// design-system ThemeData (with the [AppColors] ThemeExtension), optionally
@@ -32,9 +72,9 @@ Widget buildArabicTestApp(
       Widget tree = builtChild ?? const SizedBox.shrink();
       if (textScale != 1.0) {
         tree = MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(textScale),
-          ),
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
           child: tree,
         );
       }
@@ -44,10 +84,7 @@ Widget buildArabicTestApp(
           child: tree,
         );
       }
-      return Directionality(
-        textDirection: TextDirection.rtl,
-        child: tree,
-      );
+      return Directionality(textDirection: TextDirection.rtl, child: tree);
     },
     home: Material(child: child),
   );
@@ -56,12 +93,7 @@ Widget buildArabicTestApp(
 
 /// The four mandatory constitution variants for every screen/widget test:
 /// base RTL, 200% text scale, dark theme, and 320dp width.
-const testVariants = <({
-  String name,
-  bool dark,
-  double textScale,
-  Size size,
-})>[
+const testVariants = <({String name, bool dark, double textScale, Size size})>[
   (name: 'rtl', dark: false, textScale: 1.0, size: Size(360, 740)),
   (name: '200% text', dark: false, textScale: 2.0, size: Size(360, 740)),
   (name: 'dark', dark: true, textScale: 1.0, size: Size(360, 740)),

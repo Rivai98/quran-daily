@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
+import 'package:quran_daily/core/design_system/app_colors.dart';
+import 'package:quran_daily/core/design_system/app_spacing.dart';
 import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import '../../../helpers/quran_metadata_test_asset_bundle.dart';
@@ -12,6 +14,7 @@ import 'package:quran_daily/features/quran_groups/data/repositories/khatma_repos
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/design_system/widgets/part_tile.dart';
+import 'package:quran_daily/core/design_system/widgets/skeleton.dart';
 import 'package:quran_daily/features/quran_groups/view/widgets/override_assignment_sheet.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/group_dashboard_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/widgets/forming_group_view.dart';
@@ -66,6 +69,7 @@ DashboardSnapshot _snapshot({
     ),
     assignments: assignments,
     myAssignments: [assignments.first],
+    activeMemberCount: 1,
     isStale: stale,
     pendingPortionUnit: pendingPortionUnit,
     portionUnit: portionUnit,
@@ -74,6 +78,52 @@ DashboardSnapshot _snapshot({
 }
 
 void main() {
+  setUpAll(loadAppFontsForGoldenTests);
+
+  testWidgets('golden: active dashboard at 360x800 in light and dark themes', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final cubit = DashboardCubit(
+      repository: _Repository(),
+      groupId: 'g1',
+      initialState: DashboardState(
+        status: DashboardStatus.success,
+        snapshot: _snapshot(),
+      ),
+    );
+    addTearDown(cubit.close);
+    final metadataRepository = QuranMetadataRepository(
+      bundle: QuranMetadataTestAssetBundle(),
+    );
+    await tester.runAsync(metadataRepository.load);
+
+    for (final dark in [false, true]) {
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          BlocProvider.value(
+            value: cubit,
+            child: GroupDashboardScreen(metadataRepository: metadataRepository),
+          ),
+          dark: dark,
+          size: const Size(360, 800),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(GroupDashboardScreen),
+        matchesGoldenFile(
+          dark
+              ? 'goldens/polish_b_dashboard_dark.png'
+              : 'goldens/polish_b_dashboard_light.png',
+        ),
+      );
+    }
+  });
+
   testWidgets('non-owner juz tiles do not open the override flow', (
     tester,
   ) async {
@@ -210,7 +260,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(SkeletonBox), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -270,6 +320,20 @@ void main() {
       expect(find.text(ArabicStrings.myWirdToday), findsOneWidget);
       expect(find.text(ArabicStrings.readNowAction), findsOneWidget);
       expect(find.byTooltip(ArabicStrings.mushafTitle), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.byType(IconButton),
+        ),
+        findsNWidgets(2),
+      );
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.byType(PopupMenuButton<String>),
+        ),
+        findsOneWidget,
+      );
       expect(
         tester.getTopLeft(find.text(ArabicStrings.myWirdToday)).dy,
         lessThan(640),
@@ -418,6 +482,12 @@ void main() {
   testWidgets('forming owner can share the invite and start the khatma', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
     final groups = await pumpWithRole(
       tester,
       role: GroupRole.owner,
@@ -430,8 +500,22 @@ void main() {
     expect(find.byType(FormingGroupView), findsOneWidget);
     expect(find.text(ArabicStrings.shareInviteAction), findsOneWidget);
 
-    await tester.tap(find.text(ArabicStrings.startKhatmaAction));
+    await tester.ensureVisible(
+      find.text(ArabicStrings.startKhatmaAction).first,
+    );
+    await tester.tap(find.text(ArabicStrings.startKhatmaAction).first);
     await tester.pumpAndSettle();
+    expect(find.byType(ChoiceChip), findsNWidgets(30));
+    expect(
+      tester.getSize(find.byType(ChoiceChip).first),
+      const Size(AppSpacing.xxl, AppSpacing.xxl),
+    );
+    expect(
+      tester.widget<ChoiceChip>(find.byType(ChoiceChip).first).selectedColor,
+      Theme.of(
+        tester.element(find.byType(ChoiceChip).first),
+      ).extension<AppColors>()!.primaryContainer,
+    );
     await tester.tap(find.text(ArabicStrings.startKhatmaAction).last);
     await tester.pumpAndSettle();
 
@@ -468,7 +552,12 @@ void main() {
       find.text(ArabicStrings.portionName(PortionUnit.hizb, 1)),
       findsOneWidget,
     );
-    expect(find.text(ArabicStrings.cycleProgress(1, 2, 1, 60)), findsOneWidget);
+    expect(find.text(ArabicStrings.cycleDayProgress(1, 2)), findsOneWidget);
+    expect(find.text(ArabicStrings.groupProgressLabel(0, 1)), findsOneWidget);
+    expect(
+      find.text(ArabicStrings.groupDashboardMeta(1, PortionUnit.hizb)),
+      findsOneWidget,
+    );
   });
 
   testWidgets('owner reaches history, members, requests and group settings', (
@@ -476,13 +565,37 @@ void main() {
   ) async {
     await pumpWithRole(tester, role: GroupRole.owner);
 
-    expect(find.byTooltip(ArabicStrings.openHistoryAction), findsOneWidget);
     await tester.tap(find.byTooltip(ArabicStrings.groupMenuTooltip));
     await tester.pumpAndSettle();
 
+    expect(find.text(ArabicStrings.openHistoryAction), findsOneWidget);
     expect(find.text(ArabicStrings.manageMembersAction), findsOneWidget);
     expect(find.text(ArabicStrings.reviewJoinRequestsAction), findsOneWidget);
     expect(find.text(ArabicStrings.groupSettingsAction), findsOneWidget);
+
+    // Every item leads with an icon in the item's text color (ui-craft).
+    const expected = {
+      ArabicStrings.setMainGroupAction: Icons.push_pin_rounded,
+      ArabicStrings.openHistoryAction: Icons.history_rounded,
+      ArabicStrings.manageMembersAction: Icons.people_alt_rounded,
+      ArabicStrings.reviewJoinRequestsAction: Icons.person_add_alt_1_rounded,
+      ArabicStrings.groupSettingsAction: Icons.tune_rounded,
+    };
+    for (final entry in expected.entries) {
+      final item = find.ancestor(
+        of: find.text(entry.key),
+        matching: find.byType(PopupMenuItem<String>),
+      );
+      final icon = find.descendant(of: item, matching: find.byIcon(entry.value));
+      expect(icon, findsOneWidget, reason: entry.key);
+      final label = tester.widget<Text>(
+        find.descendant(of: item, matching: find.text(entry.key)),
+      );
+      final labelColor =
+          label.style?.color ??
+          DefaultTextStyle.of(tester.element(find.text(entry.key))).style.color;
+      expect(tester.widget<Icon>(icon).color, labelColor, reason: entry.key);
+    }
   });
 
   testWidgets('supervisor manages members and requests but not settings', (
@@ -497,12 +610,15 @@ void main() {
     expect(find.text(ArabicStrings.groupSettingsAction), findsNothing);
   });
 
-  testWidgets('member sees history and members but no management menu', (
+  testWidgets('member can pin main group but cannot manage members', (
     tester,
   ) async {
     await pumpWithRole(tester, role: GroupRole.member);
 
-    expect(find.byTooltip(ArabicStrings.openHistoryAction), findsOneWidget);
-    expect(find.byTooltip(ArabicStrings.groupMenuTooltip), findsNothing);
+    await tester.tap(find.byTooltip(ArabicStrings.groupMenuTooltip));
+    await tester.pumpAndSettle();
+    expect(find.text(ArabicStrings.openHistoryAction), findsOneWidget);
+    expect(find.text(ArabicStrings.setMainGroupAction), findsOneWidget);
+    expect(find.text(ArabicStrings.manageMembersAction), findsNothing);
   });
 }

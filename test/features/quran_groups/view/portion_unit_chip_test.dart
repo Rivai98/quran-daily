@@ -11,7 +11,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'shows the selected daily unit and metadata-derived cycle length in all variants',
+    'keeps the selected unit chip on one line in all variants',
     (tester) async {
       final metadata = QuranMetadataRepository(
         bundle: QuranMetadataTestAssetBundle(),
@@ -29,7 +29,7 @@ void main() {
           );
           expect(
             find.text(ArabicStrings.khatmaDays(2)),
-            findsOneWidget,
+            findsNothing,
             reason: variant,
           );
           expect(tester.takeException(), isNull, reason: variant);

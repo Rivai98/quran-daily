@@ -9,7 +9,7 @@ import '../../../core/design_system/widgets/widgets.dart';
 import '../../../core/localization/arabic_strings.dart';
 import '../cubit/auth_cubit.dart';
 
-/// Two-mode auth entry (spec 002): login / create account. Email content
+/// Two-mode auth entry (spec 002 & Polish D): login / create account. Email content
 /// renders LTR inside its own field while the page stays Arabic RTL.
 class AuthEntryScreen extends StatefulWidget {
   const AuthEntryScreen({super.key});
@@ -148,7 +148,7 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
           builder: (context, state) {
             if (state.status == AuthStatus.profileFailure) {
               return StatePanel(
-                icon: Icons.person_off_outlined,
+                icon: Icons.person_off_rounded,
                 title: ArabicStrings.profileLoadTitle,
                 message: ArabicStrings.authError('missing_profile'),
                 actionLabel: ArabicStrings.retry,
@@ -167,138 +167,188 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: AppSpacing.xs),
                       ClipRRect(
                         borderRadius: AppRadius.lgBR,
-                        child: IslamicOrnamentBand(height: 196, contentPadding: 8,
-                          child: Container(
-                            width: double.infinity,
-                            color: colors.primaryContainer.withValues(alpha: .7),
-                            padding: AppSpacing.card,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.menu_book, size: 56, color: colors.primary),
-                                const SizedBox(height: AppSpacing.sm),
-                                Text(ArabicStrings.appName, textAlign: TextAlign.center, style: AppTypography.headline.copyWith(color: colors.onPrimaryContainer)),
-                                const SizedBox(height: AppSpacing.xs),
-                                const OrnamentalDivider(),
-                                const SizedBox(height: AppSpacing.xs),
-                                Text(ArabicStrings.signInHint, textAlign: TextAlign.center, style: AppTypography.body.copyWith(color: colors.onPrimaryContainer)),
-                              ],
-                            ),
+                        child: IslamicOrnamentBand(
+                          height: 112,
+                          contentPadding: AppSpacing.sm,
+                          refined: true,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const HalaqaLogo(size: 48),
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                ArabicStrings.appName,
+                                textAlign: TextAlign.center,
+                                style: AppTypography.headline.copyWith(
+                                  color: colors.onPrimaryContainer,
+                                ),
+                              ),
+                              Text(
+                                ArabicStrings.signInHint,
+                                textAlign: TextAlign.center,
+                                style: AppTypography.caption.copyWith(
+                                  color: colors.onPrimaryContainer,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.sm),
                       AppCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                      _ModeToggle(enabled: !submitting),
-                      const SizedBox(height: AppSpacing.md),
-                      if (state.mode == AuthMode.signup) ...[
-                        AppTextField(
-                          key: const ValueKey('auth-displayName'),
-                          label: ArabicStrings.displayNameLabel,
-                          controller: _displayName,
-                          errorText: _displayNameError,
-                          prefixIcon: Icons.person_outline,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                      ],
-                      AppTextField(
-                        key: const ValueKey('auth-email'),
-                        label: ArabicStrings.emailLabel,
-                        controller: _email,
-                        errorText: _emailError,
-                        hint: 'name@example.com',
-                        ltr: true,
-                        keyboardType: TextInputType.emailAddress,
-                        prefixIcon: Icons.mail_outline,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      AppTextField(
-                        key: const ValueKey('auth-password'),
-                        label: ArabicStrings.passwordLabel,
-                        controller: _password,
-                        errorText: _passwordError,
-                        hint: ArabicStrings.passwordHint,
-                        obscure: true,
-                        prefixIcon: Icons.lock_outline,
-                      ),
-                      if (state.mode == AuthMode.signup) ...[
-                        const SizedBox(height: AppSpacing.md),
-                        AppTextField(
-                          key: const ValueKey('auth-confirmation'),
-                          label: ArabicStrings.confirmPasswordLabel,
-                          controller: _confirmation,
-                          errorText: _confirmationError,
-                          obscure: true,
-                          prefixIcon: Icons.lock_outline,
-                        ),
-                      ],
-                      if (state.status == AuthStatus.failure &&
-                          state.failure != null) ...[
-                        const SizedBox(height: AppSpacing.sm),
-                        _ErrorBanner(
-                          message: ArabicStrings.authError(state.failure!.code),
-                        ),
-                      ],
-                      const SizedBox(height: AppSpacing.lg),
-                      AppButton(
-                        label: state.mode == AuthMode.login
-                            ? ArabicStrings.signInTitle
-                            : ArabicStrings.createAccountTitle,
-                        onPressed: submitting
-                            ? null
-                            : () => _submit(context.read<AuthCubit>()),
-                        loading: submitting,
-                        expanded: true,
-                        icon: const Icon(Icons.login),
-                      ),
-                      if (context.read<AuthCubit>().googleSignInEnabled) ...[
-                        const SizedBox(height: AppSpacing.md),
-                        Row(children: [
-                          Expanded(child: Divider(color: colors.border)),
-                          Padding(
-                            padding: const EdgeInsetsDirectional.symmetric(horizontal: AppSpacing.md),
-                            child: Text(ArabicStrings.or, style: AppTypography.caption.copyWith(color: colors.inkMuted)),
-                          ),
-                          Expanded(child: Divider(color: colors.border)),
-                        ]),
-                        const SizedBox(height: AppSpacing.sm),
-                        AppButton(
-                          label: ArabicStrings.googleSignIn,
-                          variant: AppButtonVariant.secondary,
-                          expanded: true,
-                          onPressed: submitting ? null : () => context.read<AuthCubit>().signInWithGoogle(),
-                          icon: const Icon(Icons.g_mobiledata),
-                        ),
-                      ],
+                            _ModeToggle(enabled: !submitting),
+                            const SizedBox(height: AppSpacing.md),
+                            if (state.mode == AuthMode.signup) ...[
+                              AppTextField(
+                                key: const ValueKey('auth-displayName'),
+                                label: ArabicStrings.displayNameLabel,
+                                controller: _displayName,
+                                errorText: _displayNameError,
+                                prefixIcon: Icons.person_outline_rounded,
+                                textInputAction: TextInputAction.next,
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                            ],
+                            AppTextField(
+                              key: const ValueKey('auth-email'),
+                              label: ArabicStrings.emailLabel,
+                              controller: _email,
+                              errorText: _emailError,
+                              hint: 'name@example.com',
+                              ltr: true,
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [AutofillHints.email],
+                              prefixIcon: Icons.mail_outline_rounded,
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            AppTextField(
+                              key: const ValueKey('auth-password'),
+                              label: ArabicStrings.passwordLabel,
+                              controller: _password,
+                              errorText: _passwordError,
+                              hint: ArabicStrings.passwordHint,
+                              obscure: true,
+                              prefixIcon: Icons.lock_outline_rounded,
+                              textInputAction: state.mode == AuthMode.login
+                                  ? TextInputAction.done
+                                  : TextInputAction.next,
+                              autofillHints: state.mode == AuthMode.login
+                                  ? const [AutofillHints.password]
+                                  : const [AutofillHints.newPassword],
+                              onSubmitted: state.mode == AuthMode.login
+                                  ? (_) => _submit(context.read<AuthCubit>())
+                                  : null,
+                            ),
+                            if (state.mode == AuthMode.signup) ...[
+                              const SizedBox(height: AppSpacing.md),
+                              AppTextField(
+                                key: const ValueKey('auth-confirmation'),
+                                label: ArabicStrings.confirmPasswordLabel,
+                                controller: _confirmation,
+                                errorText: _confirmationError,
+                                obscure: true,
+                                prefixIcon: Icons.lock_outline_rounded,
+                                textInputAction: TextInputAction.done,
+                                onSubmitted: (_) =>
+                                    _submit(context.read<AuthCubit>()),
+                              ),
+                            ],
+                            if (state.status == AuthStatus.failure &&
+                                state.failure != null) ...[
+                              const SizedBox(height: AppSpacing.sm),
+                              AppBanner.error(
+                                message: ArabicStrings.authError(
+                                  state.failure!.code,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: AppSpacing.md),
+                            AppButton(
+                              label: state.mode == AuthMode.login
+                                  ? ArabicStrings.signInTitle
+                                  : ArabicStrings.createAccountTitle,
+                              onPressed: submitting
+                                  ? null
+                                  : () => _submit(context.read<AuthCubit>()),
+                              loading: submitting,
+                              expanded: true,
+                              icon: const Icon(Icons.login_rounded),
+                            ),
+                            if (context
+                                .read<AuthCubit>()
+                                .googleSignInEnabled) ...[
+                              const SizedBox(height: AppSpacing.md),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Divider(color: colors.border),
+                                  ),
+                                  Padding(
+                                    padding:
+                                        const EdgeInsetsDirectional.symmetric(
+                                          horizontal: AppSpacing.md,
+                                        ),
+                                    child: Text(
+                                      ArabicStrings.or,
+                                      style: AppTypography.caption.copyWith(
+                                        color: colors.inkMuted,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Divider(color: colors.border),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                              AppButton(
+                                label: ArabicStrings.googleSignIn,
+                                variant: AppButtonVariant.secondary,
+                                expanded: true,
+                                onPressed: submitting
+                                    ? null
+                                    : () => context
+                                          .read<AuthCubit>()
+                                          .signInWithGoogle(),
+                                icon: const Icon(Icons.g_mobiledata),
+                              ),
+                            ],
                           ],
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.md),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            size: 20,
-                            color: colors.inkMuted,
-                          ),
-                          const SizedBox(width: AppSpacing.xs),
-                          Expanded(
-                            child: Text(
-                              ArabicStrings.forgotPasswordGuidance,
-                              style: AppTypography.caption.copyWith(
+                      if (state.mode == AuthMode.login) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Icon(
+                                Icons.info_outline_rounded,
+                                size: 18,
                                 color: colors.inkMuted,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
+                            const SizedBox(width: AppSpacing.xs),
+                            Expanded(
+                              child: Text(
+                                ArabicStrings.forgotPasswordGuidance,
+                                style: AppTypography.caption.copyWith(
+                                  color: colors.inkMuted,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: AppSpacing.sm),
                     ],
                   ),
                 ),
@@ -306,42 +356,6 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
             );
           },
         ),
-      ),
-    );
-  }
-}
-
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: ShapeDecoration(
-        color: colors.missedBg,
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.mdBR,
-          side: BorderSide(color: colors.danger.withValues(alpha: 0.3)),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, size: 20, color: colors.danger),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              message,
-              style: AppTypography.caption.copyWith(color: colors.danger),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -373,11 +387,22 @@ class _ModeToggle extends StatelessWidget {
               foregroundColor: selected
                   ? colors.onPrimaryContainer
                   : colors.inkMuted,
+              minimumSize: const Size(64, 48),
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(AppRadius.md)),
               ),
             ),
-            child: Text(label),
+            child: Text(
+              label,
+              style: AppTypography.label.copyWith(
+                color: selected
+                    ? colors.onPrimaryContainer
+                    : colors.inkMuted,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ),
       );

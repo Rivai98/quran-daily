@@ -12,6 +12,7 @@ import '../core/storage/local_database.dart';
 import '../core/quran/portion_unit.dart';
 import '../core/settings/settings_repository.dart';
 import '../core/quran/mushaf/mushaf_repository.dart';
+import '../core/quran/mushaf/qpc_v2_repository.dart';
 import '../core/design_system/widgets/state_panel.dart';
 import '../features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
 import '../features/quran_groups/cubit/assignment/assignment_cubit.dart';
@@ -37,6 +38,17 @@ import '../features/mushaf/data/reader_storage.dart';
 import '../features/mushaf/view/bookmarks_screen.dart';
 import '../features/mushaf/view/mushaf_index_screen.dart';
 import '../features/mushaf/view/reader_screen.dart';
+import '../features/admin/view/admin_screens.dart';
+import '../features/quran_groups/cubit/member_profile/member_profile_cubit.dart';
+import '../features/quran_groups/view/screens/member_profile_screen.dart';
+import '../features/quran_groups/cubit/group_info/group_info_cubit.dart';
+import '../features/quran_groups/view/screens/group_info_screen.dart';
+import '../features/settings/view/edit_profile_screen.dart';
+import '../features/profile/cubit/profile_cubit.dart';
+import '../features/profile/view/profile_screen.dart';
+import '../features/log/cubit/log_cubit.dart';
+import '../features/log/data/repositories/log_repository.dart';
+import '../features/log/view/log_screen.dart';
 
 String? inviteCodeFromDeepLink(Uri uri) {
   if (uri.scheme != 'qurandaily' ||
@@ -80,6 +92,31 @@ class AppRoutes {
   static const mushafBookmarks = '/mushaf/bookmarks';
   static const mushafLicenses = '/mushaf/licenses';
 
+  static Future<T?> pushReader<T>(BuildContext context, {Object? arguments}) =>
+      Navigator.of(
+        context,
+        rootNavigator: true,
+      ).pushNamed<T>(mushafReader, arguments: arguments);
+
+  // --- 007 profiles ---
+  static const memberProfile = '/groups/member/profile';
+  static const groupInfo = '/groups/info';
+  static const editMyProfile = '/profile/edit';
+  static const log = '/log';
+  static const profile = '/profile';
+
+  /// Root of the المصحف tab in the HomeShell: the Mushaf index (spec 003).
+  /// Pages open on top of the index so back returns to it.
+  static Widget mushafTab(BuildContext context) {
+    final dependencies = _mushafDependencies();
+    if (dependencies == null) return _mushafUnavailable();
+    final (repository, _) = dependencies;
+    return MushafIndexScreen(
+      repository: repository,
+      onOpenPage: (page) => pushReader(context, arguments: {'page': page}),
+    );
+  }
+
   static Map<String, WidgetBuilder> get routes {
     // The root "/" is owned by the auth gate in app.dart (home), so it is
     // deliberately absent from this table.
@@ -92,11 +129,11 @@ class AppRoutes {
       ),
       discovery: (_) => BlocProvider(
         create: (_) => serviceLocator<DiscoveryCubit>()..load(),
-        child: DiscoveryScreen(metadataRepository: _metadataRepository()),
+        child: const DiscoveryScreen(),
       ),
       '/groups/discovery': (_) => BlocProvider(
         create: (_) => serviceLocator<DiscoveryCubit>()..load(),
-        child: DiscoveryScreen(metadataRepository: _metadataRepository()),
+        child: const DiscoveryScreen(),
       ),
       '/join': (_) => BlocProvider(
         create: (_) => serviceLocator<JoinCubit>(),
@@ -199,13 +236,21 @@ class AppRoutes {
             inviteCode: inviteCode,
             portionUnit: args['portionUnit'] as PortionUnit? ?? PortionUnit.juz,
             isActive: args['isActive'] == true,
+            groupName: args['groupName'] as String?,
             onKhatmaStarted: () => Navigator.of(context).pop(),
           ),
         );
       },
-      history: (context) => HistoryScreen(
-        groupId: ModalRoute.of(context)?.settings.arguments as String?,
-      ),
+      history: (context) {
+        final arguments = ModalRoute.of(context)?.settings.arguments;
+        if (arguments is Map<String, Object?>) {
+          return HistoryScreen(
+            groupId: arguments['groupId'] as String?,
+            initialDate: arguments['date'] as String?,
+          );
+        }
+        return HistoryScreen(groupId: arguments as String?);
+      },
       settings: (_) => const SettingsScreen(),
       mushaf: (context) {
         final dependencies = _mushafDependencies();
@@ -216,11 +261,14 @@ class AppRoutes {
             repository: repository,
             storage: storage,
             settings: serviceLocator<SettingsRepository>(),
+            qpcLayout: serviceLocator<QpcV2Repository>(),
+            qpcFonts: serviceLocator<QpcFontManager>(),
           )..openLastPosition(),
           child: ReaderScreen(
             repository: repository,
             storage: storage,
             metadata: _metadataRepository(),
+            qpcLayout: serviceLocator<QpcV2Repository>(),
           ),
         );
       },
@@ -243,6 +291,8 @@ class AppRoutes {
               repository: repository,
               storage: storage,
               settings: serviceLocator<SettingsRepository>(),
+              qpcLayout: serviceLocator<QpcV2Repository>(),
+              qpcFonts: serviceLocator<QpcFontManager>(),
               onComplete: assignmentId == null
                   ? null
                   : () async {
@@ -272,6 +322,7 @@ class AppRoutes {
             repository: repository,
             storage: storage,
             metadata: _metadataRepository(),
+            qpcLayout: serviceLocator<QpcV2Repository>(),
           ),
         );
       },
@@ -281,11 +332,7 @@ class AppRoutes {
         final (repository, _) = dependencies;
         return MushafIndexScreen(
           repository: repository,
-          onOpenPage: (page) => Navigator.pushReplacementNamed(
-            context,
-            mushafReader,
-            arguments: {'page': page},
-          ),
+          onOpenPage: (page) => pushReader(context, arguments: {'page': page}),
         );
       },
       mushafBookmarks: (context) {
@@ -294,14 +341,49 @@ class AppRoutes {
         final storage = dependencies.$2;
         return BookmarksScreen(
           storage: storage,
-          onOpenPage: (page) => Navigator.pushReplacementNamed(
-            context,
-            mushafReader,
-            arguments: {'page': page},
-          ),
+          onOpenPage: (page) => pushReader(context, arguments: {'page': page}),
         );
       },
       mushafLicenses: (_) => const MushafLicensesScreen(),
+      '/admin': (_) => const AdminOverviewScreen(),
+      '/admin/groups': (_) => const AdminGroupsScreen(),
+      '/admin/users': (_) => const AdminUsersScreen(),
+      '/admin/audit': (_) => const AdminAuditScreen(),
+      '/admin/group': (context) => AdminGroupDetailScreen(
+        groupId: ModalRoute.of(context)?.settings.arguments as String? ?? '',
+      ),
+      '/admin/user': (context) => AdminUserDetailScreen(
+        userId: ModalRoute.of(context)?.settings.arguments as String? ?? '',
+      ),
+      memberProfile: (context) {
+        final args = MemberProfileArgs.fromDynamic(
+          ModalRoute.of(context)?.settings.arguments,
+        );
+        return BlocProvider(
+          create: (_) => serviceLocator<MemberProfileCubit>(),
+          child: MemberProfileScreen(
+            userId: args.userId,
+            groupId: args.groupId,
+          ),
+        );
+      },
+      groupInfo: (context) {
+        final groupId =
+            ModalRoute.of(context)?.settings.arguments as String? ?? '';
+        return BlocProvider(
+          create: (_) => serviceLocator<GroupInfoCubit>(),
+          child: GroupInfoScreen(groupId: groupId),
+        );
+      },
+      editMyProfile: (_) => const EditProfileScreen(),
+      profile: (_) => BlocProvider(
+        create: (_) => serviceLocator<ProfileCubit>()..load(),
+        child: const ProfileScreen(),
+      ),
+      log: (_) => BlocProvider(
+        create: (_) => serviceLocator<LogCubit>()..load(),
+        child: LogScreen(repository: serviceLocator<LogRepository>()),
+      ),
     };
   }
 

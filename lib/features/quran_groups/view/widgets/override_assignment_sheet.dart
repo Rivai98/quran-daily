@@ -71,8 +71,8 @@ class _OverrideAssignmentSheetState extends State<OverrideAssignmentSheet> {
                         : () => setState(() => selected = member.membershipId),
                     leading: Icon(
                       selected == member.membershipId
-                          ? Icons.radio_button_checked
-                          : Icons.radio_button_unchecked,
+                          ? Icons.radio_button_checked_rounded
+                          : Icons.radio_button_unchecked_rounded,
                     ),
                     title: Text(
                       member.displayName,

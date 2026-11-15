@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/quran/mushaf/mushaf_models.dart';
 import '../../../core/quran/mushaf/mushaf_repository.dart';
+import '../../../core/quran/mushaf/qpc_v2_repository.dart';
 import '../../../core/quran/portion_unit.dart';
 import '../../../core/settings/settings_repository.dart';
 import '../data/reader_storage.dart';
@@ -21,9 +24,13 @@ class ReaderState extends Equatable {
     this.portionUnit,
     this.portionIndex,
     this.isCompleted = false,
+    this.isCompletionPage = false,
     this.isOffline = false,
     this.error,
     this.quranTextScale = 1,
+    this.qpcLines = const [],
+    this.qpcFontFamily,
+    this.isFontFallback = false,
   });
 
   final ReaderStatus status;
@@ -36,14 +43,21 @@ class ReaderState extends Equatable {
   final PortionUnit? portionUnit;
   final int? portionIndex;
   final bool isCompleted;
+  final bool isCompletionPage;
   final bool isOffline;
   final Object? error;
   final double quranTextScale;
+  final List<QpcLine> qpcLines;
+  final String? qpcFontFamily;
+  final bool isFontFallback;
 
   bool get isPortion => startAyah != null;
   bool get isStartPage => page?.number == startPage;
   bool get isEndPage => page?.number == endPage;
-  bool get canComplete => isPortion && isEndPage && !isCompleted;
+  int get portionPageCount => isPortion && startPage != null && endPage != null
+      ? endPage! - startPage! + 1
+      : 0;
+  bool get canComplete => isPortion && isCompletionPage && !isCompleted;
 
   ReaderState copyWith({
     ReaderStatus? status,
@@ -56,9 +70,13 @@ class ReaderState extends Equatable {
     PortionUnit? portionUnit,
     int? portionIndex,
     bool? isCompleted,
+    bool? isCompletionPage,
     bool? isOffline,
     Object? error,
     double? quranTextScale,
+    List<QpcLine>? qpcLines,
+    String? qpcFontFamily,
+    bool? isFontFallback,
   }) => ReaderState(
     status: status ?? this.status,
     page: page ?? this.page,
@@ -70,9 +88,13 @@ class ReaderState extends Equatable {
     portionUnit: portionUnit ?? this.portionUnit,
     portionIndex: portionIndex ?? this.portionIndex,
     isCompleted: isCompleted ?? this.isCompleted,
+    isCompletionPage: isCompletionPage ?? this.isCompletionPage,
     isOffline: isOffline ?? this.isOffline,
     error: error,
     quranTextScale: quranTextScale ?? this.quranTextScale,
+    qpcLines: qpcLines ?? this.qpcLines,
+    qpcFontFamily: qpcFontFamily ?? this.qpcFontFamily,
+    isFontFallback: isFontFallback ?? this.isFontFallback,
   );
 
   @override
@@ -87,9 +109,13 @@ class ReaderState extends Equatable {
     endPage,
     assignmentId,
     isCompleted,
+    isCompletionPage,
     isOffline,
     quranTextScale,
     error,
+    qpcLines,
+    qpcFontFamily,
+    isFontFallback,
   ];
 }
 
@@ -99,16 +125,22 @@ class ReaderCubit extends Cubit<ReaderState> {
     required ReaderStorage storage,
     SettingsRepository? settings,
     Future<bool> Function()? onComplete,
+    QpcV2Repository? qpcLayout,
+    QpcFontManager? qpcFonts,
   }) : _repository = repository,
        _storage = storage,
        _settings = settings,
        _onComplete = onComplete,
+       _qpcLayout = qpcLayout,
+       _qpcFonts = qpcFonts,
        super(const ReaderState());
 
   final MushafRepository _repository;
   final ReaderStorage _storage;
   final SettingsRepository? _settings;
   final Future<bool> Function()? _onComplete;
+  final QpcV2Repository? _qpcLayout;
+  final QpcFontManager? _qpcFonts;
 
   Future<void> openLastPosition() async {
     int? saved;
@@ -126,11 +158,15 @@ class ReaderCubit extends Cubit<ReaderState> {
       await _repository.load();
       final textScale = await _loadTextScale();
       final page = _repository.page(number);
+      final exact = await _loadExactPage(number);
       emit(
         ReaderState(
           status: ReaderStatus.content,
           page: page,
           quranTextScale: textScale,
+          qpcLines: exact.$1,
+          qpcFontFamily: exact.$2,
+          isFontFallback: exact.$3,
         ),
       );
       try {
@@ -154,6 +190,7 @@ class ReaderCubit extends Cubit<ReaderState> {
       await _repository.load();
       final textScale = await _loadTextScale();
       final range = _repository.portionRange(unit, index);
+      final exact = await _loadExactPage(range.startPage);
       emit(
         ReaderState(
           status: ReaderStatus.content,
@@ -167,22 +204,39 @@ class ReaderCubit extends Cubit<ReaderState> {
           portionIndex: index,
           isCompleted: alreadyCompleted,
           quranTextScale: textScale,
+          qpcLines: exact.$1,
+          qpcFontFamily: exact.$2,
+          isFontFallback: exact.$3,
         ),
       );
+      final fonts = _qpcFonts;
+      final layout = _qpcLayout;
+      if (fonts != null && layout != null) {
+        for (var page = range.startPage + 1; page <= range.endPage; page++) {
+          unawaited(fonts.ensureLoaded(page).catchError((_) => ''));
+        }
+      }
     } catch (error) {
       emit(ReaderState(status: ReaderStatus.error, error: error));
     }
   }
 
   Future<void> turnTo(int number) async {
-    if (number < 1 || number > _repository.pageCount) return;
+    final minimum = state.isPortion ? state.startPage! : 1;
+    final maximum = state.isPortion ? state.endPage! : _repository.pageCount;
+    if (number < minimum || number > maximum) return;
     try {
       emit(
         state.copyWith(
           page: _repository.page(number),
           status: ReaderStatus.content,
+          isCompletionPage: false,
         ),
       );
+      // Each printed page loads its own lines and font inside the page view, so a
+      // page turn only updates the current page number (no second rebuild) and
+      // warms up the neighbouring pages' fonts in the background.
+      _prefetchAround(number);
       if (!state.isPortion) {
         try {
           await _storage.savePage(number);
@@ -193,6 +247,16 @@ class ReaderCubit extends Cubit<ReaderState> {
     } catch (error) {
       emit(state.copyWith(status: ReaderStatus.error, error: error));
     }
+  }
+
+  void showCompletionPage() {
+    if (!state.isPortion || state.isCompletionPage) return;
+    emit(
+      state.copyWith(
+        page: _repository.page(state.endPage!),
+        isCompletionPage: true,
+      ),
+    );
   }
 
   Future<void> completePortion() async {
@@ -206,9 +270,35 @@ class ReaderCubit extends Cubit<ReaderState> {
     }
   }
 
+  void _prefetchAround(int number) {
+    final fonts = _qpcFonts;
+    if (fonts == null) return;
+    for (final page in [number - 1, number + 1, number + 2]) {
+      if (page >= 1 && page <= 604) {
+        unawaited(fonts.ensureLoaded(page).catchError((_) => ''));
+      }
+    }
+  }
+
   Future<double> _loadTextScale() async {
     final settings = _settings;
     if (settings == null) return 1;
     return (await settings.getQuranTextScale()).valueOrNull ?? 1;
+  }
+
+  Future<(List<QpcLine>, String?, bool)> _loadExactPage(int number) async {
+    final layout = _qpcLayout;
+    final fonts = _qpcFonts;
+    if (layout == null || fonts == null) {
+      return (const <QpcLine>[], null, false);
+    }
+    try {
+      await layout.load();
+      final lines = layout.linesForPage(number);
+      final family = await fonts.ensureLoaded(number);
+      return (lines, family, false);
+    } on Object {
+      return (const <QpcLine>[], null, true);
+    }
   }
 }

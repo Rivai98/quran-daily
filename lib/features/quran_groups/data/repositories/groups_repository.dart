@@ -138,6 +138,30 @@ abstract class GroupsRepository {
   );
   Future<Result<void>> removeMember(String groupId, String membershipId);
   Future<Result<void>> leaveGroup(String groupId);
+
+  // --- 007 profiles ---
+  Future<Result<GroupInfo>> getGroupInfo(String groupId);
+  Future<Result<MemberGroupProfile>> getMemberProfile(
+    String userId,
+    String groupId,
+  );
+  Future<Result<UserProfile>> updateMyProfile(
+    String displayName, {
+    String? bio,
+    String avatarKey = 'ornament',
+  });
+  Future<Result<void>> updateGroupDetails(
+    String groupId,
+    String name, {
+    String? description,
+  });
+  Future<Result<void>> setGroupPhoto(String groupId, String? photoPath);
+  Future<Result<String>> uploadGroupPhoto(
+    String groupId,
+    List<int> bytes,
+    String extension,
+  );
+  Future<Result<List<int>>> getGroupPhotoBytes(String photoPath);
 }
 
 class PublicJoinRequestInfo extends EquatableInput {

@@ -23,9 +23,10 @@ import '../widgets/history_day_detail.dart';
 
 /// S10 History Screen: lists daily khatma summaries with drill-down (ui-contract).
 class HistoryScreen extends StatelessWidget {
-  const HistoryScreen({super.key, this.groupId});
+  const HistoryScreen({super.key, this.groupId, this.initialDate});
 
   final String? groupId;
+  final String? initialDate;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +34,7 @@ class HistoryScreen extends StatelessWidget {
     try {
       final existingCubit = context.read<HistoryCubit?>();
       if (existingCubit != null) {
-        return const _HistoryView();
+        return _HistoryView(initialDate: initialDate);
       }
     } catch (_) {}
 
@@ -46,15 +47,14 @@ class HistoryScreen extends StatelessWidget {
       create: (context) {
         if (serviceLocator.isRegistered<KhatmaRepository>()) {
           final repo = serviceLocator<KhatmaRepository>();
-          return HistoryCubit(groupId: effectiveGroupId, repository: repo)
-            ..loadHistory();
+          return HistoryCubit(groupId: effectiveGroupId, repository: repo);
         }
         return HistoryCubit(
           groupId: effectiveGroupId,
           repository: _FallbackKhatmaRepository(),
         );
       },
-      child: const _HistoryView(),
+      child: _HistoryView(initialDate: initialDate),
     );
   }
 }
@@ -108,7 +108,8 @@ class _FallbackKhatmaRepository implements KhatmaRepository {
 }
 
 class _HistoryView extends StatefulWidget {
-  const _HistoryView();
+  const _HistoryView({this.initialDate});
+  final String? initialDate;
 
   @override
   State<_HistoryView> createState() => _HistoryViewState();
@@ -122,7 +123,12 @@ class _HistoryViewState extends State<_HistoryView> {
       if (mounted) {
         final cubit = context.read<HistoryCubit>();
         if (cubit.state.status == HistoryStatus.initial) {
-          cubit.loadHistory();
+          final initialDate = widget.initialDate;
+          if (initialDate == null) {
+            cubit.loadHistory();
+          } else {
+            cubit.loadDayDetail(initialDate);
+          }
         }
       }
     });
@@ -147,15 +153,18 @@ class _HistoryViewState extends State<_HistoryView> {
               return const _SkeletonList();
 
             case HistoryStatus.empty:
-              return const StatePanel(
-                icon: Icons.history,
+              return StatePanel.empty(
+                icon: Icons.history_rounded,
                 title: ArabicStrings.emptyHistoryTitle,
                 message: ArabicStrings.emptyHistoryDesc,
+                actionLabel: ArabicStrings.groupSelectionTitle,
+                actionIcon: const Icon(Icons.groups_rounded),
+                onAction: () => Navigator.of(context).pushNamed('/groups'),
               );
 
             case HistoryStatus.failure:
-              return StatePanel(
-                icon: Icons.error_outline,
+              return StatePanel.error(
+                icon: Icons.error_outline_rounded,
                 title: ArabicStrings.historyErrorTitle,
                 message: ArabicStrings.historyErrorDesc,
                 actionLabel: ArabicStrings.retryAction,
@@ -166,13 +175,20 @@ class _HistoryViewState extends State<_HistoryView> {
             case HistoryStatus.offline:
               return Column(
                 children: [
-                  const OfflineBanner(message: ArabicStrings.offlineStale),
+                  const OfflineBanner(
+                    message: ArabicStrings.offlineStale,
+                    icon: Icons.wifi_off_rounded,
+                  ),
                   Expanded(
                     child: state.days.isEmpty
-                        ? const StatePanel(
-                            icon: Icons.history,
+                        ? StatePanel.empty(
+                            icon: Icons.history_rounded,
                             title: ArabicStrings.emptyHistoryTitle,
                             message: ArabicStrings.emptyHistoryDesc,
+                            actionLabel: ArabicStrings.groupSelectionTitle,
+                            actionIcon: const Icon(Icons.groups_rounded),
+                            onAction: () =>
+                                Navigator.of(context).pushNamed('/groups'),
                           )
                         : _DaysList(days: state.days, hasMore: state.hasMore),
                   ),
@@ -206,13 +222,32 @@ class _DaysList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cycles = groupHistoryByCycle(days.cast<HistoryDaySummary>());
-    final rows = <({HistoryCycleSummary cycle, HistoryDaySummary? day})>[];
+    final rows =
+        <
+          ({HistoryCycleSummary? cycle, HistoryDaySummary? day, String? week})
+        >[];
+    String? lastWeekStart;
     for (final cycle in cycles) {
       if (cycle.portionUnit != PortionUnit.juz) {
-        rows.add((cycle: cycle, day: null));
+        rows.add((cycle: cycle, day: null, week: null));
       }
       for (final day in cycle.days) {
-        rows.add((cycle: cycle, day: day));
+        final date = DateTime.parse(day.groupDate);
+        final weekStart = date
+            .subtract(Duration(days: date.weekday - DateTime.monday))
+            .toIso8601String()
+            .substring(0, 10);
+        if (weekStart != lastWeekStart) {
+          rows.add((
+            cycle: null,
+            day: null,
+            week: ArabicStrings.historyWeekOf(
+              date.subtract(Duration(days: date.weekday - DateTime.monday)),
+            ),
+          ));
+          lastWeekStart = weekStart;
+        }
+        rows.add((cycle: cycle, day: day, week: null));
       }
     }
     return ListView.separated(
@@ -230,8 +265,22 @@ class _DaysList extends StatelessWidget {
         }
 
         final row = rows[index];
+        if (row.week != null) {
+          final colors = Theme.of(context).extension<AppColors>()!;
+          return Padding(
+            padding: const EdgeInsetsDirectional.only(top: AppSpacing.sm),
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AppSpacing.xs,
+              children: [
+                Icon(Icons.view_week_rounded, size: 20, color: colors.inkMuted),
+                Text(row.week!, style: Theme.of(context).textTheme.titleMedium),
+              ],
+            ),
+          );
+        }
         if (row.day == null) {
-          final cycle = row.cycle;
+          final cycle = row.cycle!;
           final colors = Theme.of(context).extension<AppColors>()!;
           return Padding(
             padding: const EdgeInsetsDirectional.only(top: AppSpacing.sm),
@@ -239,13 +288,16 @@ class _DaysList extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    '${ArabicStrings.cycleLabel} ${ArabicNumerals.format(cycle.cycleNumber)} · ${ArabicStrings.portionUnitName(cycle.portionUnit)}',
+                    '${ArabicStrings.cycleLabel} ${ArabicNumerals.format(cycle.cycleNumber)}، ${ArabicStrings.portionUnitName(cycle.portionUnit)}',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 if (cycle.fullKhatma)
                   Chip(
-                    avatar: Icon(Icons.verified, color: colors.completedFg),
+                    avatar: Icon(
+                      Icons.verified_rounded,
+                      color: colors.completedFg,
+                    ),
                     label: const Text(ArabicStrings.fullKhatmaBadge),
                   ),
               ],
@@ -255,7 +307,7 @@ class _DaysList extends StatelessWidget {
         final day = row.day!;
         return HistoryDayCard(
           day: day,
-          showFullKhatmaBadge: row.cycle.portionUnit == PortionUnit.juz,
+          showFullKhatmaBadge: row.cycle!.portionUnit == PortionUnit.juz,
           onTap: () =>
               context.read<HistoryCubit>().loadDayDetail(day.groupDate),
         );

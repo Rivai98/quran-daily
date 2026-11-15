@@ -3,13 +3,13 @@ import 'dart:io';
 
 import 'package:sqflite/sqflite.dart';
 
-/// Local SQLite cache (data-model v2): dashboard snapshots, my groups,
+/// Local SQLite cache (data-model v3): dashboard snapshots, my groups,
 /// history pages, and the personal sync queue. Used only by repositories.
 class LocalDatabase {
   LocalDatabase({this.databasePath});
 
   static const databaseName = 'quran_daily.db';
-  static const schemaVersion = 2;
+  static const schemaVersion = 3;
 
   final String? databasePath;
 
@@ -78,22 +78,34 @@ class LocalDatabase {
       )
     ''');
     await _createMushafTables(db);
+    await _createTodayCache(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) await _createMushafTables(db);
+    // v2 was used by both spec 003 (Mushaf tables) and spec 005 (Today
+    // cache) on their branches; v3 makes sure both exist either way.
+    if (oldVersion < 3) {
+      await _createMushafTables(db);
+      await _createTodayCache(db);
+    }
+  }
+
+  Future<void> _createTodayCache(Database db) async {
+    await db.execute(
+      'create table if not exists cached_today (user_id text primary key, json text not null, cached_at integer not null)',
+    );
   }
 
   Future<void> _createMushafTables(Database db) async {
     await db.execute('''
-      create table reading_positions (
+      create table if not exists reading_positions (
         user_id text primary key,
         page integer not null,
         updated_at integer not null
       )
     ''');
     await db.execute('''
-      create table bookmarks (
+      create table if not exists bookmarks (
         id text primary key,
         user_id text not null,
         page integer not null,
@@ -104,7 +116,7 @@ class LocalDatabase {
       )
     ''');
     await db.execute('''
-      create table mushaf_sync_queue (
+      create table if not exists mushaf_sync_queue (
         id text primary key,
         operation text not null,
         payload text not null,

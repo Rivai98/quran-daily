@@ -83,6 +83,19 @@ class AppTypography {
     fontWeight: FontWeight.w700,
   );
 
+  /// Printed-Mushaf (KFGQPC QPC V2) page glyphs. Each page has its own font and the
+  /// size is computed so the page's 15 lines fill the available width.
+  static TextStyle mushafPage({
+    required String fontFamily,
+    required double size,
+    Color? color,
+  }) => TextStyle(
+    fontFamily: fontFamily,
+    fontSize: size,
+    height: 1.0,
+    color: color,
+  );
+
   /// Material [TextTheme] composed strictly from the eight tokens above.
   ///
   /// Colors are intentionally left unset so ThemeData fills them from the

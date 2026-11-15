@@ -52,12 +52,23 @@ dependencies:
   xml: 6.6.1
   crypto: ^3.0.8
   sqflite_common_ffi: ^2.4.0+3
+  hijri: 3.0.1
   google_sign_in: 7.2.0
+  flutter_local_notifications: 22.2.0
+  timezone: ^0.11.2
+  adhan: ^2.0.0+1
+  image_picker: ^1.2.3
+  image_cropper: ^12.2.1
+  wakelock_plus: 1.5.2
+  flutter_image_compress: ^2.5.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   integration_test:
+    sdk: flutter
+  shared_preferences_platform_interface: ^2.4.2
+  flutter_driver:
     sdk: flutter
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -69,6 +80,13 @@ dev_dependencies:
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
   flutter_launcher_icons: ^0.14.4
+
+dependency_overrides:
+  # Keep mobile wakelock_plus usable with the existing Windows/Linux plugin
+  # versions while the project is on Dart 3.10.
+  dbus: ^0.8.0
+  package_info_plus: ^10.1.0
+  win32: ^6.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -85,6 +103,9 @@ flutter:
   # byte-exact; never modify. Fonts below are bundled (no runtime download).
   assets:
     - assets/quran/
+    - assets/quran/qpc_v2/qpc-v2-15-lines.db
+    - assets/quran/qpc_v2/qpc-v2.db
+    - assets/quran/qpc_v2/qpc_v2_fonts_manifest.json
     - assets/quran/hafs/qpc-hafs.json
     - assets/fonts/checksums.sha256
 

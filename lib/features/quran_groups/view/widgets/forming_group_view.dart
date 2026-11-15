@@ -5,10 +5,10 @@ import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
-import '../../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../../core/design_system/widgets/skeleton.dart';
 import '../../../../core/localization/arabic_numerals.dart';
 import '../../../../core/localization/arabic_strings.dart';
+import 'invite_code_row.dart';
 import '../../../../core/quran/portion_unit.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
 import '../../data/entities/entities.dart';
@@ -45,15 +45,6 @@ class FormingGroupView extends StatelessWidget {
 
   int get _missing => 30 - activeMemberCount;
 
-  void _shareInvite(BuildContext context) {
-    final code = inviteCode;
-    if (code == null) return;
-    AppSnackBar.show(
-      context,
-      '${ArabicStrings.formingInviteSnack}$code — qurandaily://join/$code',
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
@@ -68,27 +59,25 @@ class FormingGroupView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  ArabicStrings.formingLabel,
+                  style: AppTypography.caption.copyWith(color: colors.infoFg),
+                ),
+                const SizedBox(height: AppSpacing.xs),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Flexible(
+                    Expanded(
                       child: Text(
-                        ArabicStrings.formingLabel,
-                        style: AppTypography.caption.copyWith(
-                          color: colors.infoFg,
-                        ),
+                        ArabicStrings.groupMembersRatio(activeMemberCount, 30),
+                        style: AppTypography.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
-                      ArabicNumerals.ratio(activeMemberCount, 30),
-                      style: AppTypography.title,
-                    ),
-                    Text(
-                      ' · ${ArabicStrings.missingX} ${ArabicNumerals.format(_missing)}',
-                      style: AppTypography.title,
+                      '${ArabicStrings.missingX} ${ArabicNumerals.format(_missing)}',
+                      style: AppTypography.body,
                     ),
                   ],
                 ),
@@ -99,23 +88,7 @@ class FormingGroupView extends StatelessWidget {
                 ),
                 if (inviteCode != null) ...[
                   const SizedBox(height: AppSpacing.md),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          ArabicNumerals.format(inviteCode!),
-                          style: AppTypography.bodyLarge,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      AppButton(
-                        label: ArabicStrings.shareInviteAction,
-                        variant: AppButtonVariant.tonal,
-                        onPressed: () => _shareInvite(context),
-                        icon: const Icon(Icons.share),
-                      ),
-                    ],
-                  ),
+                  InviteCodeRow(code: inviteCode!, groupName: groupName),
                 ],
               ],
             ),
@@ -129,7 +102,7 @@ class FormingGroupView extends StatelessWidget {
             label: ArabicStrings.startKhatmaAction,
             expanded: true,
             onPressed: () => _showStartSheet(context),
-            icon: const Icon(Icons.play_arrow),
+            icon: const Icon(Icons.play_arrow_rounded),
           ),
         const SizedBox(height: AppSpacing.lg),
       ],
@@ -137,6 +110,7 @@ class FormingGroupView extends StatelessWidget {
   }
 
   void _showStartSheet(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
     final metadata = metadataRepository ?? QuranMetadataRepository();
     var startPortion = 1;
     showModalBottomSheet<void>(
@@ -148,7 +122,10 @@ class FormingGroupView extends StatelessWidget {
         builder: (sheetContext, metadataState) {
           if (metadataState.connectionState != ConnectionState.done ||
               metadataState.hasError) {
-            return const Center(child: CircularProgressIndicator());
+            return const Padding(
+              padding: AppSpacing.screenContent,
+              child: SkeletonBox(height: 192),
+            );
           }
           final count = metadata.portions(portionUnit).length;
           return StatefulBuilder(
@@ -181,13 +158,47 @@ class FormingGroupView extends StatelessWidget {
                         spacing: AppSpacing.xs,
                         runSpacing: AppSpacing.xs,
                         children: [
-                          for (var portion = 1; portion <= count; portion++)
-                            ChoiceChip(
-                              label: Text(ArabicNumerals.format(portion)),
-                              selected: startPortion == portion,
-                              onSelected: (_) =>
-                                  setSheetState(() => startPortion = portion),
+                          for (
+                            var portion = 1;
+                            portion <= count;
+                            portion++
+                          ) ...[
+                            SizedBox.square(
+                              dimension: AppSpacing.xxl,
+                              child: ChoiceChip(
+                                // The number stays visible when selected (no
+                                // checkmark) and its color is explicit so it
+                                // reads in both themes.
+                                showCheckmark: false,
+                                label: Center(
+                                  child: Text(
+                                    ArabicNumerals.format(portion),
+                                    style: AppTypography.label.copyWith(
+                                      color: startPortion == portion
+                                          ? colors.onPrimaryContainer
+                                          : colors.ink,
+                                    ),
+                                  ),
+                                ),
+                                selected: startPortion == portion,
+                                selectedColor: colors.primaryContainer,
+                                labelStyle: AppTypography.label.copyWith(
+                                  color: startPortion == portion
+                                      ? colors.onPrimaryContainer
+                                      : colors.ink,
+                                ),
+                                padding: EdgeInsets.zero,
+                                labelPadding: EdgeInsets.zero,
+                                side: BorderSide(
+                                  color: startPortion == portion
+                                      ? colors.primary
+                                      : colors.border,
+                                ),
+                                onSelected: (_) =>
+                                    setSheetState(() => startPortion = portion),
+                              ),
                             ),
+                          ],
                         ],
                       )
                     else

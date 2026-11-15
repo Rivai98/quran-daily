@@ -8,13 +8,22 @@ import 'package:app_links/app_links.dart';
 import '../core/di/service_locator.dart';
 import '../core/auth/session_gateway.dart';
 import '../core/localization/arabic_strings.dart';
+import '../core/design_system/app_colors.dart';
+import '../core/design_system/app_spacing.dart';
 import '../core/design_system/app_theme.dart';
+import '../core/design_system/app_typography.dart';
+import '../core/design_system/widgets/halaqa_logo.dart';
+import '../core/quran/quran_metadata_repository.dart';
 import '../features/auth/cubit/auth_cubit.dart';
 import '../features/auth/view/auth_entry_screen.dart';
 import '../features/mushaf/data/mushaf_sync_repository.dart';
-import '../features/quran_groups/view/screens/group_selection_screen.dart';
 import '../features/quran_groups/cubit/group_list/group_list_cubit.dart';
 import '../features/quran_groups/data/repositories/khatma_repository.dart';
+import '../features/reminders/data/notification_scheduler.dart';
+import '../features/reminders/data/reminder_planning_service.dart';
+import '../features/shell/home_shell.dart';
+import '../features/home/view/home_screen.dart';
+import '../features/home/cubit/home_cubit.dart';
 import 'router.dart';
 
 class QuranDailyApp extends StatefulWidget {
@@ -47,6 +56,21 @@ class _QuranDailyAppState extends State<QuranDailyApp>
           if (uri != null) _handleUri(uri);
         })
         .catchError((_) {});
+    if (serviceLocator.isRegistered<NotificationScheduler>()) {
+      unawaited(
+        serviceLocator<NotificationScheduler>()
+            .initialize(
+              onTap: (_) =>
+                  navigatorKey.currentState?.pushNamed(AppRoutes.groups),
+            )
+            .then((_) async {
+              if (serviceLocator.isRegistered<ReminderPlanningService>()) {
+                await serviceLocator<ReminderPlanningService>().refresh();
+              }
+            })
+            .catchError((_) {}),
+      );
+    }
   }
 
   void _handleUri(Uri uri) {
@@ -109,6 +133,9 @@ class _QuranDailyAppState extends State<QuranDailyApp>
   Future<void> _syncPendingSafely() async {
     try {
       await serviceLocator<KhatmaRepository>().syncPending();
+      if (serviceLocator.isRegistered<ReminderPlanningService>()) {
+        await serviceLocator<ReminderPlanningService>().refresh();
+      }
     } catch (_) {
       // The dashboard remains available if background sync cannot reach the server.
     }
@@ -130,6 +157,13 @@ class _QuranDailyAppState extends State<QuranDailyApp>
             if (state.status == AuthStatus.authenticated) {
               _openPendingInvite();
               unawaited(_syncMushafSafely());
+              if (serviceLocator.isRegistered<ReminderPlanningService>()) {
+                unawaited(
+                  serviceLocator<ReminderPlanningService>()
+                      .refresh()
+                      .catchError((_) {}),
+                );
+              }
             }
           },
           child: MaterialApp(
@@ -162,7 +196,62 @@ class _QuranDailyAppState extends State<QuranDailyApp>
   }
 }
 
-/// Startup gate (spec 002): neutral checking state until bootstrap
+/// Serene branded splash screen during startup / session bootstrap (Constitution Principle VI & G4).
+class AppSplashScreen extends StatelessWidget {
+  const AppSplashScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return Scaffold(
+      backgroundColor: colors.background,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Semantics(
+              label: ArabicStrings.checkingSession,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const HalaqaLogo(size: HalaqaLogo.large),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    ArabicStrings.appName,
+                    style: AppTypography.display.copyWith(
+                      color: colors.primary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    ArabicStrings.signInHint,
+                    style: AppTypography.body.copyWith(
+                      color: colors.inkMuted,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: colors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Startup gate (spec 002): calm branded splash state until bootstrap
 /// resolves; private content never flashes before the decision finishes.
 class _AuthGate extends StatelessWidget {
   const _AuthGate();
@@ -173,19 +262,30 @@ class _AuthGate extends StatelessWidget {
       builder: (context, state) {
         switch (state.status) {
           case AuthStatus.checkingSession:
-            return Scaffold(
-              body: Semantics(
-                label: ArabicStrings.checkingSession,
-                child: const Center(child: CircularProgressIndicator()),
+          case AuthStatus.loadingProfile:
+            return const AppSplashScreen();
+          case AuthStatus.authenticated:
+            return BlocProvider(
+              create: (_) => serviceLocator<HomeCubit>(),
+              child: Builder(
+                builder: (context) => HomeShell(
+                  onHomeSelected: context.read<HomeCubit>().refreshIfStale,
+                  homeBuilder: (_) => HomeScreen(
+                    displayName: state.profile?.displayName,
+                    metadataRepository:
+                        serviceLocator.isRegistered<QuranMetadataRepository>()
+                        ? serviceLocator<QuranMetadataRepository>()
+                        : QuranMetadataRepository(),
+                  ),
+                  groupsBuilder: (context) =>
+                      AppRoutes.routes[AppRoutes.groups]!(context),
+                ),
               ),
             );
-          case AuthStatus.authenticated:
-            return const GroupSelectionScreen();
           case AuthStatus.profileFailure:
           case AuthStatus.unauthenticated:
           case AuthStatus.failure:
           case AuthStatus.submitting:
-          case AuthStatus.loadingProfile:
           case AuthStatus.signingOut:
             return const AuthEntryScreen();
         }

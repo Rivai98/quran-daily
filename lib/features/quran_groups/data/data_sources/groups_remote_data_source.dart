@@ -105,6 +105,33 @@ class GroupsParams {
     'p_group_id': groupId,
     'p_membership_id': membershipId,
   };
+
+  // --- 007 profiles ---
+  static Map<String, Object?> memberProfile(String userId, String groupId) => {
+    'p_user_id': userId,
+    'p_group_id': groupId,
+  };
+
+  static Map<String, Object?> updateMyProfile(
+    String displayName,
+    String? bio,
+    String avatarKey,
+  ) => {
+    'p_display_name': displayName,
+    'p_bio': ?bio,
+    'p_avatar_key': avatarKey,
+  };
+
+  static Map<String, Object?> updateGroupDetails(
+    String groupId,
+    String name,
+    String? description,
+  ) => {'p_group_id': groupId, 'p_name': name, 'p_description': ?description};
+
+  static Map<String, Object?> setGroupPhoto(
+    String groupId,
+    String? photoPath,
+  ) => {'p_group_id': groupId, 'p_path': ?photoPath};
 }
 
 /// Default implementation delegating to [RpcClient].

@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/errors/failures.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/features/quran_groups/cubit/group_settings/group_settings_cubit.dart';
+import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
 
 import '../../../helpers/test_fixtures.dart';
@@ -133,6 +134,54 @@ void main() {
             .having((s) => s.status, 'status', GroupSettingsStatus.submitting),
         isA<GroupSettingsState>()
             .having((s) => s.status, 'status', GroupSettingsStatus.archived),
+      ],
+    );
+  });
+
+  group('load (prefills the current details)', () {
+    blocTest<GroupSettingsCubit, GroupSettingsState>(
+      'fetches the group description for the form',
+      build: build,
+      setUp: () => when(() => repo.getGroupInfo('g1')).thenAnswer(
+        (_) async => Success(
+          GroupInfo(
+            groupId: 'g1',
+            name: 'حلقة الفجر',
+            description: 'ورد يومي بعد الفجر',
+            status: GroupStatus.active,
+            visibility: GroupVisibility.public,
+            joinMode: JoinMode.autoAccept,
+            timezone: 'Africa/Cairo',
+            createdAt: DateTime(2026),
+            myRole: GroupRole.owner,
+            memberCount: 1,
+          ),
+        ),
+      ),
+      act: (cubit) => cubit.load(groupId: 'g1'),
+      expect: () => [
+        isA<GroupSettingsState>().having((s) => s.groupId, 'groupId', 'g1'),
+        isA<GroupSettingsState>().having(
+          (s) => s.description,
+          'description',
+          'ورد يومي بعد الفجر',
+        ),
+      ],
+    );
+
+    blocTest<GroupSettingsCubit, GroupSettingsState>(
+      'a failed details fetch keeps the form usable',
+      build: build,
+      setUp: () => when(() => repo.getGroupInfo('g1')).thenAnswer(
+        (_) async => const FailureResult(
+          NetworkFailure(message: 'offline', code: 'network'),
+        ),
+      ),
+      act: (cubit) => cubit.load(groupId: 'g1'),
+      expect: () => [
+        isA<GroupSettingsState>()
+            .having((s) => s.groupId, 'groupId', 'g1')
+            .having((s) => s.description, 'description', isNull),
       ],
     );
   });

@@ -8,6 +8,7 @@ import 'package:quran_daily/core/design_system/widgets/offline_banner.dart';
 import 'package:quran_daily/core/design_system/widgets/progress_header.dart';
 import 'package:quran_daily/core/design_system/widgets/skeleton.dart';
 import 'package:quran_daily/core/design_system/widgets/state_panel.dart';
+import 'package:quran_daily/core/design_system/widgets/halaqa_logo.dart';
 import 'package:quran_daily/core/errors/failures.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
@@ -67,6 +68,8 @@ void main() {
     expect(find.byType(StatePanel), findsOneWidget);
     expect(find.text(ArabicStrings.emptyHistoryTitle), findsOneWidget);
     expect(find.text(ArabicStrings.emptyHistoryDesc), findsOneWidget);
+    expect(find.byType(HalaqaLogo), findsOneWidget);
+    expect(find.text(ArabicStrings.groupSelectionTitle), findsOneWidget);
   });
 
   testWidgets('failure state shows StatePanel with retry action', (
@@ -141,6 +144,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(ProgressHeader), findsNWidgets(2));
+      expect(
+        find.text(ArabicStrings.historyWeekOf(DateTime(2026, 11, 9))),
+        findsOneWidget,
+      );
       expect(find.text(ArabicStrings.fullKhatmaBadge), findsOneWidget);
       expect(
         find.textContaining(
@@ -231,7 +238,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(ArabicStrings.allMembersDetailTitle), findsOneWidget);
-    expect(find.textContaining('قارئ 1 ·'), findsOneWidget);
+    expect(find.textContaining('قارئ 1،'), findsOneWidget);
   });
 
   testWidgets('all variants render without overflow', (tester) async {

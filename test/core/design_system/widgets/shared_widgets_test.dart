@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/core/design_system/app_colors.dart';
+import 'package:quran_daily/app/app.dart';
+import 'package:quran_daily/core/design_system/widgets/app_badge.dart';
+import 'package:quran_daily/core/design_system/widgets/app_banner.dart';
 import 'package:quran_daily/core/design_system/widgets/app_card.dart';
 import 'package:quran_daily/core/design_system/widgets/app_section_header.dart';
 import 'package:quran_daily/core/design_system/widgets/app_snack_bar.dart';
@@ -253,5 +256,129 @@ void main() {
     expect(find.text('حالة أجزاء اليوم'), findsOneWidget);
     await tester.tap(find.text('عرض الكل'));
     expect(pressed, 1);
+  });
+
+  testWidgets('AppBadge renders variants, icons, and semantics', (tester) async {
+    await tester.pumpWidget(buildArabicTestApp(
+      const Scaffold(
+        body: Column(
+          children: [
+            AppBadge(label: 'عضو', variant: AppBadgeVariant.neutral),
+            AppBadge.role(label: 'مشرف', isOwner: false),
+            AppBadge.role(label: 'مالك', isOwner: true),
+            AppBadge.count(label: '٣٠', variant: AppBadgeVariant.info),
+          ],
+        ),
+      ),
+    ));
+
+    expect(find.text('عضو'), findsOneWidget);
+    expect(find.text('مشرف'), findsOneWidget);
+    expect(find.text('مالك'), findsOneWidget);
+    expect(find.text('٣٠'), findsOneWidget);
+  });
+
+  testWidgets('AppBanner renders error, warning, info and action button', (tester) async {
+    var retryCount = 0;
+    await tester.pumpWidget(buildArabicTestApp(
+      Scaffold(
+        body: Column(
+          children: [
+            AppBanner.error(
+              title: 'تنبيه',
+              message: 'تعذر الحفظ، يرجى المحاولة لاحقًا',
+              actionLabel: 'إعادة المحاولة',
+              onAction: () => retryCount++,
+            ),
+            AppBanner.warning(
+              message: 'وصلت إلى الحد الأقصى للمجموعات (مجموعتان فقط)',
+            ),
+            AppBanner.info(
+              message: 'تم تحديث بيانات الورد تلقائيًا',
+            ),
+          ],
+        ),
+      ),
+    ));
+
+    expect(find.text('تنبيه'), findsOneWidget);
+    expect(find.text('تعذر الحفظ، يرجى المحاولة لاحقًا'), findsOneWidget);
+    expect(find.text('وصلت إلى الحد الأقصى للمجموعات (مجموعتان فقط)'), findsOneWidget);
+    expect(find.text('تم تحديث بيانات الورد تلقائيًا'), findsOneWidget);
+
+    await tester.tap(find.text('إعادة المحاولة'));
+    expect(retryCount, 1);
+  });
+
+  testWidgets('StatePanel.empty displays logo and dual actions in RTL order', (tester) async {
+    var primaryPressed = 0;
+    var secondaryPressed = 0;
+
+    await tester.pumpWidget(buildArabicTestApp(
+      Scaffold(
+        body: StatePanel.empty(
+          title: 'لم تنضم إلى حلقة بعد',
+          message: 'اختر حلقة متاحة أو ابدأ حلقتك الخاصة',
+          actionLabel: 'انضم لأي حلقة',
+          onAction: () => primaryPressed++,
+          secondaryActionLabel: 'أنشئ حلقة',
+          onSecondaryAction: () => secondaryPressed++,
+        ),
+      ),
+    ));
+
+    expect(find.text('لم تنضم إلى حلقة بعد'), findsOneWidget);
+    expect(find.text('اختر حلقة متاحة أو ابدأ حلقتك الخاصة'), findsOneWidget);
+    expect(find.text('انضم لأي حلقة'), findsOneWidget);
+    expect(find.text('أنشئ حلقة'), findsOneWidget);
+
+    await tester.tap(find.text('انضم لأي حلقة'));
+    expect(primaryPressed, 1);
+    await tester.tap(find.text('أنشئ حلقة'));
+    expect(secondaryPressed, 1);
+  });
+
+  testWidgets('AppCard onTap triggers callback with Material ripple', (tester) async {
+    var tapped = 0;
+    await tester.pumpWidget(buildArabicTestApp(
+      Scaffold(
+        body: AppCard(
+          onTap: () => tapped++,
+          child: const Text('بطاقة قابلة للنقر'),
+        ),
+      ),
+    ));
+
+    expect(find.text('بطاقة قابلة للنقر'), findsOneWidget);
+    await tester.tap(find.text('بطاقة قابلة للنقر'));
+    expect(tapped, 1);
+  });
+
+  testWidgets('AppSplashScreen renders brand logo, title, and loading indicator', (tester) async {
+    await tester.pumpWidget(buildArabicTestApp(
+      const AppSplashScreen(),
+      size: const Size(360, 800),
+    ));
+
+    expect(find.text('حلقة'), findsOneWidget);
+    expect(find.text('ختمة القرآن مع حلقتك، وردٌ كل يوم'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('AppSnackBar.showError and showSuccess queue formatted snackbars', (tester) async {
+    await tester.pumpWidget(buildArabicTestApp(
+      Scaffold(
+        body: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () => AppSnackBar.showError(context, 'خطأ في الاتصال'),
+            child: const Text('إظهار الخطأ'),
+          ),
+        ),
+      ),
+    ));
+
+    await tester.tap(find.text('إظهار الخطأ'));
+    await tester.pump();
+    expect(find.text('خطأ في الاتصال'), findsOneWidget);
   });
 }
