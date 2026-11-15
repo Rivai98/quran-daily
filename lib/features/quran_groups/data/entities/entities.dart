@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../../core/quran/portion_unit.dart';
 
 /// Shared entities of the quran_groups feature (data-model "read models").
 /// All immutable; JSON mapping lives in ../models/.
@@ -22,7 +23,14 @@ enum JoinSource { discovery, invite, match }
 /// One row of the 30-assignment day grid.
 enum AssignmentKind { seat, override, volunteer, unassigned }
 
-enum AssignmentStatusEnum { pending, completed, missed, late, available, unread }
+enum AssignmentStatusEnum {
+  pending,
+  completed,
+  missed,
+  late,
+  available,
+  unread,
+}
 
 class GroupSummary extends Equatable {
   const GroupSummary({
@@ -33,6 +41,7 @@ class GroupSummary extends Equatable {
     required this.timezone,
     this.shortDescription,
     this.joinMode,
+    this.portionUnit = PortionUnit.juz,
     this.myRequestStatus,
     this.myJoinRequestId,
   });
@@ -44,6 +53,7 @@ class GroupSummary extends Equatable {
   final String timezone;
   final String? shortDescription;
   final JoinMode? joinMode;
+  final PortionUnit portionUnit;
 
   /// none/pending/rejected for discovery previews (never members).
   final String? myRequestStatus;
@@ -51,9 +61,17 @@ class GroupSummary extends Equatable {
 
   @override
   List<Object?> get props => [
-        groupId, name, status, activeMemberCount, timezone,
-        shortDescription, joinMode, myRequestStatus, myJoinRequestId,
-      ];
+    groupId,
+    name,
+    status,
+    activeMemberCount,
+    timezone,
+    shortDescription,
+    joinMode,
+    portionUnit,
+    myRequestStatus,
+    myJoinRequestId,
+  ];
 }
 
 class MyGroupSummary extends Equatable {
@@ -66,6 +84,8 @@ class MyGroupSummary extends Equatable {
     this.todayMyJuz,
     this.todayMyStatus,
     this.todayMyAssignmentId,
+    this.portionUnit = PortionUnit.juz,
+    this.pendingPortionUnit,
   });
 
   final String groupId;
@@ -76,12 +96,22 @@ class MyGroupSummary extends Equatable {
   final int? todayMyJuz;
   final AssignmentStatusEnum? todayMyStatus;
   final String? todayMyAssignmentId;
+  final PortionUnit portionUnit;
+  final PortionUnit? pendingPortionUnit;
 
   @override
   List<Object?> get props => [
-        groupId, name, status, myRole, activeMemberCount,
-        todayMyJuz, todayMyStatus, todayMyAssignmentId,
-      ];
+    groupId,
+    name,
+    status,
+    myRole,
+    activeMemberCount,
+    todayMyJuz,
+    todayMyStatus,
+    todayMyAssignmentId,
+    portionUnit,
+    pendingPortionUnit,
+  ];
 }
 
 class PendingJoinRequest extends Equatable {
@@ -100,8 +130,13 @@ class PendingJoinRequest extends Equatable {
   final JoinSource source;
 
   @override
-  List<Object?> get props =>
-      [joinRequestId, groupId, groupName, requestedAt, source];
+  List<Object?> get props => [
+    joinRequestId,
+    groupId,
+    groupName,
+    requestedAt,
+    source,
+  ];
 }
 
 class MyGroupsOverview extends Equatable {
@@ -156,7 +191,10 @@ class SeatMap extends Equatable {
 
   List<int> get emptySeats {
     final occupied = members.map((m) => m.seatNumber).toSet();
-    return [for (var s = 1; s <= 30; s++) if (!occupied.contains(s)) s];
+    return [
+      for (var s = 1; s <= 30; s++)
+        if (!occupied.contains(s)) s,
+    ];
   }
 
   @override
@@ -208,9 +246,17 @@ class GroupDayInfo extends Equatable {
 
   @override
   List<Object?> get props => [
-        groupDate, state, completedCount, lateCount, missedCount,
-        unreadCount, pendingCount, availableCount, fullKhatma, endsAt,
-      ];
+    groupDate,
+    state,
+    completedCount,
+    lateCount,
+    missedCount,
+    unreadCount,
+    pendingCount,
+    availableCount,
+    fullKhatma,
+    endsAt,
+  ];
 }
 
 class Assignment extends Equatable {
@@ -223,10 +269,13 @@ class Assignment extends Equatable {
     this.readerDisplayName,
     this.isMe = false,
     this.completedAt,
-  });
+    int? portionIndex,
+  }) : _portionIndex = portionIndex;
 
   final String assignmentId;
   final int juz;
+  int get portionIndex => _portionIndex ?? juz;
+  final int? _portionIndex;
   final int seatNumber;
   final AssignmentKind kind;
   final AssignmentStatusEnum status;
@@ -236,9 +285,33 @@ class Assignment extends Equatable {
 
   @override
   List<Object?> get props => [
-        assignmentId, juz, seatNumber, kind, status,
-        readerDisplayName, isMe, completedAt,
-      ];
+    assignmentId,
+    juz,
+    portionIndex,
+    seatNumber,
+    kind,
+    status,
+    readerDisplayName,
+    isMe,
+    completedAt,
+  ];
+}
+
+class CycleInfo extends Equatable {
+  const CycleInfo({
+    required this.number,
+    required this.day,
+    required this.length,
+    required this.completed,
+    required this.total,
+  });
+  final int number;
+  final int day;
+  final int length;
+  final int completed;
+  final int total;
+  @override
+  List<Object?> get props => [number, day, length, completed, total];
 }
 
 class DashboardSnapshot extends Equatable {
@@ -256,6 +329,9 @@ class DashboardSnapshot extends Equatable {
     this.inviteCode,
     this.isStale = false,
     this.cachedAt,
+    this.portionUnit = PortionUnit.juz,
+    this.pendingPortionUnit,
+    this.cycle,
   });
 
   final String groupId;
@@ -278,13 +354,29 @@ class DashboardSnapshot extends Equatable {
   /// Set when this snapshot was served from cache after a network failure.
   final bool isStale;
   final DateTime? cachedAt;
+  final PortionUnit portionUnit;
+  final PortionUnit? pendingPortionUnit;
+  final CycleInfo? cycle;
 
   @override
   List<Object?> get props => [
-        groupId, groupName, myRole, status, serverGeneratedAt, today,
-        myAssignments, assignments, seats, activeMemberCount, inviteCode,
-        isStale, cachedAt,
-      ];
+    groupId,
+    groupName,
+    myRole,
+    status,
+    serverGeneratedAt,
+    today,
+    myAssignments,
+    assignments,
+    seats,
+    activeMemberCount,
+    inviteCode,
+    isStale,
+    cachedAt,
+    portionUnit,
+    pendingPortionUnit,
+    cycle,
+  ];
 }
 
 class HistoryDaySummary extends Equatable {
@@ -297,6 +389,8 @@ class HistoryDaySummary extends Equatable {
     required this.fullKhatma,
     this.myResult,
     this.perJuz,
+    this.cycleNumber,
+    this.cycleDay,
   });
 
   final String groupDate;
@@ -311,10 +405,44 @@ class HistoryDaySummary extends Equatable {
 
   /// Per-juz detail, owner/supervisor only.
   final List<Assignment>? perJuz;
+  final int? cycleNumber;
+  final int? cycleDay;
 
   @override
   List<Object?> get props => [
-        groupDate, completedCount, lateCount, missedCount, unreadCount,
-        fullKhatma, myResult, perJuz,
-      ];
+    groupDate,
+    completedCount,
+    lateCount,
+    missedCount,
+    unreadCount,
+    fullKhatma,
+    myResult,
+    perJuz,
+    cycleNumber,
+    cycleDay,
+  ];
+}
+
+class HistoryCycleSummary extends Equatable {
+  const HistoryCycleSummary({required this.cycleNumber, required this.days});
+  final int cycleNumber;
+  final List<HistoryDaySummary> days;
+  bool get fullKhatma => days.isNotEmpty && days.last.fullKhatma;
+  @override
+  List<Object?> get props => [cycleNumber, days];
+}
+
+List<HistoryCycleSummary> groupHistoryByCycle(List<HistoryDaySummary> days) {
+  final grouped = <int, List<HistoryDaySummary>>{};
+  for (final day in days) {
+    final number =
+        day.cycleNumber ?? int.parse(day.groupDate.replaceAll('-', ''));
+    grouped.putIfAbsent(number, () => []).add(day);
+  }
+  return grouped.entries
+      .map(
+        (entry) =>
+            HistoryCycleSummary(cycleNumber: entry.key, days: entry.value),
+      )
+      .toList();
 }

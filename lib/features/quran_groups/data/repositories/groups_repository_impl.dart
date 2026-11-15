@@ -143,7 +143,7 @@ class GroupsRepositoryImpl implements GroupsRepository {
 
   @override
   Future<Result<DashboardSnapshot>> startKhatma(
-      String groupId, int startJuz) async {
+      String groupId, int startPortion) async {
     if (!await _online) {
       return const FailureResult(
         NetworkFailure(message: 'offline', code: 'network'),
@@ -151,7 +151,7 @@ class GroupsRepositoryImpl implements GroupsRepository {
     }
     final result = await _rpc.call<dynamic>(
       'start_khatma',
-      GroupsParams.startKhatma(groupId, startJuz),
+      GroupsParams.startKhatma(groupId, startPortion),
     );
     return result.when(
       success: (payload) {

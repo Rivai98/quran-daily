@@ -302,8 +302,10 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
       success: (payload) async {
         final rawList = (payload as List).cast<dynamic>();
         final days = rawList
-            .map((e) => historyDaySummaryFromJson(
-                (e as Map).cast<String, Object?>()))
+            .map(
+              (e) =>
+                  historyDaySummaryFromJson((e as Map).cast<String, Object?>()),
+            )
             .toList();
 
         if (beforeDate == null) {
@@ -319,8 +321,11 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
           if (cached != null) {
             final rawList = (cached.json['days'] as List?) ?? const [];
             final days = rawList
-                .map((e) => historyDaySummaryFromJson(
-                    (e as Map).cast<String, Object?>()))
+                .map(
+                  (e) => historyDaySummaryFromJson(
+                    (e as Map).cast<String, Object?>(),
+                  ),
+                )
                 .toList();
             return Success(days);
           }
