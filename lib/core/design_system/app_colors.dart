@@ -122,7 +122,7 @@ class AppColors extends ThemeExtension<AppColors> {
       case AssignmentStatus.completed:
         return completedFg;
       case AssignmentStatus.pending:
-        return pendingFg;
+        return infoFg;
       case AssignmentStatus.missed:
         return missedFg;
       case AssignmentStatus.late:
@@ -140,7 +140,7 @@ class AppColors extends ThemeExtension<AppColors> {
       case AssignmentStatus.completed:
         return completedBg;
       case AssignmentStatus.pending:
-        return pendingBg;
+        return infoBg;
       case AssignmentStatus.missed:
         return missedBg;
       case AssignmentStatus.late:
