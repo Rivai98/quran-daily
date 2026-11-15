@@ -31,6 +31,9 @@ import '../../features/quran_groups/cubit/create_group/create_group_cubit.dart';
 import '../../features/quran_groups/cubit/members/members_cubit.dart';
 import '../../features/quran_groups/cubit/join_requests/join_requests_cubit.dart';
 import '../../features/quran_groups/cubit/group_list/group_list_cubit.dart';
+import '../../features/admin/cubit/admin_cubit.dart';
+import '../../features/admin/data/admin_repository.dart';
+import '../../features/admin/data/admin_repository_impl.dart';
 
 final serviceLocator = GetIt.instance;
 
@@ -79,6 +82,24 @@ void configureServiceLocator({
     if (!locator.isRegistered<RpcClient>()) {
       locator.registerLazySingleton<RpcClient>(
         () => RpcClient.forClient(locator<SupabaseClientProvider>().client),
+      );
+    }
+
+    if (!locator.isRegistered<AdminRepository>()) {
+      locator.registerLazySingleton<AdminRepository>(
+        () => AdminRepositoryImpl(
+          rpc: locator<RpcClient>(),
+          invoke: (name, body) async => locator<SupabaseClientProvider>()
+              .client
+              .functions
+              .invoke(name, body: body)
+              .then((response) => response.data),
+        ),
+      );
+    }
+    if (!locator.isRegistered<AdminCubit>()) {
+      locator.registerFactory<AdminCubit>(
+        () => AdminCubit(locator<AdminRepository>()),
       );
     }
 
@@ -243,6 +264,7 @@ void configureServiceLocator({
         () => SettingsCubit(
           settingsRepository: locator<SettingsRepository>(),
           sessionGateway: locator<SessionGateway>(),
+          adminRepository: locator<AdminRepository>(),
         ),
       );
     }

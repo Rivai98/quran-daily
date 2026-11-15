@@ -27,6 +27,7 @@ import '../features/quran_groups/view/screens/discovery_screen.dart';
 import '../features/quran_groups/view/screens/invite_join_screen.dart';
 import '../features/quran_groups/view/screens/personal_assignment_screen.dart';
 import '../features/settings/view/settings_screen.dart';
+import '../features/admin/view/admin_screens.dart';
 
 String? inviteCodeFromDeepLink(Uri uri) {
   if (uri.scheme != 'qurandaily' ||
@@ -192,6 +193,16 @@ class AppRoutes {
         groupId: ModalRoute.of(context)?.settings.arguments as String?,
       ),
       settings: (_) => const SettingsScreen(),
+      '/admin': (_) => const AdminOverviewScreen(),
+      '/admin/groups': (_) => const AdminGroupsScreen(),
+      '/admin/users': (_) => const AdminUsersScreen(),
+      '/admin/audit': (_) => const AdminAuditScreen(),
+      '/admin/group': (context) => AdminGroupDetailScreen(
+        groupId: ModalRoute.of(context)?.settings.arguments as String? ?? '',
+      ),
+      '/admin/user': (context) => AdminUserDetailScreen(
+        userId: ModalRoute.of(context)?.settings.arguments as String? ?? '',
+      ),
     };
   }
 

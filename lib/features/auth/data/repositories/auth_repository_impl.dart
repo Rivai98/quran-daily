@@ -179,6 +179,11 @@ class AuthRepositoryImpl implements AuthRepository {
   AppFailure _mapError(Object error) {
     final code = _providerCode(error);
 
+    if (code == 'user_banned' || code == 'banned' ||
+        error.toString().toLowerCase().contains('banned')) {
+      return const AuthFailure(message: 'account suspended', code: 'suspended');
+    }
+
     switch (code) {
       case 'user_already_exists':
       case 'email_exists':
