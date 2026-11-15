@@ -506,6 +506,25 @@ class ArabicStrings {
       : 'ختمة كل ${ArabicNumerals.format(days)} يومًا';
   static String dailyUnitChip(PortionUnit unit) =>
       '${portionUnitName(unit)} يوميًا';
+  // --- 005 log ---
+  static const logScreenTitle = 'السجل';
+  static const logCurrentStreak = 'التتابع الحالي';
+  static const logBestStreak = 'أطول تتابع';
+  static const logMonthSummary = 'أيام مكتملة هذا الشهر';
+  static const logDayComplete = 'يوم مكتمل';
+  static const logDayPartial = 'يوم يحتوي على ورد فائت';
+  static const logVolunteered = 'تطوع';
+  static const logEmptyTitle = 'سيظهر سجلك هنا';
+  static const logEmptyMessage = 'سجل أول ورد لترى ملخص أيامك وتتابعك.';
+  static const logErrorTitle = 'تعذر تحميل السجل';
+  static const logErrorMessage = 'حدث خلل أثناء تحميل السجل. تحقق من الاتصال وأعد المحاولة.';
+  static const logDayDetails = 'تفاصيل الورد';
+  static const logWeekLabel = 'هذا الأسبوع';
+  static const logGroupHistoryAction = 'عرض سجل المجموعة';
+  static const membershipLimitMessage = 'يمكنك الانضمام إلى مجموعتين بحد أقصى';
+  static const membershipLimitNextStep = 'اذهب إلى مجموعاتي لمغادرة مجموعة قبل المتابعة.';
+  // --- end 005 log ---
+
   static String portionRange(
     String startSura,
     int startAya,
