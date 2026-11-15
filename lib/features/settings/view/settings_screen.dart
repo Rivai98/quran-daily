@@ -142,7 +142,7 @@ class _SettingsView extends StatelessWidget {
                       ),
                       if (serviceLocator
                           .isRegistered<MushafFontDownloadCubit>()) ...[
-                        const SizedBox(height: AppSpacing.lg),
+                        const SizedBox(height: AppSpacing.xs),
                         BlocProvider<MushafFontDownloadCubit>(
                           create: (_) =>
                               serviceLocator<MushafFontDownloadCubit>()..load(),

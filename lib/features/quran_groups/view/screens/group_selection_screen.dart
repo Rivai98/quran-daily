@@ -361,6 +361,9 @@ class _MyGroupRow extends StatelessWidget {
   }
 }
 
+/// Compact pending join-request card, styled like the group cards above:
+/// emblem, name (2 lines max), status badge with a quiet cancel action, and
+/// one muted line explaining what happens next.
 class _PendingRow extends StatelessWidget {
   const _PendingRow({required this.request});
 
@@ -368,37 +371,60 @@ class _PendingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
     return AppCard(
+      padding: EdgeInsets.zero,
       child: Padding(
         padding: AppSpacing.card,
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
+            GroupAvatar(name: request.groupName, size: AppSpacing.xxl),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
                     request.groupName,
                     style: AppTypography.title,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                AppBadge(
-                  icon: Icons.schedule_rounded,
-                  label: ArabicStrings.pendingShortLabel,
-                  variant: AppBadgeVariant.info,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              label: ArabicStrings.cancel,
-              variant: AppButtonVariant.secondary,
-              icon: const Icon(Icons.close_rounded),
-              onPressed: () => context.read<GroupListCubit>().cancelJoinRequest(
-                request.joinRequestId,
+                  const SizedBox(height: AppSpacing.xxs),
+                  Row(
+                    children: [
+                      const AppBadge(
+                        icon: Icons.schedule_rounded,
+                        label: ArabicStrings.pendingShortLabel,
+                        variant: AppBadgeVariant.warning,
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () => context
+                            .read<GroupListCubit>()
+                            .cancelJoinRequest(request.joinRequestId),
+                        style: TextButton.styleFrom(
+                          foregroundColor: colors.inkMuted,
+                          minimumSize: const Size(48, 48),
+                          padding: const EdgeInsetsDirectional.symmetric(
+                            horizontal: AppSpacing.sm,
+                          ),
+                        ),
+                        child: const Text(
+                          ArabicStrings.cancelJoinRequestAction,
+                          maxLines: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    ArabicStrings.pendingRequestHint,
+                    style: AppTypography.caption.copyWith(
+                      color: colors.inkMuted,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
