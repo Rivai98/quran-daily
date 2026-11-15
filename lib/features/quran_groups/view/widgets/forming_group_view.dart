@@ -69,7 +69,7 @@ class FormingGroupView extends StatelessWidget {
                       child: Text(
                         ArabicStrings.formingLabel,
                         style: AppTypography.caption.copyWith(
-                          color: colors.pendingFg,
+                          color: colors.infoFg,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

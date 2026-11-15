@@ -27,6 +27,8 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.completedBg,
     required this.pendingFg,
     required this.pendingBg,
+    required this.infoFg,
+    required this.infoBg,
     required this.missedFg,
     required this.missedBg,
     required this.lateFg,
@@ -49,12 +51,13 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color inkMuted;
   final Color border;
   final Color danger;
-
   // Status pairs (foreground / background), light and dark variants differ.
   final Color completedFg;
   final Color completedBg;
   final Color pendingFg;
   final Color pendingBg;
+  final Color infoFg;
+  final Color infoBg;
   final Color missedFg;
   final Color missedBg;
   final Color lateFg;
@@ -77,6 +80,8 @@ class AppColors extends ThemeExtension<AppColors> {
     completedBg: Color(0xFFE3F3EA),
     pendingFg: Color(0xFF8A5A00),
     pendingBg: Color(0xFFFBF0D9),
+    infoFg: Color(0xFF285E72),
+    infoBg: Color(0xFFE5F1F4),
     missedFg: Color(0xFFB3261E),
     missedBg: Color(0xFFFBE6E4),
     lateFg: Color(0xFF5B47B5),
@@ -100,6 +105,8 @@ class AppColors extends ThemeExtension<AppColors> {
     completedBg: Color(0xFF173A28),
     pendingFg: Color(0xFFF2C063),
     pendingBg: Color(0xFF3A2E12),
+    infoFg: Color(0xFF8BC9DD),
+    infoBg: Color(0xFF18323A),
     missedFg: Color(0xFFFF8A80),
     missedBg: Color(0xFF3D1A18),
     lateFg: Color(0xFFB4A6FF),
@@ -115,7 +122,7 @@ class AppColors extends ThemeExtension<AppColors> {
       case AssignmentStatus.completed:
         return completedFg;
       case AssignmentStatus.pending:
-        return pendingFg;
+        return infoFg;
       case AssignmentStatus.missed:
         return missedFg;
       case AssignmentStatus.late:
@@ -133,7 +140,7 @@ class AppColors extends ThemeExtension<AppColors> {
       case AssignmentStatus.completed:
         return completedBg;
       case AssignmentStatus.pending:
-        return pendingBg;
+        return infoBg;
       case AssignmentStatus.missed:
         return missedBg;
       case AssignmentStatus.late:
@@ -163,6 +170,8 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? completedBg,
     Color? pendingFg,
     Color? pendingBg,
+    Color? infoFg,
+    Color? infoBg,
     Color? missedFg,
     Color? missedBg,
     Color? lateFg,
@@ -185,6 +194,8 @@ class AppColors extends ThemeExtension<AppColors> {
       completedBg: completedBg ?? this.completedBg,
       pendingFg: pendingFg ?? this.pendingFg,
       pendingBg: pendingBg ?? this.pendingBg,
+      infoFg: infoFg ?? this.infoFg,
+      infoBg: infoBg ?? this.infoBg,
       missedFg: missedFg ?? this.missedFg,
       missedBg: missedBg ?? this.missedBg,
       lateFg: lateFg ?? this.lateFg,
@@ -216,6 +227,8 @@ class AppColors extends ThemeExtension<AppColors> {
       completedBg: Color.lerp(completedBg, other.completedBg, t)!,
       pendingFg: Color.lerp(pendingFg, other.pendingFg, t)!,
       pendingBg: Color.lerp(pendingBg, other.pendingBg, t)!,
+      infoFg: Color.lerp(infoFg, other.infoFg, t)!,
+      infoBg: Color.lerp(infoBg, other.infoBg, t)!,
       missedFg: Color.lerp(missedFg, other.missedFg, t)!,
       missedBg: Color.lerp(missedBg, other.missedBg, t)!,
       lateFg: Color.lerp(lateFg, other.lateFg, t)!,
