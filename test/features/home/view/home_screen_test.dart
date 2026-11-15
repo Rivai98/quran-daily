@@ -34,13 +34,15 @@ void main() {
   ) async {
     await _setSmallScreen(tester);
     await _show(tester, Success(_completedSnapshot), dark: true);
-    expect(find.text('مجموعة الاختبار'), findsNWidgets(2));
+    expect(find.text('مجموعة الاختبار'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text(ArabicStrings.todayCompleteTitle),
       400,
     );
     expect(find.text(ArabicStrings.todayCompleteTitle), findsOneWidget);
+    expect(find.text(ArabicStrings.readNowAction), findsNothing);
     expect(find.text(ArabicStrings.portionUndoAction), findsNWidgets(2));
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -65,7 +67,7 @@ void main() {
 }
 
 bool _rtl(WidgetTester tester) =>
-    Directionality.of(tester.element(find.text(ArabicStrings.homeGreeting))) ==
+    Directionality.of(tester.element(find.byType(HomeScreen))) ==
     TextDirection.rtl;
 
 Future<void> _setSmallScreen(WidgetTester tester) async {

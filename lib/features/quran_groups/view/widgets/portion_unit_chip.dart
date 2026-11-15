@@ -28,7 +28,6 @@ class PortionUnitChip extends StatelessWidget {
         if (state.connectionState != ConnectionState.done || state.hasError) {
           return const SizedBox.shrink();
         }
-        final days = (metadataRepository.portions(unit).length + 29) ~/ 30;
         return Container(
           constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsetsDirectional.symmetric(
@@ -51,12 +50,9 @@ class PortionUnitChip extends StatelessWidget {
                   children: [
                     Text(
                       ArabicStrings.dailyUnitChip(unit),
-                      style: AppTypography.caption.copyWith(
-                        color: colors.onPrimaryContainer,
-                      ),
-                    ),
-                    Text(
-                      ArabicStrings.khatmaDays(days),
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTypography.caption.copyWith(
                         color: colors.onPrimaryContainer,
                       ),

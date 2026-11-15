@@ -68,27 +68,25 @@ class FormingGroupView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  ArabicStrings.formingLabel,
+                  style: AppTypography.caption.copyWith(color: colors.infoFg),
+                ),
+                const SizedBox(height: AppSpacing.xs),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Flexible(
+                    Expanded(
                       child: Text(
-                        ArabicStrings.formingLabel,
-                        style: AppTypography.caption.copyWith(
-                          color: colors.infoFg,
-                        ),
+                        ArabicStrings.groupMembersRatio(activeMemberCount, 30),
+                        style: AppTypography.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
-                      ArabicNumerals.ratio(activeMemberCount, 30),
-                      style: AppTypography.title,
-                    ),
-                    Text(
-                      ' · ${ArabicStrings.missingX} ${ArabicNumerals.format(_missing)}',
-                      style: AppTypography.title,
+                      '${ArabicStrings.missingX} ${ArabicNumerals.format(_missing)}',
+                      style: AppTypography.body,
                     ),
                   ],
                 ),
@@ -182,11 +180,23 @@ class FormingGroupView extends StatelessWidget {
                         runSpacing: AppSpacing.xs,
                         children: [
                           for (var portion = 1; portion <= count; portion++)
-                            ChoiceChip(
-                              label: Text(ArabicNumerals.format(portion)),
-                              selected: startPortion == portion,
-                              onSelected: (_) =>
-                                  setSheetState(() => startPortion = portion),
+                            SizedBox(
+                              width: AppSpacing.xxl,
+                              height: AppSpacing.xxl,
+                              child: ChoiceChip(
+                                label: Text(ArabicNumerals.format(portion)),
+                                labelStyle: AppTypography.label,
+                                selectedColor: Theme.of(context)
+                                    .extension<AppColors>()!
+                                    .primaryContainer,
+                                checkmarkColor: Theme.of(context)
+                                    .extension<AppColors>()!
+                                    .primary,
+                                selected: startPortion == portion,
+                                onSelected: (_) => setSheetState(
+                                  () => startPortion = portion,
+                                ),
+                              ),
                             ),
                         ],
                       )

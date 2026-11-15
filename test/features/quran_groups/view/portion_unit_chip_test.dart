@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
@@ -11,7 +12,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'shows the selected daily unit and metadata-derived cycle length in all variants',
+    'keeps the selected unit chip on one line in all variants',
     (tester) async {
       final metadata = QuranMetadataRepository(
         bundle: QuranMetadataTestAssetBundle(),
@@ -27,11 +28,7 @@ void main() {
             findsOneWidget,
             reason: variant,
           );
-          expect(
-            find.text(ArabicStrings.khatmaDays(2)),
-            findsOneWidget,
-            reason: variant,
-          );
+          expect(find.byType(Text), findsOneWidget, reason: variant);
           expect(tester.takeException(), isNull, reason: variant);
         },
       );

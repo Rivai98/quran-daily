@@ -7,6 +7,7 @@ import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/features/quran_groups/cubit/members/members_cubit.dart';
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
+import 'package:quran_daily/core/design_system/widgets/app_avatar.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/members_screen.dart';
 
 import '../../../helpers/widget_test_app.dart';
@@ -33,6 +34,30 @@ void main() {
           ),
         ),
       );
+      when(() => repository.getGroupInfo('g')).thenAnswer(
+        (_) async => Success(
+          GroupInfo(
+            groupId: 'g',
+            name: 'Group',
+            status: GroupStatus.active,
+            visibility: GroupVisibility.public,
+            joinMode: JoinMode.approval,
+            timezone: 'UTC',
+            createdAt: DateTime(2026),
+            myRole: GroupRole.owner,
+            memberCount: 1,
+            members: [
+              GroupInfoMember(
+                userId: 'u',
+                membershipId: 'm',
+                displayName: ArabicStrings.memberRole,
+                role: GroupRole.member,
+                joinedAt: DateTime(2026),
+              ),
+            ],
+          ),
+        ),
+      );
       await pumpAllVariants(
         tester,
         BlocProvider(
@@ -49,7 +74,7 @@ void main() {
             findsWidgets,
             reason: variant,
           );
-          expect(find.byType(CircleAvatar), findsOneWidget, reason: variant);
+          expect(find.byType(UserAvatar), findsOneWidget, reason: variant);
           expect(
             find.byIcon(Icons.event_seat_outlined),
             findsOneWidget,

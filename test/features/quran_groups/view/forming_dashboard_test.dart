@@ -4,6 +4,7 @@ import 'package:quran_daily/core/design_system/app_button.dart';
 import 'package:quran_daily/core/design_system/widgets/skeleton.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
+import 'package:quran_daily/core/localization/arabic_numerals.dart';
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
 import 'package:quran_daily/features/quran_groups/view/widgets/forming_group_view.dart';
@@ -40,7 +41,11 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    expect(find.text('٢٨ / ٣٠'), findsOneWidget);
+    expect(find.text(ArabicStrings.groupMembersRatio(28, 30)), findsOneWidget);
+    expect(
+      find.text('${ArabicStrings.missingX} ${ArabicNumerals.format(2)}'),
+      findsOneWidget,
+    );
     expect(find.byType(AppButton), findsAtLeastNWidgets(1));
     expect(find.text(ArabicStrings.shareInviteAction), findsOneWidget);
     expect(find.byType(SkeletonBox), findsNothing);

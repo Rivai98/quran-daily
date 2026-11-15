@@ -61,13 +61,21 @@ class ProfileBadgesGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
 
-    return Column(
-      children: [
-        for (final badge in badges) ...[
-          _buildBadgeCard(context, colors, badge),
-          const SizedBox(height: AppSpacing.xs),
-        ],
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = (constraints.maxWidth - AppSpacing.xs * 2) / 3;
+        return Wrap(
+          spacing: AppSpacing.xs,
+          runSpacing: AppSpacing.xs,
+          children: [
+            for (final badge in badges)
+              SizedBox(
+                width: width,
+                child: _buildBadgeCard(context, colors, badge),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -80,11 +88,14 @@ class ProfileBadgesGrid extends StatelessWidget {
     final isEarned = badge.isEarned;
 
     return AppCard(
-      child: Row(
+      padding: AppSpacing.compactCard,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: isEarned ? colors.primaryContainer : colors.surfaceMuted,
               shape: BoxShape.circle,
@@ -92,27 +103,23 @@ class ProfileBadgesGrid extends StatelessWidget {
             child: Icon(
               isEarned ? info.icon : Icons.lock_outline,
               color: isEarned ? colors.accent : colors.inkMuted,
-              size: 22,
+              size: 20,
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
+          const SizedBox(height: AppSpacing.xs),
+          Flexible(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   info.title,
-                  style: AppTypography.label.copyWith(
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.caption.copyWith(
                     color: isEarned ? colors.ink : colors.inkMuted,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  info.desc,
-                  style:
-                      AppTypography.caption.copyWith(color: colors.inkMuted),
-                ),
-                const SizedBox(height: AppSpacing.xxs),
                 Text(
                   isEarned
                       ? ArabicStrings.badgeEarned(_formatDate(badge.earnedAt!))
@@ -121,6 +128,9 @@ class ProfileBadgesGrid extends StatelessWidget {
                     color: isEarned ? colors.primary : colors.inkMuted,
                     fontWeight: isEarned ? FontWeight.w600 : FontWeight.w500,
                   ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
