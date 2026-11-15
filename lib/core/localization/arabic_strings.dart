@@ -4,9 +4,78 @@ import '../quran/portion_unit.dart';
 class ArabicStrings {
   const ArabicStrings._();
 
+  // --- 006 reminders ---
+  static const reminderPermissionExplain =
+      '\u{62a}\u{64f}\u{633}\u{62a}\u{62e}\u{62f}\u{645}\u{20}\u{627}\u{644}\u{625}\u{634}\u{639}\u{627}\u{631}\u{627}\u{62a}\u{20}\u{644}\u{62a}\u{630}\u{643}\u{64a}\u{631}\u{643}\u{20}\u{628}\u{648}\u{631}\u{62f}\u{643}\u{20}\u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a}\u{60c}\u{20}\u{648}\u{64a}\u{64f}\u{62d}\u{633}\u{628}\u{20}\u{645}\u{648}\u{639}\u{62f}\u{647}\u{627}\u{20}\u{639}\u{644}\u{649}\u{20}\u{62c}\u{647}\u{627}\u{632}\u{643}\u{2e}';
+  static const reminderPermissionTitle =
+      '\u{62a}\u{641}\u{639}\u{64a}\u{644}\u{20}\u{62a}\u{630}\u{643}\u{64a}\u{631}\u{627}\u{62a}\u{20}\u{627}\u{644}\u{648}\u{631}\u{62f}';
+  static const reminderActivate =
+      '\u{62a}\u{641}\u{639}\u{64a}\u{644}\u{20}\u{627}\u{644}\u{62a}\u{630}\u{643}\u{64a}\u{631}\u{627}\u{62a}';
+  static const reminderPermissionContinue =
+      '\u{645}\u{62a}\u{627}\u{628}\u{639}\u{629}';
+  static const reminderPermissionLater =
+      '\u{644}\u{64a}\u{633}\u{20}\u{627}\u{644}\u{622}\u{646}';
+  static const reminderPermissionDenied =
+      '\u{644}\u{645}\u{20}\u{62a}\u{64f}\u{641}\u{639}\u{651}\u{644}\u{20}\u{627}\u{644}\u{625}\u{634}\u{639}\u{627}\u{631}\u{627}\u{62a}\u{2e}\u{20}\u{64a}\u{645}\u{643}\u{646}\u{643}\u{20}\u{62a}\u{641}\u{639}\u{64a}\u{644}\u{647}\u{627}\u{20}\u{645}\u{646}\u{20}\u{625}\u{639}\u{62f}\u{627}\u{62f}\u{627}\u{62a}\u{20}\u{627}\u{644}\u{62c}\u{647}\u{627}\u{632}\u{2e}';
+  static const cityCairo = '\u{627}\u{644}\u{642}\u{627}\u{647}\u{631}\u{629}';
+  static const cityAlexandria =
+      '\u{627}\u{644}\u{625}\u{633}\u{643}\u{646}\u{62f}\u{631}\u{64a}\u{629}';
+  static const cityMakkah =
+      '\u{645}\u{643}\u{629}\u{20}\u{627}\u{644}\u{645}\u{643}\u{631}\u{645}\u{629}';
+  static const cityMadinah =
+      '\u{627}\u{644}\u{645}\u{62f}\u{64a}\u{646}\u{629}\u{20}\u{627}\u{644}\u{645}\u{646}\u{648}\u{631}\u{629}';
+  static const cityRiyadh = '\u{627}\u{644}\u{631}\u{64a}\u{627}\u{636}';
+  static const cityAmman = '\u{639}\u{645}\u{651}\u{627}\u{646}';
+  static const cityJerusalem = '\u{627}\u{644}\u{642}\u{62f}\u{633}';
+  static const cityDoha = '\u{627}\u{644}\u{62f}\u{648}\u{62d}\u{629}';
+  static const cityDubai = '\u{62f}\u{628}\u{64a}';
+  static const cityKuwait = '\u{627}\u{644}\u{643}\u{648}\u{64a}\u{62a}';
+  static const cityBeirut = '\u{628}\u{64a}\u{631}\u{648}\u{62a}';
+  static const cityDamascus = '\u{62f}\u{645}\u{634}\u{642}';
+  static const cityBaghdad = '\u{628}\u{63a}\u{62f}\u{627}\u{62f}';
+  static const cityAbuDhabi = '\u{623}\u{628}\u{648} \u{638}\u{628}\u{64a}';
+  static const remindersTitle = 'التذكيرات';
+  static const reminderNotificationTitle = 'وردك اليوم';
+  static const reminderTestTitle = 'تذكير تجريبي';
+  static const reminderTestBody = 'هذا تذكير تجريبي لمتابعة وردك اليوم.';
+  static const reminderListSeparator = '، ';
+  static const reminderMessageSeparator = ' — ';
+  static const reminderChannelName =
+      '\u{62a}\u{630}\u{643}\u{64a}\u{631}\u{627}\u{62a} \u{627}\u{644}\u{648}\u{631}\u{62f} \u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a}';
+  static const reminderChannelDescription =
+      '\u{62a}\u{630}\u{643}\u{64a}\u{631}\u{627}\u{62a} \u{645}\u{62d}\u{644}\u{64a}\u{629} \u{628}\u{645}\u{648}\u{639}\u{62f} \u{627}\u{644}\u{648}\u{631}\u{62f} \u{627}\u{644}\u{64a}\u{648}\u{645}\u{64a}';
+  static String reminderPortionInGroup(String portion, String group) =>
+      '$portion في $group';
+  static const reminderFajr = 'بعد الفجر';
+  static const reminderAsr = 'بعد العصر';
+  static const reminderNight = 'تذكير المساء';
+  static const reminderOffset = 'دقيقة بعد الصلاة';
+  static const reminderNightTime = 'وقت التذكير المسائي';
+  static const reminderTest = 'إرسال تذكير تجريبي';
+  static const reminderGroupTitle = 'تذكيرات المجموعة';
+  static const reminderGroupMessage = 'رسالة اختيارية للمجموعة';
+  static const reminderMute = 'كتم هذا التذكير على هذا الجهاز';
+  static const reminderMuteGroup = 'كتم تذكيرات المجموعة على هذا الجهاز';
+  static const reminderPermissionHelp =
+      'فعّل الإشعارات من إعدادات الجهاز لتصلك التذكيرات.';
+  static const reminderCalculationMethod = 'طريقة حساب مواقيت الصلاة';
+  static const reminderLocation = 'موقع مواقيت الصلاة';
+  static const reminderEgyptMethod = 'الهيئة المصرية العامة للمساحة';
+  static const reminderUmmAlQuraMethod = 'أم القرى';
+  static const reminderMwlMethod = 'رابطة العالم الإسلامي';
+  static const reminderKarachiMethod = 'جامعة العلوم الإسلامية بكراتشي';
+  static const reminderIsnaMethod = 'الاتحاد الإسلامي بأمريكا الشمالية';
+  static const reminderCityFallback = 'اختر مدينة';
+  static const reminderLocationExplanation =
+      'يُستخدم موقعك لحساب مواقيت الصلاة على جهازك فقط.';
+  static const reminderSave = 'حفظ التذكيرات';
+  static const reminderOwnerOnly = 'يمكن لمالك المجموعة تعديل هذا الجدول.';
+  static const reminderMessageLimit = 'حتى ٨٠ حرفًا';
+
   // --- spec 002 Google sign-in ---
   static const googleSignIn = 'تسجيل الدخول باستخدام Google';
-  static const googleSignInHint = 'إذا كنت مسجلاً عبر Google فاستخدم زر Google.';
+  static const googleSignInHint =
+      'إذا كنت مسجلاً عبر Google فاستخدم زر Google.';
   static const or = 'أو';
 
   // --- US1 dashboard ---

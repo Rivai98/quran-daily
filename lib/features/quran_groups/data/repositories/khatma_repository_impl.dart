@@ -17,15 +17,18 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
     required CachedSnapshotsDao cache,
     SyncQueueDao? queue,
     CachedHistoryDao? historyDao,
+    Future<void> Function(String groupId)? onCompletionChanged,
   }) : _remote = remote,
        _cache = cache,
        _queue = queue,
-       _historyDao = historyDao;
+       _historyDao = historyDao,
+       _onCompletionChanged = onCompletionChanged;
 
   final KhatmaRemoteDataSource _remote;
   final CachedSnapshotsDao _cache;
   final SyncQueueDao? _queue;
   final CachedHistoryDao? _historyDao;
+  final Future<void> Function(String groupId)? _onCompletionChanged;
   final Map<String, StreamController<DashboardSnapshot?>> _updates = {};
 
   StreamController<DashboardSnapshot?> _controllerFor(String groupId) =>
@@ -106,13 +109,17 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
           );
     if (remoteResult.isSuccess) {
       final dashboard = await getDashboard(groupId);
-      if (dashboard.isSuccess) return dashboard;
+      if (dashboard.isSuccess) {
+        await _refreshReminders(groupId);
+        return dashboard;
+      }
       final snapshot = await _optimistic(
         groupId,
         assignmentId,
         recordedAt,
         undo: undo,
       );
+      if (snapshot != null) await _refreshReminders(groupId);
       return snapshot == null ? dashboard : Success(snapshot);
     }
     final failure = remoteResult.failureOrNull;
@@ -132,6 +139,7 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
       undo: undo,
     );
     if (snapshot == null) return FailureResult(failure);
+    await _refreshReminders(groupId);
     await queue.enqueue(
       SyncOperation(
         id: '${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 32)}',
@@ -148,6 +156,14 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
         code: 'offline_queued',
       ),
     );
+  }
+
+  Future<void> _refreshReminders(String groupId) async {
+    try {
+      await _onCompletionChanged?.call(groupId);
+    } catch (_) {
+      // A notification rebuild must not block completion or undo.
+    }
   }
 
   Future<({String groupId, Map<String, Object?> json})?> _findAssignment(
