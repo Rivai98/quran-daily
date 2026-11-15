@@ -3,13 +3,13 @@
 **Plan**: [plan.md](./plan.md). Test-first.
 
 ## Phase 1: Backend
-- [ ] T001 [P] pgTAP `supabase/tests/007_reader_visibility_test.sql`: reader fields on dashboard/history; member viewer sees readers of completed portions but NOT names on others' missed/unread; owner/supervisor see all; self always sees own; never email
-- [ ] T002 Migration `supabase/migrations/20261115120001_reader_attribution.sql`: additive reader fields with the visibility rule in `get_dashboard`, `get_history_day`
-- [ ] T003 [P] pgTAP `supabase/tests/007_profiles_group_info_test.sql`: get_member_profile co-member only, non-member refused, no email; get_group_info stats/members, invite only for owner/supervisor; update_my_profile limits; owner-only group details/photo
-- [ ] T004 Migration `20261115120002_profiles_group_info.sql`: `profiles.bio`, `groups.photo_path`, RPCs
-- [ ] T005 Migration `20261115120003_group_photos_storage.sql`: private bucket `group-photos`, size/type limits, storage policies (members read, owner write/delete)
-- [ ] T006 pgTAP for storage policies (storage.objects with member/non-member/owner roles)
-- [ ] T007 Apply to DEV; run ALL pgTAP files: 0 failed
+- [x] T001 [P] pgTAP `supabase/tests/007_reader_visibility_test.sql`: reader fields on dashboard/history; member viewer sees readers of completed portions but NOT names on others' missed/unread; owner/supervisor see all; self always sees own; never email
+- [x] T002 Migration `supabase/migrations/20261115120001_reader_attribution.sql`: additive reader fields with the visibility rule in `get_dashboard`, `get_history_day`
+- [x] T003 [P] pgTAP `supabase/tests/007_profiles_group_info_test.sql`: get_member_profile co-member only, non-member refused, no email; get_group_info stats/members, invite only for owner/supervisor; update_my_profile limits; owner-only group details/photo
+- [x] T004 Migration `20261115120002_profiles_group_info.sql`: `profiles.bio`, `groups.photo_path`, RPCs
+- [x] T005 Migration `20261115120003_group_photos_storage.sql`: private bucket `group-photos`, size/type limits, storage policies (members read, owner write/delete)
+- [x] T006 pgTAP for storage policies (storage.objects with member/non-member/owner roles)
+- [x] T007 Apply to DEV; run ALL pgTAP files: 0 failed
 
 ## Phase 2: Readers and profiles (app agent A)
 - [ ] T008 [P] Entity/parsing tests for reader fields, profile, group info

@@ -38,6 +38,9 @@ The test suite consists of 10 test files mapping to architecture foundations and
 | `001_us5_volunteer_test.sql` | US5 Volunteering | Available juz claiming, concurrent volunteer race condition safety (SC-006). |
 | `001_us6_manage_test.sql` | US6 Management | Request review, seat swap, member removal, leave, transfer ownership, today-only override. |
 | `001_us7_history_test.sql` | US7 History | Paged history, regular member privacy vs owner/supervisor detail, full khatma flags. |
+| `007_reader_visibility_test.sql` | Spec 007 Readers | `reader` attribution on dashboard/history, member vs owner/supervisor visibility of misses, no email. |
+| `007_profiles_group_info_test.sql` | Spec 007 Profiles | `get_group_info`, `get_member_profile` (co-members only), `update_my_profile`, owner-only group details/photo. |
+| `007_group_photos_storage_test.sql` | Spec 007 Storage | `group-photos` bucket limits and storage.objects policies (members read, owner writes). |
 
 ### Helpers
 
