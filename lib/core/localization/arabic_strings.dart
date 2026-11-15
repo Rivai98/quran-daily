@@ -555,6 +555,16 @@ class ArabicStrings {
       '\u{62c}\u{627}\u{631}\u{64d} \u{62a}\u{62c}\u{647}\u{64a}\u{632} \u{627}\u{644}\u{635}\u{641}\u{62d}\u{629}';
   static const mushafFontFallback =
       '\u{62a}\u{639}\u{630}\u{631} \u{62a}\u{62d}\u{645}\u{64a}\u{644} \u{62e}\u{637} \u{627}\u{644}\u{635}\u{641}\u{62d}\u{629}. \u{64a}\u{639}\u{631}\u{636} \u{627}\u{644}\u{646}\u{635} \u{628}\u{634}\u{643}\u{644} \u{645}\u{62a}\u{648}\u{627}\u{635}\u{644} \u{645}\u{624}\u{642}\u{62a}\u{64b}\u{627}.';
+  // Settings: Mushaf offline download (short labels, one line at 360dp).
+  static const mushafOfflineTitle = 'تنزيل المصحف للقراءة بدون إنترنت';
+  static const mushafDownloadAction = 'تنزيل المصحف';
+  static const mushafResumeDownload = 'متابعة التنزيل';
+  static const mushafDeleteSaved = 'حذف الخطوط المحفوظة';
+  static const mushafSavedOnDevice = 'المصحف محفوظ على جهازك';
+  static String mushafSavedOf(int savedMb, int totalMb) =>
+      'محفوظ ${ArabicFormatting.isolate(ArabicNumerals.format(savedMb))} من ${ArabicFormatting.isolate(ArabicNumerals.format(totalMb))} ميجابايت';
+  static String mushafDownloadingPercent(int percent) =>
+      'جارٍ التنزيل ${ArabicFormatting.isolate(ArabicNumerals.percent(percent))}';
   static const mushafDownloadAll =
       '\u{62a}\u{646}\u{632}\u{64a}\u{644} \u{627}\u{644}\u{645}\u{635}\u{62d}\u{641} \u{643}\u{627}\u{645}\u{644}\u{64b}\u{627} \u{644}\u{644}\u{642}\u{631}\u{627}\u{621}\u{629} \u{628}\u{62f}\u{648}\u{646} \u{625}\u{646}\u{62a}\u{631}\u{646}\u{62a}';
   static const mushafDeleteFonts =
