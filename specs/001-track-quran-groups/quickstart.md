@@ -1,28 +1,75 @@
-# Quickstart: Validate Quran Group Reading Tracker (amended 2026-11-14)
+# Quickstart: Validate Quran Group Reading Tracker (amended 2026-11-15)
 
 Validation/run guide only; implementation lives in `tasks.md`.
 
 ## Prerequisites
 
-- Flutter stable (Dart `^3.10.4`), Android emulator (API 26+), iOS simulator (iOS 15+, macOS only).
-- Supabase CLI v3 (installed at `%LOCALAPPDATA%\supabase-cli`, on PATH). No Docker. Owner has run `supabase login` and `supabase link --project-ref zwkvijapswwutwozbvgy` once (research R16).
+- Flutter stable (Dart `^3.10.4`), Android emulator (API 26+) or device, iOS simulator (iOS 15+, macOS only).
+- Supabase CLI v3 (installed at `%LOCALAPPDATA%\supabase-cli`, on PATH). No Docker. Owner has run `supabase login` and `supabase link --project-ref zwkvijapswwutwozbvgy` once (research R16). Every hosted CLI command requires `--remote --yes`.
 - Owner-provided assets (agents must not create them):
-  - `assets/fonts/` Cairo (400/500/600/700) and Amiri (400/700) TTF files (OFL, from Google Fonts).
+  - `assets/fonts/` Cairo (`Cairo-Variable.ttf`) and Amiri (`Amiri-Regular.ttf`, `Amiri-Bold.ttf`) TTF files (OFL).
   - `assets/quran/quran-data.xml` (Tanzil metadata), `assets/quran/SOURCE.md`, `assets/quran/checksums.sha256`.
 - `.env`/`--dart-define`: `SUPABASE_URL`, `SUPABASE_ANON_KEY` (publishable key only; never the service key).
 
 ## Commands
 
+### Backend Workflow (No Docker)
+
+Because `supabase test db` requires Docker, pgTAP tests run through the repository runner:
+
 ```bash
-supabase db push --remote  # applies supabase/migrations to the hosted dev project
-supabase test db --remote  # pgTAP: rotation, RLS, joins, volunteering, history
+# Run all pgTAP test files against the hosted dev project
+python scripts/run_remote_pgtap.py supabase/tests/*.sql
+
+# Or run a single pgTAP test file
+python scripts/run_remote_pgtap.py supabase/tests/<file>.sql
+```
+
+Applying migrations to the remote dev database:
+Do not use `supabase db push` (parallel branches push timestamps out of order, leading to `DbPushMissingLocalError`). Apply and repair status explicitly:
+
+```bash
+supabase db query --remote --yes -f supabase/migrations/<file>.sql
+supabase migration repair --remote --yes --status applied <version>
+```
+
+### Flutter App & Testing
+
+```bash
+# 1. Fetch dependencies and analyze code
 flutter pub get
 flutter analyze
+
+# 2. Run all unit and widget tests
 flutter test
-flutter test integration_test -d <emulator-id>
+
+# 3. Run the app on an attached phone or emulator
+flutter run -d <device-id> --dart-define-from-file=.env
+
+# 4. Run integration tests on device/emulator
+flutter test integration_test/group_flow_test.dart -d <device-id> --dart-define-from-file=.env
+flutter test integration_test/offline_completion_test.dart -d <device-id> --dart-define-from-file=.env
+
+# 5. Run the offline journey on host (no device needed)
+flutter test test/integration_offline_completion_test.dart
 ```
 
 All must be green before a story is marked done.
+
+## Owner Steps Still Pending
+
+Before public release, the project owner performs these steps:
+
+1. **Seed First Admin**: In Supabase SQL editor, register the admin user ID (from spec 002 quickstart):
+   ```sql
+   insert into private.app_admins (user_id) values ('<your auth user id>');
+   ```
+2. **Deploy Edge Functions**: Deploy the admin Edge Functions with the `--use-api` flag:
+   ```bash
+   supabase functions deploy admin-create-user --use-api
+   supabase functions deploy admin-reset-password --use-api
+   ```
+3. **Review Quran Metadata**: Review [`assets/quran/SOURCE.md`](../../assets/quran/SOURCE.md) and confirm license attribution and checksums before release.
 
 ## Scenarios
 
@@ -45,3 +92,18 @@ All must be green before a story is marked done.
 |---|---|---|
 | T114 design system, Arabic copy, and screen variants | No forbidden raw color, font size, radius, physical left/right inset, or alignment literals. Hard-coded screen copy existed in create group, group settings, and forming group views. Member, join-request, and group-settings screens lacked full variant coverage. | Moved copy to `ArabicStrings`; added RTL, 200% text, dark, and 320dp coverage. Existing shared design-system components and one-primary-action screen patterns remain in use. |
 | T115 Quran content integrity and source access | Static surah/range examples existed in a localization test and the design mock; `QuranMetadataRepository` is the only application code that reads Quran metadata. The checksum test verifies the bundled XML bytes. | Replaced examples with repository-driven test data and neutral mock placeholders. Kept Quran source files unchanged; checksum test passes. |
+
+## Validation log
+
+### Date: 2026-11-15
+
+| Target / Suite | Command | Result | Notes |
+|---|---|---|---|
+| Static Analysis | `flutter analyze` | PASS (0 issues) | Clean run |
+| Unit & Widget Tests | `flutter test` | PASS (292 passing) | 100% passing across all feature suites |
+| pgTAP DB Tests | `python scripts/run_remote_pgtap.py supabase/tests/*.sql` | PASS (10 files green) | All 10 test suites passed against dev DB |
+| Integration: Group Flow | `flutter test integration_test/group_flow_test.dart -d <device-id> --dart-define-from-file=.env` | pending | Orchestrator fills on attached device |
+| Integration: Offline Completion | `flutter test integration_test/offline_completion_test.dart -d <device-id> --dart-define-from-file=.env` | pending | Orchestrator fills on attached device |
+| Integration: Host Offline Journey | `flutter test test/integration_offline_completion_test.dart` | PASS | Verified in flutter test suite |
+| Android Device / Emulator | Acceptance scenarios 1–12 | pending | Orchestrator fills on device |
+| iOS Simulator | Acceptance scenarios 1–12 | pending | Orchestrator fills on simulator |
