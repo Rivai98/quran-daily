@@ -11,9 +11,11 @@ import '../core/localization/arabic_strings.dart';
 import '../core/design_system/app_theme.dart';
 import '../features/auth/cubit/auth_cubit.dart';
 import '../features/auth/view/auth_entry_screen.dart';
-import '../features/quran_groups/view/screens/group_selection_screen.dart';
 import '../features/quran_groups/cubit/group_list/group_list_cubit.dart';
 import '../features/quran_groups/data/repositories/khatma_repository.dart';
+import '../features/shell/home_shell.dart';
+import '../features/home/view/home_screen.dart';
+import '../features/home/cubit/home_cubit.dart';
 import 'router.dart';
 
 class QuranDailyApp extends StatefulWidget {
@@ -166,7 +168,14 @@ class _AuthGate extends StatelessWidget {
               ),
             );
           case AuthStatus.authenticated:
-            return const GroupSelectionScreen();
+            return BlocProvider(
+              create: (_) => serviceLocator<HomeCubit>(),
+              child: HomeShell(
+                homeBuilder: (_) => HomeScreen(metadataRepository: _metadataRepository()),
+                groupsBuilder: (context) => AppRoutes.routes[AppRoutes.groups]!(context),
+                logBuilder: (_) => const LogTabPlaceholder(),
+              ),
+            );
           case AuthStatus.profileFailure:
           case AuthStatus.unauthenticated:
           case AuthStatus.failure:

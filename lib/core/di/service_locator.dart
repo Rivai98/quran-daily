@@ -30,6 +30,12 @@ import '../../features/quran_groups/cubit/create_group/create_group_cubit.dart';
 import '../../features/quran_groups/cubit/members/members_cubit.dart';
 import '../../features/quran_groups/cubit/join_requests/join_requests_cubit.dart';
 import '../../features/quran_groups/cubit/group_list/group_list_cubit.dart';
+// --- 005 home ---
+import '../../features/home/cubit/home_cubit.dart';
+import '../../features/home/data/today_remote_data_source.dart';
+import '../../features/home/data/today_repository.dart';
+import '../../features/home/data/today_repository_impl.dart';
+// --- end 005 home ---
 
 final serviceLocator = GetIt.instance;
 
@@ -118,6 +124,8 @@ void configureServiceLocator({
           groupId: groupId,
           syncPending: SyncPendingCompletions(locator<KhatmaRepository>()),
           connectivityService: locator<ConnectivityService>(),
+          onOpened: () => locator<TodayRepository>().markGroupOpened(groupId),
+          setAsMain: () async { await locator<TodayRepository>().setMainGroup(groupId); },
         ),
       );
     }
@@ -230,6 +238,21 @@ void configureServiceLocator({
         ),
       );
     }
+
+    // --- 005 home ---
+    if (!locator.isRegistered<CachedTodayDao>()) {
+      locator.registerLazySingleton<CachedTodayDao>(() => CachedTodayDao(locator<LocalDatabase>()));
+    }
+    if (!locator.isRegistered<TodayRemoteDataSource>()) {
+      locator.registerLazySingleton<TodayRemoteDataSource>(() => TodayRemoteDataSource(locator<RpcClient>()));
+    }
+    if (!locator.isRegistered<TodayRepository>()) {
+      locator.registerLazySingleton<TodayRepository>(() => TodayRepositoryImpl(remote: locator<TodayRemoteDataSource>(), cache: locator<CachedTodayDao>(), session: locator<SessionGateway>()));
+    }
+    if (!locator.isRegistered<HomeCubit>()) {
+      locator.registerFactory<HomeCubit>(() => HomeCubit(repository: locator<TodayRepository>(), khatmaRepository: locator<KhatmaRepository>()));
+    }
+    // --- end 005 home ---
   }
 }
 

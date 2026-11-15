@@ -4,6 +4,24 @@ import '../quran/portion_unit.dart';
 class ArabicStrings {
   const ArabicStrings._();
 
+  // --- 005 home ---
+  static const homeTab = 'الرئيسية';
+  static const groupsTab = 'مجموعاتي';
+  static const logTab = 'السجل';
+  static const todayTitle = 'وردك اليوم';
+  static const homeGreeting = 'السلام عليكم';
+  static const otherGroupsTitle = 'أوراد مجموعاتك الأخرى';
+  static const todayCompleteTitle = 'أتممت وردك اليوم';
+  static const setMainGroupAction = 'اجعلها مجموعتي الرئيسية';
+  static const portionCompleteAction = 'تمت القراءة';
+  static const portionUndoAction = 'تراجع عن الإتمام';
+  static const todayLoadError = 'تعذر تحميل وردك اليوم';
+  static const homeEmptyTitle = 'ابدأ وردك مع مجموعة';
+  static const openGroupAction = 'افتح المجموعة';
+  static const settingsTooltip = 'الإعدادات';
+  static const hijriDateUnavailable = 'التاريخ الهجري غير متاح';
+  // --- end 005 home ---
+
   // --- US1 dashboard ---
   static const myWirdToday = 'وردك اليوم';
   static const availableJuzTitle = 'أجزاء متاحة للتطوع';
