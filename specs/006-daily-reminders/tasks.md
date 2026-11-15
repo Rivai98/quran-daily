@@ -3,10 +3,10 @@
 **Plan**: [plan.md](./plan.md). Test-first.
 
 ## Phase 1: Backend
-- [ ] T001 pgTAP `supabase/tests/006_group_reminders_test.sql`: owner sets schedule, member cannot, members read, non-members cannot; validation (offsets 0..180, message <= 80)
-- [ ] T002 Migration `supabase/migrations/20261115110001_group_reminder_schedules.sql`: table, RLS, `set_group_reminder_schedule` RPC
-- [ ] T003 Migration `20261115110002_reminder_schedule_in_reads.sql`: add `reminder_schedule` to `get_dashboard` (and `get_my_today` if present) additively
-- [ ] T004 Apply to DEV; run ALL pgTAP files: 0 failed
+- [x] T001 pgTAP `supabase/tests/006_group_reminders_test.sql`: owner sets schedule, member cannot, members read, non-members cannot; validation (offsets 0..180, message <= 80)
+- [x] T002 Migration `supabase/migrations/20261115110001_group_reminder_schedules.sql`: table, RLS, `set_group_reminder_schedule` RPC
+- [x] T003 Migration `20261115110002_reminder_schedule_in_reads.sql`: add `reminder_schedule` to `get_dashboard` (and `get_my_today` if present) additively
+- [x] T004 Apply to DEV; run ALL pgTAP files: 0 failed
 
 ## Phase 2: Scheduling core (app agent A)
 - [ ] T005 [P] Tests `test/features/reminders/domain/planner_test.dart`: slot times from prayer times + offsets, night time, merge same-minute group slots, body lists only pending portions with group names, nothing pending → none, past times skipped, mutes, personal fallback when no group schedule
