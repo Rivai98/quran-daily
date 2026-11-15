@@ -19,6 +19,7 @@ The test files stay standard pgTAP and remain runnable with
 Usage: python scripts/run_remote_pgtap.py supabase/tests/001_schema_test.sql [...]
 """
 import io
+import json
 import os
 import re
 import subprocess
@@ -93,6 +94,22 @@ def main(argv):
 
         lines = [ln.strip().strip('│').strip() for ln in text.split('\n')]
         tap = [ln for ln in lines if ln.startswith('ok ') or 'not ok' in ln]
+        if not tap:
+            # Newer Supabase CLI versions return db-query rows as JSON instead
+            # of rendering the final SELECT as a table.
+            try:
+                json_start = text.find('{')
+                response = json.loads(text[json_start:]) if json_start >= 0 else None
+            except (json.JSONDecodeError, TypeError):
+                response = None
+            if isinstance(response, dict):
+                tap = [row['line'].strip() for row in response.get('rows', [])
+                       if isinstance(row, dict) and isinstance(row.get('line'), str)]
+            if not tap:
+                # The CLI may prefix JSON with status text, which prevents a
+                # whole-document parse. Decode the buffered line fields alone.
+                tap = [json.loads('"' + value + '"').strip()
+                       for value in re.findall(r'"line"\s*:\s*"((?:\\.|[^"\\])*)"', text)]
         diag = [ln for ln in lines if ln.startswith('#')]
         not_ok = [ln for ln in tap if 'not ok' in ln]
         print('%s: %d passed, %d failed'
