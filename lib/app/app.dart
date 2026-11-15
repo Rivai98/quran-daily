@@ -214,7 +214,7 @@ class _AuthGate extends StatelessWidget {
               create: (_) => serviceLocator<HomeCubit>(),
               child: Builder(
                 builder: (context) => HomeShell(
-                  onHomeSelected: context.read<HomeCubit>().refresh,
+                  onHomeSelected: context.read<HomeCubit>().refreshIfStale,
                   homeBuilder: (_) => HomeScreen(
                     displayName: state.profile?.displayName,
                     metadataRepository:

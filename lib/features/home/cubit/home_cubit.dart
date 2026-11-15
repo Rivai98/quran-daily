@@ -41,11 +41,25 @@ class HomeCubit extends Cubit<HomeState> {
        super(const HomeState());
   final TodayRepository _repository;
   final KhatmaRepository _khatma;
+  DateTime? _lastLoadedAt;
+  bool _loading = false;
+
   Future<void> load() async {
-    emit(HomeState(status: HomeStatus.loading, snapshot: state.snapshot));
+    if (_loading) return;
+    _loading = true;
+    // Only show the loading state on the very first load; later refreshes keep the
+    // current content on screen so the cards don't jump.
+    if (state.snapshot == null) {
+      emit(HomeState(status: HomeStatus.loading, snapshot: state.snapshot));
+    }
     final result = await _repository.getToday();
+    _loading = false;
     result.when(
-      success: (snapshot) => emit(
+      success: (snapshot) {
+        // A cached (stale) snapshot must not replace fresh content already shown.
+        if (snapshot.isStale && state.status == HomeStatus.content) return;
+        _lastLoadedAt = DateTime.now();
+        emit(
         HomeState(
           snapshot: snapshot,
           status: snapshot.isStale
@@ -54,7 +68,8 @@ class HomeCubit extends Cubit<HomeState> {
               ? HomeStatus.empty
               : HomeStatus.content,
         ),
-      ),
+        );
+      },
       failure: (failure) => emit(
         HomeState(
           status: HomeStatus.failure,
@@ -66,6 +81,15 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<void> refresh() => load();
+
+  /// Called when the Home tab is re-selected: refresh quietly, at most every 30 s.
+  Future<void> refreshIfStale() {
+    final last = _lastLoadedAt;
+    if (last != null && DateTime.now().difference(last) < const Duration(seconds: 30)) {
+      return Future.value();
+    }
+    return load();
+  }
   Future<void> pinMainGroup(String groupId) async {
     final result = await _repository.setMainGroup(groupId);
     if (result.isSuccess) await load();
