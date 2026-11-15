@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-13
 
-**Status**: Amended 2026-11-15 (Google sign-in) - pending implementation
+**Status**: Implemented incl. Google sign-in (2026-11-15)
 
 **Input**: User description: "Make login using email and password, store accounts in the database using Supabase, and explain what is needed to set up accounts and the database."
 
@@ -15,6 +15,13 @@
 - Q: What additional sign-in provider is supported? → A: "Sign in with Google" (Google account OAuth) is supported alongside email and password; one-time codes, magic links, and other providers remain out of scope.
 - Q: What happens if an account already exists with the same email used for Google sign-in? → A: Same email used by email/password and Google maps to ONE account (identity linking), never two profiles.
 - Q: How is the profile created on first Google sign-in? → A: First Google sign-in creates the profile with the Google display name (editable later); no password is required.
+- Q: Can a Google-registered user add a password later? → A: No. Google-only
+  accounts stay Google-only. To avoid revealing which emails exist, a failed
+  email/password sign-in shows the generic error plus a hint: "إذا كنت سجّلت
+  عبر Google فاستخدم زر Google" (owner 2026-11-15).
+- Q: Which Google sign-in flow on mobile? → A: The native in-app Google account
+  picker (one tap, no browser), exchanging the Google ID token with the auth
+  backend (owner 2026-11-15).
 - Q: What setup steps are required from the owner? → A: The project owner creates Google OAuth client IDs (Android with SHA-1, iOS, web client for Supabase) and enables the Google provider in the Supabase dashboard; the app and agent never handle client secrets in the app.
 
 ### Session 2026-11-14
@@ -120,7 +127,7 @@ A new or returning user signs in using their Google account with one tap, linkin
 - Authentication errors do not reveal whether a particular email address has an account; administrator account tools may identify users only after authorization.
 - Back navigation cannot bypass authentication and reveal private screens after sign-out or session expiry.
 - A user signs in with Google using an email that matches an existing email/password account: the identities are linked to the single existing profile.
-- A user registered via Google signs in: no password is required; if they later attempt email/password sign-in without having set a password, a clear Arabic message explains how to sign in with Google or contact an administrator.
+- A user registered via Google signs in: no password is required; if they later attempt email/password sign-in, the generic sign-in error includes a hint to use the Google button (no password can be added; account existence is not revealed).
 - A user cancels Google sign-in: returns to the authentication screen gracefully without showing an error banner.
 
 ## Requirements *(mandatory)*
