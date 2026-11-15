@@ -165,17 +165,22 @@ class _GroupHeader extends StatelessWidget {
   const _GroupHeader();
   @override
   Widget build(BuildContext context) => IslamicOrnamentBand(
-    height: 168,
+    height: AppSpacing.xxl + (AppSpacing.lg * 3),
+    contentPadding: AppSpacing.md,
+    refined: true,
     child: LayoutBuilder(
       builder: (context, constraints) => Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(ArabicStrings.appName, style: AppTypography.headline),
+          Text(
+            ArabicStrings.groupSelectionTitle,
+            style: AppTypography.headline,
+          ),
           if (constraints.maxHeight > 80) ...[
             const SizedBox(height: AppSpacing.xxs),
-            Text(ArabicStrings.groupsHeaderSubtitle, style: AppTypography.body),
+            Text(ArabicStrings.myGroupsSubtitle, style: AppTypography.body),
           ],
         ],
       ),
@@ -279,7 +284,20 @@ class _MyGroupRow extends StatelessWidget {
       GroupRole.supervisor => ArabicStrings.roleSupervisor,
       GroupRole.member => ArabicStrings.roleMember,
     };
+    final statusIcon = group.status == GroupStatus.active
+        ? Icons.play_circle_outline
+        : Icons.hourglass_top;
+    final statusLabel = group.status == GroupStatus.active
+        ? ArabicStrings.activeLabel
+        : ArabicStrings.formingLabel;
+    final statusColor = group.status == GroupStatus.active
+        ? colors.primary
+        : colors.infoFg;
+    final statusBackground = group.status == GroupStatus.active
+        ? colors.primaryContainer
+        : colors.infoBg;
     return AppCard(
+      padding: EdgeInsets.zero,
       child: InkWell(
         borderRadius: AppRadius.lgBR,
         onTap: () async {
@@ -299,7 +317,7 @@ class _MyGroupRow extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  GroupAvatar(name: group.name, size: 36),
+                  GroupAvatar(name: group.name, size: AppSpacing.xl),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
@@ -309,82 +327,87 @@ class _MyGroupRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Icon(Icons.chevron_left, color: colors.inkMuted),
                 ],
               ),
               const SizedBox(height: AppSpacing.xs),
-                Row(
-                  children: [
-                    Icon(Icons.menu_book_outlined, size: 18, color: colors.inkMuted),
+              Row(
+                children: [
+                  Icon(
+                    Icons.menu_book_outlined,
+                    size: AppSpacing.md,
+                    color: colors.inkMuted,
+                  ),
                   const SizedBox(width: AppSpacing.xxs),
                   Expanded(
+                    child: Text(
+                      '${ArabicStrings.dailyUnitChip(group.portionUnit)}${ArabicStrings.groupCitySeparator}$roleMarker',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.caption.copyWith(
+                        color: colors.inkMuted,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    ArabicStrings.groupSeatsProgressLabel,
+                    style: AppTypography.caption.copyWith(
+                      color: colors.inkMuted,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  ClipRRect(
+                    borderRadius: AppRadius.pillBR,
+                    child: LinearProgressIndicator(
+                      value: (group.activeMemberCount / 30).clamp(0.0, 1.0),
+                      minHeight: AppSpacing.xs,
+                      backgroundColor: colors.surfaceMuted,
+                      color: group.status == GroupStatus.active
+                          ? colors.completedFg
+                          : colors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    ArabicFormatting.membersProgress(group.activeMemberCount),
+                    style: AppTypography.caption.copyWith(
+                      color: colors.inkMuted,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Container(
+                    padding: const EdgeInsetsDirectional.symmetric(
+                      horizontal: AppSpacing.xs,
+                      vertical: AppSpacing.xxs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusBackground,
+                      borderRadius: AppRadius.pillBR,
+                    ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Flexible(
-                          child: Text(
-                            ArabicStrings.dailyUnitChip(group.portionUnit),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.caption.copyWith(
-                              color: colors.inkMuted,
-                            ),
-                          ),
+                        Icon(
+                          statusIcon,
+                          size: AppSpacing.sm,
+                          color: statusColor,
                         ),
+                        const SizedBox(width: AppSpacing.xxs),
                         Text(
-                          ' · ',
+                          statusLabel,
                           style: AppTypography.caption.copyWith(
-                            color: colors.inkMuted,
-                          ),
-                        ),
-                        Flexible(
-                          child: Text(
-                            roleMarker,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.caption.copyWith(
-                              color: colors.inkMuted,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          ' · ',
-                          style: AppTypography.caption.copyWith(
-                            color: colors.inkMuted,
-                          ),
-                        ),
-                        Flexible(
-                          child: Text(
-                            group.status == GroupStatus.active
-                                ? ArabicStrings.activeLabel
-                                : ArabicStrings.formingLabel,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.caption.copyWith(
-                              color: colors.inkMuted,
-                            ),
+                            color: statusColor,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                ArabicFormatting.membersProgress(group.activeMemberCount),
-                style: AppTypography.caption.copyWith(color: colors.inkMuted),
-              ),
-              const SizedBox(height: AppSpacing.xxs),
-              ClipRRect(
-                borderRadius: AppRadius.pillBR,
-                child: LinearProgressIndicator(
-                  value: (group.activeMemberCount / 30).clamp(0.0, 1.0),
-                  minHeight: AppSpacing.xs,
-                  backgroundColor: colors.surfaceMuted,
-                  color: group.status == GroupStatus.active
-                      ? colors.completedFg
-                      : colors.primary,
-                ),
               ),
             ],
           ),

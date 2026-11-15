@@ -128,11 +128,11 @@ class AppRoutes {
       ),
       discovery: (_) => BlocProvider(
         create: (_) => serviceLocator<DiscoveryCubit>()..load(),
-        child: DiscoveryScreen(metadataRepository: _metadataRepository()),
+        child: const DiscoveryScreen(),
       ),
       '/groups/discovery': (_) => BlocProvider(
         create: (_) => serviceLocator<DiscoveryCubit>()..load(),
-        child: DiscoveryScreen(metadataRepository: _metadataRepository()),
+        child: const DiscoveryScreen(),
       ),
       '/join': (_) => BlocProvider(
         create: (_) => serviceLocator<JoinCubit>(),
