@@ -173,7 +173,7 @@ void main() {
   });
 
   testWidgets(
-    'renders Mushaf slim header, page footer, surah title band, and bookmark in app bar',
+    'renders continuous surah paragraphs, calm chrome, portion progress, and page footer',
     (tester) async {
       final repo = _RichRepository();
       final storage = _Storage();
@@ -193,8 +193,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // 1. Bookmark action in AppBar
+      // Actions are grouped in the compact chrome menu.
+      expect(find.byType(PopupMenuButton<String>), findsOneWidget);
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
       expect(find.byIcon(Icons.bookmark_add_rounded), findsOneWidget);
+      await tester.tapAt(const Offset(8, 8));
+      await tester.pumpAndSettle();
 
       // 2. Surah title band at ayah 1
       expect(
@@ -205,8 +210,12 @@ void main() {
       // 3. Page number footer
       expect(find.text('١'), findsWidgets);
 
-      // 4. Portion banner with portion name + "صفحة ١ من ٢"
-      expect(find.text('صفحة ١ من ٢'), findsOneWidget);
+      // Portion card is replaced by a thin progress line.
+      expect(
+        find.byKey(const ValueKey('reader-portion-progress')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('reader-portion-card')), findsNothing);
 
       // 5. Start and end highlights live on the flowing ayah spans.
       final paragraph = tester.widget<RichText>(
@@ -302,6 +311,43 @@ void main() {
       await cubit.close();
     },
   );
+
+  testWidgets('shows correct thin portion progress on each page', (
+    tester,
+  ) async {
+    final repo = _RichRepository();
+    final storage = _Storage();
+    final cubit = ReaderCubit(repository: repo, storage: storage);
+    await cubit.openPortion(PortionUnit.juz, 1, assignmentId: 'assign-1');
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: ReaderScreen(
+            repository: repo,
+            storage: storage,
+            metadata: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    var progress = tester.widget<LinearProgressIndicator>(
+      find.byKey(const ValueKey('reader-portion-progress')),
+    );
+    expect(progress.value, 0.5);
+
+    await cubit.turnTo(2);
+    await tester.pumpAndSettle();
+    progress = tester.widget<LinearProgressIndicator>(
+      find.byKey(const ValueKey('reader-portion-progress')),
+    );
+    expect(progress.value, 1.0);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await cubit.close();
+  });
 }
 
 class _FlowRepository implements MushafRepository {
