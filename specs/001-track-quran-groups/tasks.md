@@ -196,14 +196,14 @@ Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its 
 
 **Independent test**: quickstart scenario 8.
 
-- [ ] T096 [P] [US6] pgTAP tests for `list_join_requests`, `review_join_request` (seat allocation, group full), `get_group_members`, `move_member_seat` (swap, next-day effect), `set_member_role`, `remove_member` (today pending → available), `leave_group` (owner blocked), `transfer_ownership`, `archive_group`, `override_assignment`, supervisor limits in `supabase/tests/001_us6_manage_test.sql` Include: leaving/removal frees ALL of today's non-completed rows read by that member (seat, volunteer, override), not only the seat row.
-- [ ] T097 [US6] Implement management functions in `supabase/migrations/009_management_functions.sql`
-- [ ] T098 [P] [US6] Failing repository tests for management methods in `test/features/quran_groups/data/groups_repository_manage_test.dart`
+- [X] T096 [P] [US6] pgTAP tests for `list_join_requests`, `review_join_request` (seat allocation, group full), `get_group_members`, `move_member_seat` (swap, next-day effect), `set_member_role`, `remove_member` (today pending → available), `leave_group` (owner blocked), `transfer_ownership`, `archive_group`, `override_assignment`, supervisor limits in `supabase/tests/001_us6_manage_test.sql` Include: leaving/removal frees ALL of today's non-completed rows read by that member (seat, volunteer, override), not only the seat row.
+- [X] T097 [US6] Implement management functions in `supabase/migrations/009_management_functions.sql`
+- [X] T098 [P] [US6] Failing repository tests for management methods in `test/features/quran_groups/data/groups_repository_manage_test.dart`
 - [ ] T099 [US6] Implement management methods in `GroupsRepositoryImpl` and `KhatmaRepositoryImpl.overrideAssignment`
-- [ ] T100 [P] [US6] Failing `bloc_test`s for `MembersCubit` and `JoinRequestsCubit` (role-based actions, confirmations, group full, owner leave blocked) in `test/features/quran_groups/cubit/members_cubit_test.dart` and `join_requests_cubit_test.dart`
-- [ ] T101 [US6] Implement `MembersCubit` and `JoinRequestsCubit` in `lib/features/quran_groups/cubit/`
-- [ ] T102 [P] [US6] Failing widget tests for S7 Members & Seats and S8 Join Requests (owner vs supervisor vs member views, all variants) in `test/features/quran_groups/view/members_screen_test.dart` and `join_requests_screen_test.dart`
-- [ ] T103 [US6] Rebuild S7 `screens/members_screen.dart` (replace `member_management_screen.dart`), S8 `screens/join_requests_screen.dart` (replace `organizer_join_requests_screen.dart`), owner override sheet from dashboard `widgets/override_assignment_sheet.dart`; add archive/transfer/regenerate confirmations to S9; delete `organizer_assignment_review_screen.dart` and `assignment_draft_row.dart` (daily publish removed)
+- [X] T100 [P] [US6] Failing `bloc_test`s for `MembersCubit` and `JoinRequestsCubit` (role-based actions, confirmations, group full, owner leave blocked) in `test/features/quran_groups/cubit/members_cubit_test.dart` and `join_requests_cubit_test.dart`
+- [X] T101 [US6] Implement `MembersCubit` and `JoinRequestsCubit` in `lib/features/quran_groups/cubit/`
+- [X] T102 [P] [US6] Failing widget tests for S7 Members & Seats and S8 Join Requests (owner vs supervisor vs member views, all variants) in `test/features/quran_groups/view/members_screen_test.dart` and `join_requests_screen_test.dart`
+- [X] T103 [US6] Rebuild S7 `screens/members_screen.dart` (replace `member_management_screen.dart`), S8 `screens/join_requests_screen.dart` (replace `organizer_join_requests_screen.dart`), owner override sheet from dashboard `widgets/override_assignment_sheet.dart`; add archive/transfer/regenerate confirmations to S9; delete `organizer_assignment_review_screen.dart` and `assignment_draft_row.dart` (daily publish removed)
 
 ---
 
