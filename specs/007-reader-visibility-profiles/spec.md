@@ -2,7 +2,7 @@
 
 **Feature Branch**: `007-reader-visibility-profiles`
 **Created**: 2026-11-15
-**Status**: Draft (needs `/speckit-clarify` before planning)
+**Status**: Clarified (2026-11-15)
 **Depends on**: spec 001 (groups, seats, rotation, history, volunteering - implemented), spec 002 (email/password auth & user accounts), spec 004 (portion units), spec 005 (Today home, tabs, cards, avatar styling)
 **Input**: Owner request: "today it is not visible WHO read a portion and how. Members should see, for each portion on the dashboard and history, who read it (name, avatar), when (on time / late / volunteered / overridden), and open that member's profile." Added 2026-11-15: "Each group needs more
 details and a group photo; tapping the group header (like WhatsApp) shows the
@@ -30,6 +30,14 @@ group info and who is inside it."
   group header on the dashboard opens a "Group info" screen with the photo,
   name, description, stats, invite link (owner/supervisor), and the member
   list (avatar, name, role, seat); tapping a member opens their profile.
+
+- Q: Who can see that a member MISSED a portion? → A: Only the owner and
+  supervisors. Regular members see who read (name, time, on time/late/
+  volunteered) and see other members' unread/missed portions only as neutral
+  "لم يُقرأ بعد" / "متاح" without naming the member. A member always sees
+  their own status.
+- Q: Does a late completion count toward the streak? → A: Yes (same rule as
+  spec 005 FR-010): late keeps the streak, missed breaks it.
 
 ## User Scenarios & Testing *(mandatory)*
 

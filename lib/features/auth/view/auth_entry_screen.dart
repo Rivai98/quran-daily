@@ -257,6 +257,25 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                         expanded: true,
                         icon: const Icon(Icons.login),
                       ),
+                      if (context.read<AuthCubit>().googleSignInEnabled) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        Row(children: [
+                          Expanded(child: Divider(color: colors.border)),
+                          Padding(
+                            padding: const EdgeInsetsDirectional.symmetric(horizontal: AppSpacing.md),
+                            child: Text(ArabicStrings.or, style: AppTypography.caption.copyWith(color: colors.inkMuted)),
+                          ),
+                          Expanded(child: Divider(color: colors.border)),
+                        ]),
+                        const SizedBox(height: AppSpacing.sm),
+                        AppButton(
+                          label: ArabicStrings.googleSignIn,
+                          variant: AppButtonVariant.secondary,
+                          expanded: true,
+                          onPressed: submitting ? null : () => context.read<AuthCubit>().signInWithGoogle(),
+                          icon: const Icon(Icons.g_mobiledata),
+                        ),
+                      ],
                           ],
                         ),
                       ),
