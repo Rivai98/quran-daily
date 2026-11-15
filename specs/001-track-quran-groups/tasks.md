@@ -132,14 +132,14 @@ Read `specs/002-email-password-auth/{spec,plan,data-model,research}.md` and its 
 **Goal**: member sees own juz, 30 statuses, available juz, progress.
 **Independent test**: active group with empty seats → own juz visible without scrolling, counts and % correct, juz 30 note.
 
-- [ ] T066 [P] [US1] pgTAP tests for `get_dashboard` (members only, calls ensure day, 30 rows, `is_me`, counts, forming shape) in `supabase/tests/001_us1_dashboard_test.sql`
-- [ ] T067 [US1] Implement `get_dashboard` in `supabase/migrations/005_dashboard_functions.sql`
-- [ ] T068 [P] [US1] Failing tests for `KhatmaRepositoryImpl.getDashboard`/`watchCachedDashboard` (cache on success, stale fallback with `cachedAt`, no cache → network failure) in `test/features/quran_groups/data/khatma_repository_dashboard_test.dart`
-- [ ] T069 [US1] Implement `KhatmaRepositoryImpl` dashboard methods + `KhatmaRemoteDataSource` + snapshot cache in `lib/features/quran_groups/data/`
-- [ ] T070 [P] [US1] Failing `bloc_test`s for `DashboardCubit` (loading → success/empty/offline-stale/failure, refresh, resume refresh, day rollover detection) in `test/features/quran_groups/cubit/dashboard_cubit_test.dart`
-- [ ] T071 [US1] Implement `DashboardCubit` in `lib/features/quran_groups/cubit/dashboard/`
-- [ ] T072 [P] [US1] Failing widget tests for active S5 (my juz card above the fold at 360×640, `ProgressHeader`, 30 `PartTile`s with semantics, available list, juz-30 دعاء الختم note, full-khatma banner, offline banner, all variants) in `test/features/quran_groups/view/group_dashboard_screen_test.dart` (replace legacy test)
-- [ ] T073 [US1] Rebuild S5 `lib/features/quran_groups/view/screens/group_dashboard_screen.dart` with widgets `my_juz_card.dart`, `juz_grid.dart`, `available_juz_list.dart` (juz names/ranges from `QuranMetadataRepository`); delete superseded legacy widgets and their tests
+- [X] T066 [P] [US1] pgTAP tests for `get_dashboard` (members only, calls ensure day, 30 rows, `is_me`, counts, forming shape) in `supabase/tests/001_us1_dashboard_test.sql`
+- [X] T067 [US1] Implement `get_dashboard` in `supabase/migrations/005_dashboard_functions.sql`
+- [X] T068 [P] [US1] Failing tests for `KhatmaRepositoryImpl.getDashboard`/`watchCachedDashboard` (cache on success, stale fallback with `cachedAt`, no cache → network failure) in `test/features/quran_groups/data/khatma_repository_dashboard_test.dart`
+- [X] T069 [US1] Implement `KhatmaRepositoryImpl` dashboard methods + `KhatmaRemoteDataSource` + snapshot cache in `lib/features/quran_groups/data/`
+- [X] T070 [P] [US1] Failing `bloc_test`s for `DashboardCubit` (loading → success/empty/offline-stale/failure, refresh, resume refresh, day rollover detection) in `test/features/quran_groups/cubit/dashboard_cubit_test.dart`
+- [X] T071 [US1] Implement `DashboardCubit` in `lib/features/quran_groups/cubit/dashboard/`
+- [X] T072 [P] [US1] Failing widget tests for active S5 (my juz card above the fold at 360×640, `ProgressHeader`, 30 `PartTile`s with semantics, available list, juz-30 دعاء الختم note, full-khatma banner, offline banner, all variants) in `test/features/quran_groups/view/group_dashboard_screen_test.dart` (replace legacy test)
+- [X] T073 [US1] Rebuild S5 `lib/features/quran_groups/view/screens/group_dashboard_screen.dart` with widgets `my_juz_card.dart`, `juz_grid.dart`, `available_juz_list.dart` (juz names/ranges from `QuranMetadataRepository`); delete superseded legacy widgets and their tests
 
 **Checkpoint**: MVP read path (US2 + US1).
 
@@ -258,3 +258,4 @@ pgTAP test → migration → repository test → repository → cubit test → c
 2. Increment 2 (first real-user release): US4 (joining) + US5 (volunteering); then run scenario 1 end to end.
 3. Increment 3: US6 (management) + US7 (history).
 4. Polish, then hand over to spec 003 (Mushaf) which enables `kMushafEnabled`.
+
