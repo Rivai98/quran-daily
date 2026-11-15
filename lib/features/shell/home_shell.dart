@@ -19,12 +19,14 @@ class HomeShell extends StatefulWidget {
     this.groupsBuilder,
     this.mushafBuilder,
     this.profileBuilder,
+    this.onHomeSelected,
   });
 
   final TabScreenBuilder? homeBuilder;
   final TabScreenBuilder? groupsBuilder;
   final TabScreenBuilder? mushafBuilder;
   final TabScreenBuilder? profileBuilder;
+  final VoidCallback? onHomeSelected;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -60,8 +62,9 @@ class _HomeShellState extends State<HomeShell> {
     0 => (_) => const Scaffold(body: SizedBox.shrink()),
     1 => AppRoutes.routes[AppRoutes.groups]!,
     2 => (_) => const MushafTabPlaceholder(),
-    _ => AppRoutes.routes[AppRoutes.profile] ??
-        (_) => const ProfileTabPlaceholder(),
+    _ =>
+      AppRoutes.routes[AppRoutes.profile] ??
+          (_) => const ProfileTabPlaceholder(),
   };
 
   Future<bool> _back() async {
@@ -69,6 +72,7 @@ class _HomeShellState extends State<HomeShell> {
     if (navigator != null && await navigator.maybePop()) return false;
     if (_cubit.state.index != 0) {
       _cubit.select(0);
+      widget.onHomeSelected?.call();
       return false;
     }
     return true;
@@ -103,7 +107,10 @@ class _HomeShellState extends State<HomeShell> {
           ),
           bottomNavigationBar: AppTabBar(
             index: state.index,
-            onSelected: _cubit.select,
+            onSelected: (index) {
+              _cubit.select(index);
+              if (index == 0) widget.onHomeSelected?.call();
+            },
           ),
         ),
       ),

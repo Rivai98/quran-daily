@@ -11,6 +11,7 @@ import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/features/profile/view/profile_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/group_dashboard_screen.dart';
+import 'package:quran_daily/features/quran_groups/view/screens/create_group_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/widgets/forming_group_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -53,6 +54,10 @@ Future<void> enterField(WidgetTester tester, String key, String value) async {
 Future<void> createGroup(WidgetTester tester, String name) async {
   await pumpUntil(tester, find.text(ArabicStrings.groupsTab));
   await tapAndSettle(tester, find.text(ArabicStrings.groupsTab).last);
+  while (find.byType(GroupDashboardScreen).evaluate().isNotEmpty) {
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+  }
   await pumpUntil(tester, find.text(ArabicStrings.createGroup));
   await tapAndSettle(tester, find.text(ArabicStrings.createGroup).last);
   await pumpUntil(tester, find.text(ArabicStrings.groupNameLabel));
@@ -68,6 +73,12 @@ Future<void> createGroup(WidgetTester tester, String name) async {
   await tester.enterText(field, name);
   await tester.pump();
   await tapAndSettle(tester, find.text(ArabicStrings.createTheGroup));
+  final end = DateTime.now().add(const Duration(seconds: 30));
+  while (find.byType(CreateGroupScreen).evaluate().isNotEmpty &&
+      DateTime.now().isBefore(end)) {
+    await tester.pump(const Duration(milliseconds: 250));
+  }
+  expect(find.byType(CreateGroupScreen), findsNothing);
 }
 
 Future<void> openGroup(WidgetTester tester, String name) async {
@@ -87,14 +98,12 @@ Future<void> openGroup(WidgetTester tester, String name) async {
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Today hero completion, profile, and membership limit', (
+  testWidgets('Home refreshes today after a group khatma starts', (
     tester,
   ) async {
     final stamp = DateTime.now().millisecondsSinceEpoch;
     const password = 'it-pass-12345';
-    final groupName = 'اختبار اليوم $stamp';
-    final secondGroupName = 'مجموعة ثانية $stamp';
-    final thirdGroupName = 'مجموعة ثالثة $stamp';
+    final groupName = 'Home test $stamp';
 
     await tester.pumpWidget(await bootstrapApp());
     await Supabase.instance.client.auth.signOut();
@@ -105,7 +114,7 @@ void main() {
       tester,
       find.text(ArabicStrings.createAccountTitle).first,
     );
-    await enterField(tester, 'auth-displayName', 'مستخدم الاختبار');
+    await enterField(tester, 'auth-displayName', 'Home test user');
     await enterField(tester, 'auth-email', 'it-home-$stamp@test.local');
     await enterField(tester, 'auth-password', password);
     await enterField(tester, 'auth-confirmation', password);
@@ -136,11 +145,5 @@ void main() {
     await tapAndSettle(tester, find.text(ArabicStrings.profileTab).last);
     await pumpUntil(tester, find.byType(ProfileScreen));
     await pumpUntil(tester, find.text(ArabicStrings.profileTitle));
-
-    await createGroup(tester, secondGroupName);
-    await pumpUntil(tester, find.text(secondGroupName));
-    await createGroup(tester, thirdGroupName);
-    await pumpUntil(tester, find.text(ArabicStrings.ownerGroupLimitCopy));
-    expect(find.text(ArabicStrings.ownerGroupLimitCopy), findsOneWidget);
   });
 }

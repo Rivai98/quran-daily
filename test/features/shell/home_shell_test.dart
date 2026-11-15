@@ -1,8 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/features/shell/home_shell.dart';
 
 void main() {
+  testWidgets('refreshes Home when returning to its tab', (tester) async {
+    var homeSelected = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: HomeShell(
+          homeBuilder: _home,
+          groupsBuilder: _groups,
+          mushafBuilder: _mushaf,
+          profileBuilder: _profile,
+          onHomeSelected: () => homeSelected++,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(ArabicStrings.groupsTab));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(ArabicStrings.homeTab));
+    await tester.pumpAndSettle();
+
+    expect(homeSelected, 1);
+  });
+
   testWidgets(
     'shows four labelled tabs, Home selected, and retains tab stacks',
     (tester) async {

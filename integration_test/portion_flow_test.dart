@@ -15,6 +15,7 @@ import 'package:quran_daily/app/bootstrap.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/group_dashboard_screen.dart';
+import 'package:quran_daily/features/quran_groups/view/screens/create_group_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/widgets/forming_group_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -104,6 +105,15 @@ void main() {
       find.text(ArabicStrings.portionUnitName(PortionUnit.hizb)).first,
     );
     await tapAndSettle(tester, find.text(ArabicStrings.createTheGroup));
+
+    // The name finder also matches the editable field until the async create
+    // call pops the form, so wait for that route to leave before finding the row.
+    final createRouteEnd = DateTime.now().add(const Duration(seconds: 30));
+    while (find.byType(CreateGroupScreen).evaluate().isNotEmpty &&
+        DateTime.now().isBefore(createRouteEnd)) {
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    expect(find.byType(CreateGroupScreen), findsNothing);
 
     // Open it (retry while the list refreshes).
     for (var attempt = 0; attempt < 5; attempt++) {

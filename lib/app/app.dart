@@ -171,15 +171,18 @@ class _AuthGate extends StatelessWidget {
           case AuthStatus.authenticated:
             return BlocProvider(
               create: (_) => serviceLocator<HomeCubit>(),
-              child: HomeShell(
-                homeBuilder: (_) => HomeScreen(
-                  metadataRepository:
-                      serviceLocator.isRegistered<QuranMetadataRepository>()
-                      ? serviceLocator<QuranMetadataRepository>()
-                      : QuranMetadataRepository(),
+              child: Builder(
+                builder: (context) => HomeShell(
+                  onHomeSelected: context.read<HomeCubit>().refresh,
+                  homeBuilder: (_) => HomeScreen(
+                    metadataRepository:
+                        serviceLocator.isRegistered<QuranMetadataRepository>()
+                        ? serviceLocator<QuranMetadataRepository>()
+                        : QuranMetadataRepository(),
+                  ),
+                  groupsBuilder: (context) =>
+                      AppRoutes.routes[AppRoutes.groups]!(context),
                 ),
-                groupsBuilder: (context) =>
-                    AppRoutes.routes[AppRoutes.groups]!(context),
               ),
             );
           case AuthStatus.profileFailure:
