@@ -194,7 +194,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // 1. Bookmark action in AppBar
-      expect(find.byIcon(Icons.bookmark_add_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.bookmark_add_rounded), findsOneWidget);
 
       // 2. Surah title band at ayah 1
       expect(
@@ -208,8 +208,13 @@ void main() {
       // 4. Portion banner with portion name + "صفحة ١ من ٢"
       expect(find.text('صفحة ١ من ٢'), findsOneWidget);
 
-      // 5. Start highlight
-      expect(find.text('بداية الورد'), findsOneWidget);
+      // 5. Start and end highlights live on the flowing ayah spans.
+      final paragraph = tester.widget<RichText>(
+        find.byKey(const ValueKey('mushaf-surah-segment-1')).first,
+      );
+      final spans = (paragraph.text as TextSpan).children!.cast<TextSpan>();
+      expect(spans.first.style?.backgroundColor, isNotNull);
+      expect(spans.last.style?.backgroundColor, isNotNull);
 
       await tester.pumpWidget(const SizedBox.shrink());
       await cubit.close();
@@ -244,6 +249,113 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await cubit.close();
   });
+
+  testWidgets(
+    'flows ayahs in one paragraph per surah with source numbers and highlights',
+    (tester) async {
+      final repo = _FlowRepository();
+      final storage = _Storage();
+      final cubit = ReaderCubit(repository: repo, storage: storage);
+      await cubit.openPortion(PortionUnit.juz, 1, assignmentId: 'assign-1');
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          BlocProvider.value(
+            value: cubit,
+            child: ReaderScreen(
+              repository: repo,
+              storage: storage,
+              metadata: QuranMetadataRepository(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final firstSegment = tester.widget<RichText>(
+        find.byKey(const ValueKey('mushaf-surah-segment-1')),
+      );
+      final secondSegment = tester.widget<RichText>(
+        find.byKey(const ValueKey('mushaf-surah-segment-2')),
+      );
+      expect(firstSegment, isA<RichText>());
+      expect(secondSegment, isA<RichText>());
+      expect(firstSegment.text.toPlainText(), 'مقطع تجريبي ١ مقطع ثانٍ ٢ ');
+      expect(secondSegment.text.toPlainText(), 'مقطع ثالث ١ ');
+      final spans = (firstSegment.text as TextSpan).children!.cast<TextSpan>();
+      expect(
+        spans
+            .expand((span) => span.children ?? const <InlineSpan>[])
+            .whereType<WidgetSpan>(),
+        isEmpty,
+        reason: 'source ayah numbers must not get a second marker widget',
+      );
+      expect(spans.first.style?.backgroundColor, isNotNull);
+      expect(spans.last.style?.backgroundColor, isNotNull);
+
+      await tester.longPressAt(
+        tester.getCenter(find.byKey(const ValueKey('mushaf-surah-segment-1'))),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(ArabicStrings.addBookmarkAction), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await cubit.close();
+    },
+  );
+}
+
+class _FlowRepository implements MushafRepository {
+  @override
+  Future<void> load() async {}
+
+  @override
+  int get pageCount => 2;
+
+  @override
+  MushafPage page(int number) => MushafPage(
+    number: number,
+    juz: 1,
+    firstSurah: 1,
+    ayahs: number == 1
+        ? [
+            MushafAyah(
+              ref: const AyahRef(surah: 1, ayah: 1),
+              text: 'مقطع تجريبي ١',
+            ),
+            MushafAyah(
+              ref: const AyahRef(surah: 1, ayah: 2),
+              text: 'مقطع ثانٍ ٢',
+            ),
+            MushafAyah(
+              ref: const AyahRef(surah: 2, ayah: 1),
+              text: 'مقطع ثالث ١',
+            ),
+          ]
+        : const [],
+  );
+
+  @override
+  int pageOf(AyahRef ref) => 1;
+
+  @override
+  ({AyahRef start, AyahRef end, int startPage, int endPage}) portionRange(
+    PortionUnit unit,
+    int index,
+  ) => (
+    start: const AyahRef(surah: 1, ayah: 1),
+    end: const AyahRef(surah: 1, ayah: 2),
+    startPage: 1,
+    endPage: 2,
+  );
+
+  @override
+  List<({int surah, String name, int ayahs, int startPage})> surahIndex() => [];
+
+  @override
+  List<({int juz, int startPage})> juzIndex() => [];
+
+  @override
+  List<({int hizb, int startPage})> hizbIndex() => [];
 }
 
 class _RichRepository implements MushafRepository {
