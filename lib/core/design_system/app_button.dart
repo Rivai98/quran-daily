@@ -127,7 +127,13 @@ class AppButton extends StatelessWidget {
 
   Widget _content(Widget? leading, Color foregroundColor) {
     if (leading == null) {
-      return Text(label);
+      return Text(
+        label,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+      );
     }
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -138,7 +144,15 @@ class AppButton extends StatelessWidget {
           child: leading,
         ),
         const SizedBox(width: 8),
-        Flexible(child: Text(label, textAlign: TextAlign.center)),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ),
       ],
     );
   }

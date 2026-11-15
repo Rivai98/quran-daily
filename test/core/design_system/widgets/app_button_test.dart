@@ -145,4 +145,24 @@ void main() {
     final opacity = tester.widget<Opacity>(find.byType(Opacity).first);
     expect(opacity.opacity, closeTo(0.38, 0.001));
   });
+
+  testWidgets('long labels stay on one line at phone width', (tester) async {
+    await tester.pumpWidget(buildArabicTestApp(
+      AppButton(
+        label: 'بانتظار موافقة مالك المجموعة على طلب الانضمام',
+        icon: const Icon(Icons.check),
+        expanded: true,
+        onPressed: () {},
+      ),
+      size: const Size(360, 640),
+    ));
+
+    final label = tester.widget<Text>(find.text(
+      'بانتظار موافقة مالك المجموعة على طلب الانضمام',
+    ));
+    expect(label.maxLines, 1);
+    expect(label.softWrap, isFalse);
+    expect(label.overflow, TextOverflow.ellipsis);
+    expect(tester.takeException(), isNull);
+  });
 }

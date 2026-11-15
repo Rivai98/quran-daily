@@ -9,6 +9,7 @@ import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/di/service_locator.dart';
 import '../../../core/localization/arabic_numerals.dart';
+import '../../../core/localization/arabic_formatting.dart';
 import '../../../core/localization/arabic_search.dart';
 import '../../../core/localization/arabic_strings.dart';
 import '../../../core/quran/mushaf/mushaf_repository.dart';
@@ -399,8 +400,8 @@ class _ContinueReadingCardState extends State<_ContinueReadingCard> {
           surah = null;
         }
         final subtitle = surah == null
-            ? '${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(page)}'
-            : '${ArabicStrings.surahWord} $surah، ${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(page)}';
+            ? '${ArabicStrings.pageNumberLabel} ${ArabicFormatting.isolate(ArabicNumerals.format(page))}'
+            : '${ArabicStrings.surahWord} $surah، ${ArabicStrings.pageNumberLabel} ${ArabicFormatting.isolate(ArabicNumerals.format(page))}';
         return Padding(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.md,

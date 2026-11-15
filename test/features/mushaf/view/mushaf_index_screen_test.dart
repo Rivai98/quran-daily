@@ -4,6 +4,7 @@ import 'package:quran_daily/core/quran/mushaf/mushaf_models.dart';
 import 'package:quran_daily/core/quran/mushaf/mushaf_repository.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
+import 'package:quran_daily/core/localization/arabic_formatting.dart';
 import '../../../helpers/widget_test_app.dart';
 import 'package:quran_daily/core/di/service_locator.dart';
 import 'package:quran_daily/features/mushaf/data/reader_storage.dart';
@@ -60,7 +61,12 @@ void main() {
       ReaderStorage.notifyPositionSaved(2);
       await tester.pumpAndSettle();
       expect(find.text(ArabicStrings.continueReadingTitle), findsOneWidget);
-      expect(find.text('${ArabicStrings.pageNumberLabel} ٢'), findsOneWidget);
+      expect(
+        find.text(
+          '${ArabicStrings.pageNumberLabel} ${ArabicFormatting.isolate('٢')}',
+        ),
+        findsOneWidget,
+      );
     },
   );
 
