@@ -533,4 +533,44 @@ class ArabicStrings {
       'سيبدأ التغيير مع بداية الختمة القادمة.';
   static const portionChangeAppliesImmediately =
       'سيبدأ هذا الورد عند بدء الختمة.';
+
+  // --- 005 profile ---
+  static const profileTitle = 'حسابي';
+  static const profileStreakSection = 'التتابع والالتزام';
+  static const profileTotalsSection = 'إجمالي القراءة';
+  static const profileKhatmasSection = 'الختمات المكتملة';
+  static const profileBadgesSection = 'الأوسمة والإنجازات';
+  static const profileQuickLinksSection = 'روابط سريعة';
+
+  static String memberSince(String date) => 'عضو منذ $date';
+  static String streakDays(int days) =>
+      days == 1 ? 'يوم واحد متواصل' : '${ArabicNumerals.format(days)} أيام متواصلة';
+  static String bestStreak(int days) =>
+      'أفضل تتابع: ${ArabicNumerals.format(days)} ${days == 1 ? "يوم" : "أيام"}';
+  static String portionsReadCount(int count) =>
+      '${ArabicNumerals.format(count)} جزءًا مقروءًا';
+  static String portionsLateCount(int count) =>
+      '${ArabicNumerals.format(count)} قُرئت متأخرة';
+  static String khatmasCount(int count) =>
+      count == 1 ? 'ختمة واحدة' : count == 2 ? 'ختمتان' : '${ArabicNumerals.format(count)} ختمات';
+  static const noKhatmasYet = 'لا توجد ختمات مكتملة بعد';
+
+  static const profileLogNavigation = 'السجل اليومي';
+  static const profileSettingsNavigation = 'الإعدادات';
+  static const profileLoadError = 'تعذر تحميل بيانات الحساب الشخصي';
+
+  // Badges
+  static const badgeFirstKhatmaTitle = 'أول ختمة';
+  static const badgeFirstKhatmaDesc = 'إتمام أول ختمة كاملة مع مجموعتك';
+  static const badgeStreak7Title = 'مداومة ٧ أيام';
+  static const badgeStreak7Desc = 'المحافظة على الورد اليومي ٧ أيام متتالية';
+  static const badgeStreak30Title = 'مداومة ٣٠ يومًا';
+  static const badgeStreak30Desc = 'ثبات على القراءة ٣٠ يومًا متواصلة بتوفيق الله';
+  static const badgeStreak100Title = 'مداومة ١٠٠ يوم';
+  static const badgeStreak100Desc = 'اجتهاد مبارك وثبات على تلاوة كتاب الله';
+  static const badgePortions100Title = '١٠٠ جزء';
+  static const badgePortions100Desc = 'إتمام تلاوة ١٠٠ جزء بتوفيق الله وعونه';
+
+  static String badgeEarned(String date) => 'مكتسب في $date';
+  static const badgeLocked = 'لم يُكتسب بعد';
 }

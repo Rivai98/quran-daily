@@ -27,6 +27,8 @@ import '../features/quran_groups/view/screens/discovery_screen.dart';
 import '../features/quran_groups/view/screens/invite_join_screen.dart';
 import '../features/quran_groups/view/screens/personal_assignment_screen.dart';
 import '../features/settings/view/settings_screen.dart';
+import '../features/profile/cubit/profile_cubit.dart';
+import '../features/profile/view/profile_screen.dart';
 
 String? inviteCodeFromDeepLink(Uri uri) {
   if (uri.scheme != 'qurandaily' ||
@@ -64,6 +66,8 @@ class AppRoutes {
   static const history = '/groups/history';
   static const groupSettings = '/groups/settings';
   static const settings = '/settings';
+  static const log = '/log';
+  static const profile = '/profile';
 
   static Map<String, WidgetBuilder> get routes {
     // The root "/" is owned by the auth gate in app.dart (home), so it is
@@ -192,6 +196,10 @@ class AppRoutes {
         groupId: ModalRoute.of(context)?.settings.arguments as String?,
       ),
       settings: (_) => const SettingsScreen(),
+      profile: (_) => BlocProvider(
+        create: (_) => serviceLocator<ProfileCubit>()..load(),
+        child: const ProfileScreen(),
+      ),
     };
   }
 
