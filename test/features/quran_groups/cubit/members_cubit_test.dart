@@ -1,0 +1,70 @@
+import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:quran_daily/core/errors/failures.dart';
+import 'package:quran_daily/core/errors/result.dart';
+import 'package:quran_daily/features/quran_groups/cubit/members/members_cubit.dart';
+import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
+import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
+
+class _Groups extends Mock implements GroupsRepository {}
+
+void main() {
+  late _Groups repository;
+  const members = SeatMap(groupId: 'g', members: [], activeMemberCount: 0);
+  setUp(() => repository = _Groups());
+
+  blocTest<MembersCubit, MembersState>(
+    'loads to empty state',
+    build: () {
+      when(
+        () => repository.getMembers('g'),
+      ).thenAnswer((_) async => const Success(members));
+      return MembersCubit(repository);
+    },
+    act: (cubit) => cubit.load('g'),
+    expect: () => [
+      const MembersState(status: MembersStatus.loading),
+      const MembersState(status: MembersStatus.empty, members: members),
+    ],
+  );
+
+  blocTest<MembersCubit, MembersState>(
+    'refreshes after moving a seat',
+    build: () {
+      when(
+        () => repository.getMembers('g'),
+      ).thenAnswer((_) async => const Success(members));
+      when(
+        () => repository.moveMemberSeat('g', 'm', 4),
+      ).thenAnswer((_) async => const Success(null));
+      return MembersCubit(repository);
+    },
+    act: (cubit) async {
+      await cubit.load('g');
+      await cubit.moveSeat('m', 4);
+    },
+    verify: (_) =>
+        verify(() => repository.moveMemberSeat('g', 'm', 4)).called(1),
+  );
+
+  blocTest<MembersCubit, MembersState>(
+    'keeps a failure visible after a rejected mutation',
+    build: () {
+      when(
+        () => repository.getMembers('g'),
+      ).thenAnswer((_) async => const Success(members));
+      when(() => repository.leaveGroup('g')).thenAnswer(
+        (_) async => const FailureResult(
+          UnknownFailure(message: 'blocked', code: 'owner_must_transfer'),
+        ),
+      );
+      return MembersCubit(repository);
+    },
+    act: (cubit) async {
+      await cubit.load('g');
+      await cubit.leave();
+    },
+    verify: (cubit) => expect(cubit.state.failure?.code, 'owner_must_transfer'),
+  );
+}

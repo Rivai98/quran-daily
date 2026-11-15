@@ -1,281 +1,144 @@
-# Data Model: Quran Group Reading Tracker UI
+# Data Model: Quran Group Reading Tracker (amended 2026-11-14)
+
+Server tables live in Supabase Postgres schema `public` unless noted. Profiles (`public.profiles`) and `private.app_admins` come from spec 002. All timestamps are `timestamptz` (UTC); group-local dates are `date`.
 
 ## Entity Overview
 
 ```text
-AppUser 1--* GroupMembership *--1 Group
-AppUser 1--* JoinRequest *--1 Group
-Group 1--* DailyReadingCycle
-DailyReadingCycle 1--30 Assignment
-QuranPart 1--* Assignment
-Assignment 0--* CompletionRecord
-AppUser 1--* LocalSyncOperation
-Group 1--1 PublicGroupProfile
+profiles 1--* group_memberships *--1 groups
+profiles 1--* join_requests     *--1 groups
+groups   1--* group_days 1--30 assignments
+assignments 1--* completion_records
+group_memberships 0..1--* assignments (reader)
 ```
 
-## AppUser
+## groups
 
-Represents a signed-in person using the app.
+| Field | Type | Rules |
+|-------|------|-------|
+| `id` | uuid PK | generated |
+| `name` | text | trimmed, 3-60 chars |
+| `short_description` | text | trimmed, 0-200 chars |
+| `owner_id` | uuid → profiles | exactly one owner; equals the membership with role `owner` |
+| `timezone` | text | valid IANA name (checked against `pg_timezone_names`) |
+| `day_start_time` | time | default `00:00` |
+| `visibility` | enum `public`, `private` | |
+| `join_mode` | enum `auto_accept`, `approval` | |
+| `status` | enum `forming`, `active`, `archived` | |
+| `start_juz` | smallint 1-30, null | set when started |
+| `start_date` | date, null | group-local date of day index 0 |
+| `invite_code` | text unique (partial: non-archived) | 8 chars, alphabet `23456789ABCDEFGHJKLMNPQRSTUVWXYZ` |
+| `created_at`, `updated_at` | timestamptz | server-maintained |
 
-**Fields**
-- `id`: stable Supabase Auth user id.
-- `display_name`: user-facing Arabic display name when available.
-- `avatar_url`: optional Google profile image URL.
-- `created_at`: account creation timestamp.
-- `last_seen_at`: last app activity timestamp.
+**Rules**: a user owns ≤ 3 groups with `status <> 'archived'`; `start_juz`/`start_date` non-null iff `status = 'active'` (or archived after being active); timezone/start-time edits never change existing `group_days`.
 
-**Validation Rules**
-- `id` is unique and comes from Supabase Auth.
-- `display_name` must be non-empty after sign-in.
+**Transitions**: `forming → active` (start_khatma, ≥ 1 active member) · `forming|active → archived` (owner) · no un-archive in v1.
 
-## Group
+## group_memberships
 
-Represents a named Quran reading circle.
+| Field | Type | Rules |
+|-------|------|-------|
+| `id` | uuid PK | |
+| `group_id` | uuid → groups | |
+| `user_id` | uuid → profiles | |
+| `role` | enum `owner`, `supervisor`, `member` | one `owner` per group |
+| `status` | enum `active`, `left`, `removed` | |
+| `seat_number` | smallint 1-30, null | non-null iff `status = 'active'` |
+| `joined_at`, `ended_at` | timestamptz | |
 
-**Fields**
-- `id`: group id.
-- `name`: group display name.
-- `short_description`: short public description.
-- `created_by_user_id`: organizer who created the group.
-- `created_at`: creation timestamp.
-- `local_day_timezone`: organizer-selected timezone used to resolve daily cycles.
-- `is_public`: whether the group appears in public discovery.
-- `status`: `active` or `archived`.
+**Rules**: unique active membership per `(group_id, user_id)`; unique `(group_id, seat_number)` where active; ≤ 30 active per group; a `removed` row makes later joins go to approval (FR-028a); history keeps ended memberships for display names.
 
-**Validation Rules**
-- `name` must be non-empty.
-- `short_description` must be safe to display publicly when `is_public` is true.
-- Active v1 groups must publish cycles only when exactly 30 active memberships exist.
-- Archived groups cannot publish new cycles or accept join requests.
+## join_requests
 
-## PublicGroupProfile
+| Field | Type | Rules |
+|-------|------|-------|
+| `id` | uuid PK | |
+| `group_id`, `user_id` | uuid | |
+| `status` | enum `pending`, `approved`, `rejected`, `cancelled` | ≤ 1 pending per `(group_id, user_id)` |
+| `source` | enum `discovery`, `invite`, `match` | |
+| `requested_at`, `reviewed_at` | timestamptz | |
+| `reviewed_by` | uuid, null | owner or supervisor |
 
-Read model shown to users before they are approved to join a group.
+**Transitions**: `pending → approved` (seat allocated) · `pending → rejected` · `pending → cancelled` (requester) · `rejected/cancelled → pending` (new request row).
 
-**Fields**
-- `group_id`: linked group.
-- `name`: public group name.
-- `short_description`: public short description.
-- `active_member_count`: current active member count.
-- `local_day_timezone`: group timezone.
-- `current_user_request_status`: optional `none`, `pending`, `approved`, or `rejected`.
+## group_days
 
-**Validation Rules**
-- Must not include member list, assignment details, dashboard progress, history, or organizer-only data.
-- If a user has a pending request, the UI shows `بانتظار القبول من مالك المجموعة`.
+| Field | Type | Rules |
+|-------|------|-------|
+| `id` | uuid PK | |
+| `group_id` | uuid | unique `(group_id, group_date)` |
+| `group_date` | date | group-local date |
+| `day_index` | int ≥ 0 | `group_date - start_date` |
+| `opens_at`, `ends_at`, `closes_at` | timestamptz | rollover, next rollover, rollover after that |
+| `state` | enum `open`, `grace`, `closed` | |
+| `completed_count`, `late_count`, `missed_count`, `unread_count`, `pending_count`, `available_count` | smallint | maintained by functions |
+| `full_khatma` | boolean | all 30 in (`completed`, `late`) |
 
-## JoinRequest
+**Transitions**: `open → grace` at `ends_at` (pending→missed, available→unread) · `grace → closed` at `closes_at`.
 
-Represents a user's request to join a public group.
+## assignments
 
-**Fields**
-- `id`: join request id.
-- `group_id`: requested group.
-- `user_id`: requesting user.
-- `status`: `pending`, `approved`, `rejected`, or `cancelled`.
-- `requested_at`: request creation timestamp.
-- `reviewed_by_user_id`: organizer who reviewed the request.
-- `reviewed_at`: optional review timestamp.
-- `decision_note`: optional organizer-facing note.
+| Field | Type | Rules |
+|-------|------|-------|
+| `id` | uuid PK | |
+| `group_day_id` | uuid | |
+| `juz` | smallint 1-30 | unique per day |
+| `seat_number` | smallint 1-30 | unique per day; `juz = juz_for_seat(seat, start_juz, day_index)` |
+| `kind` | enum `seat`, `override`, `volunteer`, `unassigned` | |
+| `reader_membership_id` | uuid, null | null iff `kind = 'unassigned'` |
+| `status` | enum `pending`, `completed`, `missed`, `late`, `available`, `unread` | `available/unread` iff unassigned |
+| `completed_at` | timestamptz, null | |
+| `updated_at` | timestamptz | |
 
-**Validation Rules**
-- A user can have at most one pending join request for the same group.
-- Users cannot request to join archived or non-public groups through discovery.
-- Only active organizers of the group can approve or reject requests.
-- Approval can create an active membership only if the group has fewer than 30 active members.
-- Rejected and cancelled requests do not create memberships.
-
-## GroupMembership
-
-Represents a user's role and active slot within a group.
-
-**Fields**
-- `id`: membership id.
-- `group_id`: linked group.
-- `user_id`: linked user.
-- `role`: `organizer` or `member`.
-- `status`: `active`, `inactive`, or `removed`.
-- `slot_number`: optional 1-30 active slot position.
-- `joined_at`: join timestamp.
-- `left_at`: optional leave/removal timestamp.
-
-**Validation Rules**
-- One user can have at most one active membership in the same group.
-- A group can have at most 30 active memberships.
-- At least one active organizer must remain in an active group.
-- Only active memberships receive daily assignments.
-
-## QuranPart
-
-Represents one Quran juz division.
-
-**Fields**
-- `part_number`: integer 1-30.
-- `display_label`: Arabic label for the part.
-- `reading_range_label`: Arabic reading range label.
-- `sort_order`: 1-30.
-
-**Validation Rules**
-- Exactly 30 parts exist.
-- `part_number` is unique and between 1 and 30.
-- v1 stores labels and reading ranges only, not full Quran text.
-- Labels must support Arabic display and RTL presentation.
-
-## DailyReadingCycle
-
-Represents one group-specific day of coordinated reading.
-
-**Fields**
-- `id`: cycle id.
-- `group_id`: linked group.
-- `cycle_date`: local date resolved by the group's timezone.
-- `status`: `draft`, `published`, `complete`, or `closed`.
-- `published_by_user_id`: organizer who published the cycle.
-- `published_at`: optional publish timestamp.
-- `closed_at`: optional close timestamp.
-- `completion_percentage`: derived from assignment statuses.
-
-**Validation Rules**
-- One cycle per group per local date.
-- A cycle cannot publish unless it has 30 assignments.
-- Published cycles must have exactly one assignment per active member and exactly one assignment per Quran part.
-- Day cutoff, missed status, and late completion status use the group's timezone.
-
-## Assignment
-
-Links one active group member to one Quran part for one daily reading cycle.
-
-**Fields**
-- `id`: assignment id.
-- `cycle_id`: linked daily cycle.
-- `membership_id`: assigned active member.
-- `part_number`: linked Quran part.
-- `status`: `pending`, `completed`, `missed`, or `late`.
-- `assigned_at`: assignment timestamp.
-- `completed_at`: optional completion timestamp.
-- `updated_at`: last status change timestamp.
-- `reassigned_from_membership_id`: optional prior membership when reassigned.
-
-**Validation Rules**
-- Within a cycle, each `part_number` appears exactly once.
-- Within a cycle, each active `membership_id` appears exactly once.
-- Members can complete only their own current assignment.
-- Organizers can reassign pending or missed assignments before the cycle is closed.
-- Late completion is recorded separately from on-time completion when submitted after the group day cutoff.
-
-## CompletionRecord
-
-Records the history of completion actions and reversals.
-
-**Fields**
-- `id`: completion record id.
-- `assignment_id`: linked assignment.
-- `user_id`: user who performed the action.
-- `action`: `completed`, `undone`, or `marked_late`.
-- `recorded_at`: action timestamp.
-- `source`: `online` or `offline_sync`.
-
-**Validation Rules**
-- Duplicate completion actions must not create duplicate completed states.
-- Undo is allowed only through the confirmation flow while the cycle is not closed.
-- Offline completions must retain their original local action timestamp and sync timestamp.
-
-## UserSettings
-
-Represents local app preferences.
-
-**Fields**
-- `selected_group_id`: last opened group.
-- `quran_text_scale`: user-selected Quran label/range text size.
-- `preferred_locale`: Arabic locale setting for v1.
-- `last_dashboard_cache_at`: timestamp of last cached dashboard snapshot.
-
-**Validation Rules**
-- `quran_text_scale` must stay within the supported readability range.
-- Selected group must be one of the user's approved memberships when online validation is available.
-
-## LocalSyncOperation
-
-Represents a queued offline operation waiting to sync.
-
-**Fields**
-- `id`: local operation id.
-- `operation_type`: `mark_complete` or `undo_completion` for v1.
-- `assignment_id`: affected assignment.
-- `payload`: serialized operation details.
-- `created_at`: local creation timestamp.
-- `sync_status`: `pending`, `syncing`, `synced`, or `failed`.
-- `last_error`: optional sync failure message.
-
-**Validation Rules**
-- v1 queues only personal assignment completion operations.
-- Public discovery, join requests, organizer approvals, publishing, reassignment, and membership changes require online confirmation.
-- Failed operations remain visible to the repository layer so Cubits can show retry/error states.
-
-## State Transitions
-
-### JoinRequest
+**State transitions** (server-enforced):
 
 ```text
-none -> pending
-pending -> approved
-pending -> rejected
-pending -> cancelled
-rejected -> pending   # if product allows a later retry
+open day:   available -> pending          (volunteer / override / member joins seat)
+            pending   -> completed        (complete)        completed -> pending (undo)
+            pending   -> available        (reader leaves/removed, not completed)
+grace:      pending   -> missed           (automatic at ends_at)
+            available -> unread           (automatic at ends_at)
+            missed    -> late             (complete)        late -> missed (undo)
+closed:     no changes
 ```
 
-- `pending`: show `بانتظار القبول من مالك المجموعة`.
-- `approved`: creates or links an active membership if a slot is available.
-- `rejected`: user is not a group member.
-- `cancelled`: requester withdrew before organizer review.
+## completion_records
 
-### DailyReadingCycle
+| Field | Type | Rules |
+|-------|------|-------|
+| `id` | uuid PK | |
+| `assignment_id` | uuid | |
+| `actor_user_id` | uuid | |
+| `action` | enum `completed`, `late`, `undone` | |
+| `client_recorded_at` | timestamptz | time on device |
+| `recorded_at` | timestamptz | server time |
+| `source` | enum `online`, `offline_sync` | |
 
-```text
-draft -> published -> complete -> closed
-draft -> published -> closed
-```
+Duplicate completes are idempotent (no new record when status already completed/late).
 
-- `draft`: organizer can review and change assignments.
-- `published`: members can view and complete assignments.
-- `complete`: all 30 parts are complete before close.
-- `closed`: daily result is final; late completions remain distinguishable.
+## Read models (returned by RPC, cached locally)
 
-### Assignment
+**PublicGroupProfile**: `group_id, name, short_description, active_member_count, timezone, status (forming/active), join_mode, my_request_status (none/pending/rejected), my_join_request_id?` (set when pending, for cancel). Never members, progress, or history.
 
-```text
-pending -> completed
-pending -> missed
-missed -> late
-completed -> pending   # undo only before cycle close
-pending -> pending     # reassignment changes member, not status
-missed -> pending      # organizer reassignment before close
-```
+**MyGroupSummary**: `group_id, name, status, my_role, active_member_count, today_my_juz?, today_my_status?`.
 
-## Derived Views
+**PendingJoinRequest**: `join_request_id, group_id, group_name, requested_at, source`. Returned with my groups by `get_my_groups` so S1 can show pending rows and cancel them.
 
-## GroupDashboardSnapshot
+**DashboardSnapshot**: group summary; today `group_day` (date, state, counts, full_khatma, ends_at); `my_assignments[]` (own seat + volunteered/overridden); `assignments[30]` (`juz, seat_number, kind, status, reader_display_name?, is_me`); `is_khatm_juz` flag on juz 30; `server_generated_at`. Forming groups return members per seat instead of assignments.
 
-Read model used by the dashboard Cubit and local cache.
+**HistoryDaySummary**: `group_date, counts, full_khatma, my_result?`; detail (owner/supervisor only) adds per-juz `seat_number, reader_display_name, status`.
 
-**Contains**
-- Group summary.
-- Current daily cycle summary.
-- Current user's assignment.
-- All 30 assignment rows.
-- Counts by status.
-- Completion percentage.
-- Offline/stale indicator.
-- Last synced timestamp.
+## Local SQLite (device)
 
-## HistoryDaySummary
+| Table | Columns | Purpose |
+|-------|---------|---------|
+| `cached_snapshots` | `group_id PK, json, cached_at` | dashboard offline |
+| `cached_groups` | `user_id, json, cached_at` | my groups offline |
+| `cached_history` | `group_id, json, cached_at` | last history page |
+| `sync_queue` | `id PK, op (mark_complete/undo_completion), assignment_id, client_recorded_at, status (pending/syncing/failed), attempts, last_error_kind, created_at` | queued personal actions |
 
-Read model used by the history view.
+`shared_preferences` (via `lib/core/settings/SettingsRepository`): `selected_group_id`, `quran_text_scale` (0.85-1.6, default 1.0).
 
-**Contains**
-- Cycle date.
-- Completed count.
-- Missed count.
-- Late count.
-- Completion percentage.
-- Final daily result status.
+## Quran metadata (bundled, Principle VII)
+
+`assets/quran/quran-data.xml` (Tanzil, owner-provided) → `QuranMetadataRepository` exposes `JuzInfo { number 1-30, startSura, startAya, endSura, endAya }`, `suraName(sura)`, and `suraAyahCount(sura)` from the same file; every end boundary is derived from the next juz start and the file's ayah counts (source details: plan.md "Quran Content Source"). Ordinal juz names come from `arabic_strings.dart`. A test verifies `assets/quran/checksums.sha256`.

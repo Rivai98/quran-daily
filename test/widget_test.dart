@@ -1,30 +1,28 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:quran_daily/app/app.dart';
+import 'package:quran_daily/core/localization/arabic_strings.dart';
+import 'package:quran_daily/features/auth/cubit/auth_cubit.dart';
+import 'package:quran_daily/features/auth/data/repositories/auth_repository.dart';
 
-import 'package:quran_daily/main.dart';
+class _MockAuthRepository extends Mock implements AuthRepository {}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('shows Arabic auth entry as the first screen', (tester) async {
+    final repository = _MockAuthRepository();
+    when(() => repository.watchAuthState())
+        .thenAnswer((_) => const Stream.empty());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(QuranDailyApp(
+      authCubit: AuthCubit(repository: repository)
+        ..emit(const AuthState(
+            status: AuthStatus.unauthenticated, mode: AuthMode.login)),
+    ));
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text(ArabicStrings.appName), findsOneWidget);
+    expect(find.text(ArabicStrings.signInTitle), findsAtLeastNWidgets(1));
+    // Email/password only (spec 002): no Google sign-in control anywhere.
+    expect(find.textContaining('Google'), findsNothing);
   });
 }
