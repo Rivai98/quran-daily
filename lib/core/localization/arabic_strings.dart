@@ -97,6 +97,59 @@ class ArabicStrings {
   static const reminderOwnerOnly = 'يمكن لمالك المجموعة تعديل هذا الجدول.';
   static const reminderMessageLimit = 'حتى ٨٠ حرفًا';
 
+  // --- 008 admin ---
+  static const adminEntry = 'لوحة الإدارة';
+  static const adminTitle = 'إدارة التطبيق';
+  static const adminGroups = 'المجموعات';
+  static const adminUsers = 'المستخدمون';
+  static const adminAudit = 'سجل الإجراءات';
+  static const adminOffline = 'تحتاج لوحة الإدارة إلى اتصال بالإنترنت. تحقق من الاتصال ثم أعد المحاولة.';
+  static const adminLoadError = 'تعذر تحميل البيانات. تحقق من الاتصال والصلاحية ثم أعد المحاولة.';
+  static const adminEmpty = 'لا توجد نتائج مطابقة. غيّر البحث أو التصفية.';
+  static const adminSearch = 'ابحث بالاسم أو البريد';
+  static const adminAllStatuses = 'كل الحالات';
+  static const adminRefresh = 'إعادة المحاولة';
+  static const adminTotalUsers = 'إجمالي المستخدمين';
+  static const adminNewUsers = 'مستخدمون جدد خلال ٧ أيام';
+  static const adminNewUsers30 = 'مستخدمون جدد خلال ٣٠ يومًا';
+  static const adminActiveToday = 'نشطون اليوم';
+  static const adminTotalGroups = 'إجمالي المجموعات';
+  static const adminFormingGroups = 'مجموعات قيد التكوين';
+  static const adminActiveGroups = 'مجموعات نشطة';
+  static const adminArchivedGroups = 'مجموعات مؤرشفة';
+  static const adminTodayRate = 'إنجاز اليوم';
+  static const adminKhatmas = 'الختمات المكتملة خلال ٣٠ يومًا';
+  static const adminKhatmas7 = 'ختمات آخر ٧ أيام';
+  static const adminLast30Days = 'إنجازات آخر ٣٠ يومًا';
+  static const adminGroupDetail = 'تفاصيل المجموعة';
+  static const adminUserDetail = 'تفاصيل المستخدم';
+  static const adminArchive = 'أرشف المجموعة';
+  static const adminRestore = 'استعد المجموعة';
+  static const adminDelete = 'احذف نهائيًا';
+  static const adminDeleteConfirm = 'اكتب اسم المجموعة للتأكيد';
+  static const adminDeleteUserConfirm = 'هل تريد حذف الحساب نهائيًا؟';
+  static const adminRemoveMember = 'أزل العضو';
+  static const adminTransferOwner = 'نقل الملكية';
+  static const adminRegenerateInvite = 'ولّد رمز دعوة جديدًا';
+  static const adminSuspend = 'أوقف الحساب';
+  static const adminUnsuspend = 'ألغِ الإيقاف';
+  static const adminSuspendedStatus = 'موقوف';
+  static const adminResetPassword = 'أعد تعيين كلمة المرور';
+  static const adminCreateUser = 'أنشئ مستخدمًا';
+  static const adminGrantAdmin = 'امنح صلاحية الإدارة';
+  static const adminRevokeAdmin = 'اسحب صلاحية الإدارة';
+  static const adminCreateUserTitle = 'إنشاء حساب';
+  static const adminDisplayName = 'الاسم الظاهر';
+  static const adminEmail = 'البريد الإلكتروني';
+  static const adminPassword = 'كلمة المرور';
+  static const adminSuspendedSignIn = 'أُوقف هذا الحساب مؤقتًا. تواصل مع مسؤول التطبيق للمساعدة.';
+  static const adminSuccessResult = 'نجح';
+  static const adminFailureResult = 'تعذر';
+  static const adminOwnerRole = 'المالك';
+  static const adminSupervisorRole = 'مشرف';
+  static const adminMemberRole = 'عضو';
+  static const adminJuzUnit = 'جزء';
+
   // --- spec 002 Google sign-in ---
   static const googleSignIn = 'تسجيل الدخول باستخدام Google';
   static const googleSignInHint =
@@ -329,6 +382,8 @@ class ArabicStrings {
     switch (code) {
       case 'invalid_credentials':
         return 'تحقق من البريد الإلكتروني وكلمة المرور، أو تواصل مع مسؤول التطبيق. $googleSignInHint';
+      case 'suspended':
+        return adminSuspendedSignIn;
       case 'google_auth_failed':
         return 'تعذر تسجيل الدخول باستخدام Google. أعد المحاولة أو استخدم البريد الإلكتروني.';
       case 'email_exists':

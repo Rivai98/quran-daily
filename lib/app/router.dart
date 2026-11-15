@@ -37,6 +37,7 @@ import '../features/mushaf/data/reader_storage.dart';
 import '../features/mushaf/view/bookmarks_screen.dart';
 import '../features/mushaf/view/mushaf_index_screen.dart';
 import '../features/mushaf/view/reader_screen.dart';
+import '../features/admin/view/admin_screens.dart';
 
 String? inviteCodeFromDeepLink(Uri uri) {
   if (uri.scheme != 'qurandaily' ||
@@ -303,6 +304,16 @@ class AppRoutes {
         );
       },
       mushafLicenses: (_) => const MushafLicensesScreen(),
+      '/admin': (_) => const AdminOverviewScreen(),
+      '/admin/groups': (_) => const AdminGroupsScreen(),
+      '/admin/users': (_) => const AdminUsersScreen(),
+      '/admin/audit': (_) => const AdminAuditScreen(),
+      '/admin/group': (context) => AdminGroupDetailScreen(
+        groupId: ModalRoute.of(context)?.settings.arguments as String? ?? '',
+      ),
+      '/admin/user': (context) => AdminUserDetailScreen(
+        userId: ModalRoute.of(context)?.settings.arguments as String? ?? '',
+      ),
     };
   }
 

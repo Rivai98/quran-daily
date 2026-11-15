@@ -57,6 +57,10 @@ void main() {
     expect(ArabicStrings.roleMember, 'عضو');
   });
 
+  test('maps a suspended sign-in refusal to calm Arabic guidance', () {
+    expect(ArabicStrings.authError('suspended'), ArabicStrings.adminSuspendedSignIn);
+  });
+
   test('keeps critical user-facing copy valid UTF-8 Arabic', () {
     final criticalCopy = [
       ArabicStrings.appName,

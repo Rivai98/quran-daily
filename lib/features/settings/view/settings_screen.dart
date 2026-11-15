@@ -118,6 +118,16 @@ class _SettingsView extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.xl),
                 ],
+                if (state.isAdmin) ...[
+                  AppButton(
+                    label: ArabicStrings.adminEntry,
+                    icon: const Icon(Icons.admin_panel_settings_outlined),
+                    variant: AppButtonVariant.secondary,
+                    expanded: true,
+                    onPressed: () => Navigator.of(context).pushNamed('/admin'),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
                 AppButton(
                   label: ArabicStrings.signOut,
                   icon: const Icon(Icons.logout),

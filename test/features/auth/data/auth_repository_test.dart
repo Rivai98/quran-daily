@@ -173,6 +173,20 @@ void main() {
   });
 
   group('signIn', () {
+    test('maps a banned account to the suspended state', () async {
+      when(() => dataSource.signIn(
+            email: 'sara@test.local',
+            password: 'password123',
+          )).thenThrow(_fakeAuthException(code: 'user_banned'));
+
+      final result = await repository.signIn(
+        email: 'sara@test.local',
+        password: 'password123',
+      );
+
+      expect(result.failureOrNull!.code, 'suspended');
+    });
+
     test('maps invalid credentials to invalid_credentials', () async {
       when(() => dataSource.signIn(
             email: 'sara@test.local',

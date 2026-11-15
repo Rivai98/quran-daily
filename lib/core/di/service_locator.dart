@@ -40,6 +40,9 @@ import '../../features/reminders/data/reminders_repository.dart';
 import '../../features/reminders/data/reminders_repository_impl.dart';
 import '../../features/reminders/cubit/reminders_cubit.dart';
 import '../../features/reminders/data/reminder_planning_service.dart';
+import '../../features/admin/cubit/admin_cubit.dart';
+import '../../features/admin/data/admin_repository.dart';
+import '../../features/admin/data/admin_repository_impl.dart';
 
 final serviceLocator = GetIt.instance;
 
@@ -165,6 +168,23 @@ void configureServiceLocator({
           requestPermissions: () =>
               locator<NotificationScheduler>().requestPermissions(),
         ),
+      );
+    }
+    if (!locator.isRegistered<AdminRepository>()) {
+      locator.registerLazySingleton<AdminRepository>(
+        () => AdminRepositoryImpl(
+          rpc: locator<RpcClient>(),
+          invoke: (name, body) async => locator<SupabaseClientProvider>()
+              .client
+              .functions
+              .invoke(name, body: body)
+              .then((response) => response.data),
+        ),
+      );
+    }
+    if (!locator.isRegistered<AdminCubit>()) {
+      locator.registerFactory<AdminCubit>(
+        () => AdminCubit(locator<AdminRepository>()),
       );
     }
 
@@ -332,6 +352,7 @@ void configureServiceLocator({
         () => SettingsCubit(
           settingsRepository: locator<SettingsRepository>(),
           sessionGateway: locator<SessionGateway>(),
+          adminRepository: locator<AdminRepository>(),
         ),
       );
     }
