@@ -7,6 +7,7 @@ void main() {
     test('parses full get_my_profile contract payload', () {
       final json = <String, Object?>{
         'display_name': 'أحمد السعيد',
+        'avatar_key': 'woman_hijab',
         'member_since': '2026-11-01',
         'streak': 7,
         'best_streak': 14,
@@ -39,6 +40,7 @@ void main() {
       final profile = ProfileModel.fromJson(json);
 
       expect(profile.displayName, 'أحمد السعيد');
+      expect(profile.avatarKey, 'woman_hijab');
       expect(profile.memberSince, DateTime(2026, 11, 1));
       expect(profile.streak, 7);
       expect(profile.bestStreak, 14);
@@ -99,6 +101,7 @@ void main() {
     test('serializes to and from json for cache storage', () {
       final original = UserProfile(
         displayName: 'فاطمة',
+        avatarKey: 'woman_hijab',
         memberSince: DateTime(2026, 10, 15),
         streak: 5,
         bestStreak: 10,
@@ -121,6 +124,7 @@ void main() {
       final restored = ProfileModel.fromJson(json, isStale: true);
 
       expect(restored.displayName, original.displayName);
+      expect(restored.avatarKey, original.avatarKey);
       expect(restored.memberSince, original.memberSince);
       expect(restored.streak, original.streak);
       expect(restored.bestStreak, original.bestStreak);

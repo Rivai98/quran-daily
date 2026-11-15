@@ -9,10 +9,10 @@ class SettingsCubit extends Cubit<SettingsState> {
     required SettingsRepository settingsRepository,
     required SessionGateway sessionGateway,
     AdminRepository? adminRepository,
-  })  : _settingsRepository = settingsRepository,
-        _sessionGateway = sessionGateway,
-        _adminRepository = adminRepository,
-        super(const SettingsState());
+  }) : _settingsRepository = settingsRepository,
+       _sessionGateway = sessionGateway,
+       _adminRepository = adminRepository,
+       super(const SettingsState());
 
   final SettingsRepository _settingsRepository;
   final SessionGateway _sessionGateway;
@@ -33,15 +33,19 @@ class SettingsCubit extends Cubit<SettingsState> {
     final result = await _settingsRepository.getQuranTextScale();
     if (result.isSuccess) {
       final scale = result.valueOrNull ?? 1.0;
-      emit(state.copyWith(
-        status: SettingsStatus.success,
-        quranTextScale: scale.clamp(minQuranTextScale, maxQuranTextScale),
-      ));
+      emit(
+        state.copyWith(
+          status: SettingsStatus.success,
+          quranTextScale: scale.clamp(minQuranTextScale, maxQuranTextScale),
+        ),
+      );
     } else {
-      emit(state.copyWith(
-        status: SettingsStatus.failure,
-        failure: result.failureOrNull,
-      ));
+      emit(
+        state.copyWith(
+          status: SettingsStatus.failure,
+          failure: result.failureOrNull,
+        ),
+      );
     }
   }
 
@@ -51,16 +55,20 @@ class SettingsCubit extends Cubit<SettingsState> {
     await _settingsRepository.setQuranTextScale(clamped);
   }
 
-  Future<void> signOut() async {
+  Future<bool> signOut() async {
     emit(state.copyWith(status: SettingsStatus.signingOut));
     final result = await _sessionGateway.signOut();
     if (result.isSuccess) {
       emit(state.copyWith(status: SettingsStatus.signedOut));
+      return true;
     } else {
-      emit(state.copyWith(
-        status: SettingsStatus.failure,
-        failure: result.failureOrNull,
-      ));
+      emit(
+        state.copyWith(
+          status: SettingsStatus.failure,
+          failure: result.failureOrNull,
+        ),
+      );
+      return false;
     }
   }
 }

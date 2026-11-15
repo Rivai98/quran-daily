@@ -65,22 +65,43 @@ void main() {
   }
 
   group('ProfileScreen widget tests', () {
-    testWidgets('all constitution variants render without overflow', (tester) async {
-      when(() => repository.getProfile(forceRefresh: any(named: 'forceRefresh')))
-          .thenAnswer((_) async => Success(sampleProfile));
+    testWidgets('account light and dark goldens', (tester) async {
+      tester.view.physicalSize = const Size(360, 1500);
+      tester.view.devicePixelRatio = 1;
+      when(
+        () => repository.getProfile(forceRefresh: any(named: 'forceRefresh')),
+      ).thenAnswer((_) async => Success(sampleProfile));
+      for (final dark in [false, true]) {
+        await tester.pumpWidget(buildArabicTestApp(buildScreen(), dark: dark));
+        await tester.pumpAndSettle();
+        await expectLater(
+          find.byType(ProfileScreen),
+          matchesGoldenFile(
+            'goldens/005_profile_${dark ? 'dark' : 'light'}.png',
+          ),
+        );
+        await tester.pumpWidget(const SizedBox.shrink());
+      }
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
 
-      await pumpAllVariants(
-        tester,
-        buildScreen(),
-        (tester, variant) async {
-          expect(tester.takeException(), isNull, reason: variant);
-        },
-      );
+    testWidgets('all constitution variants render without overflow', (
+      tester,
+    ) async {
+      when(
+        () => repository.getProfile(forceRefresh: any(named: 'forceRefresh')),
+      ).thenAnswer((_) async => Success(sampleProfile));
+
+      await pumpAllVariants(tester, buildScreen(), (tester, variant) async {
+        expect(tester.takeException(), isNull, reason: variant);
+      });
     });
 
     testWidgets('content: shows profile data and sections', (tester) async {
-      when(() => repository.getProfile(forceRefresh: any(named: 'forceRefresh')))
-          .thenAnswer((_) async => Success(sampleProfile));
+      when(
+        () => repository.getProfile(forceRefresh: any(named: 'forceRefresh')),
+      ).thenAnswer((_) async => Success(sampleProfile));
 
       await tester.pumpWidget(buildArabicTestApp(buildScreen()));
       await tester.pumpAndSettle();
@@ -107,13 +128,19 @@ void main() {
         find.text(ArabicStrings.profileSettingsNavigation),
         100.0,
       );
-      expect(find.text(ArabicStrings.profileSettingsNavigation), findsOneWidget);
+      expect(
+        find.text(ArabicStrings.profileSettingsNavigation),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('shows loading indicator when state is loading', (tester) async {
+    testWidgets('shows loading indicator when state is loading', (
+      tester,
+    ) async {
       final completer = Completer<Result<UserProfile>>();
-      when(() => repository.getProfile(forceRefresh: any(named: 'forceRefresh')))
-          .thenAnswer((_) => completer.future);
+      when(
+        () => repository.getProfile(forceRefresh: any(named: 'forceRefresh')),
+      ).thenAnswer((_) => completer.future);
 
       await tester.pumpWidget(buildArabicTestApp(buildScreen()));
       await tester.pump();
@@ -126,8 +153,9 @@ void main() {
 
     testWidgets('shows offline banner when profile is stale', (tester) async {
       final staleProfile = sampleProfile.copyWith(isStale: true);
-      when(() => repository.getProfile(forceRefresh: any(named: 'forceRefresh')))
-          .thenAnswer((_) async => Success(staleProfile));
+      when(
+        () => repository.getProfile(forceRefresh: any(named: 'forceRefresh')),
+      ).thenAnswer((_) async => Success(staleProfile));
 
       await tester.pumpWidget(buildArabicTestApp(buildScreen()));
       await tester.pumpAndSettle();
@@ -137,8 +165,9 @@ void main() {
     });
 
     testWidgets('shows error state panel and retries on tap', (tester) async {
-      when(() => repository.getProfile(forceRefresh: any(named: 'forceRefresh')))
-          .thenAnswer(
+      when(
+        () => repository.getProfile(forceRefresh: any(named: 'forceRefresh')),
+      ).thenAnswer(
         (_) async => const FailureResult(
           NetworkFailure(message: 'Connection failed', code: 'network'),
         ),
@@ -150,8 +179,9 @@ void main() {
       expect(find.byType(StatePanel), findsOneWidget);
       expect(find.text(ArabicStrings.profileLoadError), findsOneWidget);
 
-      when(() => repository.getProfile(forceRefresh: any(named: 'forceRefresh')))
-          .thenAnswer((_) async => Success(sampleProfile));
+      when(
+        () => repository.getProfile(forceRefresh: any(named: 'forceRefresh')),
+      ).thenAnswer((_) async => Success(sampleProfile));
 
       await tester.tap(find.text(ArabicStrings.retry));
       await tester.pumpAndSettle();
@@ -159,9 +189,12 @@ void main() {
       expect(find.text('عبد الله السعيد'), findsOneWidget);
     });
 
-    testWidgets('tapping navigation rows triggers pushNamed safely', (tester) async {
-      when(() => repository.getProfile(forceRefresh: any(named: 'forceRefresh')))
-          .thenAnswer((_) async => Success(sampleProfile));
+    testWidgets('tapping navigation rows triggers pushNamed safely', (
+      tester,
+    ) async {
+      when(
+        () => repository.getProfile(forceRefresh: any(named: 'forceRefresh')),
+      ).thenAnswer((_) async => Success(sampleProfile));
 
       var pushedRoute = '';
       final app = MaterialApp(
@@ -175,14 +208,13 @@ void main() {
         ],
         routes: {
           '/': (_) => buildScreen(),
-          AppRoutes.settings: (_) => const Scaffold(body: Text('Settings Target')),
+          AppRoutes.settings: (_) =>
+              const Scaffold(body: Text('Settings Target')),
           AppRoutes.log: (_) => const Scaffold(body: Text('Log Target')),
           AppRoutes.editMyProfile: (_) =>
               const Scaffold(body: Text('Edit Profile Target')),
         },
-        navigatorObservers: [
-          _RouteObserver((route) => pushedRoute = route),
-        ],
+        navigatorObservers: [_RouteObserver((route) => pushedRoute = route)],
       );
 
       await tester.pumpWidget(app);

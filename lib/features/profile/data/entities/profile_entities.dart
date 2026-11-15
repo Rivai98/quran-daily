@@ -21,10 +21,7 @@ enum ProfileBadgeCode {
 
 /// Represents an achievement badge with its earned status.
 class ProfileBadge extends Equatable {
-  const ProfileBadge({
-    required this.code,
-    this.earnedAt,
-  });
+  const ProfileBadge({required this.code, this.earnedAt});
 
   final ProfileBadgeCode code;
   final DateTime? earnedAt;
@@ -55,6 +52,7 @@ class ProfileKhatma extends Equatable {
 class UserProfile extends Equatable {
   const UserProfile({
     required this.displayName,
+    this.avatarKey = 'ornament',
     this.memberSince,
     required this.streak,
     required this.bestStreak,
@@ -66,6 +64,7 @@ class UserProfile extends Equatable {
   });
 
   final String displayName;
+  final String avatarKey;
   final DateTime? memberSince;
   final int streak;
   final int bestStreak;
@@ -77,6 +76,7 @@ class UserProfile extends Equatable {
 
   UserProfile copyWith({
     String? displayName,
+    String? avatarKey,
     DateTime? memberSince,
     int? streak,
     int? bestStreak,
@@ -88,6 +88,7 @@ class UserProfile extends Equatable {
   }) {
     return UserProfile(
       displayName: displayName ?? this.displayName,
+      avatarKey: avatarKey ?? this.avatarKey,
       memberSince: memberSince ?? this.memberSince,
       streak: streak ?? this.streak,
       bestStreak: bestStreak ?? this.bestStreak,
@@ -101,14 +102,15 @@ class UserProfile extends Equatable {
 
   @override
   List<Object?> get props => [
-        displayName,
-        memberSince,
-        streak,
-        bestStreak,
-        portionsRead,
-        portionsLate,
-        khatmas,
-        badges,
-        isStale,
-      ];
+    displayName,
+    avatarKey,
+    memberSince,
+    streak,
+    bestStreak,
+    portionsRead,
+    portionsLate,
+    khatmas,
+    badges,
+    isStale,
+  ];
 }

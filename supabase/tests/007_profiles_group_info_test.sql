@@ -3,7 +3,7 @@ create extension if not exists pgtap with schema extensions;
 \i helpers/seed_members.sql
 
 begin;
-select plan(43);
+select plan(49);
 
 -- Spec 007 fixtures (b7 prefix, Q7 invite codes).
 -- 11 owner (seat 1), 12 supervisor (seat 2), 13 member (seat 3),
@@ -144,6 +144,18 @@ select throws_ok(format('select public.update_my_profile(%L, %L)', 'زيد', rep
   'invalid_bio', 'bio over 120 chars is refused');
 select lives_ok(format('select public.update_my_profile(%L, %L)', 'زيد', repeat('ن', 120)),
   'bio of 120 chars is accepted');
+select is(public.get_my_profile()->>'avatar_key', 'ornament',
+  'get_my_profile returns the neutral avatar by default');
+select is(public.get_member_profile('b7000000-0000-0000-0000-000000000013', 'b7000000-0000-0000-0000-000000000030')->>'avatar_key', 'ornament',
+  'get_member_profile returns the member avatar');
+select is(public.get_group_info('b7000000-0000-0000-0000-000000000030')->'members'->0->>'avatar_key', 'ornament',
+  'get_group_info returns member avatars');
+select is(public.update_my_profile('زيد', null, 'woman_hijab')->>'avatar_key', 'woman_hijab',
+  'update_my_profile accepts and returns an allowed avatar');
+select is((select avatar_key from public.profiles where id = 'b7000000-0000-0000-0000-000000000016'), 'woman_hijab',
+  'update_my_profile persists the selected avatar');
+select throws_ok('select public.update_my_profile(''زيد'', null, ''invalid'')', 'invalid_avatar_key',
+  'update_my_profile rejects unsupported avatars');
 
 -- ---------------------------------------------------------------------------
 -- update_group_details / set_group_photo (owner only)

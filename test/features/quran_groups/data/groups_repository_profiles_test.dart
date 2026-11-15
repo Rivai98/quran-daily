@@ -112,12 +112,14 @@ void main() {
       when(() => remote.call('update_my_profile', {
         'p_display_name': 'عثمان',
         'p_bio': 'حفظ متقن',
+        'p_avatar_key': 'ornament',
       })).thenAnswer(
         (_) async => const Success<dynamic>({
           'user_id': 'u-me',
           'display_name': 'عثمان',
           'initials': 'ع',
           'bio': 'حفظ متقن',
+          'avatar_key': 'ornament',
           'updated_at': '2026-11-15T12:00:00.000Z',
         }),
       );

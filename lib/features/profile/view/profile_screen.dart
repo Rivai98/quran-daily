@@ -3,10 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/router.dart';
 import '../../../../core/design_system/app_spacing.dart';
+import '../../../../core/design_system/app_button.dart';
 import '../../../../core/design_system/widgets/app_page_content.dart';
 import '../../../../core/design_system/widgets/app_section_header.dart';
 import '../../../../core/design_system/widgets/offline_banner.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
+import '../../../../core/design_system/widgets/confirm_sheet.dart';
+import '../../../../core/design_system/widgets/app_snack_bar.dart';
+import '../../../../core/di/service_locator.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
@@ -16,6 +20,7 @@ import 'widgets/profile_khatmas_list.dart';
 import 'widgets/profile_navigation_tile.dart';
 import 'widgets/profile_streak_card.dart';
 import 'widgets/profile_totals_card.dart';
+import '../../settings/cubit/settings_cubit.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -46,12 +51,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _confirmSignOut(BuildContext context) {
+    ConfirmSheet.show(
+      context,
+      title: ArabicStrings.signOutConfirmTitle,
+      message: ArabicStrings.signOutConfirmMessage,
+      confirmLabel: ArabicStrings.signOut,
+      destructive: true,
+      onConfirm: () async {
+        final result = await serviceLocator<SettingsCubit>().signOut();
+        if (context.mounted) {
+          if (result) {
+            resetToGate();
+          } else {
+            AppSnackBar.show(context, ArabicStrings.operationFailed);
+          }
+        }
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(ArabicStrings.profileTitle),
-      ),
+      appBar: AppBar(title: const Text(ArabicStrings.profileTitle)),
       body: BlocBuilder<ProfileCubit, ProfileState>(
         builder: (context, state) {
           if (state.status == ProfileStatus.loading && state.profile == null) {
@@ -79,68 +102,88 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: ListView(
                 padding: AppSpacing.screenContent,
                 children: [
-                if (state.isStale) ...[
-                  const OfflineBanner(
-                    message: ArabicStrings.offlineStale,
+                  if (state.isStale) ...[
+                    const OfflineBanner(message: ArabicStrings.offlineStale),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                  ProfileHeader(
+                    displayName: profile.displayName,
+                    avatarKey: profile.avatarKey,
+                    memberSince: profile.memberSince,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  const AppSectionHeader(
+                    title: ArabicStrings.profileStreakSection,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  ProfileStreakCard(
+                    streak: profile.streak,
+                    bestStreak: profile.bestStreak,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  const AppSectionHeader(
+                    title: ArabicStrings.profileTotalsSection,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  ProfileTotalsCard(
+                    portionsRead: profile.portionsRead,
+                    portionsLate: profile.portionsLate,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  const AppSectionHeader(
+                    title: ArabicStrings.profileKhatmasSection,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  ProfileKhatmasList(khatmas: profile.khatmas),
+                  const SizedBox(height: AppSpacing.lg),
+                  const AppSectionHeader(
+                    title: ArabicStrings.profileBadgesSection,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  ProfileBadgesGrid(
+                    badges: profile.badges,
+                    bestStreak: profile.bestStreak,
+                    portionsRead: profile.portionsRead,
+                    khatmasCompleted: profile.khatmas.fold(
+                      0,
+                      (sum, item) => sum + item.completed,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  const AppSectionHeader(
+                    title: ArabicStrings.profileQuickLinksSection,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  ProfileNavigationTile(
+                    icon: Icons.person_outline,
+                    title: ArabicStrings.myProfileTitle,
+                    onTap: () => _openRoute(context, AppRoutes.editMyProfile),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  ProfileNavigationTile(
+                    icon: Icons.calendar_today_outlined,
+                    title: ArabicStrings.profileLogNavigation,
+                    onTap: () => _openRoute(context, AppRoutes.log),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  ProfileNavigationTile(
+                    icon: Icons.settings_outlined,
+                    title: ArabicStrings.profileSettingsNavigation,
+                    onTap: () => _openRoute(context, AppRoutes.settings),
                   ),
                   const SizedBox(height: AppSpacing.md),
+                  AppButton(
+                    label: ArabicStrings.signOut,
+                    icon: const Icon(Icons.logout_rounded),
+                    variant: AppButtonVariant.secondary,
+                    expanded: true,
+                    onPressed: () => _confirmSignOut(context),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
                 ],
-                ProfileHeader(
-                  displayName: profile.displayName,
-                  memberSince: profile.memberSince,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                const AppSectionHeader(
-                    title: ArabicStrings.profileStreakSection),
-                const SizedBox(height: AppSpacing.xs),
-                ProfileStreakCard(
-                  streak: profile.streak,
-                  bestStreak: profile.bestStreak,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                const AppSectionHeader(
-                    title: ArabicStrings.profileTotalsSection),
-                const SizedBox(height: AppSpacing.xs),
-                ProfileTotalsCard(
-                  portionsRead: profile.portionsRead,
-                  portionsLate: profile.portionsLate,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                const AppSectionHeader(
-                    title: ArabicStrings.profileKhatmasSection),
-                const SizedBox(height: AppSpacing.xs),
-                ProfileKhatmasList(khatmas: profile.khatmas),
-                const SizedBox(height: AppSpacing.lg),
-                const AppSectionHeader(
-                    title: ArabicStrings.profileBadgesSection),
-                const SizedBox(height: AppSpacing.xs),
-                ProfileBadgesGrid(badges: profile.badges),
-                const SizedBox(height: AppSpacing.lg),
-                const AppSectionHeader(
-                    title: ArabicStrings.profileQuickLinksSection),
-                const SizedBox(height: AppSpacing.xs),
-                ProfileNavigationTile(
-                  icon: Icons.person_outline,
-                  title: ArabicStrings.myProfileTitle,
-                  onTap: () => _openRoute(context, AppRoutes.editMyProfile),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                ProfileNavigationTile(
-                  icon: Icons.calendar_today_outlined,
-                  title: ArabicStrings.profileLogNavigation,
-                  onTap: () => _openRoute(context, AppRoutes.log),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                ProfileNavigationTile(
-                  icon: Icons.settings_outlined,
-                  title: ArabicStrings.profileSettingsNavigation,
-                  onTap: () => _openRoute(context, AppRoutes.settings),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-              ],
+              ),
             ),
-          ),
-        );
+          );
         },
       ),
     );

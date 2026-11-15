@@ -50,7 +50,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   void initState() {
     super.initState();
     _photoService = widget.photoService ?? const DefaultGroupPhotoService();
-    _metadataRepository = widget.metadataRepository ??
+    _metadataRepository =
+        widget.metadataRepository ??
         (serviceLocator.isRegistered<QuranMetadataRepository>()
             ? serviceLocator<QuranMetadataRepository>()
             : QuranMetadataRepository());
@@ -71,10 +72,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                ArabicStrings.changeGroupPhoto,
-                style: AppTypography.title,
-              ),
+              Text(ArabicStrings.changeGroupPhoto, style: AppTypography.title),
               const SizedBox(height: AppSpacing.md),
               ListTile(
                 leading: const Icon(Icons.photo_library),
@@ -221,9 +219,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     final colors = Theme.of(context).extension<AppColors>()!;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(ArabicStrings.groupInfoTitle),
-      ),
+      appBar: AppBar(title: const Text(ArabicStrings.groupInfoTitle)),
       body: BlocConsumer<GroupInfoCubit, GroupInfoState>(
         listenWhen: (prev, curr) =>
             prev.actionError != curr.actionError && curr.actionError != null,
@@ -347,7 +343,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                   ? info.description!
                                   : ArabicStrings.noDescription,
                               style: AppTypography.body.copyWith(
-                                color: info.description != null &&
+                                color:
+                                    info.description != null &&
                                         info.description!.trim().isNotEmpty
                                     ? colors.ink
                                     : colors.inkMuted,
@@ -524,8 +521,10 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                             child: Row(
                               children: [
                                 UserAvatar(
-                                  initials: member.initials ??
+                                  initials:
+                                      member.initials ??
                                       displayInitials(member.displayName),
+                                  avatarKey: member.avatarKey,
                                   size: 36,
                                 ),
                                 const SizedBox(width: AppSpacing.sm),
@@ -536,8 +535,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                     children: [
                                       Text(
                                         member.displayName,
-                                        style:
-                                            AppTypography.bodyLarge.copyWith(
+                                        style: AppTypography.bodyLarge.copyWith(
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -573,8 +571,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                     _memberRoleString(member.role),
                                     style: AppTypography.caption.copyWith(
                                       color: member.role == GroupRole.owner
-                                        ? colors.primary
-                                        : colors.inkMuted,
+                                          ? colors.primary
+                                          : colors.inkMuted,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),

@@ -24,10 +24,7 @@ AssignmentStatus _toDesignStatus(AssignmentStatusEnum s) =>
     AssignmentStatus.values.byName(s.name);
 
 class MemberProfileArgs {
-  const MemberProfileArgs({
-    required this.userId,
-    required this.groupId,
-  });
+  const MemberProfileArgs({required this.userId, required this.groupId});
 
   final String userId;
   final String groupId;
@@ -87,9 +84,7 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
     final colors = Theme.of(context).extension<AppColors>()!;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(ArabicStrings.memberProfileTitle),
-      ),
+      appBar: AppBar(title: const Text(ArabicStrings.memberProfileTitle)),
       body: BlocBuilder<MemberProfileCubit, MemberProfileState>(
         builder: (context, state) {
           if (state.status == MemberProfileStatus.loading ||
@@ -117,28 +112,32 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
               title: ArabicStrings.networkFailure,
               message: ArabicStrings.networkFailure,
               actionLabel: ArabicStrings.retry,
-              onAction: () => context
-                  .read<MemberProfileCubit>()
-                  .load(widget.userId, widget.groupId),
+              onAction: () => context.read<MemberProfileCubit>().load(
+                widget.userId,
+                widget.groupId,
+              ),
               isError: true,
             );
           }
 
-          if (state.status == MemberProfileStatus.failure || state.profile == null) {
+          if (state.status == MemberProfileStatus.failure ||
+              state.profile == null) {
             return StatePanel(
               icon: Icons.error_outline,
               title: ArabicStrings.operationFailed,
               message: ArabicStrings.operationFailed,
               actionLabel: ArabicStrings.retry,
-              onAction: () => context
-                  .read<MemberProfileCubit>()
-                  .load(widget.userId, widget.groupId),
+              onAction: () => context.read<MemberProfileCubit>().load(
+                widget.userId,
+                widget.groupId,
+              ),
               isError: true,
             );
           }
 
           final profile = state.profile!;
-          final initials = (profile.initials != null && profile.initials!.isNotEmpty)
+          final initials =
+              (profile.initials != null && profile.initials!.isNotEmpty)
               ? profile.initials!
               : displayInitials(profile.displayName);
 
@@ -159,7 +158,11 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
                         padding: AppSpacing.card,
                         child: Column(
                           children: [
-                            UserAvatar(initials: initials, size: 72),
+                            UserAvatar(
+                              initials: initials,
+                              avatarKey: profile.avatarKey,
+                              size: 72,
+                            ),
                             const SizedBox(height: AppSpacing.sm),
                             Text(
                               profile.displayName,
@@ -192,7 +195,9 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
                                 if (profile.seatNumber != null)
                                   Text(
                                     ArabicStrings.historySeat(
-                                      ArabicNumerals.format(profile.seatNumber!),
+                                      ArabicNumerals.format(
+                                        profile.seatNumber!,
+                                      ),
                                     ),
                                     style: AppTypography.caption.copyWith(
                                       color: colors.inkMuted,
@@ -237,7 +242,9 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
                                     AppRoutes.editMyProfile,
                                   );
                                   if (context.mounted) {
-                                    context.read<MemberProfileCubit>().refresh();
+                                    context
+                                        .read<MemberProfileCubit>()
+                                        .refresh();
                                   }
                                 },
                               ),
@@ -264,7 +271,9 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
                                   ),
                                   const SizedBox(height: AppSpacing.xxs),
                                   Text(
-                                    ArabicStrings.streakDays(profile.currentStreak),
+                                    ArabicStrings.streakDays(
+                                      profile.currentStreak,
+                                    ),
                                     style: AppTypography.title,
                                     textAlign: TextAlign.center,
                                   ),
@@ -378,27 +387,34 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> {
                                             WrapCrossAlignment.center,
                                         children: [
                                           Text(
-                                            ArabicNumerals.format(day.groupDate),
-                                            style: AppTypography.caption.copyWith(
-                                              color: colors.inkMuted,
+                                            ArabicNumerals.format(
+                                              day.groupDate,
                                             ),
+                                            style: AppTypography.caption
+                                                .copyWith(
+                                                  color: colors.inkMuted,
+                                                ),
                                           ),
-                                          if (day.kind == AssignmentKind.volunteer)
+                                          if (day.kind ==
+                                              AssignmentKind.volunteer)
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 6,
-                                                vertical: 2,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 color: colors.primaryContainer,
                                                 borderRadius: AppRadius.smBR,
                                               ),
                                               child: Text(
                                                 ArabicStrings.tagVolunteer,
-                                                style: AppTypography.caption.copyWith(
-                                                  color: colors.primary,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
+                                                style: AppTypography.caption
+                                                    .copyWith(
+                                                      color: colors.primary,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
                                               ),
                                             ),
                                         ],
