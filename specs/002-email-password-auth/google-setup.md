@@ -33,6 +33,14 @@ Add a line with the **Web** client ID. It's a public identifier, not a secret:
 
 ```
 GOOGLE_WEB_CLIENT_ID=xxxxxxxx.apps.googleusercontent.com
+GOOGLE_IOS_CLIENT_ID=yyyyyyyy.apps.googleusercontent.com
 ```
+
+For an iOS build, set the Runner target's `GOOGLE_IOS_CLIENT_ID` build setting
+to the iOS client ID and `GOOGLE_IOS_REVERSED_CLIENT_ID` to its reversed URL
+scheme (for example, `com.googleusercontent.apps.<client-number>`). These
+settings fill `GIDClientID` and the Google callback URL scheme in
+`ios/Runner/Info.plist`; the runtime `--dart-define` values configure the
+Google Sign-In client in Dart.
 
 Then tell Claude it's done, and the phone test (T012) runs.
