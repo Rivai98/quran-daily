@@ -1,6 +1,6 @@
 # Specs roadmap
 
-One spec at a time, in this order. Each spec goes through:
+Owner update 2026-11-15: all remaining specs are built in parallel, each on its own branch, merged to `main` after testing. Each spec goes through:
 specify → clarify (owner answers) → plan → tasks → implement → validate → merge to `main`.
 The next spec starts only after the current one is merged to `main`.
 
@@ -11,9 +11,10 @@ The next spec starts only after the current one is merged to `main`.
 | 004 | [Daily portion units](004-portion-units/spec.md) | `004-portion-units` | ✅ Implemented, in `main` |
 | 002+ | [Google sign-in (amendment to 002)](002-email-password-auth/spec.md) | `002-google-signin` | ✅ Implemented, in `main` |
 | 003 | [In-app Mushaf](003-in-app-mushaf/spec.md) | `003-in-app-mushaf` | 🔨 Current: clarified + planned; waiting for source files |
-| 005 | [Home, tabs, daily log](005-home-today/spec.md) | `005-home-today` | ⏸ Paused (planned; partial work saved on branches 005-db, 005-home, 005-log) |
-| 006 | [Daily reminders](006-daily-reminders/spec.md) | `006-daily-reminders` | 📝 Draft spec, needs clarify |
-| 007 | [Who read, profiles, group info](007-reader-visibility-profiles/spec.md) | `007-reader-visibility-profiles` | 📝 Draft spec, needs clarify |
+| 005 | [Home, tabs, daily log](005-home-today/spec.md) | `005-home-today` | 🔨 In progress (4 tabs + profile) |
+| 006 | [Daily reminders](006-daily-reminders/spec.md) | `006-daily-reminders` | 🔨 Clarified + planned |
+| 007 | [Who read, profiles, group info](007-reader-visibility-profiles/spec.md) | `007-reader-visibility-profiles` | 🔨 Clarified + planned |
+| 008 | [Admin console](008-admin-console/spec.md) | `008-admin-console` | 🔨 Clarified + planned |
 
 Notes:
 - 003 is numbered before 004 because it was reserved early; 004 was built first at the owner's request.
