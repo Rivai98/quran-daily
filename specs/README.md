@@ -10,7 +10,7 @@ The next spec starts only after the current one is merged to `main`.
 | 002 | [Email/password auth](002-email-password-auth/spec.md) | (code inside 001) | ✅ Implemented, in `main` |
 | 004 | [Daily portion units](004-portion-units/spec.md) | `004-portion-units` | ✅ Implemented, in `main` |
 | 002+ | [Google sign-in (amendment to 002)](002-email-password-auth/spec.md) | `002-google-signin` | ✅ Implemented, in `main` |
-| 003 | In-app Mushaf | `003-...` | 🔨 Current: needs specify |
+| 003 | [In-app Mushaf](003-in-app-mushaf/spec.md) | `003-in-app-mushaf` | 🔨 Current: clarified + planned; waiting for source files |
 | 005 | [Home, tabs, daily log](005-home-today/spec.md) | `005-home-today` | ⏸ Paused (planned; partial work saved on branches 005-db, 005-home, 005-log) |
 | 006 | [Daily reminders](006-daily-reminders/spec.md) | `006-daily-reminders` | 📝 Draft spec, needs clarify |
 | 007 | [Who read, profiles, group info](007-reader-visibility-profiles/spec.md) | `007-reader-visibility-profiles` | 📝 Draft spec, needs clarify |
