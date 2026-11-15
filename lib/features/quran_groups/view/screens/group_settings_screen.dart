@@ -9,6 +9,7 @@ import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
+import '../../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../../core/design_system/widgets/app_text_field.dart';
 import '../../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
@@ -76,6 +77,8 @@ class GroupSettingsScreen extends StatelessWidget {
         listener: (context, state) {
           if (state.status == GroupSettingsStatus.started) {
             onKhatmaStarted();
+          } else if (state.status == GroupSettingsStatus.success) {
+            AppSnackBar.show(context, ArabicStrings.groupSettingsSaved);
           }
         },
         builder: (context, state) {
