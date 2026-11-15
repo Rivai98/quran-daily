@@ -18,6 +18,13 @@ log. Put icons on the cards. Make it feel more spiritual."
   direct open action and a mark-complete action.
 - Q: Which tabs? → A: Four bottom tabs: اليوم (Today), مجموعاتي (My groups),
   السجل (Log), الإعدادات (Settings). (To confirm in clarify.)
+- Q: What does the home tab show versus "مجموعاتي"? → A: The home tab
+  ("الرئيسية/اليوم") shows the user's MAIN group first (a large card: photo,
+  name, today's progress, their portion with open/complete actions), then
+  today's portions in their other groups. "مجموعاتي" is a separate tab that
+  lists all groups the user belongs to (and pending requests) with richer
+  cards. The main group defaults to the most recently opened active group and
+  the user can pin another one as main ("اجعلها مجموعتي الرئيسية").
 - Q: What is the daily log? → A: A personal history across all groups: per
   day, the portions the user read (on time / late), missed, and volunteered.
 
@@ -51,6 +58,28 @@ dashboard.
    it shows a calm completion message and the group progress summaries.
 5. **Given** offline, **When** Today opens, **Then** cached cards show with the
    offline banner and completions queue (spec 001 offline rules).
+
+---
+
+### User Story 1b - Main group on the home tab (Priority: P1)
+
+The home tab opens with the user's main group as a hero card: group photo or
+generated avatar, name, today's group progress (e.g. "١٨ من ٣٠"), the user's
+portion with "افتح الورد" and "تمت القراءة", and a shortcut to the group
+dashboard. Below it, compact cards for today's portions in other groups. The
+user can change the main group from any group's menu.
+
+**Independent Test**: A user in 3 groups pins group B as main; the home tab
+shows B as the hero card and A, C as compact cards.
+
+**Acceptance Scenarios**:
+
+1. **Given** no pinned group, **When** home opens, **Then** the most recently
+   opened active group is the hero card.
+2. **Given** the user pins another group, **When** home reopens, **Then** that
+   group is the hero card (stored per user, synced across devices).
+3. **Given** only one group, **When** home opens, **Then** it shows the hero
+   card only, without an empty "other groups" section.
 
 ---
 
@@ -122,6 +151,11 @@ contrast checks pass in light and dark.
   with spec 001 rules (grace, offline queue, undo confirmation).
 - **FR-004**: The app MUST provide four bottom tabs (Today, My groups, Log,
   Settings) with independent navigation stacks.
+- **FR-004a**: The home tab MUST show the user's main group as a hero card
+  (photo/avatar, name, today's progress, the user's portion with actions),
+  followed by today's portions in other groups; "مجموعاتي" is a separate tab.
+- **FR-004b**: Users MUST be able to pin a main group; default is the most
+  recently opened active group; the choice is stored per user server-side.
 - **FR-005**: The Log MUST list the user's past days across groups with
   per-portion status, a streak, and a monthly summary.
 - **FR-006**: Portion names/ranges MUST come from the metadata repository
