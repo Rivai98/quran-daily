@@ -15,7 +15,7 @@ last position and bookmarks (synced), and show an owner-approved khatm dua.
 | Item | Decision |
 |------|----------|
 | Publisher | King Fahd Glorious Quran Printing Complex (KFGQPC), Madinah |
-| Package | "KFGQPC Uthmanic Script HAFS" font + its Hafs text data file (the text file published together with the font, with surah/ayah/page/juz per ayah), latest version on fonts.qurancomplex.gov.sa |
+| Package | "QPC Hafs font" (KFGQPC Uthmanic Hafs, ttf) + "QPC Hafs script - Ayah by Ayah" (the KFGQPC Hafs Unicode text the font is built for), both from the Quranic Universal Library (qul.tarteel.ai, resources/font/245 and its related script). The KFGQPC download site (fonts.qurancomplex.gov.sa) shows "قريباً" on 2026-11-15; owner approved QUL as the distributor of the official KFGQPC files. |
 | Riwayah | Hafs 'an 'Asim, Madinah Mushaf 604 pages |
 | Files in repo | `assets/quran/hafs/` text data file and `assets/fonts/kfgqpc_hafs/` font, byte-for-byte as downloaded |
 | Records | `assets/quran/hafs/SOURCE.md` (URL, version, date, license text, sizes), SHA-256 in `assets/quran/checksums.sha256` |
