@@ -82,10 +82,18 @@ class RpcClient {
         return NetworkFailure(message: code, code: code);
       case 'validation_failed':
       case 'password_mismatch':
+      case 'invalid_display_name':
+      case 'invalid_bio':
+      case 'invalid_photo_path':
         return ValidationFailure(message: code, code: code);
       case 'forbidden':
       case 'not_member':
+      case 'profile_not_accessible':
         return PermissionFailure(message: code, code: code);
+      case 'group_not_found':
+      case 'photo_not_found':
+      case 'profile_not_found':
+        return UnknownFailure(message: code, code: code);
       default:
         return AuthFailure(message: code, code: code);
     }
@@ -94,6 +102,12 @@ class RpcClient {
   static const _knownCodes = <String>[
     'unauthenticated',
     'group_not_found',
+    'photo_not_found',
+    'profile_not_found',
+    'profile_not_accessible',
+    'invalid_display_name',
+    'invalid_bio',
+    'invalid_photo_path',
     'group_not_forming',
     'group_archived',
     'group_not_public',

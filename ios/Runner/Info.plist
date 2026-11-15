@@ -70,5 +70,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>التقاط صورة للمجموعة</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>اختيار صورة للمجموعة من مكتبة الصور</string>
 </dict>
 </plist>

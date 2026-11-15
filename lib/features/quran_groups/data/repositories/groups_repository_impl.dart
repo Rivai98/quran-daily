@@ -1,8 +1,13 @@
+import 'dart:typed_data';
+
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../../core/auth/session_gateway.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/result.dart';
 import '../../../../core/network/connectivity_service.dart';
 import '../../../../core/network/rpc_client.dart';
+import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/storage/daos/daos.dart';
 import '../data_sources/groups_remote_data_source.dart';
 import '../entities/entities.dart';
@@ -19,17 +24,21 @@ class GroupsRepositoryImpl implements GroupsRepository {
     required CachedGroupsDao cache,
     required SessionGateway sessionGateway,
     required ConnectivityService connectivity,
+    SupabaseClientProvider? clientProvider,
   })  : _rpc = rpc,
         _remote = remote,
         _cache = cache,
         _session = sessionGateway,
-        _connectivity = connectivity;
+        _connectivity = connectivity,
+        _clientProvider = clientProvider;
 
   final RpcClient _rpc;
   final GroupsRemoteDataSource _remote;
   final CachedGroupsDao _cache;
   final SessionGateway _session;
   final ConnectivityService _connectivity;
+  final SupabaseClientProvider? _clientProvider;
+  final Map<String, Uint8List> _photoCache = {};
 
   @override
   Future<Result<MyGroupsOverview>> getMyGroups() async {
@@ -367,6 +376,166 @@ class GroupsRepositoryImpl implements GroupsRepository {
   @override
   Future<Result<void>> leaveGroup(String groupId) async =>
       _simpleCall('leave_group', GroupsParams.byGroupId(groupId));
+
+  // --- 007 profiles ---
+  @override
+  Future<Result<GroupInfo>> getGroupInfo(String groupId) async {
+    if (!await _online) {
+      return const FailureResult(
+        NetworkFailure(message: 'offline', code: 'network'),
+      );
+    }
+    final result = await _remote.call(
+      'get_group_info',
+      GroupsParams.byGroupId(groupId),
+    );
+    return result.when(
+      success: (payload) => Success(
+        groupInfoFromJson((payload! as Map).cast<String, Object?>()),
+      ),
+      failure: (failure) => FailureResult(failure),
+    );
+  }
+
+  @override
+  Future<Result<MemberGroupProfile>> getMemberProfile(
+    String userId,
+    String groupId,
+  ) async {
+    if (!await _online) {
+      return const FailureResult(
+        NetworkFailure(message: 'offline', code: 'network'),
+      );
+    }
+    final result = await _remote.call(
+      'get_member_profile',
+      GroupsParams.memberProfile(userId, groupId),
+    );
+    return result.when(
+      success: (payload) => Success(
+        memberGroupProfileFromJson((payload! as Map).cast<String, Object?>()),
+      ),
+      failure: (failure) => FailureResult(failure),
+    );
+  }
+
+  @override
+  Future<Result<UserProfile>> updateMyProfile(
+    String displayName, {
+    String? bio,
+  }) async {
+    if (!await _online) {
+      return const FailureResult(
+        NetworkFailure(message: 'offline', code: 'network'),
+      );
+    }
+    final result = await _remote.call(
+      'update_my_profile',
+      GroupsParams.updateMyProfile(displayName, bio),
+    );
+    return result.when(
+      success: (payload) => Success(
+        userProfileFromJson((payload! as Map).cast<String, Object?>()),
+      ),
+      failure: (failure) => FailureResult(failure),
+    );
+  }
+
+  @override
+  Future<Result<void>> updateGroupDetails(
+    String groupId,
+    String name, {
+    String? description,
+  }) async {
+    return _simpleCall(
+      'update_group_details',
+      GroupsParams.updateGroupDetails(groupId, name, description),
+    );
+  }
+
+  @override
+  Future<Result<void>> setGroupPhoto(String groupId, String? photoPath) async {
+    return _simpleCall(
+      'set_group_photo',
+      GroupsParams.setGroupPhoto(groupId, photoPath),
+    );
+  }
+
+  @override
+  Future<Result<String>> uploadGroupPhoto(
+    String groupId,
+    List<int> bytes,
+    String extension,
+  ) async {
+    if (!await _online) {
+      return const FailureResult(
+        NetworkFailure(message: 'offline', code: 'network'),
+      );
+    }
+    final client = _clientProvider?.client;
+    if (client == null) {
+      return const FailureResult(
+        UnknownFailure(
+          message: 'storage client unavailable',
+          code: 'storage_unavailable',
+        ),
+      );
+    }
+    try {
+      final ext = extension.replaceAll('.', '').toLowerCase();
+      final mime = switch (ext) {
+        'png' => 'image/png',
+        'webp' => 'image/webp',
+        _ => 'image/jpeg',
+      };
+      final fileName = '${DateTime.now().microsecondsSinceEpoch}.$ext';
+      final path = '$groupId/$fileName';
+      final u8Bytes = Uint8List.fromList(bytes);
+
+      await client.storage.from('group-photos').uploadBinary(
+            path,
+            u8Bytes,
+            fileOptions: FileOptions(contentType: mime, upsert: true),
+          );
+      _photoCache[path] = u8Bytes;
+      return Success(path);
+    } catch (e) {
+      return FailureResult(
+        UnknownFailure(message: e.toString(), code: 'upload_failed'),
+      );
+    }
+  }
+
+  @override
+  Future<Result<List<int>>> getGroupPhotoBytes(String photoPath) async {
+    if (_photoCache.containsKey(photoPath)) {
+      return Success(_photoCache[photoPath]!);
+    }
+    if (!await _online) {
+      return const FailureResult(
+        NetworkFailure(message: 'offline', code: 'network'),
+      );
+    }
+    final client = _clientProvider?.client;
+    if (client == null) {
+      return const FailureResult(
+        UnknownFailure(
+          message: 'storage client unavailable',
+          code: 'storage_unavailable',
+        ),
+      );
+    }
+    try {
+      final bytes =
+          await client.storage.from('group-photos').download(photoPath);
+      _photoCache[photoPath] = bytes;
+      return Success(bytes);
+    } catch (e) {
+      return FailureResult(
+        UnknownFailure(message: e.toString(), code: 'download_failed'),
+      );
+    }
+  }
 
   Future<Result<void>> _simpleCall(
       String function, Map<String, Object?> params) async {

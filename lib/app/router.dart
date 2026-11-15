@@ -38,6 +38,11 @@ import '../features/mushaf/view/bookmarks_screen.dart';
 import '../features/mushaf/view/mushaf_index_screen.dart';
 import '../features/mushaf/view/reader_screen.dart';
 import '../features/admin/view/admin_screens.dart';
+import '../features/quran_groups/cubit/member_profile/member_profile_cubit.dart';
+import '../features/quran_groups/view/screens/member_profile_screen.dart';
+import '../features/quran_groups/cubit/group_info/group_info_cubit.dart';
+import '../features/quran_groups/view/screens/group_info_screen.dart';
+import '../features/settings/view/edit_profile_screen.dart';
 
 String? inviteCodeFromDeepLink(Uri uri) {
   if (uri.scheme != 'qurandaily' ||
@@ -80,6 +85,11 @@ class AppRoutes {
   static const mushafIndex = '/mushaf/index';
   static const mushafBookmarks = '/mushaf/bookmarks';
   static const mushafLicenses = '/mushaf/licenses';
+
+  // --- 007 profiles ---
+  static const memberProfile = '/groups/member/profile';
+  static const groupInfo = '/groups/info';
+  static const editMyProfile = '/profile/edit';
 
   static Map<String, WidgetBuilder> get routes {
     // The root "/" is owned by the auth gate in app.dart (home), so it is
@@ -314,6 +324,27 @@ class AppRoutes {
       '/admin/user': (context) => AdminUserDetailScreen(
         userId: ModalRoute.of(context)?.settings.arguments as String? ?? '',
       ),
+      memberProfile: (context) {
+        final args = MemberProfileArgs.fromDynamic(
+          ModalRoute.of(context)?.settings.arguments,
+        );
+        return BlocProvider(
+          create: (_) => serviceLocator<MemberProfileCubit>(),
+          child: MemberProfileScreen(
+            userId: args.userId,
+            groupId: args.groupId,
+          ),
+        );
+      },
+      groupInfo: (context) {
+        final groupId =
+            ModalRoute.of(context)?.settings.arguments as String? ?? '';
+        return BlocProvider(
+          create: (_) => serviceLocator<GroupInfoCubit>(),
+          child: GroupInfoScreen(groupId: groupId),
+        );
+      },
+      editMyProfile: (_) => const EditProfileScreen(),
     };
   }
 

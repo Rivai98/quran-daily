@@ -300,6 +300,8 @@ class _MyGroupRow extends StatelessWidget {
             children: [
               Row(
                 children: [
+                  GroupAvatar(name: group.name, size: 36),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       group.name,

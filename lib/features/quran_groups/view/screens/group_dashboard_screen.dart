@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/router.dart';
 import '../../../../core/design_system/app_colors.dart';
+import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
+import '../../../../core/design_system/widgets/app_avatar.dart';
 import '../../../../core/design_system/widgets/progress_header.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
 import '../../../../core/design_system/widgets/app_section_header.dart';
@@ -20,6 +22,7 @@ import '../widgets/juz_grid.dart';
 import '../widgets/my_juz_card.dart';
 import '../widgets/offline_stale_banner.dart';
 import '../widgets/override_assignment_sheet.dart';
+import '../widgets/portion_detail_sheet.dart';
 import '../widgets/validation_banner.dart';
 import '../widgets/portion_unit_chip.dart';
 
@@ -42,7 +45,38 @@ class GroupDashboardScreen extends StatelessWidget {
         final snapshot = state.snapshot;
         return Scaffold(
           appBar: AppBar(
-            title: Text(snapshot?.groupName ?? ArabicStrings.dashboardTitle),
+            title: snapshot != null
+                ? InkWell(
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      AppRoutes.groupInfo,
+                      arguments: snapshot.groupId,
+                    ),
+                    borderRadius: AppRadius.smBR,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.xs,
+                        vertical: AppSpacing.xxs,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GroupAvatar(
+                            name: snapshot.groupName,
+                            size: 32,
+                          ),
+                          const SizedBox(width: AppSpacing.xs),
+                          Flexible(
+                            child: Text(
+                              snapshot.groupName,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : const Text(ArabicStrings.dashboardTitle),
             actions: [
               IconButton(
                 tooltip: ArabicStrings.mushafTitle,
@@ -224,9 +258,23 @@ class GroupDashboardScreen extends StatelessWidget {
                       JuzGrid(
                         assignments: snapshot.assignments,
                         unit: snapshot.portionUnit,
-                        onAssignmentTap: snapshot.myRole == GroupRole.owner
-                            ? (assignment) => _openOverride(context, assignment)
-                            : null,
+                        onAssignmentTap: (assignment) {
+                          if (snapshot.myRole == GroupRole.owner &&
+                              assignment.status == AssignmentStatusEnum.pending) {
+                            _openOverride(context, assignment);
+                          } else {
+                            PortionDetailSheet.show(
+                              context,
+                              assignment: assignment,
+                              unit: snapshot.portionUnit,
+                              groupId: snapshot.groupId,
+                              metadataRepository: metadataRepository,
+                              onVolunteer: () => context
+                                  .read<DashboardCubit>()
+                                  .volunteer(assignment.assignmentId),
+                            );
+                          }
+                        },
                       ),
                     ],
                   ),

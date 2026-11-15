@@ -43,6 +43,8 @@ import '../../features/reminders/data/reminder_planning_service.dart';
 import '../../features/admin/cubit/admin_cubit.dart';
 import '../../features/admin/data/admin_repository.dart';
 import '../../features/admin/data/admin_repository_impl.dart';
+import '../../features/quran_groups/cubit/member_profile/member_profile_cubit.dart';
+import '../../features/quran_groups/cubit/group_info/group_info_cubit.dart';
 
 final serviceLocator = GetIt.instance;
 
@@ -301,6 +303,9 @@ void configureServiceLocator({
           cache: CachedGroupsDao(locator<LocalDatabase>()),
           sessionGateway: locator<SessionGateway>(),
           connectivity: locator<ConnectivityService>(),
+          clientProvider: locator.isRegistered<SupabaseClientProvider>()
+              ? locator<SupabaseClientProvider>()
+              : null,
         ),
       );
     }
@@ -354,6 +359,18 @@ void configureServiceLocator({
           sessionGateway: locator<SessionGateway>(),
           adminRepository: locator<AdminRepository>(),
         ),
+      );
+    }
+
+    // --- 007 profiles ---
+    if (!locator.isRegistered<MemberProfileCubit>()) {
+      locator.registerFactory<MemberProfileCubit>(
+        () => MemberProfileCubit(locator<GroupsRepository>()),
+      );
+    }
+    if (!locator.isRegistered<GroupInfoCubit>()) {
+      locator.registerFactory<GroupInfoCubit>(
+        () => GroupInfoCubit(locator<GroupsRepository>()),
       );
     }
   }

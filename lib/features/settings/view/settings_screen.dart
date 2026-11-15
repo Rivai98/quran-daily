@@ -108,6 +108,47 @@ class _SettingsView extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: AppSpacing.lg),
+                AppCard(
+                  padding: AppSpacing.card,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.person_outline, size: 28),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  ArabicStrings.myProfileTitle,
+                                  style: AppTypography.title,
+                                ),
+                                const SizedBox(height: AppSpacing.xxs),
+                                Text(
+                                  ArabicStrings.editProfile,
+                                  style: AppTypography.caption,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      AppButton(
+                        label: ArabicStrings.editProfile,
+                        variant: AppButtonVariant.secondary,
+                        expanded: true,
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.editMyProfile,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.xl),
                 if (serviceLocator.isRegistered<RemindersCubit>()) ...[
                   BlocProvider<RemindersCubit>(

@@ -18,6 +18,8 @@ class PartTile extends StatelessWidget {
     required this.status,
     this.unit = PortionUnit.juz,
     this.portionIndex,
+    this.readerInitials,
+    this.readerDisplayName,
     this.isMine = false,
     this.onTap,
   });
@@ -25,6 +27,8 @@ class PartTile extends StatelessWidget {
   final int juz;
   final PortionUnit unit;
   final int? portionIndex;
+  final String? readerInitials;
+  final String? readerDisplayName;
   final AssignmentStatus status;
   final bool isMine;
   final VoidCallback? onTap;
@@ -34,6 +38,9 @@ class PartTile extends StatelessWidget {
         ? '${ArabicStrings.partLabel} ${ArabicNumerals.format(juz)}'
         : ArabicStrings.portionName(unit, portionIndex ?? juz);
     final buffer = StringBuffer('$name، ${status.label}');
+    if (readerDisplayName != null && readerDisplayName!.isNotEmpty) {
+      buffer.write('، $readerDisplayName');
+    }
     if (isMine) {
       buffer.write('، ${ArabicStrings.mineSuffix}');
     }
@@ -78,7 +85,19 @@ class PartTile extends StatelessWidget {
                     fontVariations: const [FontVariation('wght', 700)],
                   ),
                 ),
-                Icon(status.icon, size: 14, color: fg),
+                if (readerInitials != null && readerInitials!.isNotEmpty)
+                  Text(
+                    readerInitials!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.caption.copyWith(
+                      color: fg,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  )
+                else
+                  Icon(status.icon, size: 14, color: fg),
               ],
             ),
           ),
