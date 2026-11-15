@@ -50,7 +50,7 @@ class DiscoveryCubit extends Cubit<DiscoveryState> {
       super(const DiscoveryState());
 
   static const pageSize = 20;
-  static const debounceDuration = Duration(milliseconds: 300);
+  static const debounceDuration = Duration(milliseconds: 400);
 
   final GroupsRepository _repository;
   Timer? _debounce;
@@ -58,10 +58,35 @@ class DiscoveryCubit extends Cubit<DiscoveryState> {
 
   Future<void> load() => _fetch(reset: true);
 
-  void search(String query) {
+  void search(String query, {bool submit = false}) {
+    if (query == state.query) {
+      if (submit && _debounce != null) {
+        _debounce!.cancel();
+        _debounce = null;
+        _fetch(reset: true);
+      }
+      return;
+    }
     _debounce?.cancel();
-    emit(DiscoveryState(query: query, status: DiscoveryStatus.loading));
-    _debounce = Timer(debounceDuration, () => _fetch(reset: true));
+    _debounce = null;
+    ++_searchGeneration;
+    emit(
+      DiscoveryState(
+        query: query,
+        status: DiscoveryStatus.loading,
+        groups: state.groups,
+        joinStates: state.joinStates,
+        hasMore: true,
+      ),
+    );
+    if (submit) {
+      _fetch(reset: true);
+    } else {
+      _debounce = Timer(debounceDuration, () {
+        _debounce = null;
+        _fetch(reset: true);
+      });
+    }
   }
 
   Future<void> loadMore() async {
@@ -80,7 +105,7 @@ class DiscoveryCubit extends Cubit<DiscoveryState> {
     emit(
       DiscoveryState(
         status: DiscoveryStatus.loading,
-        groups: reset ? const [] : state.groups,
+        groups: state.groups,
         query: query,
         offset: offset,
         hasMore: state.hasMore,
@@ -114,7 +139,7 @@ class DiscoveryCubit extends Cubit<DiscoveryState> {
           status: failure.kind == FailureKind.network
               ? DiscoveryStatus.offline
               : DiscoveryStatus.failure,
-          groups: reset ? const [] : state.groups,
+          groups: state.groups,
           query: query,
           offset: offset,
           hasMore: state.hasMore,

@@ -72,6 +72,13 @@ void main() {
     expect(ArabicStrings.noGroupAvailable, contains('أعد المحاولة'));
   });
 
+  test('maps membership limit to its specific Arabic explanation', () {
+    expect(
+      ArabicStrings.authError('membership_limit'),
+      'أنت في مجموعتين بالفعل (الحد الأقصى).',
+    );
+  });
+
   test('keeps critical user-facing copy valid UTF-8 Arabic', () {
     final criticalCopy = [
       ArabicStrings.appName,

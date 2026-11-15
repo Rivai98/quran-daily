@@ -40,7 +40,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(TestFixtures.groupName), findsOneWidget);
-    expect(find.text(ArabicStrings.roleOwner), findsOneWidget);
+    expect(find.textContaining(ArabicStrings.roleOwner), findsOneWidget);
     expect(find.text(ArabicFormatting.membersProgress(12)), findsOneWidget);
   });
 

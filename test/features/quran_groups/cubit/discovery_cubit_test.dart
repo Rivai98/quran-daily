@@ -1,4 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/errors/result.dart';
@@ -20,6 +22,8 @@ PublicGroupProfile _group(String id) => PublicGroupProfile(
 
 void main() {
   late _Repository repository;
+  late Completer<Result<List<PublicGroupProfile>>> oldResponse;
+  late Completer<Result<List<PublicGroupProfile>>> newResponse;
   setUp(() => repository = _Repository());
 
   blocTest<DiscoveryCubit, DiscoveryState>(
@@ -45,6 +49,100 @@ void main() {
         (s) => s.status,
         'success',
         DiscoveryStatus.success,
+      ),
+    ],
+    verify: (_) => verify(
+      () => repository.searchPublicGroups(query: 'فجر', limit: 20, offset: 0),
+    ).called(1),
+  );
+
+  blocTest<DiscoveryCubit, DiscoveryState>(
+    'keeps existing results while searching and skips an unchanged query',
+    build: () {
+      when(
+        () => repository.searchPublicGroups(
+          query: any(named: 'query'),
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+        ),
+      ).thenAnswer((_) async => Success([_group('g1')]));
+      return DiscoveryCubit(repository: repository);
+    },
+    act: (cubit) async {
+      await cubit.load();
+      cubit.search('فجر');
+      await Future<void>.delayed(
+        DiscoveryCubit.debounceDuration + const Duration(milliseconds: 20),
+      );
+      cubit.search('فجر');
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    },
+    expect: () => [
+      isA<DiscoveryState>().having(
+        (s) => s.status,
+        'loading',
+        DiscoveryStatus.loading,
+      ),
+      isA<DiscoveryState>().having(
+        (s) => s.groups,
+        'first result',
+        hasLength(1),
+      ),
+      isA<DiscoveryState>()
+          .having((s) => s.status, 'searching', DiscoveryStatus.loading)
+          .having((s) => s.groups, 'kept result visible', hasLength(1)),
+      isA<DiscoveryState>().having((s) => s.groups, 'new result', hasLength(1)),
+    ],
+    verify: (_) => verify(
+      () => repository.searchPublicGroups(
+        query: any(named: 'query'),
+        limit: 20,
+        offset: 0,
+      ),
+    ).called(2),
+  );
+
+  blocTest<DiscoveryCubit, DiscoveryState>(
+    'ignores a stale response after the query changes',
+    build: () {
+      oldResponse = Completer<Result<List<PublicGroupProfile>>>();
+      newResponse = Completer<Result<List<PublicGroupProfile>>>();
+      var calls = 0;
+      when(
+        () => repository.searchPublicGroups(
+          query: any(named: 'query'),
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+        ),
+      ).thenAnswer(
+        (_) => calls++ == 0 ? oldResponse.future : newResponse.future,
+      );
+      return DiscoveryCubit(repository: repository);
+    },
+    act: (cubit) async {
+      cubit.load();
+      cubit.search('فجر');
+      await Future<void>.delayed(
+        DiscoveryCubit.debounceDuration + const Duration(milliseconds: 20),
+      );
+      newResponse.complete(Success([_group('new')]));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      oldResponse.complete(Success([_group('old')]));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    },
+    expect: () => [
+      isA<DiscoveryState>().having(
+        (s) => s.status,
+        'loading',
+        DiscoveryStatus.loading,
+      ),
+      isA<DiscoveryState>()
+          .having((s) => s.query, 'new query', 'فجر')
+          .having((s) => s.status, 'query loading', DiscoveryStatus.loading),
+      isA<DiscoveryState>().having(
+        (s) => s.groups.single.groupId,
+        'new results',
+        'new',
       ),
     ],
     verify: (_) => verify(

@@ -218,6 +218,10 @@ class ArabicStrings {
   // --- Main design pass: dashboard and group list copy ---
   static const juzGridTitle = 'الأجزاء';
   static const groupsHeaderSubtitle = 'وردكم اليومي يبدأ بخطوة معًا';
+  static const myGroupsSubtitle = 'حلقاتك ووردك اليومي';
+  static const groupSeatsProgressLabel = 'المقاعد المشغولة';
+  static const membershipLimitReachedAction = 'بلغت الحد الأقصى';
+  static const groupCitySeparator = ' · ';
   static const groupShortcutsTitle = 'طرق سريعة للانضمام';
   static String membersProgress(int members) =>
       '${ArabicNumerals.format(members)} من ${ArabicNumerals.format(30)} عضوًا';
@@ -739,7 +743,7 @@ class ArabicStrings {
   static const logDayDetails = 'تفاصيل الورد';
   static const logWeekLabel = 'هذا الأسبوع';
   static const logGroupHistoryAction = 'عرض سجل المجموعة';
-  static const membershipLimitMessage = 'يمكنك الانضمام إلى مجموعتين بحد أقصى';
+  static const membershipLimitMessage = 'أنت في مجموعتين بالفعل (الحد الأقصى).';
   static const membershipLimitNextStep =
       'اذهب إلى مجموعاتي لمغادرة مجموعة قبل المتابعة.';
   // --- end 005 log ---
