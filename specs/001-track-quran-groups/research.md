@@ -100,12 +100,16 @@ Each entry: Decision, Rationale, Alternatives considered. Decisions from the 202
 
 **Rationale**: YAGNI; daily reading does not need second-level freshness, and Realtime complicates offline/stale semantics.
 
-## R16. Docker-free backend workflow
+## R16. Docker-free backend workflow (amended 2026-11-15)
 
-**Decision**: No Docker and no local Supabase stack. The hosted project `quran-daily` (ref `zwkvijapswwutwozbvgy`) is the development database until real users exist. Supabase CLI v3 commands used: `supabase db push --remote` (apply migrations), `supabase test db --remote` (pgTAP), `supabase functions deploy <name> --use-api` (bundle server-side), `supabase db reset --remote` only while the project has no real users.
+**Decision**: No Docker and no local Supabase stack. The hosted project `quran-daily` (ref `zwkvijapswwutwozbvgy`) is the development database until real users exist.
+- **pgTAP test runner**: `supabase test db` requires a local Docker daemon even when passed `--remote`. Therefore, pgTAP test files run against the remote database via `python scripts/run_remote_pgtap.py supabase/tests/<file>.sql`.
+- **Migrations application**: `supabase db push` fails with `DbPushMissingLocalError` when parallel implementers push version timestamps out of order. Migrations are applied individually via `supabase db query --remote --yes -f <file>`, followed by `supabase migration repair --remote --yes --status applied <version>`.
+- **Hosted flags**: Every non-interactive hosted command requires the `--remote --yes` flags.
+- **Edge Functions**: Deployed server-side via `supabase functions deploy <name> --use-api`.
 
-**Rationale**: The owner develops a mobile-only app on Windows and does not want Docker. CLI v3 supports all needed operations against a linked remote project.
+**Rationale**: The owner develops a mobile-only app on Windows without Docker. The Python test wrapper and individual query/repair workflow allow full remote development, test execution, and schema migrations without local container infrastructure.
 
 **Consequence**: Before public release, create a separate dev project (free plan allows two active projects) and keep `quran-daily` for production; from then on `db reset --remote` is forbidden on production.
 
-**Alternatives**: Local stack via Docker (`supabase start`) — rejected by owner.
+**Alternatives**: Local stack via Docker (`supabase start`) — rejected by owner. CLI `db push` — fails on parallel branch out-of-order timestamps. CLI `test db --remote` — fails without local Docker.
