@@ -6,6 +6,7 @@ import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/progress_header.dart';
+import '../../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/localization/arabic_numerals.dart';
 import '../../../../core/localization/arabic_strings.dart';
@@ -25,7 +26,14 @@ class GroupDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<DashboardCubit, DashboardState>(
+    return BlocConsumer<DashboardCubit, DashboardState>(
+      listenWhen: (previous, current) =>
+          previous.volunteerFeedbackCode != current.volunteerFeedbackCode &&
+          current.volunteerFeedbackCode != null,
+      listener: (context, state) => AppSnackBar.show(
+        context,
+        ArabicStrings.volunteerFailureMessage(state.volunteerFeedbackCode!),
+      ),
       builder: (context, state) {
         final snapshot = state.snapshot;
         return Scaffold(
@@ -165,6 +173,10 @@ class GroupDashboardScreen extends StatelessWidget {
             AvailableJuzList(
               assignments: snapshot.assignments,
               metadataRepository: metadataRepository,
+              onVolunteer: (assignment) => context
+                  .read<DashboardCubit>()
+                  .volunteer(assignment.assignmentId),
+              volunteeringAssignmentId: state.volunteeringAssignmentId,
             ),
           ],
         ),

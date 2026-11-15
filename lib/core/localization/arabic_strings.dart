@@ -339,4 +339,16 @@ class ArabicStrings {
         return dashboardLoadError;
     }
   }
+
+  // --- US5 volunteering ---
+  static const volunteerForJuz =
+      '\u{623}\u{62a}\u{637}\u{648}\u{639} \u{628}\u{642}\u{631}\u{627}\u{621}\u{62a}\u{647}';
+  static const volunteerTaken =
+      '\u{645}\u{62a}\u{637}\u{648}\u{639} \u{628}\u{647}';
+  static const volunteerConflict =
+      'سبق عضو آخر إلى التطوع بهذا الجزء. تم تحديث القائمة.';
+  static const volunteeredJuz = 'جزء تطوعت بقراءته';
+
+  static String volunteerFailureMessage(String code) =>
+      code == 'juz_already_taken' ? volunteerConflict : networkFailure;
 }
