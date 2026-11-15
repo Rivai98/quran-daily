@@ -10,13 +10,16 @@ import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/widgets/app_section_header.dart';
 import '../../../../core/design_system/widgets/app_text_field.dart';
 import '../../../../core/localization/arabic_strings.dart';
+import '../../../../core/quran/portion_unit.dart';
+import '../../../../core/quran/quran_metadata_repository.dart';
 import '../../data/entities/entities.dart';
 import '../../cubit/create_group/create_group_cubit.dart';
 
 /// S4 create group (ui-contract): name, description, timezone, day start
 /// time, visibility and join-mode segmented controls; one primary button.
 class CreateGroupScreen extends StatefulWidget {
-  const CreateGroupScreen({super.key});
+  const CreateGroupScreen({super.key, this.metadataRepository});
+  final QuranMetadataRepository? metadataRepository;
 
   @override
   State<CreateGroupScreen> createState() => _CreateGroupScreenState();
@@ -30,6 +33,10 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   String? _descriptionError;
   GroupVisibility _visibility = GroupVisibility.public;
   JoinMode _joinMode = JoinMode.approval;
+  final _fallbackMetadata = QuranMetadataRepository();
+  QuranMetadataRepository get _metadataRepository =>
+      widget.metadataRepository ?? _fallbackMetadata;
+  late final Future<void> _metadata = _metadataRepository.load();
 
   @override
   void dispose() {
@@ -119,6 +126,33 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   selected: _joinMode,
                   onChanged: (m) => setState(() => _joinMode = m),
                   enabled: !submitting,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppSectionHeader(title: ArabicStrings.portionSelectorTitle),
+                FutureBuilder<void>(
+                  future: _metadata,
+                  builder: (context, metadataState) {
+                    if (metadataState.hasError ||
+                        metadataState.connectionState != ConnectionState.done) {
+                      return const SizedBox.shrink();
+                    }
+                    return Wrap(
+                      spacing: AppSpacing.xs,
+                      runSpacing: AppSpacing.xs,
+                      children: [
+                        for (final unit in PortionUnit.values)
+                          _PortionChoice(
+                            unit: unit,
+                            selected: state.portionUnit == unit,
+                            count: _metadataRepository.portions(unit).length,
+                            enabled: !submitting,
+                            onTap: () => context
+                                .read<CreateGroupCubit>()
+                                .selectPortionUnit(unit),
+                          ),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 if (limitError) ...[
@@ -215,6 +249,58 @@ class _LimitBanner extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PortionChoice extends StatelessWidget {
+  const _PortionChoice({
+    required this.unit,
+    required this.selected,
+    required this.count,
+    required this.enabled,
+    required this.onTap,
+  });
+  final PortionUnit unit;
+  final bool selected;
+  final int count;
+  final bool enabled;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    final days = (count + 29) ~/ 30;
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: OutlinedButton(
+        onPressed: enabled ? onTap : null,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: selected
+              ? Theme.of(context).colorScheme.primaryContainer
+              : null,
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBR),
+          side: BorderSide(
+            color: selected
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).dividerColor,
+          ),
+          padding: const EdgeInsetsDirectional.all(AppSpacing.sm),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              ArabicStrings.portionUnitName(unit),
+              style: AppTypography.label,
+            ),
+            const Text(
+              ArabicStrings.dailyPortionAmount,
+              style: AppTypography.caption,
+            ),
+            Text(ArabicStrings.khatmaDays(days), style: AppTypography.caption),
+          ],
+        ),
       ),
     );
   }

@@ -9,7 +9,6 @@ import '../../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../../core/design_system/widgets/offline_banner.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
 import '../../../../core/design_system/widgets/status_chip.dart';
-import '../../../../core/localization/arabic_numerals.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../../../core/quran/quran_metadata_repository.dart';
 import '../../cubit/assignment/assignment_cubit.dart';
@@ -61,7 +60,10 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
-                        ArabicStrings.juzOrdinals[current.juz - 1],
+                        ArabicStrings.portionName(
+                          widget.snapshot.portionUnit,
+                          current.portionIndex,
+                        ),
                         style: AppTypography.quranLabel,
                       ),
                       const SizedBox(height: AppSpacing.xs),
@@ -73,12 +75,21 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                               metadataState.hasError) {
                             return const SizedBox.shrink();
                           }
-                          final info = widget.metadataRepository.juz(
-                            current.juz,
+                          final info = widget.metadataRepository.portion(
+                            widget.snapshot.portionUnit,
+                            current.portionIndex,
                           );
-                          final range =
-                              '${widget.metadataRepository.suraName(info.startSura)} ${ArabicNumerals.format(info.startAya)} - ${widget.metadataRepository.suraName(info.endSura)} ${ArabicNumerals.format(info.endAya)}';
-                          return Text(range, style: AppTypography.bodyLarge);
+                          return Text(
+                            ArabicStrings.portionRange(
+                              widget.metadataRepository.suraName(
+                                info.startSura,
+                              ),
+                              info.startAya,
+                              widget.metadataRepository.suraName(info.endSura),
+                              info.endAya,
+                            ),
+                            style: AppTypography.bodyLarge,
+                          );
                         },
                       ),
                     ],

@@ -483,5 +483,39 @@ class ArabicStrings {
 
   /// Formats ordinal unit names using the shared Arabic-Indic numeral formatter.
   static String portionName(PortionUnit unit, int index) =>
-      '${portionUnitName(unit)} ${ArabicNumerals.format(index)}';
+      unit == PortionUnit.juz
+      ? juzName(index)
+      : '${portionUnitName(unit)} ${ArabicNumerals.format(index)}';
+
+  // --- 004 portion units UI ---
+  static const portionSelectorTitle = 'الورد اليومي';
+  static const startPortionChoice = 'اختر بداية الختمة';
+  static const cycleLabel = '\u{627}\u{644}\u{62e}\u{62a}\u{645}\u{629}';
+  static const dailyPortionAmount =
+      '\u{648}\u{62d}\u{62f}\u{629} \u{648}\u{627}\u{62d}\u{62f}\u{629} \u{644}\u{643}\u{644} \u{639}\u{636}\u{648} \u{64a}\u{648}\u{645}\u{64a}\u{627}';
+  static String khatmaDays(int days) => days == 1
+      ? 'ختمة يوميًا'
+      : days == 2
+      ? 'ختمة كل يومين'
+      : 'ختمة كل ${ArabicNumerals.format(days)} يومًا';
+  static String dailyUnitChip(PortionUnit unit) =>
+      '${portionUnitName(unit)} يوميًا';
+  static String portionRange(
+    String startSura,
+    int startAya,
+    String endSura,
+    int endAya,
+  ) =>
+      'من $startSura آية ${ArabicNumerals.format(startAya)} إلى $endSura آية ${ArabicNumerals.format(endAya)}';
+  static String cycleProgress(int day, int length, int completed, int total) =>
+      'اليوم ${ArabicNumerals.format(day)} من ${ArabicNumerals.format(length)} · أُنجز ${ArabicNumerals.format(completed)} من ${ArabicNumerals.format(total)}';
+  static const restDay = 'لا ورد اليوم';
+  static const volunteeredPortion = 'وحدة تطوعت بقراءتها';
+  static String pendingPortionChange(PortionUnit unit) =>
+      'سيتغير الورد إلى ${portionUnitName(unit)} بداية الختمة القادمة';
+  static const confirmPortionChange = 'تأكيد تغيير الورد';
+  static const portionChangeAppliesNextCycle =
+      'سيبدأ التغيير مع بداية الختمة القادمة.';
+  static const portionChangeAppliesImmediately =
+      'سيبدأ هذا الورد عند بدء الختمة.';
 }

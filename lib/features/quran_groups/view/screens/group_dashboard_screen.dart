@@ -19,6 +19,7 @@ import '../widgets/my_juz_card.dart';
 import '../widgets/offline_stale_banner.dart';
 import '../widgets/override_assignment_sheet.dart';
 import '../widgets/validation_banner.dart';
+import '../widgets/portion_unit_chip.dart';
 
 class GroupDashboardScreen extends StatelessWidget {
   const GroupDashboardScreen({super.key, required this.metadataRepository});
@@ -113,6 +114,23 @@ class GroupDashboardScreen extends StatelessWidget {
               const OfflineStaleBanner(),
               const SizedBox(height: AppSpacing.sm),
             ],
+            if (snapshot.pendingPortionUnit != null) ...[
+              ValidationBanner(
+                icon: Icons.schedule,
+                message: ArabicStrings.pendingPortionChange(
+                  snapshot.pendingPortionUnit!,
+                ),
+                color: Theme.of(context).extension<AppColors>()!.pendingFg,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: PortionUnitChip(
+                unit: snapshot.portionUnit,
+                metadataRepository: metadataRepository,
+              ),
+            ),
             if (today.fullKhatma) ...[
               Builder(
                 builder: (context) {
@@ -142,6 +160,7 @@ class GroupDashboardScreen extends StatelessWidget {
             if (myAssignment)
               MyJuzCard(
                 snapshot: snapshot,
+                metadataRepository: metadataRepository,
                 onOpen: () => Navigator.pushNamed(
                   context,
                   AppRoutes.assignment,
@@ -155,15 +174,31 @@ class GroupDashboardScreen extends StatelessWidget {
                 message: ArabicStrings.noAssignmentToday,
               ),
             const SizedBox(height: AppSpacing.lg),
+            if (snapshot.cycle != null)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(
+                  bottom: AppSpacing.sm,
+                ),
+                child: Text(
+                  ArabicStrings.cycleProgress(
+                    snapshot.cycle!.day,
+                    snapshot.cycle!.length,
+                    snapshot.cycle!.completed,
+                    snapshot.cycle!.total,
+                  ),
+                  style: AppTypography.title,
+                ),
+              ),
             ProgressHeader(
-              completed: completed,
-              total: 30,
+              completed: snapshot.cycle?.completed ?? completed,
+              total: snapshot.cycle?.total ?? 30,
               variant: ProgressVariant.bar,
               caption: ArabicStrings.assignmentGroupDate,
             ),
             const SizedBox(height: AppSpacing.lg),
             JuzGrid(
               assignments: snapshot.assignments,
+              unit: snapshot.portionUnit,
               onAssignmentTap: snapshot.myRole == GroupRole.owner
                   ? (assignment) => _openOverride(context, assignment)
                   : null,
@@ -180,6 +215,7 @@ class GroupDashboardScreen extends StatelessWidget {
             AvailableJuzList(
               assignments: snapshot.assignments,
               metadataRepository: metadataRepository,
+              unit: snapshot.portionUnit,
               onVolunteer: (assignment) => context
                   .read<DashboardCubit>()
                   .volunteer(assignment.assignmentId),
@@ -214,6 +250,8 @@ class GroupDashboardScreen extends StatelessWidget {
       'isOwner': isOwner,
       'isSupervisor': snapshot.myRole == GroupRole.supervisor,
       'inviteCode': snapshot.seats?.inviteCode,
+      'portionUnit': snapshot.portionUnit,
+      'isActive': snapshot.status == GroupStatus.active,
     };
     return [
       IconButton(
@@ -265,6 +303,8 @@ class GroupDashboardScreen extends StatelessWidget {
       isOwner: snapshot.myRole == GroupRole.owner,
       seatMap: snapshot.seats,
       onStartKhatma: cubit.startKhatma,
+      portionUnit: snapshot.portionUnit,
+      metadataRepository: metadataRepository,
     );
   }
 }
