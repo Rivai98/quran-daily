@@ -336,6 +336,10 @@ void main() {
     GroupStatus status = GroupStatus.active,
   }) async {
     final groups = _GroupsRepository();
+    final khatma = _Repository();
+    when(
+      () => khatma.getDashboard('g1'),
+    ).thenAnswer((_) async => Success(_snapshot(role: role)));
     final snapshot = status == GroupStatus.forming
         ? DashboardSnapshot(
             groupId: 'g1',
@@ -353,7 +357,7 @@ void main() {
           )
         : _snapshot(role: role);
     final cubit = DashboardCubit(
-      repository: _Repository(),
+      repository: khatma,
       groupsRepository: groups,
       groupId: 'g1',
       initialState: DashboardState(

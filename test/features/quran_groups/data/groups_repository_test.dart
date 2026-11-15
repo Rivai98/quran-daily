@@ -221,12 +221,50 @@ void main() {
                 'active_member_count': 2,
                 'invite_code': 'AB23CD45',
               }));
+      when(() => rpc.call<dynamic>('get_dashboard', any())).thenAnswer(
+          (_) async => const Success<dynamic>({
+                'group_id': 'g1',
+                'group_name': 'حلقة',
+                'my_role': 'owner',
+                'status': 'active',
+                'server_generated_at': '2026-11-14T09:00:00Z',
+                'active_member_count': 2,
+              }));
 
       final result = await repository.startKhatma('g1', 5);
 
       expect(result.isSuccess, isTrue);
       verify(() => rpc.call<dynamic>(
             'start_khatma',
+            any(that: containsPair('p_group_id', 'g1')),
+          )).called(1);
+    });
+
+    test('real server shape (today: true) refetches the dashboard', () async {
+      when(() => connectivity.isOnline).thenAnswer((_) async => true);
+      when(() => rpc.call<dynamic>('start_khatma', any())).thenAnswer(
+          (_) async => const Success<dynamic>({
+                'today': true,
+                'status': 'active',
+                'my_role': 'owner',
+                'group_id': 'g1',
+              }));
+      when(() => rpc.call<dynamic>('get_dashboard', any())).thenAnswer(
+          (_) async => const Success<dynamic>({
+                'group_id': 'g1',
+                'group_name': 'حلقة',
+                'my_role': 'owner',
+                'status': 'active',
+                'server_generated_at': '2026-11-14T09:00:00Z',
+                'active_member_count': 2,
+              }));
+
+      final result = await repository.startKhatma('g1', 1);
+
+      expect(result.valueOrNull?.status, GroupStatus.active);
+      expect(result.valueOrNull?.groupName, 'حلقة');
+      verify(() => rpc.call<dynamic>(
+            'get_dashboard',
             any(that: containsPair('p_group_id', 'g1')),
           )).called(1);
     });
