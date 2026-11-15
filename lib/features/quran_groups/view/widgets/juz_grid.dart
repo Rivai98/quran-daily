@@ -102,7 +102,11 @@ class _RestDayTile extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.event_available, color: colors.inkMuted, size: 20),
+            Icon(
+              Icons.event_available_rounded,
+              color: colors.inkMuted,
+              size: 20,
+            ),
             Text(
               ArabicStrings.restDay,
               textAlign: TextAlign.center,

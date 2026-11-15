@@ -43,7 +43,7 @@ class MyJuzCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.menu_book, color: colors.primary),
+              Icon(Icons.menu_book_rounded, color: colors.primary),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Column(
@@ -97,7 +97,7 @@ class MyJuzCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             Row(
               children: [
-                Icon(Icons.volunteer_activism, color: colors.primary),
+                Icon(Icons.volunteer_activism_rounded, color: colors.primary),
                 const SizedBox(width: AppSpacing.xs),
                 Expanded(
                   child: Text(
@@ -113,7 +113,7 @@ class MyJuzCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           AppButton(
             label: ArabicStrings.readNowAction,
-            icon: const Icon(Icons.menu_book),
+            icon: const Icon(Icons.menu_book_rounded),
             expanded: true,
             onPressed: () => AppRoutes.pushReader(
               context,
@@ -130,7 +130,7 @@ class MyJuzCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           AppButton(
             label: ArabicStrings.assignmentDetailsAction,
-            icon: const Icon(Icons.open_in_new),
+            icon: const Icon(Icons.open_in_new_rounded),
             variant: AppButtonVariant.secondary,
             expanded: true,
             onPressed: onOpen,

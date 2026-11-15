@@ -654,6 +654,8 @@ class ArabicStrings {
       '\u{62a}\u{63a}\u{64a}\u{64a}\u{631} \u{627}\u{644}\u{62f}\u{648}\u{631}';
   static const noActiveMembers =
       '\u{644}\u{627} \u{64a}\u{648}\u{62c}\u{62f} \u{623}\u{639}\u{636}\u{627}\u{621} \u{646}\u{634}\u{637}\u{648}\u{646} \u{641}\u{64a} \u{647}\u{630}\u{647} \u{627}\u{644}\u{645}\u{62c}\u{645}\u{648}\u{639}\u{629}.';
+  static const noActiveMembersHint =
+      '\u{633}\u{64a}\u{638}\u{647}\u{631} \u{627}\u{644}\u{623}\u{639}\u{636}\u{627}\u{621} \u{647}\u{646}\u{627} \u{628}\u{639}\u{62f} \u{627}\u{646}\u{636}\u{645}\u{627}\u{645}\u{647}\u{645} \u{625}\u{644}\u{649} \u{627}\u{644}\u{62d}\u{644}\u{642}\u{629}.';
   static const requestFromDiscovery = '\u{628}\u{62d}\u{62b}';
   static const requestFromInvite = '\u{62f}\u{639}\u{648}\u{629}';
   static const requestFromMatch = '\u{645}\u{648}\u{627}\u{641}\u{642}\u{629}';

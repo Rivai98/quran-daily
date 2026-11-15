@@ -56,7 +56,10 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
             padding: AppSpacing.screen,
             children: [
               if (state.dayState == DayState.grace)
-                const OfflineBanner(message: ArabicStrings.gracePeriodNotice),
+                const OfflineBanner(
+                  message: ArabicStrings.gracePeriodNotice,
+                  icon: Icons.hourglass_bottom_rounded,
+                ),
               AppCard(
                 padding: AppSpacing.card,
                 child: Column(
@@ -102,7 +105,7 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Icon(
-                                  Icons.auto_stories_outlined,
+                                  Icons.auto_stories_rounded,
                                   size: 20,
                                   color: Theme.of(
                                     context,
@@ -174,10 +177,13 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
               ),
               const SizedBox(height: AppSpacing.sm),
               if (state.status == AssignmentActionStatus.queued)
-                const OfflineBanner(message: ArabicStrings.syncQueued),
+                const OfflineBanner(
+                  message: ArabicStrings.syncQueued,
+                  icon: Icons.cloud_upload_rounded,
+                ),
               if (state.status == AssignmentActionStatus.failure)
                 StatePanel(
-                  icon: Icons.error_outline,
+                  icon: Icons.error_outline_rounded,
                   title: ArabicStrings.dashboardLoadError,
                   message: ArabicStrings.errorMessage(
                     state.failure?.code ?? '',
@@ -189,7 +195,7 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
               const SizedBox(height: AppSpacing.sm),
               AppButton(
                 label: ArabicStrings.readNowAction,
-                icon: const Icon(Icons.menu_book),
+                icon: const Icon(Icons.menu_book_rounded),
                 variant: AppButtonVariant.secondary,
                 expanded: true,
                 onPressed: () => AppRoutes.pushReader(
@@ -206,7 +212,7 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
               if (!completed)
                 AppButton(
                   label: ArabicStrings.completeAction,
-                  icon: const Icon(Icons.check),
+                  icon: const Icon(Icons.check_rounded),
                   expanded: true,
                   loading: state.status == AssignmentActionStatus.loading,
                   onPressed: state.status == AssignmentActionStatus.loading
@@ -219,7 +225,7 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                 AppButton(
                   label: ArabicStrings.undoAction,
                   variant: AppButtonVariant.secondary,
-                  icon: const Icon(Icons.undo),
+                  icon: const Icon(Icons.undo_rounded),
                   expanded: true,
                   onPressed: state.status == AssignmentActionStatus.loading
                       ? null

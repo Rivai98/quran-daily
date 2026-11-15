@@ -5,8 +5,9 @@ import '../../../../core/design_system/app_button.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/app_colors.dart';
-import '../../../../core/design_system/app_radius.dart';
 import '../../../../core/design_system/widgets/app_card.dart';
+import '../../../../core/design_system/widgets/app_badge.dart';
+import '../../../../core/design_system/widgets/app_banner.dart';
 import '../../../../core/design_system/widgets/app_avatar.dart';
 import '../../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../../core/design_system/widgets/state_panel.dart';
@@ -16,7 +17,6 @@ import '../../../../core/localization/arabic_numerals.dart';
 import '../../../../app/router.dart';
 import '../../cubit/members/members_cubit.dart';
 import '../../data/entities/entities.dart';
-import '../widgets/validation_banner.dart';
 
 class MembersScreen extends StatefulWidget {
   const MembersScreen({
@@ -56,8 +56,8 @@ class _MembersScreenState extends State<MembersScreen> {
             state.members == null) {
           return StatePanel(
             icon: state.status == MembersStatus.offline
-                ? Icons.cloud_off_outlined
-                : Icons.error_outline,
+                ? Icons.cloud_off_rounded
+                : Icons.error_outline_rounded,
             title: state.status == MembersStatus.offline
                 ? ArabicStrings.offlineStale
                 : ArabicStrings.operationFailed,
@@ -69,10 +69,12 @@ class _MembersScreenState extends State<MembersScreen> {
           );
         }
         if (state.status == MembersStatus.empty || state.members == null) {
-          return StatePanel(
-            icon: Icons.group_outlined,
+          return StatePanel.empty(
+            icon: Icons.group_rounded,
             title: ArabicStrings.noActiveMembers,
-            message: ArabicStrings.noActiveMembers,
+            message: ArabicStrings.noActiveMembersHint,
+            actionLabel: ArabicStrings.refresh,
+            onAction: () => context.read<MembersCubit>().load(widget.groupId),
           );
         }
         return Stack(
@@ -82,22 +84,19 @@ class _MembersScreenState extends State<MembersScreen> {
               children: [
                 if (state.status == MembersStatus.failure ||
                     state.status == MembersStatus.offline) ...[
-                  ValidationBanner(
+                  AppBanner(
+                    variant: state.status == MembersStatus.offline
+                        ? AppBannerVariant.warning
+                        : AppBannerVariant.error,
                     icon: state.status == MembersStatus.offline
-                        ? Icons.cloud_off_outlined
-                        : Icons.error_outline,
+                        ? Icons.cloud_off_rounded
+                        : Icons.error_outline_rounded,
                     message: state.status == MembersStatus.offline
                         ? ArabicStrings.networkFailure
                         : ArabicStrings.errorMessage(state.failure?.code ?? ''),
-                    color: state.status == MembersStatus.offline
-                        ? Theme.of(context).extension<AppColors>()!.pendingFg
-                        : Theme.of(context).extension<AppColors>()!.danger,
-                  ),
-                  TextButton.icon(
-                    onPressed: () =>
+                    actionLabel: ArabicStrings.retry,
+                    onAction: () =>
                         context.read<MembersCubit>().load(widget.groupId),
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: const Text(ArabicStrings.retry),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                 ],
@@ -107,7 +106,7 @@ class _MembersScreenState extends State<MembersScreen> {
                   runSpacing: AppSpacing.xxs,
                   children: [
                     Icon(
-                      Icons.people_alt_outlined,
+                      Icons.people_alt_rounded,
                       size: 20,
                       color: Theme.of(context).extension<AppColors>()!.inkMuted,
                     ),
@@ -179,28 +178,19 @@ class _MembersScreenState extends State<MembersScreen> {
                         'groupId': widget.groupId,
                       },
                     ),
-              child: Container(
-                padding: const EdgeInsetsDirectional.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xxs,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<AppColors>()!.primaryContainer,
-                  borderRadius: AppRadius.pillBR,
-                ),
-                child: Text(
-                  member.role == GroupRole.owner
-                      ? ArabicStrings.groupOwner
-                      : member.role == GroupRole.supervisor
-                      ? ArabicStrings.roleSupervisor
-                      : ArabicStrings.memberRole,
-                  style: AppTypography.caption.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<AppColors>()!.onPrimaryContainer,
-                    fontWeight: FontWeight.w600,
+              child: SizedBox(
+                height: 48,
+                child: Center(
+                  child: AppBadge.role(
+                    label: member.role == GroupRole.owner
+                        ? ArabicStrings.groupOwner
+                        : member.role == GroupRole.supervisor
+                        ? ArabicStrings.roleSupervisor
+                        : ArabicStrings.memberRole,
+                    icon: member.role == GroupRole.owner
+                        ? Icons.stars_rounded
+                        : Icons.shield_rounded,
+                    isOwner: member.role == GroupRole.owner,
                   ),
                 ),
               ),
@@ -210,7 +200,7 @@ class _MembersScreenState extends State<MembersScreen> {
         Row(
           children: [
             Icon(
-              Icons.event_seat_outlined,
+              Icons.event_seat_rounded,
               size: 18,
               color: Theme.of(context).extension<AppColors>()!.inkMuted,
             ),
@@ -280,7 +270,7 @@ class _MembersScreenState extends State<MembersScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.admin_panel_settings_outlined,
+                      Icons.admin_panel_settings_rounded,
                       color: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(width: AppSpacing.xxs),
@@ -303,7 +293,7 @@ class _MembersScreenState extends State<MembersScreen> {
                   onConfirm: () =>
                       context.read<MembersCubit>().remove(member.membershipId),
                 ),
-                icon: const Icon(Icons.person_remove_outlined),
+                icon: const Icon(Icons.person_remove_rounded),
                 label: Text(ArabicStrings.removeMemberAction),
               ),
             if (widget.isOwner && member.role != GroupRole.owner)
@@ -317,7 +307,7 @@ class _MembersScreenState extends State<MembersScreen> {
                     member.membershipId,
                   ),
                 ),
-                icon: const Icon(Icons.swap_horiz),
+                icon: const Icon(Icons.swap_horiz_rounded),
                 label: Text(ArabicStrings.transferOwnershipAction),
               ),
           ],
