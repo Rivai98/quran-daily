@@ -51,7 +51,8 @@ Future<void> enterField(WidgetTester tester, String key, String value) async {
 }
 
 Future<void> createGroup(WidgetTester tester, String name) async {
-  await tapAndSettle(tester, find.text(ArabicStrings.groupsTab));
+  await pumpUntil(tester, find.text(ArabicStrings.groupsTab));
+  await tapAndSettle(tester, find.text(ArabicStrings.groupsTab).last);
   await pumpUntil(tester, find.text(ArabicStrings.createGroup));
   await tapAndSettle(tester, find.text(ArabicStrings.createGroup).last);
   await pumpUntil(tester, find.text(ArabicStrings.groupNameLabel));
@@ -121,7 +122,8 @@ void main() {
     await pumpUntil(tester, find.text(ArabicStrings.openTodayWird));
 
     // Return to the default Home tab and verify the assigned portion appears.
-    await tapAndSettle(tester, find.text(ArabicStrings.homeTab));
+    await pumpUntil(tester, find.text(ArabicStrings.homeTab));
+    await tapAndSettle(tester, find.text(ArabicStrings.homeTab).last);
     final portionName = ArabicStrings.portionName(PortionUnit.juz, 1);
     await pumpUntil(tester, find.text(portionName));
     expect(find.text(groupName), findsWidgets);
@@ -130,7 +132,8 @@ void main() {
     await tapAndSettle(tester, find.text(ArabicStrings.portionCompleteAction));
     await pumpUntil(tester, find.text(ArabicStrings.portionUndoAction));
 
-    await tapAndSettle(tester, find.text(ArabicStrings.profileTab));
+    await pumpUntil(tester, find.text(ArabicStrings.profileTab));
+    await tapAndSettle(tester, find.text(ArabicStrings.profileTab).last);
     await pumpUntil(tester, find.byType(ProfileScreen));
     await pumpUntil(tester, find.text(ArabicStrings.profileTitle));
 

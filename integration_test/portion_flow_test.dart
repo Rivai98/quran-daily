@@ -83,7 +83,8 @@ void main() {
     );
 
     // Create a group with the hizb unit.
-    await tapAndSettle(tester, find.text(ArabicStrings.groupsTab));
+    await pumpUntil(tester, find.text(ArabicStrings.groupsTab));
+    await tapAndSettle(tester, find.text(ArabicStrings.groupsTab).last);
     await pumpUntil(tester, find.text(ArabicStrings.createGroup));
     await tapAndSettle(tester, find.text(ArabicStrings.createGroup).last);
     await pumpUntil(tester, find.text(ArabicStrings.groupNameLabel));
