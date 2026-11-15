@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app/router.dart';
 import '../../../core/design_system/app_button.dart';
+import '../../../core/design_system/app_colors.dart';
+import '../../../core/design_system/app_radius.dart';
 import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/widgets/app_card.dart';
@@ -11,6 +13,7 @@ import '../../../core/design_system/widgets/app_section_header.dart';
 import '../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../core/di/service_locator.dart';
 import '../../../core/localization/arabic_numerals.dart';
+import '../../../core/localization/arabic_formatting.dart';
 import '../../../core/localization/arabic_strings.dart';
 import '../../reminders/cubit/reminders_cubit.dart';
 import '../../reminders/view/reminder_settings_section.dart';
@@ -71,8 +74,8 @@ class _SettingsView extends StatelessWidget {
         },
         builder: (context, state) {
           final cubit = context.read<SettingsCubit>();
-          final percentLabel = ArabicNumerals.percent(
-            (state.quranTextScale * 100).round(),
+          final percentLabel = ArabicFormatting.isolate(
+            ArabicNumerals.percent((state.quranTextScale * 100).round()),
           );
 
           return AppPageContent(
@@ -109,15 +112,31 @@ class _SettingsView extends StatelessWidget {
                         onChanged: (val) => cubit.setQuranTextScale(val),
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      AppCard(
-                        child: Center(
-                          child: Text(
-                            ArabicStrings.quranPreviewText,
-                            style: AppTypography.quranLabel,
-                            textScaler: TextScaler.linear(state.quranTextScale),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
+                      Builder(
+                        builder: (context) {
+                          final colors = Theme.of(
+                            context,
+                          ).extension<AppColors>()!;
+                          return DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: colors.surfaceMuted,
+                              borderRadius: AppRadius.mdBR,
+                            ),
+                            child: Padding(
+                              padding: AppSpacing.card,
+                              child: Center(
+                                child: Text(
+                                  ArabicStrings.quranPreviewText,
+                                  style: AppTypography.quranLabel,
+                                  textScaler: TextScaler.linear(
+                                    state.quranTextScale,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                       if (serviceLocator
                           .isRegistered<MushafFontDownloadCubit>()) ...[
@@ -174,11 +193,26 @@ class _SettingsView extends StatelessWidget {
                           AppRoutes.editMyProfile,
                         ),
                       ),
+                      const SizedBox(height: AppSpacing.sm),
+                      AppButton(
+                        label: ArabicStrings.signOut,
+                        variant: AppButtonVariant.secondary,
+                        expanded: true,
+                        icon: const Icon(Icons.logout_rounded),
+                        loading: state.status == SettingsStatus.signingOut,
+                        onPressed: state.status == SettingsStatus.signingOut
+                            ? null
+                            : () => _onSignOut(context),
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 if (serviceLocator.isRegistered<RemindersCubit>()) ...[
+                  const _SettingsSectionHeader(
+                    icon: Icons.notifications_active_outlined,
+                    title: ArabicStrings.remindersTitle,
+                  ),
                   BlocProvider<RemindersCubit>(
                     create: (_) =>
                         serviceLocator<RemindersCubit>()
@@ -197,17 +231,6 @@ class _SettingsView extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                 ],
-                AppButton(
-                  label: ArabicStrings.signOut,
-                  icon: const Icon(Icons.logout_rounded),
-                  variant: AppButtonVariant.secondary,
-                  expanded: true,
-                  loading: state.status == SettingsStatus.signingOut,
-                  onPressed: state.status == SettingsStatus.signingOut
-                      ? null
-                      : () => _onSignOut(context),
-                ),
-                const SizedBox(height: AppSpacing.md),
                 const _SettingsSectionHeader(
                   icon: Icons.info_outline_rounded,
                   title: ArabicStrings.settingsAboutSection,

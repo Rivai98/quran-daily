@@ -17,6 +17,7 @@ class _MockSettingsRepo extends Mock implements SettingsRepository {}
 class _MockSessionGateway extends Mock implements SessionGateway {}
 
 void main() {
+  setUpAll(loadDesignSystemFonts);
   late _MockSettingsRepo settingsRepo;
   late _MockSessionGateway sessionGateway;
 
@@ -35,6 +36,28 @@ void main() {
     settingsRepository: settingsRepo,
     sessionGateway: sessionGateway,
   );
+
+  testWidgets('settings renders at 360x800 in both themes', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    for (final dark in [false, true]) {
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          SettingsScreen(cubit: buildCubit()),
+          dark: dark,
+          size: const Size(360, 800),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(SettingsScreen),
+        matchesGoldenFile('goldens/settings_${dark ? 'dark' : 'light'}.png'),
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+    }
+  });
 
   Widget pump(Widget child, {SettingsCubit? cubit}) {
     return buildArabicTestApp(SettingsScreen(cubit: cubit ?? buildCubit()));

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/widgets/app_card.dart';
+import '../../../core/design_system/widgets/app_snack_bar.dart';
 import '../../../core/localization/arabic_numerals.dart';
 import '../../../core/localization/arabic_strings.dart';
 import '../cubit/reminders_cubit.dart';
@@ -15,7 +16,16 @@ class ReminderSettingsSection extends StatelessWidget {
   @override
   Widget build(
     BuildContext context,
-  ) => BlocBuilder<RemindersCubit, RemindersState>(
+  ) => BlocConsumer<RemindersCubit, RemindersState>(
+    listenWhen: (previous, current) =>
+        current.status == RemindersStatus.failure &&
+        previous.status != RemindersStatus.failure,
+    listener: (context, state) => AppSnackBar.show(
+      context,
+      state.failureMessage == 'load'
+          ? ArabicStrings.reminderLoadFailed
+          : ArabicStrings.reminderSaveFailed,
+    ),
     builder: (context, state) {
       final cubit = context.read<RemindersCubit>();
       final current = state.personalSettings;

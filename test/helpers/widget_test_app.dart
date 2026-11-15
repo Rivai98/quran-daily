@@ -33,6 +33,17 @@ Future<void> loadAppFontsForGoldenTests() async {
   await materialIcons.load();
 }
 
+Future<void> loadDesignSystemFonts() async {
+  final cairo = FontLoader('Cairo')
+    ..addFont(rootBundle.load('assets/fonts/cairo/Cairo-Variable.ttf'));
+  final amiri = FontLoader('Amiri')
+    ..addFont(rootBundle.load('assets/fonts/amiri/Amiri-Regular.ttf'))
+    ..addFont(rootBundle.load('assets/fonts/amiri/Amiri-Bold.ttf'));
+  final materialIcons = FontLoader('MaterialIcons')
+    ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
+  await Future.wait([cairo.load(), amiri.load(), materialIcons.load()]);
+}
+
 /// Pumps [child] inside the real app theme: Arabic locale, RTL, Material 3
 /// design-system ThemeData (with the [AppColors] ThemeExtension), optionally
 /// dark, at [textScale], and at a logical [size] (devicePixelRatio 1).

@@ -22,6 +22,7 @@ import '../../../helpers/widget_test_app.dart';
 class MockProfileRepository extends Mock implements ProfileRepository {}
 
 void main() {
+  setUpAll(loadDesignSystemFonts);
   late MockProfileRepository repository;
 
   final sampleProfile = UserProfile(
@@ -66,7 +67,7 @@ void main() {
 
   group('ProfileScreen widget tests', () {
     testWidgets('account light and dark goldens', (tester) async {
-      tester.view.physicalSize = const Size(360, 1500);
+      tester.view.physicalSize = const Size(360, 800);
       tester.view.devicePixelRatio = 1;
       when(
         () => repository.getProfile(forceRefresh: any(named: 'forceRefresh')),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/design_system/app_spacing.dart';
 import '../../../../core/design_system/app_typography.dart';
-import '../../../../core/localization/arabic_numerals.dart';
+import '../../../../core/localization/arabic_formatting.dart';
 import '../../../../core/localization/arabic_strings.dart';
 import '../../data/entities/log_entities.dart';
 
@@ -11,10 +11,24 @@ class MonthSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-    child: Row(children: [
-      const Icon(Icons.calendar_month_outlined), const SizedBox(width: AppSpacing.sm),
-      Expanded(child: Text(ArabicStrings.logMonthSummary, style: AppTypography.title)),
-      Text('${ArabicNumerals.format(summary.fullDays)} / ${ArabicNumerals.format(summary.daysWithItems)}', style: AppTypography.label),
-    ]),
+    child: Row(
+      children: [
+        const Icon(Icons.calendar_month_rounded),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            ArabicStrings.logMonthSummary,
+            style: AppTypography.title,
+          ),
+        ),
+        Text(
+          ArabicFormatting.completedProgress(
+            summary.fullDays,
+            summary.daysWithItems,
+          ),
+          style: AppTypography.label,
+        ),
+      ],
+    ),
   );
 }

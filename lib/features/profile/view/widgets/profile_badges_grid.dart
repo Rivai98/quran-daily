@@ -85,7 +85,8 @@ class ProfileBadgesGrid extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
       final gap = AppSpacing.xs;
-      final width = (constraints.maxWidth - gap) / 2;
+      final columns = constraints.maxWidth >= 288 ? 3 : 2;
+      final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
       return Wrap(
         spacing: gap,
         runSpacing: gap,

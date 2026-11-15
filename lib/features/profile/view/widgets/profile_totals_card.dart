@@ -26,7 +26,7 @@ class ProfileTotalsCard extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                Icon(Icons.menu_book_outlined, color: colors.primary, size: 24),
+                Icon(Icons.menu_book_rounded, color: colors.primary, size: 24),
                 const SizedBox(width: AppSpacing.xs),
                 Expanded(
                   child: Column(
@@ -51,7 +51,7 @@ class ProfileTotalsCard extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                Icon(Icons.history, color: colors.lateFg, size: 24),
+                Icon(Icons.history_rounded, color: colors.lateFg, size: 24),
                 const SizedBox(width: AppSpacing.xs),
                 Expanded(
                   child: Column(
@@ -59,8 +59,9 @@ class ProfileTotalsCard extends StatelessWidget {
                     children: [
                       Text(
                         ArabicStrings.portionsLateCount(portionsLate),
-                        style:
-                            AppTypography.label.copyWith(color: colors.inkMuted),
+                        style: AppTypography.label.copyWith(
+                          color: colors.inkMuted,
+                        ),
                       ),
                     ],
                   ),

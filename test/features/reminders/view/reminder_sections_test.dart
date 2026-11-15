@@ -8,8 +8,104 @@ import 'package:quran_daily/features/reminders/data/reminders_repository.dart';
 import 'package:quran_daily/features/reminders/domain/reminder_planner.dart';
 import 'package:quran_daily/features/reminders/view/group_reminder_section.dart';
 import 'package:quran_daily/features/reminders/view/reminder_settings_section.dart';
+import '../../../helpers/widget_test_app.dart';
 
 void main() {
+  setUpAll(loadDesignSystemFonts);
+
+  testWidgets('personal reminders render at 360x800 in both themes', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    for (final dark in [false, true]) {
+      final cubit = RemindersCubit(repository: _FakeRepository());
+      await cubit.loadPersonalSettings();
+      await tester.pumpWidget(
+        _host(
+          cubit,
+          const ReminderSettingsSection(),
+          theme: dark ? AppTheme.dark : AppTheme.light,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(ReminderSettingsSection),
+        matchesGoldenFile('goldens/personal_${dark ? 'dark' : 'light'}.png'),
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await cubit.close();
+    }
+  });
+
+  testWidgets('enabled personal reminders render in both themes', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    for (final dark in [false, true]) {
+      final repository = _FakeRepository()
+        ..personal = const PersonalReminderSettings(
+          enabled: true,
+          fajrEnabled: true,
+          asrEnabled: true,
+          nightEnabled: true,
+        );
+      final cubit = RemindersCubit(repository: repository);
+      await cubit.loadPersonalSettings();
+      await tester.pumpWidget(
+        _host(
+          cubit,
+          const ReminderSettingsSection(),
+          theme: dark ? AppTheme.dark : AppTheme.light,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(ReminderSettingsSection),
+        matchesGoldenFile(
+          'goldens/personal_enabled_${dark ? 'dark' : 'light'}.png',
+        ),
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await cubit.close();
+    }
+  });
+
+  testWidgets('group reminders render at 360x800 in both themes', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    for (final dark in [false, true]) {
+      final cubit = RemindersCubit(repository: _FakeRepository());
+      await tester.pumpWidget(
+        _host(
+          cubit,
+          const GroupReminderSection(
+            groupId: 'group-1',
+            groupName:
+                '\u062d\u0644\u0642\u0629 \u0627\u0644\u0646\u0648\u0631',
+            isOwner: true,
+          ),
+          theme: dark ? AppTheme.dark : AppTheme.light,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(GroupReminderSection),
+        matchesGoldenFile('goldens/group_${dark ? 'dark' : 'light'}.png'),
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await cubit.close();
+    }
+  });
   testWidgets(
     'personal section works in RTL, dark theme, 320dp and 200% text',
     (tester) async {
@@ -56,6 +152,22 @@ void main() {
     expect(find.text('حفظ التذكيرات'), findsOneWidget);
     expect(find.byType(Slider), findsNWidgets(2));
     expect(tester.takeException(), isNull);
+    await cubit.close();
+  });
+
+  testWidgets('personal save failure is shown in Arabic feedback', (
+    tester,
+  ) async {
+    final repository = _FakeRepository()..failPersonalSave = true;
+    final cubit = RemindersCubit(repository: repository);
+    await cubit.loadPersonalSettings();
+    await tester.pumpWidget(_host(cubit, const ReminderSettingsSection()));
+    await cubit.savePersonalSettings(
+      const PersonalReminderSettings(enabled: true),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text(ArabicStrings.reminderSaveFailed), findsOneWidget);
     await cubit.close();
   });
 
@@ -191,11 +303,13 @@ Widget _host(
 
 class _FakeRepository implements RemindersRepository {
   PersonalReminderSettings personal = const PersonalReminderSettings();
+  bool failPersonalSave = false;
 
   @override
   Future<PersonalReminderSettings> loadPersonalSettings() async => personal;
   @override
   Future<void> savePersonalSettings(PersonalReminderSettings settings) async {
+    if (failPersonalSave) throw StateError('save failed');
     personal = settings;
   }
 

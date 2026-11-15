@@ -12,6 +12,9 @@ import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/features/log/data/entities/log_entities.dart';
 import 'package:quran_daily/features/log/data/repositories/log_repository.dart';
 import 'package:quran_daily/features/log/view/log_screen.dart';
+import 'package:quran_daily/features/log/view/log_day_detail_screen.dart';
+import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
+import '../../../helpers/quran_metadata_test_asset_bundle.dart';
 import '../../../helpers/widget_test_app.dart';
 
 class _Repository extends Mock implements LogRepository {}
@@ -49,6 +52,7 @@ LogDay _day() => LogDay(
 );
 
 void main() {
+  setUpAll(loadDesignSystemFonts);
   late _Repository repository;
   setUp(() => repository = _Repository());
 
@@ -141,6 +145,72 @@ void main() {
     }
     tester.view.resetPhysicalSize();
     tester.view.resetDevicePixelRatio();
+  });
+
+  testWidgets('history cards render at 360x800 in both themes', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    for (final dark in [false, true]) {
+      when(
+        () => repository.getLog(),
+      ).thenAnswer((_) async => Success(_log(days: [_day()])));
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          LogScreen(repository: repository),
+          dark: dark,
+          size: const Size(360, 800),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(LogScreen),
+        matchesGoldenFile('goldens/log_content_${dark ? 'dark' : 'light'}.png'),
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+    }
+  });
+
+  testWidgets('day details render at 360x800 in both themes', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    for (final dark in [false, true]) {
+      final metadata = QuranMetadataRepository(
+        bundle: QuranMetadataTestAssetBundle(),
+      );
+      await tester.runAsync(metadata.load);
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          LogDayDetailScreen(day: _day(), metadataRepository: metadata),
+          dark: dark,
+          size: const Size(360, 800),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(LogDayDetailScreen),
+        matchesGoldenFile('goldens/log_detail_${dark ? 'dark' : 'light'}.png'),
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+    }
+  });
+
+  testWidgets('day details support accessibility variants', (tester) async {
+    final metadata = QuranMetadataRepository(
+      bundle: QuranMetadataTestAssetBundle(),
+    );
+    await tester.runAsync(metadata.load);
+    await pumpAllVariants(
+      tester,
+      LogDayDetailScreen(day: _day(), metadataRepository: metadata),
+      (tester, variant) async {
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull, reason: variant);
+      },
+    );
   });
 
   testWidgets('all accessibility variants render without overflow', (
