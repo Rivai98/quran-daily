@@ -222,6 +222,50 @@ void main() {
     );
   });
 
+  group('Google sign-in', () {
+    blocTest<AuthCubit, AuthState>(
+      'success authenticates the Google profile',
+      build: buildCubit,
+      seed: () => const AuthState(status: AuthStatus.unauthenticated),
+      setUp: () => when(() => repository.signInWithGoogle())
+          .thenAnswer((_) async => const Success(authenticated)),
+      act: (cubit) => cubit.signInWithGoogle(),
+      expect: () => [
+        const AuthState(status: AuthStatus.submitting),
+        const AuthState(status: AuthStatus.authenticated, profile: profile),
+      ],
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'cancellation returns to idle without a failure',
+      build: buildCubit,
+      seed: () => const AuthState(status: AuthStatus.unauthenticated),
+      setUp: () => when(() => repository.signInWithGoogle())
+          .thenAnswer((_) async => null),
+      act: (cubit) => cubit.signInWithGoogle(),
+      expect: () => [
+        const AuthState(status: AuthStatus.submitting),
+        const AuthState(status: AuthStatus.unauthenticated),
+      ],
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'failure returns a stable failure code',
+      build: buildCubit,
+      seed: () => const AuthState(status: AuthStatus.unauthenticated),
+      setUp: () => when(() => repository.signInWithGoogle()).thenAnswer(
+          (_) async => const FailureResult(AuthFailure(
+              message: 'provider detail', code: 'google_auth_failed'))),
+      act: (cubit) => cubit.signInWithGoogle(),
+      expect: () => [
+        const AuthState(status: AuthStatus.submitting),
+        isA<AuthState>()
+            .having((s) => s.status, 'status', AuthStatus.failure)
+            .having((s) => s.failure?.code, 'code', 'google_auth_failed'),
+      ],
+    );
+  });
+
   group('expiry event and sign out', () {
     blocTest<AuthCubit, AuthState>(
       'auth stream emitting null (expiry/revocation) signs the user out',
