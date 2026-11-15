@@ -13,14 +13,14 @@
 - [ ] T008 Deploy Edge Functions (admin-create-user, admin-reset-password, admin-user-action) with `supabase functions deploy` (orchestrator, after owner approval)
 
 ## Phase 2: App
-- [ ] T009 [P] Data + cubit tests `test/features/admin/`
-- [ ] T010 `lib/features/admin/data` (RPCs + Edge Function calls)
-- [ ] T011 Overview screen (metric cards + 30-day chart)
-- [ ] T012 Groups list/search + group detail with actions (double confirm)
-- [ ] T013 Users list/search + user detail with actions (suspend, reset password, create, delete, admin role)
-- [ ] T014 Audit log screen with filter
-- [ ] T015 Entry "لوحة الإدارة" in حسابي visible when `admin_is_admin()`; suspended sign-in message in auth
-- [ ] T016 [P] Widget tests (RTL, dark, 320dp, 200%)
+- [X] T009 [P] Data + cubit tests `test/features/admin/`
+- [X] T010 `lib/features/admin/data` (RPCs + Edge Function calls)
+- [X] T011 Overview screen (metric cards + 30-day chart)
+- [X] T012 Groups list/search + group detail with actions (double confirm)
+- [X] T013 Users list/search + user detail with actions (suspend, reset password, create, delete, admin role)
+- [X] T014 Audit log screen with filter
+- [X] T015 Entry "لوحة الإدارة" in حسابي visible when `admin_is_admin()`; suspended sign-in message in auth
+- [X] T016 [P] Widget tests (RTL, dark, 320dp, 200%)
 
 ## Phase 3: Validation
 - [ ] T017 Emulator: admin vs normal user; delete a test group; suspend/unsuspend a test user

@@ -15,24 +15,28 @@ class SettingsState extends Equatable {
     this.status = SettingsStatus.initial,
     this.quranTextScale = 1.0,
     this.failure,
+    this.isAdmin = false,
   });
 
   final SettingsStatus status;
   final double quranTextScale;
   final AppFailure? failure;
+  final bool isAdmin;
 
   SettingsState copyWith({
     SettingsStatus? status,
     double? quranTextScale,
     AppFailure? failure,
+    bool? isAdmin,
   }) {
     return SettingsState(
       status: status ?? this.status,
       quranTextScale: quranTextScale ?? this.quranTextScale,
       failure: failure ?? this.failure,
+      isAdmin: isAdmin ?? this.isAdmin,
     );
   }
 
   @override
-  List<Object?> get props => [status, quranTextScale, failure];
+  List<Object?> get props => [status, quranTextScale, failure, isAdmin];
 }
