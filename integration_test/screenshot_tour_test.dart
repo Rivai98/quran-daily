@@ -299,16 +299,32 @@ void main() {
       await popFrom(tester, find.byType(PersonalAssignmentScreen));
     });
 
-    // Owner override sheet on another seat's pending portion.
-    await optional(tester, 'override_sheet', () async {
+    // Another seat's portion: owner override sheet when the seat is filled,
+    // otherwise the portion detail sheet for a vacant seat.
+    await optional(tester, 'other_portion_sheet', () async {
       final other = find.byWidgetPredicate(
         (w) => w is PartTile && !w.isMine && w.portionIndex == 2,
       );
       await tapAndSettle(tester, other);
-      await pumpUntil(tester, find.byType(OverrideAssignmentSheet));
-      await shot(tester, '12_override_sheet');
-      await popFrom(tester, find.byType(OverrideAssignmentSheet));
+      final sheet = find.byWidgetPredicate(
+        (w) => w is OverrideAssignmentSheet || w is PortionDetailSheet,
+      );
+      await pumpUntil(tester, sheet);
+      final isOverride = find
+          .byType(OverrideAssignmentSheet)
+          .evaluate()
+          .isNotEmpty;
+      await shot(
+        tester,
+        isOverride ? '12_override_sheet' : '12_portion_detail_vacant',
+      );
+      await popFrom(tester, sheet);
     });
+    await tester.scrollUntilVisible(
+      find.text(ArabicStrings.readNowAction),
+      -250,
+      scrollable: find.byType(Scrollable).hitTestable().first,
+    );
 
     // History.
     await optional(tester, 'history', () async {
