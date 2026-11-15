@@ -142,7 +142,7 @@ class _GroupHeader extends StatelessWidget {
   const _GroupHeader();
   @override
   Widget build(BuildContext context) => IslamicOrnamentBand(
-      height: 300,
+      height: 168,
     child: LayoutBuilder(builder: (context, constraints) => Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
