@@ -7,9 +7,9 @@
 - [ ] T000b Owner provides the khatm dua text + its source (optional; feature hidden without it). OWNER-PROVIDED.
 
 ## Phase 1: Backend (codex-1)
-- [ ] T001 pgTAP `supabase/tests/003_mushaf_sync_test.sql`: owner-only RLS on `reading_positions` and `bookmarks`; upsert last page; bookmark CRUD
-- [ ] T002 Migration `supabase/migrations/20261115140001_mushaf_sync.sql`: tables, RLS, grants
-- [ ] T003 Apply to DEV; run all pgTAP files: 0 failed
+- [X] T001 pgTAP `supabase/tests/003_mushaf_sync_test.sql`: owner-only RLS on `reading_positions` and `bookmarks`; upsert last page; bookmark CRUD
+- [X] T002 Migration `supabase/migrations/20261115140001_mushaf_sync.sql`: tables, RLS, grants
+- [X] T003 Apply to DEV; run all pgTAP files: 0 failed
 
 ## Phase 2: Mushaf data (codex-2)
 - [X] T004 [P] Tests `test/core/quran/mushaf/mushaf_integrity_test.dart`: checksums match; 604 pages, 6236 ayahs, 114 surahs; page starts equal Tanzil `quran-data.xml` `<page>` entries
