@@ -22,17 +22,21 @@ class NotificationOnboarding {
   static const _shownKey = 'notification_onboarding_shown_v1';
   static bool _checking = false;
 
-  static Future<void> maybeAsk(BuildContext context) async {
-    if (_checking) return;
+  /// Shows the first-run sheet once. Returns false when it was deferred
+  /// because the caller is not on screen (e.g. الرئيسية finished loading
+  /// while another tab is in front); the caller asks again when visible.
+  static Future<bool> maybeAsk(BuildContext context) async {
+    if (_checking) return true;
+    if (!isVisible(context)) return false;
     _checking = true;
     try {
       final prefs = SharedPreferencesAsync();
-      if (await prefs.getBool(_shownKey) ?? false) return;
+      if (await prefs.getBool(_shownKey) ?? false) return true;
       if (!serviceLocator.isRegistered<NotificationScheduler>() ||
           !serviceLocator.isRegistered<RemindersRepository>()) {
-        return;
+        return true;
       }
-      if (!context.mounted) return;
+      if (!context.mounted || !isVisible(context)) return false;
       final allow = await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
@@ -40,11 +44,11 @@ class NotificationOnboarding {
         builder: (context) => const _OnboardingSheet(),
       );
       await prefs.setBool(_shownKey, true);
-      if (allow != true) return;
+      if (allow != true) return true;
       final granted =
           await serviceLocator<NotificationScheduler>().requestPermissions() ??
           false;
-      if (!granted) return;
+      if (!granted) return true;
       final repository = serviceLocator<RemindersRepository>();
       final current = await repository.loadPersonalSettings();
       await repository.savePersonalSettings(
@@ -65,12 +69,19 @@ class NotificationOnboarding {
       if (serviceLocator.isRegistered<ReminderPlanningService>()) {
         await serviceLocator<ReminderPlanningService>().refresh();
       }
+      return true;
     } on Object {
       // Onboarding must never block or crash the app.
     } finally {
       _checking = false;
     }
+    return true;
   }
+
+  /// On screen: its tab is in front (tickers on) and its route is on top.
+  static bool isVisible(BuildContext context) =>
+      TickerMode.valuesOf(context).enabled &&
+      (ModalRoute.of(context)?.isCurrent ?? true);
 }
 
 class _OnboardingSheet extends StatelessWidget {

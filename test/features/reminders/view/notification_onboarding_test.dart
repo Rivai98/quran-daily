@@ -47,13 +47,20 @@ void main() {
 
   late _FakeRepository repository;
 
-  Future<void> pumpHost(WidgetTester tester) async {
+  bool? lastResult;
+
+  Future<void> pumpHost(WidgetTester tester, {bool visible = true}) async {
     await tester.pumpWidget(
       buildArabicTestApp(
-        Builder(
-          builder: (context) => TextButton(
-            onPressed: () => NotificationOnboarding.maybeAsk(context),
-            child: const Text('ابدأ'),
+        TickerMode(
+          enabled: visible,
+          child: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async {
+                lastResult = await NotificationOnboarding.maybeAsk(context);
+              },
+              child: const Text('ابدأ'),
+            ),
           ),
         ),
       ),
@@ -130,5 +137,21 @@ void main() {
 
     expect(scheduler.permissionRequests, 1);
     expect(repository.settings.enabled, isFalse);
+  });
+
+  testWidgets('a hidden Home tab defers the sheet until Home is visible', (
+    tester,
+  ) async {
+    register(_FakeScheduler(true));
+    await pumpHost(tester, visible: false);
+    await tester.tap(find.text('ابدأ'));
+    await tester.pumpAndSettle();
+    expect(find.text(ArabicStrings.reminderOnboardingTitle), findsNothing);
+    expect(lastResult, isFalse, reason: 'deferred, not handled');
+
+    await pumpHost(tester);
+    await tester.tap(find.text('ابدأ'));
+    await tester.pumpAndSettle();
+    expect(find.text(ArabicStrings.reminderOnboardingTitle), findsOneWidget);
   });
 }
