@@ -7,11 +7,16 @@ import 'today_repository.dart';
 import 'today_snapshot.dart';
 
 class TodayRepositoryImpl implements TodayRepository {
-  const TodayRepositoryImpl({required TodayRemoteDataSource remote, required CachedTodayDao cache, required SessionGateway session}) : _remote = remote, _cache = cache, _session = session;
+  const TodayRepositoryImpl({
+    required this._remote,
+    required this._cache,
+    required this._session,
+  });
   final TodayRemoteDataSource _remote;
   final CachedTodayDao _cache;
   final SessionGateway _session;
-  @override Future<Result<TodaySnapshot>> getToday() async {
+  @override
+  Future<Result<TodaySnapshot>> getToday() async {
     try {
       final raw = await _remote.getToday();
       final json = (raw as Map).cast<String, Object?>();
@@ -22,14 +27,34 @@ class TodayRepositoryImpl implements TodayRepository {
     } catch (error) {
       final userId = _session.currentUserId;
       final cached = userId == null ? null : await _cache.read(userId);
-      if (cached != null) return Success(TodaySnapshot.fromJson(cached.json, isStale: true));
+      if (cached != null) {
+        return Success(TodaySnapshot.fromJson(cached.json, isStale: true));
+      }
       if (error is AppFailure) return FailureResult(error);
-      return const FailureResult(NetworkFailure(message: 'today unavailable', code: 'network'));
+      return const FailureResult(
+        NetworkFailure(message: 'today unavailable', code: 'network'),
+      );
     }
   }
-  @override Future<Result<void>> setMainGroup(String? groupId) async {
-    try { await _remote.setMainGroup(groupId); return const Success(null); }
-    catch (error) { return FailureResult(error is AppFailure ? error : const NetworkFailure(message: 'main group update failed', code: 'network')); }
+
+  @override
+  Future<Result<void>> setMainGroup(String? groupId) async {
+    try {
+      await _remote.setMainGroup(groupId);
+      return const Success(null);
+    } catch (error) {
+      return FailureResult(
+        error is AppFailure
+            ? error
+            : const NetworkFailure(
+                message: 'main group update failed',
+                code: 'network',
+              ),
+      );
+    }
   }
-  @override Future<void> markGroupOpened(String groupId) => _remote.markGroupOpened(groupId);
+
+  @override
+  Future<void> markGroupOpened(String groupId) =>
+      _remote.markGroupOpened(groupId);
 }

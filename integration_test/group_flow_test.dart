@@ -9,7 +9,7 @@
 // wird -> marks it complete -> undoes it (confirm sheet) -> opens history.
 // Uses unique it-<timestamp>@test.local accounts; the dev DB keeps them.
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quran_daily/features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/group_dashboard_screen.dart';
@@ -149,9 +149,10 @@ void main() {
       (g) => g['name'] == groupName,
     );
     final groupId = group['group_id'] ?? group['id'];
-    final dashboard =
-        await ownerClient.rpc('get_dashboard', params: {'p_group_id': groupId})
-            as Map<String, dynamic>;
+    final dashboard = await ownerClient.rpc(
+      'get_dashboard',
+      params: {'p_group_id': groupId},
+    ) as Map<String, dynamic>;
     final inviteCode =
         (dashboard['seats'] as Map<String, dynamic>)['invite_code'] as String;
 

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/core/design_system/app_colors.dart';
 import 'package:quran_daily/core/design_system/widgets/halaqa_logo.dart';
@@ -6,7 +6,9 @@ import 'package:quran_daily/core/design_system/widgets/halaqa_logo.dart';
 import '../../../helpers/widget_test_app.dart';
 
 void main() {
-  testWidgets('renders HalaqaLogo in small (48) and large (96) sizes', (tester) async {
+  testWidgets('renders HalaqaLogo in small (48) and large (96) sizes', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       buildArabicTestApp(
         const Column(
@@ -33,13 +35,12 @@ void main() {
     expect(paints, findsNWidgets(2));
   });
 
-  testWidgets('renders HalaqaLogo across light and dark variants', (tester) async {
+  testWidgets('renders HalaqaLogo across light and dark variants', (
+    tester,
+  ) async {
     for (final isDark in [false, true]) {
       await tester.pumpWidget(
-        buildArabicTestApp(
-          HalaqaLogo(size: 48, isDark: isDark),
-          dark: isDark,
-        ),
+        buildArabicTestApp(HalaqaLogo(size: 48, isDark: isDark), dark: isDark),
       );
 
       final customPaintFinder = find.descendant(
@@ -65,11 +66,7 @@ void main() {
 
     await tester.pumpWidget(
       buildArabicTestApp(
-        const HalaqaLogo(
-          size: 48,
-          color: customColor,
-          goldColor: customGold,
-        ),
+        const HalaqaLogo(size: 48, color: customColor, goldColor: customGold),
       ),
     );
 
@@ -90,19 +87,19 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     Widget buildLogoShowcase({required bool dark}) => buildArabicTestApp(
-          const Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                HalaqaLogo(size: HalaqaLogo.small),
-                SizedBox(width: 24),
-                HalaqaLogo(size: HalaqaLogo.large),
-              ],
-            ),
-          ),
-          dark: dark,
-          size: const Size(360, 360),
-        );
+      const Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            HalaqaLogo(size: HalaqaLogo.small),
+            SizedBox(width: 24),
+            HalaqaLogo(size: HalaqaLogo.large),
+          ],
+        ),
+      ),
+      dark: dark,
+      size: const Size(360, 360),
+    );
 
     await tester.pumpWidget(buildLogoShowcase(dark: false));
     await tester.pumpAndSettle();

@@ -188,9 +188,8 @@ void main() {
     'duplicate completion taps are ignored while a request is pending',
     build: () {
       pendingCompletion = Completer<Result<DashboardSnapshot>>();
-      when(
-        () => repository.markComplete('a-1', any()),
-      ).thenAnswer((_) => pendingCompletion.future);
+      when(() => repository.markComplete('a-1', any()))
+          .thenAnswer((_) => pendingCompletion.future);
       return buildCubit();
     },
     act: (bloc) async {

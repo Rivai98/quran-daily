@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/design_system/app_colors.dart';
@@ -115,7 +115,10 @@ class _OnboardingSheet extends StatelessWidget {
               style: AppTypography.body.copyWith(color: colors.inkMuted),
             ),
             const SizedBox(height: AppSpacing.md),
-            row(Icons.wb_twilight_rounded, ArabicStrings.reminderOnboardingFajr),
+            row(
+              Icons.wb_twilight_rounded,
+              ArabicStrings.reminderOnboardingFajr,
+            ),
             row(Icons.wb_sunny_rounded, ArabicStrings.reminderOnboardingAsr),
             row(
               Icons.nights_stay_rounded,

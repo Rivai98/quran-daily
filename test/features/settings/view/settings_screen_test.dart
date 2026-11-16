@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/auth/session_gateway.dart';
@@ -24,12 +24,10 @@ void main() {
   setUp(() {
     settingsRepo = _MockSettingsRepo();
     sessionGateway = _MockSessionGateway();
-    when(
-      () => settingsRepo.getQuranTextScale(),
-    ).thenAnswer((_) async => const Success(1.0));
-    when(
-      () => settingsRepo.setQuranTextScale(any()),
-    ).thenAnswer((_) async => const Success(null));
+    when(() => settingsRepo.getQuranTextScale())
+        .thenAnswer((_) async => const Success(1.0));
+    when(() => settingsRepo.setQuranTextScale(any()))
+        .thenAnswer((_) async => const Success(null));
   });
 
   SettingsCubit buildCubit() => SettingsCubit(
@@ -100,9 +98,8 @@ void main() {
     await tester.tap(slider);
     await tester.pumpAndSettle();
 
-    verify(
-      () => settingsRepo.setQuranTextScale(any()),
-    ).called(greaterThanOrEqualTo(1));
+    verify(() => settingsRepo.setQuranTextScale(any()))
+        .called(greaterThanOrEqualTo(1));
   });
 
   testWidgets('preview text is styled with quranLabel', (tester) async {
@@ -133,9 +130,8 @@ void main() {
   });
 
   testWidgets('confirming sign out calls cubit.signOut()', (tester) async {
-    when(
-      () => sessionGateway.signOut(),
-    ).thenAnswer((_) async => const Success(null));
+    when(() => sessionGateway.signOut())
+        .thenAnswer((_) async => const Success(null));
 
     final cubit = buildCubit();
     await tester.pumpWidget(pump(const SettingsScreen(), cubit: cubit));

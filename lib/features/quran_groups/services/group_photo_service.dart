@@ -11,11 +11,7 @@ abstract class GroupPhotoService {
 }
 
 class DefaultGroupPhotoService implements GroupPhotoService {
-  const DefaultGroupPhotoService({
-    ImagePicker? picker,
-    ImageCropper? cropper,
-  })  : _picker = picker,
-        _cropper = cropper;
+  const DefaultGroupPhotoService({this._picker, this._cropper});
 
   final ImagePicker? _picker;
   final ImageCropper? _cropper;

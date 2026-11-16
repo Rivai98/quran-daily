@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -7,7 +7,9 @@ import 'package:quran_daily/core/design_system/app_colors.dart';
 import 'package:quran_daily/core/design_system/app_spacing.dart';
 import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
+
 import '../../../helpers/quran_metadata_test_asset_bundle.dart';
+
 import 'package:quran_daily/features/quran_groups/cubit/dashboard/dashboard_cubit.dart';
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/khatma_repository.dart';
@@ -180,9 +182,8 @@ void main() {
         ),
       ),
     );
-    when(
-      () => repository.overrideAssignment('a0', 'm1'),
-    ).thenAnswer((_) async => Success(_snapshot(role: GroupRole.owner)));
+    when(() => repository.overrideAssignment('a0', 'm1'))
+        .thenAnswer((_) async => Success(_snapshot(role: GroupRole.owner)));
     final cubit = DashboardCubit(
       repository: repository,
       groupsRepository: groups,
@@ -419,9 +420,8 @@ void main() {
   }) async {
     final groups = _GroupsRepository();
     final khatma = _Repository();
-    when(
-      () => khatma.getDashboard('g1'),
-    ).thenAnswer((_) async => Success(_snapshot(role: role)));
+    when(() => khatma.getDashboard('g1'))
+        .thenAnswer((_) async => Success(_snapshot(role: role)));
     final snapshot = status == GroupStatus.forming
         ? DashboardSnapshot(
             groupId: 'g1',
@@ -493,9 +493,8 @@ void main() {
       role: GroupRole.owner,
       status: GroupStatus.forming,
     );
-    when(
-      () => groups.startKhatma('g1', any()),
-    ).thenAnswer((_) async => Success(_snapshot(role: GroupRole.owner)));
+    when(() => groups.startKhatma('g1', any()))
+        .thenAnswer((_) async => Success(_snapshot(role: GroupRole.owner)));
 
     expect(find.byType(FormingGroupView), findsOneWidget);
     expect(find.text(ArabicStrings.shareInviteAction), findsOneWidget);
@@ -512,9 +511,9 @@ void main() {
     );
     expect(
       tester.widget<ChoiceChip>(find.byType(ChoiceChip).first).selectedColor,
-      Theme.of(
-        tester.element(find.byType(ChoiceChip).first),
-      ).extension<AppColors>()!.primaryContainer,
+      Theme.of(tester.element(find.byType(ChoiceChip).first))
+          .extension<AppColors>()!
+          .primaryContainer,
     );
     await tester.tap(find.text(ArabicStrings.startKhatmaAction).last);
     await tester.pumpAndSettle();
@@ -586,7 +585,10 @@ void main() {
         of: find.text(entry.key),
         matching: find.byType(PopupMenuItem<String>),
       );
-      final icon = find.descendant(of: item, matching: find.byIcon(entry.value));
+      final icon = find.descendant(
+        of: item,
+        matching: find.byIcon(entry.value),
+      );
       expect(icon, findsOneWidget, reason: entry.key);
       final label = tester.widget<Text>(
         find.descendant(of: item, matching: find.text(entry.key)),

@@ -10,13 +10,13 @@ void main() {
     final violations = <String>[];
     final featuresDir = Directory('lib/features');
 
-    expect(featuresDir.existsSync(), isTrue,
-        reason: 'lib/features must exist');
+    expect(featuresDir.existsSync(), isTrue, reason: 'lib/features must exist');
 
-    for (final file in featuresDir
-        .listSync(recursive: true)
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.dart'))) {
+    for (final file
+        in featuresDir
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.dart'))) {
       final lines = file.readAsLinesSync();
       for (var i = 0; i < lines.length; i++) {
         final line = lines[i];
@@ -35,10 +35,13 @@ void main() {
       }
     }
 
-    expect(violations, isEmpty,
-        reason:
-            'Raw colors/sizes/radii are forbidden under lib/features; use '
-            'lib/core/design_system tokens and shared widgets instead.\n'
-            '${violations.join('\n')}');
+    expect(
+      violations,
+      isEmpty,
+      reason:
+          'Raw colors/sizes/radii are forbidden under lib/features; use '
+          'lib/core/design_system tokens and shared widgets instead.\n'
+          '${violations.join('\n')}',
+    );
   });
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/design_system/widgets/islamic_ornament.dart';
@@ -14,6 +15,7 @@ import 'package:quran_daily/features/log/data/repositories/log_repository.dart';
 import 'package:quran_daily/features/log/view/log_screen.dart';
 import 'package:quran_daily/features/log/view/log_day_detail_screen.dart';
 import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
+
 import '../../../helpers/quran_metadata_test_asset_bundle.dart';
 import '../../../helpers/widget_test_app.dart';
 
@@ -153,9 +155,8 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     for (final dark in [false, true]) {
-      when(
-        () => repository.getLog(),
-      ).thenAnswer((_) async => Success(_log(days: [_day()])));
+      when(() => repository.getLog())
+          .thenAnswer((_) async => Success(_log(days: [_day()])));
       await tester.pumpWidget(
         buildArabicTestApp(
           LogScreen(repository: repository),
@@ -216,9 +217,8 @@ void main() {
   testWidgets('all accessibility variants render without overflow', (
     tester,
   ) async {
-    when(
-      () => repository.getLog(),
-    ).thenAnswer((_) async => Success(_log(days: [_day()])));
+    when(() => repository.getLog())
+        .thenAnswer((_) async => Success(_log(days: [_day()])));
     await pumpAllVariants(tester, LogScreen(repository: repository), (
       tester,
       variant,

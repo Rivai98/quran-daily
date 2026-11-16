@@ -17,9 +17,8 @@ void main() {
   blocTest<MembersCubit, MembersState>(
     'loads to empty state',
     build: () {
-      when(
-        () => repository.getMembers('g'),
-      ).thenAnswer((_) async => const Success(members));
+      when(() => repository.getMembers('g'))
+          .thenAnswer((_) async => const Success(members));
       return MembersCubit(repository);
     },
     act: (cubit) => cubit.load('g'),
@@ -61,12 +60,10 @@ void main() {
   blocTest<MembersCubit, MembersState>(
     'refreshes after moving a seat',
     build: () {
-      when(
-        () => repository.getMembers('g'),
-      ).thenAnswer((_) async => const Success(members));
-      when(
-        () => repository.moveMemberSeat('g', 'm', 4),
-      ).thenAnswer((_) async => const Success(null));
+      when(() => repository.getMembers('g'))
+          .thenAnswer((_) async => const Success(members));
+      when(() => repository.moveMemberSeat('g', 'm', 4))
+          .thenAnswer((_) async => const Success(null));
       return MembersCubit(repository);
     },
     act: (cubit) async {
@@ -80,9 +77,8 @@ void main() {
   blocTest<MembersCubit, MembersState>(
     'keeps a failure visible after a rejected mutation',
     build: () {
-      when(
-        () => repository.getMembers('g'),
-      ).thenAnswer((_) async => const Success(members));
+      when(() => repository.getMembers('g'))
+          .thenAnswer((_) async => const Success(members));
       when(() => repository.leaveGroup('g')).thenAnswer(
         (_) async => const FailureResult(
           UnknownFailure(message: 'blocked', code: 'owner_must_transfer'),

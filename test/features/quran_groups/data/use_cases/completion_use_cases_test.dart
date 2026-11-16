@@ -66,9 +66,8 @@ void main() {
       status: GroupStatus.active,
       serverGeneratedAt: _recordedAt,
     );
-    when(
-      () => repository.markComplete('a-1', _recordedAt),
-    ).thenAnswer((_) async => Success(expected));
+    when(() => repository.markComplete('a-1', _recordedAt))
+        .thenAnswer((_) async => Success(expected));
 
     final result = await MarkAssignmentComplete(
       repository,
@@ -129,9 +128,8 @@ void main() {
           (groupId: 'g1', json: _snapshotJson, cachedAt: _cachedAt),
         ],
       );
-      when(
-        () => snapshots.read('g1'),
-      ).thenAnswer((_) async => (json: _snapshotJson, cachedAt: _cachedAt));
+      when(() => snapshots.read('g1'))
+          .thenAnswer((_) async => (json: _snapshotJson, cachedAt: _cachedAt));
       when(() => snapshots.upsert('g1', any())).thenAnswer((_) async {});
       when(() => queue.enqueue(any())).thenAnswer((_) async {});
       when(
@@ -145,28 +143,24 @@ void main() {
       when(() => queue.delete(any())).thenAnswer((_) async {});
     });
 
-    test(
-      'network failure updates the cache optimistically and queues the operation',
-      () async {
-        when(
-          () => remote.markComplete('a-1', _recordedAt, offlineSync: false),
-        ).thenAnswer(
-          (_) async => const FailureResult<dynamic>(
-            NetworkFailure(message: 'offline', code: 'network'),
-          ),
-        );
+    test('network failure updates the cache optimistically and queues the operation', () async {
+      when(() => remote.markComplete('a-1', _recordedAt, offlineSync: false))
+          .thenAnswer(
+            (_) async => const FailureResult<dynamic>(
+              NetworkFailure(message: 'offline', code: 'network'),
+            ),
+          );
 
-        final result = await repository.markComplete('a-1', _recordedAt);
+      final result = await repository.markComplete('a-1', _recordedAt);
 
-        expect(result.failureOrNull?.kind, FailureKind.offlineQueued);
-        verify(() => queue.enqueue(any(that: isA<SyncOperation>()))).called(1);
-        final written =
-            verify(() => snapshots.upsert('g1', captureAny())).captured.single
-                as Map<String, Object?>;
-        expect((written['assignments']! as List).single['status'], 'completed');
-        expect((written['today']! as Map)['completed_count'], 1);
-      },
-    );
+      expect(result.failureOrNull?.kind, FailureKind.offlineQueued);
+      verify(() => queue.enqueue(any(that: isA<SyncOperation>()))).called(1);
+      final written =
+          verify(() => snapshots.upsert('g1', captureAny())).captured.single
+              as Map<String, Object?>;
+      expect((written['assignments']! as List).single['status'], 'completed');
+      expect((written['today']! as Map)['completed_count'], 1);
+    });
 
     test(
       'sync replays queued work in order and removes successful operations',
@@ -186,18 +180,14 @@ void main() {
           createdAt: _cachedAt.add(const Duration(seconds: 1)),
         );
         var reads = 0;
-        when(
-          () => queue.pending(),
-        ).thenAnswer((_) async => reads++ == 0 ? [first, second] : []);
-        when(
-          () => remote.markComplete('a-1', _recordedAt, offlineSync: true),
-        ).thenAnswer((_) async => const Success<dynamic>({}));
-        when(
-          () => remote.undoCompletion('a-1'),
-        ).thenAnswer((_) async => const Success<dynamic>({}));
-        when(
-          () => remote.getDashboard('g1'),
-        ).thenAnswer((_) async => Success<dynamic>(_snapshotJson));
+        when(() => queue.pending())
+            .thenAnswer((_) async => reads++ == 0 ? [first, second] : []);
+        when(() => remote.markComplete('a-1', _recordedAt, offlineSync: true))
+            .thenAnswer((_) async => const Success<dynamic>({}));
+        when(() => remote.undoCompletion('a-1'))
+            .thenAnswer((_) async => const Success<dynamic>({}));
+        when(() => remote.getDashboard('g1'))
+            .thenAnswer((_) async => Success<dynamic>(_snapshotJson));
 
         final report = await repository.syncPending();
 
@@ -223,16 +213,14 @@ void main() {
         clientRecordedAt: _recordedAt,
       );
       var reads = 0;
-      when(
-        () => queue.pending(),
-      ).thenAnswer((_) async => reads++ == 0 ? [operation] : []);
-      when(
-        () => remote.markComplete('a-1', _recordedAt, offlineSync: true),
-      ).thenAnswer(
-        (_) async => const FailureResult<dynamic>(
-          SyncConflictFailure(message: 'day closed', code: 'day_closed'),
-        ),
-      );
+      when(() => queue.pending())
+          .thenAnswer((_) async => reads++ == 0 ? [operation] : []);
+      when(() => remote.markComplete('a-1', _recordedAt, offlineSync: true))
+          .thenAnswer(
+            (_) async => const FailureResult<dynamic>(
+              SyncConflictFailure(message: 'day closed', code: 'day_closed'),
+            ),
+          );
 
       final report = await repository.syncPending();
 

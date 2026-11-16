@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/router.dart';
@@ -134,7 +134,9 @@ class _EmptyEntryPoints extends StatelessWidget {
                   actionVariant: AppButtonVariant.primary,
                   actionIcon: const Icon(Icons.search_rounded),
                   secondaryActionLabel: ArabicStrings.createGroup,
-                  secondaryActionIcon: const Icon(Icons.add_circle_outline_rounded),
+                  secondaryActionIcon: const Icon(
+                    Icons.add_circle_outline_rounded,
+                  ),
                   onSecondaryAction: () async {
                     await Navigator.pushNamed(context, '/groups/new');
                     if (context.mounted) {
@@ -282,89 +284,87 @@ class _MyGroupRow extends StatelessWidget {
         }
       },
       child: Padding(
-          padding: AppSpacing.card,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  GroupAvatar(name: group.name, size: AppSpacing.xxl),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            group.name,
-                            style: AppTypography.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+        padding: AppSpacing.card,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                GroupAvatar(name: group.name, size: AppSpacing.xxl),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          group.name,
+                          style: AppTypography.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(width: AppSpacing.xs),
-                        AppBadge(
-                          icon: statusIcon,
-                          label: statusLabel,
-                          variant: group.status == GroupStatus.active
-                              ? AppBadgeVariant.primary
-                              : AppBadgeVariant.info,
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      AppBadge(
+                        icon: statusIcon,
+                        label: statusLabel,
+                        variant: group.status == GroupStatus.active
+                            ? AppBadgeVariant.primary
+                            : AppBadgeVariant.info,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.xxs,
-                children: [
-                  _MetaItem(
-                    icon: Icons.menu_book_rounded,
-                    label: ArabicStrings.dailyUnitChip(group.portionUnit),
-                    color: colors.inkMuted,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.xxs,
+              children: [
+                _MetaItem(
+                  icon: Icons.menu_book_rounded,
+                  label: ArabicStrings.dailyUnitChip(group.portionUnit),
+                  color: colors.inkMuted,
+                ),
+                _MetaItem(
+                  icon: Icons.people_alt_rounded,
+                  label: roleMarker,
+                  color: colors.inkMuted,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _MetaItem(
+                  icon: Icons.people_alt_rounded,
+                  label: ArabicStrings.groupSeatsProgressLabel,
+                  color: colors.inkMuted,
+                ),
+                const SizedBox(height: AppSpacing.xxs),
+                ClipRRect(
+                  borderRadius: AppRadius.pillBR,
+                  child: LinearProgressIndicator(
+                    value: (group.activeMemberCount / 30).clamp(0.0, 1.0),
+                    minHeight: AppSpacing.xs,
+                    backgroundColor: colors.surfaceMuted,
+                    color: group.status == GroupStatus.active
+                        ? colors.completedFg
+                        : colors.primary,
                   ),
-                  _MetaItem(
-                    icon: Icons.people_alt_rounded,
-                    label: roleMarker,
-                    color: colors.inkMuted,
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _MetaItem(
-                    icon: Icons.people_alt_rounded,
-                    label: ArabicStrings.groupSeatsProgressLabel,
-                    color: colors.inkMuted,
-                  ),
-                  const SizedBox(height: AppSpacing.xxs),
-                  ClipRRect(
-                    borderRadius: AppRadius.pillBR,
-                    child: LinearProgressIndicator(
-                      value: (group.activeMemberCount / 30).clamp(0.0, 1.0),
-                      minHeight: AppSpacing.xs,
-                      backgroundColor: colors.surfaceMuted,
-                      color: group.status == GroupStatus.active
-                          ? colors.completedFg
-                          : colors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    ArabicFormatting.membersProgress(group.activeMemberCount),
-                    style: AppTypography.caption.copyWith(
-                      color: colors.inkMuted,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                ],
-              ),
-            ],
-          ),
+                ),
+                const SizedBox(height: AppSpacing.xxs),
+                Text(
+                  ArabicFormatting.membersProgress(group.activeMemberCount),
+                  style: AppTypography.caption.copyWith(color: colors.inkMuted),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+              ],
+            ),
+          ],
         ),
+      ),
     );
   }
 }

@@ -38,9 +38,8 @@ void main() {
   blocTest<DashboardCubit, DashboardState>(
     'refresh emits loading then success',
     build: () {
-      when(
-        () => repository.getDashboard('g1'),
-      ).thenAnswer((_) async => Success(_snapshot()));
+      when(() => repository.getDashboard('g1'))
+          .thenAnswer((_) async => Success(_snapshot()));
       return DashboardCubit(repository: repository, groupId: 'g1');
     },
     act: (cubit) => cubit.refresh(),
@@ -92,9 +91,8 @@ void main() {
   blocTest<DashboardCubit, DashboardState>(
     'stale snapshot is explicitly offline',
     build: () {
-      when(
-        () => repository.getDashboard('g1'),
-      ).thenAnswer((_) async => Success(_snapshot(stale: true)));
+      when(() => repository.getDashboard('g1'))
+          .thenAnswer((_) async => Success(_snapshot(stale: true)));
       return DashboardCubit(repository: repository, groupId: 'g1');
     },
     act: (cubit) => cubit.refresh(),
@@ -115,9 +113,8 @@ void main() {
   blocTest<DashboardCubit, DashboardState>(
     'failure is surfaced and resume refresh detects a new group day',
     build: () {
-      when(
-        () => repository.getDashboard('g1'),
-      ).thenAnswer((_) async => Success(_snapshot(date: '2026-11-16')));
+      when(() => repository.getDashboard('g1'))
+          .thenAnswer((_) async => Success(_snapshot(date: '2026-11-16')));
       return DashboardCubit(
         repository: repository,
         groupId: 'g1',
@@ -166,9 +163,8 @@ void main() {
   blocTest<DashboardCubit, DashboardState>(
     'owner override updates the dashboard snapshot',
     build: () {
-      when(
-        () => repository.overrideAssignment('a1', 'm1'),
-      ).thenAnswer((_) async => Success(_snapshot()));
+      when(() => repository.overrideAssignment('a1', 'm1'))
+          .thenAnswer((_) async => Success(_snapshot()));
       return DashboardCubit(
         repository: repository,
         groupId: 'g1',

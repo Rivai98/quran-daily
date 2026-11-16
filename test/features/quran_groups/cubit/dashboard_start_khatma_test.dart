@@ -52,12 +52,10 @@ void main() {
   blocTest<DashboardCubit, DashboardState>(
     'startKhatma reloads the dashboard through the caching repository',
     setUp: () {
-      when(
-        () => groups.startKhatma('g1', 7),
-      ).thenAnswer((_) async => Success(_active()));
-      when(
-        () => khatma.getDashboard('g1'),
-      ).thenAnswer((_) async => Success(_active()));
+      when(() => groups.startKhatma('g1', 7))
+          .thenAnswer((_) async => Success(_active()));
+      when(() => khatma.getDashboard('g1'))
+          .thenAnswer((_) async => Success(_active()));
     },
     build: build,
     act: (cubit) => cubit.startKhatma(7),
@@ -92,12 +90,10 @@ void main() {
   blocTest<DashboardCubit, DashboardState>(
     'duplicate startKhatma while starting is ignored',
     setUp: () {
-      when(
-        () => groups.startKhatma('g1', 1),
-      ).thenAnswer((_) async => Success(_active()));
-      when(
-        () => khatma.getDashboard('g1'),
-      ).thenAnswer((_) async => Success(_active()));
+      when(() => groups.startKhatma('g1', 1))
+          .thenAnswer((_) async => Success(_active()));
+      when(() => khatma.getDashboard('g1'))
+          .thenAnswer((_) async => Success(_active()));
     },
     build: build,
     act: (cubit) async {

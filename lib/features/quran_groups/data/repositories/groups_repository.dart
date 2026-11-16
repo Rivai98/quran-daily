@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 import '../../../../core/errors/result.dart';
 import '../entities/entities.dart';
 import '../../../../core/quran/portion_unit.dart';

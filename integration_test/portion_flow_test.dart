@@ -8,7 +8,7 @@
 // start the khatma at portion 1 -> the dashboard shows hizb portions, and the
 // server's day-1 assignments are hizb 1..30 for seats 1..30 in a 2-day cycle.
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:quran_daily/app/bootstrap.dart';
@@ -147,12 +147,10 @@ void main() {
         .cast<Map<String, dynamic>>()
         .firstWhere((g) => g['name'] == groupName);
     expect(group['portion_unit'], 'hizb');
-    final dashboard =
-        await client.rpc(
-              'get_dashboard',
-              params: {'p_group_id': group['group_id']},
-            )
-            as Map<String, dynamic>;
+    final dashboard = await client.rpc(
+      'get_dashboard',
+      params: {'p_group_id': group['group_id']},
+    ) as Map<String, dynamic>;
     final assignments = (dashboard['assignments'] as List<dynamic>)
         .cast<Map<String, dynamic>>();
     expect(assignments, hasLength(30));

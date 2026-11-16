@@ -13,13 +13,10 @@ void main() {
       expect(displayInitials('سعيد حسن'), 'س ح');
     });
 
-    test(
-      'three words with compound last gives first of first and prefix of compound',
-      () {
-        expect(displayInitials('محمد عبد الله'), 'م ع');
-        expect(displayInitials('طارق أبو بكر'), 'ط أ');
-      },
-    );
+    test('three words with compound last gives first of first and prefix of compound', () {
+      expect(displayInitials('محمد عبد الله'), 'م ع');
+      expect(displayInitials('طارق أبو بكر'), 'ط أ');
+    });
 
     test('two words being compound gives first letter', () {
       expect(displayInitials('عبد الله'), 'ع');

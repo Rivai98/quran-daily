@@ -58,14 +58,14 @@ class HistoryState extends Equatable {
 
   @override
   List<Object?> get props => [
-        groupId,
-        status,
-        days,
-        hasMore,
-        isLoadingMore,
-        selectedDay,
-        selectedDayDate,
-        isLoadingDetail,
-        failure,
-      ];
+    groupId,
+    status,
+    days,
+    hasMore,
+    isLoadingMore,
+    selectedDay,
+    selectedDayDate,
+    isLoadingDetail,
+    failure,
+  ];
 }

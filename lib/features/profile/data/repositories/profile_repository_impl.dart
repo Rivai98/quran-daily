@@ -10,14 +10,11 @@ import 'profile_repository.dart';
 
 class ProfileRepositoryImpl implements ProfileRepository {
   ProfileRepositoryImpl({
-    required ProfileRemoteDataSource remote,
-    required ProfileLocalDataSource cache,
+    required this._remote,
+    required this._cache,
     required SessionGateway sessionGateway,
-    required ConnectivityService connectivity,
-  })  : _remote = remote,
-        _cache = cache,
-        _session = sessionGateway,
-        _connectivity = connectivity;
+    required this._connectivity,
+  }) : _session = sessionGateway;
 
   final ProfileRemoteDataSource _remote;
   final ProfileLocalDataSource _cache;

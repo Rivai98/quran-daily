@@ -8,6 +8,7 @@ import 'package:quran_daily/features/auth/data/entities/user_profile.dart';
 import 'package:quran_daily/features/auth/data/repositories/auth_repository_impl.dart';
 
 class _MockDataSource extends Mock implements SupabaseAuthDataSource {}
+
 class _FakeGoogleAuthClient implements GoogleAuthClient {
   @override
   Future<GoogleAuthTokens?> authenticate() async => null;
@@ -41,37 +42,45 @@ void main() {
   });
 
   group('email normalization', () {
-    test('trims and lowercases the email before calling the data source',
-        () async {
-      when(() => dataSource.signIn(
+    test(
+      'trims and lowercases the email before calling the data source',
+      () async {
+        when(
+          () => dataSource.signIn(
             email: 'sara@test.local',
             password: 'password123',
-          )).thenAnswer((_) async => 'signed-in-session');
-      when(() => dataSource.currentUserId())
-          .thenReturn('11111111-1111-1111-1111-111111111111');
-      when(() => dataSource.selectProfile(user.id))
-          .thenAnswer((_) async => profileRow);
+          ),
+        ).thenAnswer((_) async => 'signed-in-session');
+        when(() => dataSource.currentUserId())
+            .thenReturn('11111111-1111-1111-1111-111111111111');
+        when(() => dataSource.selectProfile(user.id))
+            .thenAnswer((_) async => profileRow);
 
-      final result = await repository.signIn(
-        email: '  Sara@Test.Local  ',
-        password: 'password123',
-      );
+        final result = await repository.signIn(
+          email: '  Sara@Test.Local  ',
+          password: 'password123',
+        );
 
-      expect(result.isSuccess, isTrue);
-      verify(() => dataSource.signIn(
+        expect(result.isSuccess, isTrue);
+        verify(
+          () => dataSource.signIn(
             email: 'sara@test.local',
             password: 'password123',
-          )).called(1);
-    });
+          ),
+        ).called(1);
+      },
+    );
   });
 
   group('signUp', () {
     test('returns authenticated user with profile on success', () async {
-      when(() => dataSource.signUp(
-            email: 'sara@test.local',
-            password: 'password123',
-            displayName: 'سارة',
-          )).thenAnswer((_) async => 'signing-up');
+      when(
+        () => dataSource.signUp(
+          email: 'sara@test.local',
+          password: 'password123',
+          displayName: 'سارة',
+        ),
+      ).thenAnswer((_) async => 'signing-up');
       when(() => dataSource.currentUserId())
           .thenReturn('11111111-1111-1111-1111-111111111111');
       when(() => dataSource.selectProfile(user.id))
@@ -117,28 +126,34 @@ void main() {
       );
       expect(blankName.failureOrNull!.code, 'validation_failed');
 
-      verifyNever(() => dataSource.signUp(
-            email: any(named: 'email'),
-            password: any(named: 'password'),
-            displayName: any(named: 'displayName'),
-          ));
+      verifyNever(
+        () => dataSource.signUp(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+          displayName: any(named: 'displayName'),
+        ),
+      );
     });
 
     test('falls back to sign-in when signup returns no session', () async {
-      when(() => dataSource.signUp(
-            email: 'sara@test.local',
-            password: 'password123',
-            displayName: 'سارة',
-          )).thenAnswer((_) async => null);
+      when(
+        () => dataSource.signUp(
+          email: 'sara@test.local',
+          password: 'password123',
+          displayName: 'سارة',
+        ),
+      ).thenAnswer((_) async => null);
 
       // No session right after signup; the fallback sign-in establishes it.
       var currentUserIdCalls = 0;
-      when(() => dataSource.currentUserId()).thenAnswer(
-          (_) => currentUserIdCalls++ == 0 ? null : user.id);
-      when(() => dataSource.signIn(
-            email: 'sara@test.local',
-            password: 'password123',
-          )).thenAnswer((_) async => 'signed-in-after-signup');
+      when(() => dataSource.currentUserId())
+          .thenAnswer((_) => currentUserIdCalls++ == 0 ? null : user.id);
+      when(
+        () => dataSource.signIn(
+          email: 'sara@test.local',
+          password: 'password123',
+        ),
+      ).thenAnswer((_) async => 'signed-in-after-signup');
       when(() => dataSource.selectProfile(user.id))
           .thenAnswer((_) async => profileRow);
 
@@ -149,18 +164,22 @@ void main() {
       );
 
       expect(result.isSuccess, isTrue);
-      verify(() => dataSource.signIn(
-            email: 'sara@test.local',
-            password: 'password123',
-          )).called(1);
+      verify(
+        () => dataSource.signIn(
+          email: 'sara@test.local',
+          password: 'password123',
+        ),
+      ).called(1);
     });
 
     test('maps duplicate email to a stable non-revealing code', () async {
-      when(() => dataSource.signUp(
-            email: 'sara@test.local',
-            password: 'password123',
-            displayName: 'سارة',
-          )).thenThrow(_fakeAuthException(code: 'user_already_exists'));
+      when(
+        () => dataSource.signUp(
+          email: 'sara@test.local',
+          password: 'password123',
+          displayName: 'سارة',
+        ),
+      ).thenThrow(_fakeAuthException(code: 'user_already_exists'));
 
       final result = await repository.signUp(
         displayName: 'سارة',
@@ -174,10 +193,12 @@ void main() {
 
   group('signIn', () {
     test('maps a banned account to the suspended state', () async {
-      when(() => dataSource.signIn(
-            email: 'sara@test.local',
-            password: 'password123',
-          )).thenThrow(_fakeAuthException(code: 'user_banned'));
+      when(
+        () => dataSource.signIn(
+          email: 'sara@test.local',
+          password: 'password123',
+        ),
+      ).thenThrow(_fakeAuthException(code: 'user_banned'));
 
       final result = await repository.signIn(
         email: 'sara@test.local',
@@ -188,10 +209,12 @@ void main() {
     });
 
     test('maps invalid credentials to invalid_credentials', () async {
-      when(() => dataSource.signIn(
-            email: 'sara@test.local',
-            password: 'wrong-password',
-          )).thenThrow(_fakeAuthException(code: 'invalid_credentials'));
+      when(
+        () => dataSource.signIn(
+          email: 'sara@test.local',
+          password: 'wrong-password',
+        ),
+      ).thenThrow(_fakeAuthException(code: 'invalid_credentials'));
 
       final result = await repository.signIn(
         email: 'sara@test.local',
@@ -204,10 +227,12 @@ void main() {
     });
 
     test('loads the profile after a successful sign-in', () async {
-      when(() => dataSource.signIn(
-            email: 'sara@test.local',
-            password: 'password123',
-          )).thenAnswer((_) async => 'signed-in');
+      when(
+        () => dataSource.signIn(
+          email: 'sara@test.local',
+          password: 'password123',
+        ),
+      ).thenAnswer((_) async => 'signed-in');
       when(() => dataSource.currentUserId())
           .thenReturn('11111111-1111-1111-1111-111111111111');
       when(() => dataSource.selectProfile(user.id))
@@ -221,23 +246,28 @@ void main() {
       expect(result.isSuccess, isTrue);
     });
 
-    test('missing profile blocks authentication with missing_profile',
-        () async {
-      when(() => dataSource.signIn(
+    test(
+      'missing profile blocks authentication with missing_profile',
+      () async {
+        when(
+          () => dataSource.signIn(
             email: 'sara@test.local',
             password: 'password123',
-          )).thenAnswer((_) async => 'signed-in');
-      when(() => dataSource.currentUserId())
-          .thenReturn('11111111-1111-1111-1111-111111111111');
-      when(() => dataSource.selectProfile(user.id)).thenAnswer((_) async => null);
+          ),
+        ).thenAnswer((_) async => 'signed-in');
+        when(() => dataSource.currentUserId())
+            .thenReturn('11111111-1111-1111-1111-111111111111');
+        when(() => dataSource.selectProfile(user.id))
+            .thenAnswer((_) async => null);
 
-      final result = await repository.signIn(
-        email: 'sara@test.local',
-        password: 'password123',
-      );
+        final result = await repository.signIn(
+          email: 'sara@test.local',
+          password: 'password123',
+        );
 
-      expect(result.failureOrNull!.code, 'missing_profile');
-    });
+        expect(result.failureOrNull!.code, 'missing_profile');
+      },
+    );
   });
 
   group('loadCurrentProfile / session restore', () {
@@ -278,10 +308,12 @@ void main() {
 
   group('network errors', () {
     test('connectivity failures map to network code', () async {
-      when(() => dataSource.signIn(
-            email: 'sara@test.local',
-            password: 'password123',
-          )).thenThrow(Exception('Failed to fetch: SocketException'));
+      when(
+        () => dataSource.signIn(
+          email: 'sara@test.local',
+          password: 'password123',
+        ),
+      ).thenThrow(Exception('Failed to fetch: SocketException'));
 
       final result = await repository.signIn(
         email: 'sara@test.local',
@@ -292,15 +324,17 @@ void main() {
     });
   });
 
-  test('currentUserId and watchAuthState expose the session gateway shape',
-      () async {
-    when(() => dataSource.currentUserId()).thenReturn(user.id);
-    when(() => dataSource.watchUserIds())
-        .thenAnswer((_) => Stream.value(user.id));
+  test(
+    'currentUserId and watchAuthState expose the session gateway shape',
+    () async {
+      when(() => dataSource.currentUserId()).thenReturn(user.id);
+      when(() => dataSource.watchUserIds())
+          .thenAnswer((_) => Stream.value(user.id));
 
-    expect(repository.currentUserId, user.id);
-    await expectLater(repository.watchAuthState(), emits(user.id));
-  });
+      expect(repository.currentUserId, user.id);
+      await expectLater(repository.watchAuthState(), emits(user.id));
+    },
+  );
 }
 
 /// Minimal stand-in carrying the provider error shape we map from.

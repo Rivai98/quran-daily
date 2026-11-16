@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/core/localization/arabic_numerals.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/features/mushaf/data/reader_storage.dart';
 import 'package:quran_daily/features/mushaf/view/bookmarks_screen.dart';
+
 import '../../../helpers/widget_test_app.dart';
 
 void main() {
@@ -45,31 +46,28 @@ void main() {
     tester.view.resetDevicePixelRatio();
   });
 
-  testWidgets('renders surah and ayah metadata when present on bookmark', (tester) async {
+  testWidgets('renders surah and ayah metadata when present on bookmark', (
+    tester,
+  ) async {
     final storage = _DetailedStorage();
     await tester.pumpWidget(
-      buildArabicTestApp(
-        BookmarksScreen(
-          storage: storage,
-          onOpenPage: (_) {},
-        ),
-      ),
+      buildArabicTestApp(BookmarksScreen(storage: storage, onOpenPage: (_) {})),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(12)}'), findsOneWidget);
+    expect(
+      find.text(
+        '${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(12)}',
+      ),
+      findsOneWidget,
+    );
     expect(find.byType(PopupMenuButton<String>), findsOneWidget);
   });
 
   testWidgets('renders StatePanel when bookmarks are empty', (tester) async {
     final storage = _EmptyStorage();
     await tester.pumpWidget(
-      buildArabicTestApp(
-        BookmarksScreen(
-          storage: storage,
-          onOpenPage: (_) {},
-        ),
-      ),
+      buildArabicTestApp(BookmarksScreen(storage: storage, onOpenPage: (_) {})),
     );
     await tester.pumpAndSettle();
 
@@ -77,17 +75,20 @@ void main() {
     expect(find.text(ArabicStrings.bookmarksEmptyHint), findsOneWidget);
   });
 
-  testWidgets('license page credits both data sources with cards, versions and links', (tester) async {
-    await tester.pumpWidget(buildArabicTestApp(const MushafLicensesScreen()));
-    expect(find.text(ArabicStrings.kfgqpcAttribution), findsOneWidget);
-    expect(find.text(ArabicStrings.tanzilAttribution), findsOneWidget);
-    expect(find.text(ArabicStrings.kfgqpcSourceName), findsOneWidget);
-    expect(find.text(ArabicStrings.tanzilSourceName), findsOneWidget);
-    expect(find.text(ArabicStrings.kfgqpcVersion), findsOneWidget);
-    expect(find.text(ArabicStrings.tanzilVersion), findsOneWidget);
-    expect(find.text(ArabicStrings.kfgqpcLink), findsOneWidget);
-    expect(find.text(ArabicStrings.tanzilLink), findsOneWidget);
-  });
+  testWidgets(
+    'license page credits both data sources with cards, versions and links',
+    (tester) async {
+      await tester.pumpWidget(buildArabicTestApp(const MushafLicensesScreen()));
+      expect(find.text(ArabicStrings.kfgqpcAttribution), findsOneWidget);
+      expect(find.text(ArabicStrings.tanzilAttribution), findsOneWidget);
+      expect(find.text(ArabicStrings.kfgqpcSourceName), findsOneWidget);
+      expect(find.text(ArabicStrings.tanzilSourceName), findsOneWidget);
+      expect(find.text(ArabicStrings.kfgqpcVersion), findsOneWidget);
+      expect(find.text(ArabicStrings.tanzilVersion), findsOneWidget);
+      expect(find.text(ArabicStrings.kfgqpcLink), findsOneWidget);
+      expect(find.text(ArabicStrings.tanzilLink), findsOneWidget);
+    },
+  );
 }
 
 class _EmptyStorage implements ReaderStorage {

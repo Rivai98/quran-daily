@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../app_colors.dart';
 import '../app_typography.dart';
@@ -16,10 +16,7 @@ enum AppBadgeVariant {
 }
 
 /// Sizing for [AppBadge].
-enum AppBadgeSize {
-  small,
-  regular,
-}
+enum AppBadgeSize { small, regular }
 
 /// A compact, accessible status/role/count badge (Constitution Principle VI & ui-craft.md).
 ///
@@ -68,7 +65,10 @@ class AppBadge extends StatelessWidget {
 
     final (defaultFg, defaultBg) = switch (variant) {
       AppBadgeVariant.primary => (colors.primary, colors.primaryContainer),
-      AppBadgeVariant.tonal => (colors.onPrimaryContainer, colors.primaryContainer),
+      AppBadgeVariant.tonal => (
+        colors.onPrimaryContainer,
+        colors.primaryContainer,
+      ),
       AppBadgeVariant.surface => (colors.ink, colors.surface),
       AppBadgeVariant.neutral => (colors.inkMuted, colors.surfaceMuted),
       AppBadgeVariant.info => (colors.infoFg, colors.infoBg),
@@ -87,12 +87,7 @@ class AppBadge extends StatelessWidget {
         : AppTypography.label.copyWith(color: fg, height: 1.2);
     final iconSize = isSmall ? 14.0 : 16.0;
     final padding = isSmall
-        ? const EdgeInsetsDirectional.only(
-            start: 6,
-            end: 8,
-            top: 2,
-            bottom: 2,
-          )
+        ? const EdgeInsetsDirectional.only(start: 6, end: 8, top: 2, bottom: 2)
         : const EdgeInsetsDirectional.only(
             start: 8,
             end: 12,
@@ -106,9 +101,7 @@ class AppBadge extends StatelessWidget {
       child: Container(
         decoration: ShapeDecoration(
           color: bg,
-          shape: StadiumBorder(
-            side: BorderSide(color: border, width: 1),
-          ),
+          shape: StadiumBorder(side: BorderSide(color: border, width: 1)),
         ),
         padding: padding,
         child: Row(
@@ -141,10 +134,10 @@ class _AppRoleBadge extends AppBadge {
     IconData? icon,
     bool isOwner = false,
   }) : super(
-          icon: icon ?? (isOwner ? Icons.stars_rounded : Icons.shield_outlined),
-          variant: isOwner ? AppBadgeVariant.primary : AppBadgeVariant.tonal,
-          size: AppBadgeSize.small,
-        );
+         icon: icon ?? (isOwner ? Icons.stars_rounded : Icons.shield_outlined),
+         variant: isOwner ? AppBadgeVariant.primary : AppBadgeVariant.tonal,
+         size: AppBadgeSize.small,
+       );
 }
 
 class _AppCountBadge extends AppBadge {
@@ -152,7 +145,5 @@ class _AppCountBadge extends AppBadge {
     super.key,
     required super.label,
     super.variant = AppBadgeVariant.neutral,
-  }) : super(
-          size: AppBadgeSize.small,
-        );
+  }) : super(size: AppBadgeSize.small);
 }

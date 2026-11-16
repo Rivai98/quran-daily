@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../core/design_system/app_colors.dart';
 import '../../../../core/design_system/app_spacing.dart';
@@ -140,8 +140,8 @@ class PublicGroupCard extends StatelessWidget {
       ),
     );
   }
-
 }
+
 class _MetadataItem extends StatelessWidget {
   const _MetadataItem({required this.icon, required this.label});
 

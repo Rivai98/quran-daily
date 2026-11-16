@@ -8,12 +8,10 @@ import 'log_repository.dart';
 
 class LogRepositoryImpl implements LogRepository {
   const LogRepositoryImpl({
-    required LogRemoteDataSource remote,
-    required CachedHistoryDao cache,
-    required SessionGateway session,
-  }) : _remote = remote,
-       _cache = cache,
-       _session = session;
+    required this._remote,
+    required this._cache,
+    required this._session,
+  });
   final LogRemoteDataSource _remote;
   final CachedHistoryDao _cache;
   final SessionGateway _session;

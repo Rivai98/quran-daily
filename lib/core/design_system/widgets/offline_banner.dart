@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../localization/arabic_strings.dart';
 import '../app_colors.dart';
@@ -47,11 +47,7 @@ class OfflineBanner extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.only(top: 2),
-              child: Icon(
-                icon,
-                size: 20,
-                color: colors.pendingFg,
-              ),
+              child: Icon(icon, size: 20, color: colors.pendingFg),
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
@@ -83,7 +79,9 @@ class OfflineBanner extends StatelessWidget {
                 onPressed: onRetry,
                 style: TextButton.styleFrom(
                   foregroundColor: colors.pendingFg,
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                  ),
                   minimumSize: const Size(48, 36),
                 ),
                 child: Text(

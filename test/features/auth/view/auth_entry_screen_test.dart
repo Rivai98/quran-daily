@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -20,9 +20,8 @@ void main() {
 
   setUp(() {
     repository = _MockAuthRepository();
-    when(
-      () => repository.watchAuthState(),
-    ).thenAnswer((_) => const Stream.empty());
+    when(() => repository.watchAuthState())
+        .thenAnswer((_) => const Stream.empty());
   });
 
   Finder primaryButton() => find
@@ -349,9 +348,8 @@ void main() {
 
     await tester.tap(find.text(ArabicStrings.retry));
     await tester.pump();
-    verify(
-      () => repository.loadCurrentProfile(),
-    ).called(greaterThanOrEqualTo(1));
+    verify(() => repository.loadCurrentProfile())
+        .called(greaterThanOrEqualTo(1));
   });
 
   testWidgets('renders in all constitution variants without overflow', (

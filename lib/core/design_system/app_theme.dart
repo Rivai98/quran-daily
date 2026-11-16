@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'app_colors.dart';
 import 'app_radius.dart';
@@ -42,9 +42,11 @@ class AppTheme {
     );
 
     final buttonBase = ButtonStyle(
-      shape: const WidgetStatePropertyAll(RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(AppRadius.md)),
-      )),
+      shape: const WidgetStatePropertyAll(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(AppRadius.md)),
+        ),
+      ),
       textStyle: const WidgetStatePropertyAll(AppTypography.label),
       minimumSize: const WidgetStatePropertyAll(Size(64, 48)),
       tapTargetSize: MaterialTapTargetSize.padded,
@@ -156,7 +158,9 @@ class AppTheme {
         modalBackgroundColor: c.surface,
         showDragHandle: true,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadius.xl),
+          ),
         ),
       ),
       dialogTheme: DialogThemeData(

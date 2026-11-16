@@ -9,12 +9,10 @@ import 'reminders_repository.dart';
 
 class RemindersRepositoryImpl implements RemindersRepository {
   RemindersRepositoryImpl({
-    required RpcClient rpc,
+    required this._rpc,
     Future<SharedPreferences> Function()? preferences,
-    Future<void> Function()? onChanged,
-  }) : _rpc = rpc,
-       _preferences = preferences ?? SharedPreferences.getInstance,
-       _onChanged = onChanged;
+    this._onChanged,
+  }) : _preferences = preferences ?? SharedPreferences.getInstance;
 
   final RpcClient _rpc;
   final Future<SharedPreferences> Function() _preferences;

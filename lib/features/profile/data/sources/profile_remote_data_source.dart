@@ -11,5 +11,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   final RpcClient _rpc;
 
   @override
-  Future<Result<dynamic>> getMyProfile() => _rpc.call<dynamic>('get_my_profile');
+  Future<Result<dynamic>> getMyProfile() =>
+      _rpc.call<dynamic>('get_my_profile');
 }

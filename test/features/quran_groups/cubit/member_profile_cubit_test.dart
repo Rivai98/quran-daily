@@ -53,9 +53,8 @@ void main() {
     test(
       'load emits [loading, success] on successful repository call',
       () async {
-        when(
-          () => repository.getMemberProfile('u1', 'g1'),
-        ).thenAnswer((_) async => Success(sampleProfile));
+        when(() => repository.getMemberProfile('u1', 'g1'))
+            .thenAnswer((_) async => Success(sampleProfile));
 
         final expectedStates = [
           const MemberProfileState(status: MemberProfileStatus.loading),
@@ -78,9 +77,8 @@ void main() {
           message: 'not_member',
           code: 'not_member',
         );
-        when(
-          () => repository.getMemberProfile('u1', 'g1'),
-        ).thenAnswer((_) async => const FailureResult(failure));
+        when(() => repository.getMemberProfile('u1', 'g1'))
+            .thenAnswer((_) async => const FailureResult(failure));
 
         final expectedStates = [
           const MemberProfileState(status: MemberProfileStatus.loading),
@@ -98,9 +96,8 @@ void main() {
 
     test('load emits [loading, offline] on NetworkFailure', () async {
       const failure = NetworkFailure(message: 'offline', code: 'network');
-      when(
-        () => repository.getMemberProfile('u1', 'g1'),
-      ).thenAnswer((_) async => const FailureResult(failure));
+      when(() => repository.getMemberProfile('u1', 'g1'))
+          .thenAnswer((_) async => const FailureResult(failure));
 
       final expectedStates = [
         const MemberProfileState(status: MemberProfileStatus.loading),
@@ -117,9 +114,8 @@ void main() {
 
     test('load emits [loading, failure] on generic failure', () async {
       const failure = UnknownFailure(message: 'error', code: 'server_error');
-      when(
-        () => repository.getMemberProfile('u1', 'g1'),
-      ).thenAnswer((_) async => const FailureResult(failure));
+      when(() => repository.getMemberProfile('u1', 'g1'))
+          .thenAnswer((_) async => const FailureResult(failure));
 
       final expectedStates = [
         const MemberProfileState(status: MemberProfileStatus.loading),
@@ -135,9 +131,8 @@ void main() {
     });
 
     test('refresh re-loads current profile', () async {
-      when(
-        () => repository.getMemberProfile('u1', 'g1'),
-      ).thenAnswer((_) async => Success(sampleProfile));
+      when(() => repository.getMemberProfile('u1', 'g1'))
+          .thenAnswer((_) async => Success(sampleProfile));
 
       await cubit.load('u1', 'g1');
       await cubit.refresh();

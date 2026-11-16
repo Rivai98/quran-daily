@@ -14,9 +14,8 @@ export 'auth_state.dart';
 /// One application-level auth ViewModel (spec 002): session bootstrap,
 /// entry-form mode, submit guards, sign-out, and expiry events.
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit({required AuthRepository repository, this.googleSignInEnabled = false})
-      : _repository = repository,
-        super(const AuthState()) {
+  AuthCubit({required this._repository, this.googleSignInEnabled = false})
+    : super(const AuthState()) {
     _subscription = _repository.watchAuthState().listen(_onAuthEvent);
   }
 
@@ -43,18 +42,22 @@ class AuthCubit extends Cubit<AuthState> {
           state.status == AuthStatus.signingOut) {
         return;
       }
-      emit(state.copyWith(
-        status: AuthStatus.unauthenticated,
-        mode: AuthMode.login,
-        clearProfile: true,
-        clearFailure: true,
-      ));
+      emit(
+        state.copyWith(
+          status: AuthStatus.unauthenticated,
+          mode: AuthMode.login,
+          clearProfile: true,
+          clearFailure: true,
+        ),
+      );
     }
   }
 
   /// Resolves the persisted session before private navigation opens.
   Future<void> bootstrap() async {
-    emit(state.copyWith(status: AuthStatus.checkingSession, clearFailure: true));
+    emit(
+      state.copyWith(status: AuthStatus.checkingSession, clearFailure: true),
+    );
     final userId = _repository.currentUserId;
     _lastUserId = userId;
     if (userId == null) {
@@ -101,11 +104,13 @@ class AuthCubit extends Cubit<AuthState> {
       _failValidation('password_mismatch');
       return;
     }
-    await _submit(() => _repository.signUp(
-          displayName: displayName,
-          email: email,
-          password: password,
-        ));
+    await _submit(
+      () => _repository.signUp(
+        displayName: displayName,
+        email: email,
+        password: password,
+      ),
+    );
   }
 
   Future<void> signInWithGoogle() async {
@@ -113,14 +118,17 @@ class AuthCubit extends Cubit<AuthState> {
     emit(state.copyWith(status: AuthStatus.submitting, clearFailure: true));
     final result = await _repository.signInWithGoogle();
     if (result == null) {
-      emit(state.copyWith(status: AuthStatus.unauthenticated, clearFailure: true));
+      emit(
+        state.copyWith(status: AuthStatus.unauthenticated, clearFailure: true),
+      );
       return;
     }
     result.when(
-      success: (user) => emit(state.copyWith(
-        status: AuthStatus.authenticated, profile: user.profile)),
-      failure: (failure) => emit(state.copyWith(
-        status: AuthStatus.failure, failure: failure)),
+      success: (user) => emit(
+        state.copyWith(status: AuthStatus.authenticated, profile: user.profile),
+      ),
+      failure: (failure) =>
+          emit(state.copyWith(status: AuthStatus.failure, failure: failure)),
     );
   }
 
@@ -136,48 +144,53 @@ class AuthCubit extends Cubit<AuthState> {
     emit(state.copyWith(status: AuthStatus.signingOut));
     await _repository.signOut();
     _lastUserId = null;
-    emit(state.copyWith(
-      status: AuthStatus.unauthenticated,
-      mode: AuthMode.login,
-      clearProfile: true,
-      clearFailure: true,
-    ));
+    emit(
+      state.copyWith(
+        status: AuthStatus.unauthenticated,
+        mode: AuthMode.login,
+        clearProfile: true,
+        clearFailure: true,
+      ),
+    );
   }
 
   Future<void> _loadProfile() async {
     emit(state.copyWith(status: AuthStatus.loadingProfile, clearFailure: true));
     final result = await _repository.loadCurrentProfile();
     result.when(
-      success: (UserProfile profile) =>
-          emit(state.copyWith(status: AuthStatus.authenticated, profile: profile)),
-      failure: (AppFailure failure) => emit(state.copyWith(
-            status: AuthStatus.profileFailure,
-            failure: failure,
-          )),
+      success: (UserProfile profile) => emit(
+        state.copyWith(status: AuthStatus.authenticated, profile: profile),
+      ),
+      failure: (AppFailure failure) => emit(
+        state.copyWith(status: AuthStatus.profileFailure, failure: failure),
+      ),
     );
   }
 
   Future<void> _submit(
-      Future<Result<AuthenticatedUser>> Function() call) async {
+    Future<Result<AuthenticatedUser>> Function() call,
+  ) async {
     emit(state.copyWith(status: AuthStatus.submitting, clearFailure: true));
     final result = await call();
     result.when(
-      success: (AuthenticatedUser authenticated) => emit(state.copyWith(
-            status: AuthStatus.authenticated,
-            profile: authenticated.profile,
-          )),
-      failure: (AppFailure failure) => emit(state.copyWith(
-            status: AuthStatus.failure,
-            failure: failure,
-          )),
+      success: (AuthenticatedUser authenticated) => emit(
+        state.copyWith(
+          status: AuthStatus.authenticated,
+          profile: authenticated.profile,
+        ),
+      ),
+      failure: (AppFailure failure) =>
+          emit(state.copyWith(status: AuthStatus.failure, failure: failure)),
     );
   }
 
   void _failValidation([String code = 'validation_failed']) {
-    emit(state.copyWith(
-      status: AuthStatus.failure,
-      failure: AuthFailure(message: 'invalid input', code: code),
-    ));
+    emit(
+      state.copyWith(
+        status: AuthStatus.failure,
+        failure: AuthFailure(message: 'invalid input', code: code),
+      ),
+    );
   }
 
   bool _validEmail(String raw) =>

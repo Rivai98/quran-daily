@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 import '../../../../core/quran/portion_unit.dart';
 
 /// Shared entities of the quran_groups feature (data-model "read models").
@@ -296,8 +297,8 @@ class Assignment extends Equatable {
     this.reader,
     this.isMe = false,
     this.completedAt,
-    int? portionIndex,
-  }) : _portionIndex = portionIndex;
+    this._portionIndex,
+  });
 
   final String assignmentId;
   final int juz;

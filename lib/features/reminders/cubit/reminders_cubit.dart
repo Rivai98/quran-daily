@@ -62,11 +62,10 @@ class RemindersState extends Equatable {
 /// device-local mutes. It contains no widget or copy dependencies.
 class RemindersCubit extends Cubit<RemindersState> {
   RemindersCubit({
-    required RemindersRepository repository,
+    required this._repository,
     this.showTestNotification,
     this.requestPermissions,
-  }) : _repository = repository,
-       super(const RemindersState());
+  }) : super(const RemindersState());
 
   final RemindersRepository _repository;
   final Future<void> Function()? showTestNotification;

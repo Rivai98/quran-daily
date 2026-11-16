@@ -9,7 +9,9 @@ import 'package:quran_daily/features/quran_groups/data/repositories/khatma_repos
 import '../../../helpers/test_fixtures.dart';
 
 class _MockRemote extends Mock implements KhatmaRemoteDataSource {}
+
 class _MockHistoryDao extends Mock implements CachedHistoryDao {}
+
 class _MockSnapshots extends Mock implements CachedSnapshotsDao {}
 
 void main() {
@@ -67,7 +69,9 @@ void main() {
 
     test('offline fallback returns cached days when available', () async {
       when(() => remote.call('get_history', any())).thenAnswer(
-        (_) async => const FailureResult(NetworkFailure(message: 'offline', code: 'network')),
+        (_) async => const FailureResult(
+          NetworkFailure(message: 'offline', code: 'network'),
+        ),
       );
 
       when(() => historyDao.read(groupId)).thenAnswer(
@@ -81,8 +85,8 @@ void main() {
                 'missed_count': 0,
                 'unread_count': 0,
                 'full_khatma': true,
-              }
-            ]
+              },
+            ],
           },
           cachedAt: DateTime(2026, 11, 14),
         ),
@@ -98,7 +102,9 @@ void main() {
 
     test('offline without cache returns NetworkFailure', () async {
       when(() => remote.call('get_history', any())).thenAnswer(
-        (_) async => const FailureResult(NetworkFailure(message: 'offline', code: 'network')),
+        (_) async => const FailureResult(
+          NetworkFailure(message: 'offline', code: 'network'),
+        ),
       );
       when(() => historyDao.read(groupId)).thenAnswer((_) async => null);
 
@@ -108,18 +114,26 @@ void main() {
       expect(result.failureOrNull, isA<NetworkFailure>());
     });
 
-    test('paging passes beforeDate to remote call and does not overwrite cache', () async {
-      when(() => remote.call('get_history', {
-        'p_group_id': groupId,
-        'p_before_date': '2026-11-13',
-        'p_limit': 30,
-      })).thenAnswer((_) async => const Success([]));
+    test(
+      'paging passes beforeDate to remote call and does not overwrite cache',
+      () async {
+        when(
+          () => remote.call('get_history', {
+            'p_group_id': groupId,
+            'p_before_date': '2026-11-13',
+            'p_limit': 30,
+          }),
+        ).thenAnswer((_) async => const Success([]));
 
-      final result = await repository.getHistory(groupId, beforeDate: '2026-11-13');
+        final result = await repository.getHistory(
+          groupId,
+          beforeDate: '2026-11-13',
+        );
 
-      expect(result.isSuccess, isTrue);
-      verifyNever(() => historyDao.upsert(any(), any()));
-    });
+        expect(result.isSuccess, isTrue);
+        verifyNever(() => historyDao.upsert(any(), any()));
+      },
+    );
   });
 
   group('getHistoryDay', () {
@@ -149,14 +163,16 @@ void main() {
             'status': 'completed',
             'reader_display_name': 'المالك',
             'is_me': false,
-          }
+          },
         ],
       };
 
-      when(() => remote.call('get_history_day', {
-        'p_group_id': groupId,
-        'p_group_date': '2026-11-10',
-      })).thenAnswer((_) async => Success(dayPayload));
+      when(
+        () => remote.call('get_history_day', {
+          'p_group_id': groupId,
+          'p_group_date': '2026-11-10',
+        }),
+      ).thenAnswer((_) async => Success(dayPayload));
 
       final result = await repository.getHistoryDay(groupId, '2026-11-10');
 
@@ -170,7 +186,9 @@ void main() {
 
     test('error maps failure', () async {
       when(() => remote.call('get_history_day', any())).thenAnswer(
-        (_) async => const FailureResult(UnknownFailure(message: 'day_not_found', code: 'day_not_found')),
+        (_) async => const FailureResult(
+          UnknownFailure(message: 'day_not_found', code: 'day_not_found'),
+        ),
       );
 
       final result = await repository.getHistoryDay(groupId, '2026-11-01');

@@ -23,9 +23,9 @@ class GoogleSignInAuthClient implements GoogleAuthClient {
   Future<void>? _initialization;
 
   Future<void> _initialize() => _initialization ??= _googleSignIn.initialize(
-        serverClientId: webClientId,
-        clientId: iosClientId.isEmpty ? null : iosClientId,
-      );
+    serverClientId: webClientId,
+    clientId: iosClientId.isEmpty ? null : iosClientId,
+  );
 
   @override
   Future<GoogleAuthTokens?> authenticate() async {

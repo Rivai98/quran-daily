@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../app_colors.dart';
 
@@ -29,11 +29,13 @@ class HalaqaLogo extends StatelessWidget {
     final dark = isDark ?? (Theme.of(context).brightness == Brightness.dark);
     final themeColors = Theme.of(context).extension<AppColors>();
     final defaultColors = dark ? AppColors.dark : AppColors.light;
-    final resolvedColor = color ??
+    final resolvedColor =
+        color ??
         (isDark != null
             ? defaultColors.primary
             : (themeColors?.primary ?? defaultColors.primary));
-    final resolvedGold = goldColor ??
+    final resolvedGold =
+        goldColor ??
         (isDark != null
             ? defaultColors.accent
             : (themeColors?.accent ?? defaultColors.accent));
@@ -52,10 +54,7 @@ class HalaqaLogo extends StatelessWidget {
 }
 
 class HalaqaLogoPainter extends CustomPainter {
-  const HalaqaLogoPainter({
-    required this.color,
-    required this.goldColor,
-  });
+  const HalaqaLogoPainter({required this.color, required this.goldColor});
 
   final Color color;
   final Color goldColor;

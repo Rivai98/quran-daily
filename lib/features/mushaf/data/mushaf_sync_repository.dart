@@ -30,14 +30,11 @@ class MushafSyncReport {
 /// Transient failures stop the pass and keep the queue for the next one.
 class MushafSyncRepository {
   MushafSyncRepository({
-    required MushafRemoteDataSource remote,
-    required ReaderSyncStore Function(String userId) storeFor,
-    required String? Function() currentUserId,
-    Duration debounce = const Duration(seconds: 2),
-  }) : _remote = remote,
-       _storeFor = storeFor,
-       _currentUserId = currentUserId,
-       _debounce = debounce;
+    required this._remote,
+    required this._storeFor,
+    required this._currentUserId,
+    this._debounce = const Duration(seconds: 2),
+  });
 
   static const positionUpsert = 'position_upsert';
   static const bookmarkUpsert = 'bookmark_upsert';
@@ -151,8 +148,7 @@ class MushafSyncRepository {
 
 /// [ReaderStorage] that schedules a background sync after each local write.
 class SyncingReaderStorage implements ReaderStorage {
-  SyncingReaderStorage(this._inner, {required void Function() onLocalChange})
-    : _onLocalChange = onLocalChange;
+  SyncingReaderStorage(this._inner, {required this._onLocalChange});
 
   final ReaderStorage _inner;
   final void Function() _onLocalChange;

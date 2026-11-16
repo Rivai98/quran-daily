@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
@@ -363,9 +363,9 @@ class _AdminListScreenState extends State<_AdminListScreen> {
                   child: AppCard(
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.primaryContainer,
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .primaryContainer,
                         foregroundColor: Theme.of(context).colorScheme.primary,
                         child: Icon(
                           widget.groups

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/core/design_system/app_theme.dart';
@@ -8,6 +8,7 @@ import 'package:quran_daily/features/reminders/data/reminders_repository.dart';
 import 'package:quran_daily/features/reminders/domain/reminder_planner.dart';
 import 'package:quran_daily/features/reminders/view/group_reminder_section.dart';
 import 'package:quran_daily/features/reminders/view/reminder_settings_section.dart';
+
 import '../../../helpers/widget_test_app.dart';
 
 void main() {

@@ -37,9 +37,8 @@ void main() {
   blocTest<DashboardCubit, DashboardState>(
     'volunteer success updates the dashboard snapshot',
     build: () {
-      when(
-        () => repository.volunteer('a1'),
-      ).thenAnswer((_) async => Success(snapshot(available: 0)));
+      when(() => repository.volunteer('a1'))
+          .thenAnswer((_) async => Success(snapshot(available: 0)));
       return DashboardCubit(
         repository: repository,
         groupId: 'g1',
@@ -72,9 +71,8 @@ void main() {
           SyncConflictFailure(message: 'taken', code: 'juz_already_taken'),
         ),
       );
-      when(
-        () => repository.getDashboard('g1'),
-      ).thenAnswer((_) async => Success(snapshot(available: 0)));
+      when(() => repository.getDashboard('g1'))
+          .thenAnswer((_) async => Success(snapshot(available: 0)));
       return DashboardCubit(
         repository: repository,
         groupId: 'g1',

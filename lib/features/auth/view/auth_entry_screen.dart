@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/design_system/app_colors.dart';
@@ -395,9 +395,7 @@ class _ModeToggle extends StatelessWidget {
             child: Text(
               label,
               style: AppTypography.label.copyWith(
-                color: selected
-                    ? colors.onPrimaryContainer
-                    : colors.inkMuted,
+                color: selected ? colors.onPrimaryContainer : colors.inkMuted,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               ),
               maxLines: 1,

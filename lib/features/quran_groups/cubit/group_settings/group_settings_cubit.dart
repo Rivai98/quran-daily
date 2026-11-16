@@ -70,9 +70,8 @@ class GroupSettingsState extends Equatable {
 /// archive. Owner-only actions are enforced server-side; the cubit maps
 /// the failure kinds.
 class GroupSettingsCubit extends Cubit<GroupSettingsState> {
-  GroupSettingsCubit({required GroupsRepository repository})
-    : _repository = repository,
-      super(const GroupSettingsState());
+  GroupSettingsCubit({required this._repository})
+    : super(const GroupSettingsState());
 
   final GroupsRepository _repository;
 

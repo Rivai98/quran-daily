@@ -8,12 +8,18 @@ class TodayRemoteDataSource {
     if (result.isFailure) throw result.failureOrNull!;
     return result.valueOrNull;
   }
+
   Future<void> setMainGroup(String? groupId) async {
-    final result = await _rpc.call<Object?>('set_main_group', {'p_group_id': groupId});
+    final result = await _rpc.call<Object?>('set_main_group', {
+      'p_group_id': groupId,
+    });
     if (result.isFailure) throw result.failureOrNull!;
   }
+
   Future<void> markGroupOpened(String groupId) async {
-    final result = await _rpc.call<Object?>('mark_group_opened', {'p_group_id': groupId});
+    final result = await _rpc.call<Object?>('mark_group_opened', {
+      'p_group_id': groupId,
+    });
     if (result.isFailure) throw result.failureOrNull!;
   }
 }

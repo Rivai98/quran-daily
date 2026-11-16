@@ -7,13 +7,7 @@ import '../../../../core/errors/failures.dart';
 import '../../data/entities/entities.dart';
 import '../../data/repositories/groups_repository.dart';
 
-enum GroupInfoStatus {
-  initial,
-  loading,
-  success,
-  offline,
-  failure,
-}
+enum GroupInfoStatus { initial, loading, success, offline, failure }
 
 class GroupInfoState extends Equatable {
   const GroupInfoState({
@@ -52,13 +46,13 @@ class GroupInfoState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        groupInfo,
-        failure,
-        isUpdatingDetails,
-        isUploadingPhoto,
-        actionError,
-      ];
+    status,
+    groupInfo,
+    failure,
+    isUpdatingDetails,
+    isUploadingPhoto,
+    actionError,
+  ];
 }
 
 class GroupInfoCubit extends Cubit<GroupInfoState> {
@@ -150,8 +144,10 @@ class GroupInfoCubit extends Cubit<GroupInfoState> {
     );
     return await uploadResult.when(
       success: (storagePath) async {
-        final setResult =
-            await _repository.setGroupPhoto(_groupId!, storagePath);
+        final setResult = await _repository.setGroupPhoto(
+          _groupId!,
+          storagePath,
+        );
         return setResult.when(
           success: (_) {
             if (state.groupInfo != null) {
@@ -168,22 +164,14 @@ class GroupInfoCubit extends Cubit<GroupInfoState> {
           },
           failure: (f) {
             emit(
-              state.copyWith(
-                isUploadingPhoto: false,
-                actionError: f.message,
-              ),
+              state.copyWith(isUploadingPhoto: false, actionError: f.message),
             );
             return false;
           },
         );
       },
       failure: (f) {
-        emit(
-          state.copyWith(
-            isUploadingPhoto: false,
-            actionError: f.message,
-          ),
-        );
+        emit(state.copyWith(isUploadingPhoto: false, actionError: f.message));
         return false;
       },
     );
@@ -208,12 +196,7 @@ class GroupInfoCubit extends Cubit<GroupInfoState> {
         return true;
       },
       failure: (f) {
-        emit(
-          state.copyWith(
-            isUploadingPhoto: false,
-            actionError: f.message,
-          ),
-        );
+        emit(state.copyWith(isUploadingPhoto: false, actionError: f.message));
         return false;
       },
     );

@@ -1,8 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'
+    show GlobalWidgetsLocalizations;
 import 'package:app_links/app_links.dart';
 
 import '../core/di/service_locator.dart';
@@ -27,8 +29,7 @@ import '../features/home/cubit/home_cubit.dart';
 import 'router.dart';
 
 class QuranDailyApp extends StatefulWidget {
-  const QuranDailyApp({super.key, AuthCubit? authCubit})
-    : _authCubit = authCubit;
+  const QuranDailyApp({super.key, this._authCubit});
 
   final AuthCubit? _authCubit;
 
@@ -227,9 +228,7 @@ class AppSplashScreen extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     ArabicStrings.signInHint,
-                    style: AppTypography.body.copyWith(
-                      color: colors.inkMuted,
-                    ),
+                    style: AppTypography.body.copyWith(color: colors.inkMuted),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppSpacing.xl),

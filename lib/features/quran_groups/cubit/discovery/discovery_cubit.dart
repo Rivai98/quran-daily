@@ -45,9 +45,7 @@ class DiscoveryState extends Equatable {
 /// S2 discovery view model. Search keystrokes are coalesced before querying;
 /// page and join state remain local to the discovery result set.
 class DiscoveryCubit extends Cubit<DiscoveryState> {
-  DiscoveryCubit({required GroupsRepository repository})
-    : _repository = repository,
-      super(const DiscoveryState());
+  DiscoveryCubit({required this._repository}) : super(const DiscoveryState());
 
   static const pageSize = 20;
   static const debounceDuration = Duration(milliseconds: 400);

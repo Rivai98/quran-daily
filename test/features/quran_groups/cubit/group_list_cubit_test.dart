@@ -24,8 +24,9 @@ void main() {
     'loading my groups with data ends success',
     build: build,
     setUp: () => when(() => repo.getMyGroups()).thenAnswer(
-        (_) async => Success(TestFixtures.overview(
-            groups: [TestFixtures.myGroup()]))),
+      (_) async =>
+          Success(TestFixtures.overview(groups: [TestFixtures.myGroup()])),
+    ),
     act: (cubit) => cubit.refresh(),
     expect: () => [
       const GroupListState(status: GroupListStatus.loading),
@@ -38,22 +39,28 @@ void main() {
   blocTest<GroupListCubit, GroupListState>(
     'no groups ends empty with entry points',
     build: build,
-    setUp: () => when(() => repo.getMyGroups())
-        .thenAnswer((_) async => Success(TestFixtures.overview())),
+    setUp: () =>
+        when(() => repo.getMyGroups())
+            .thenAnswer((_) async => Success(TestFixtures.overview())),
     act: (cubit) => cubit.refresh(),
     expect: () => [
       const GroupListState(status: GroupListStatus.loading),
-      isA<GroupListState>()
-          .having((s) => s.status, 'status', GroupListStatus.empty),
+      isA<GroupListState>().having(
+        (s) => s.status,
+        'status',
+        GroupListStatus.empty,
+      ),
     ],
   );
 
   blocTest<GroupListCubit, GroupListState>(
     'stale cache maps to offline status with data',
     build: build,
-    setUp: () => when(() => repo.getMyGroups()).thenAnswer((_) async =>
-        Success(TestFixtures.overview(
-            groups: [TestFixtures.myGroup()], stale: true))),
+    setUp: () => when(() => repo.getMyGroups()).thenAnswer(
+      (_) async => Success(
+        TestFixtures.overview(groups: [TestFixtures.myGroup()], stale: true),
+      ),
+    ),
     act: (cubit) => cubit.refresh(),
     expect: () => [
       const GroupListState(status: GroupListStatus.loading),
@@ -67,8 +74,9 @@ void main() {
     'failure maps to failure status with the failure',
     build: build,
     setUp: () => when(() => repo.getMyGroups()).thenAnswer(
-        (_) async => const FailureResult(
-            NetworkFailure(message: 'n', code: 'network'))),
+      (_) async =>
+          const FailureResult(NetworkFailure(message: 'n', code: 'network')),
+    ),
     act: (cubit) => cubit.refresh(),
     expect: () => [
       const GroupListState(status: GroupListStatus.loading),
@@ -95,12 +103,16 @@ void main() {
         ],
       ),
     ),
-    setUp: () => when(() => repo.cancelJoinRequest('jr1'))
-        .thenAnswer((_) async => const Success<void>(null)),
+    setUp: () =>
+        when(() => repo.cancelJoinRequest('jr1'))
+            .thenAnswer((_) async => const Success<void>(null)),
     act: (cubit) => cubit.cancelJoinRequest('jr1'),
     expect: () => [
-      isA<GroupListState>()
-          .having((s) => s.overview!.pendingRequests, 'pending', isEmpty),
+      isA<GroupListState>().having(
+        (s) => s.overview!.pendingRequests,
+        'pending',
+        isEmpty,
+      ),
     ],
     verify: (_) => verify(() => repo.cancelJoinRequest('jr1')).called(1),
   );

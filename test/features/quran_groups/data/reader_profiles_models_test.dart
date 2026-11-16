@@ -44,7 +44,10 @@ void main() {
       expect(assignment.reader!.userId, 'u-456');
       expect(assignment.reader!.displayName, 'أحمد علي');
       expect(assignment.reader!.initials, 'أ ع');
-      expect(assignment.completedAt, DateTime.parse('2026-11-15T10:30:00.000Z'));
+      expect(
+        assignment.completedAt,
+        DateTime.parse('2026-11-15T10:30:00.000Z'),
+      );
 
       final serialized = assignmentToJson(assignment);
       expect(serialized['reader'], json['reader']);
@@ -92,11 +95,7 @@ void main() {
           'seat_number': 14,
           'kind': 'seat',
           'status': 'completed',
-          'reader': {
-            'user_id': 'u-me',
-            'display_name': 'عمر',
-            'initials': 'ع',
-          },
+          'reader': {'user_id': 'u-me', 'display_name': 'عمر', 'initials': 'ع'},
           'is_me': true,
         },
         'portions': [

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quran_daily/features/quran_groups/cubit/discovery/discovery_cubit.dart';
 import 'package:quran_daily/features/quran_groups/cubit/join/join_cubit.dart';

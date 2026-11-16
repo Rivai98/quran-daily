@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../core/design_system/app_colors.dart';
 import '../data/reader_storage.dart';
@@ -44,7 +44,8 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
   @override
   void initState() {
     super.initState();
-    _metadata = widget.metadata ??
+    _metadata =
+        widget.metadata ??
         (serviceLocator.isRegistered<QuranMetadataRepository>()
             ? serviceLocator<QuranMetadataRepository>()
             : null);
@@ -99,12 +100,7 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
               ),
               Expanded(
                 child: TabBarView(
-                  children: [
-                    _surahs(),
-                    _juzList(),
-                    _hizbList(),
-                    _pages(),
-                  ],
+                  children: [_surahs(), _juzList(), _hizbList(), _pages()],
                 ),
               ),
             ],
@@ -214,17 +210,15 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
           leading: _indexBadge(context, row.juz),
           title: Text(
             '${ArabicStrings.juzLabel} ${ArabicNumerals.format(row.juz)}',
-            style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.w600),
+            style: AppTypography.bodyLarge.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
           subtitle: Text(
             subtitle,
             style: AppTypography.caption.copyWith(color: colors.inkMuted),
           ),
-          trailing: Icon(
-            Icons.chevron_right,
-            color: colors.inkMuted,
-            size: 20,
-          ),
+          trailing: Icon(Icons.chevron_right, color: colors.inkMuted, size: 20),
           onTap: () => widget.onOpenPage(row.startPage),
         );
       },
@@ -257,17 +251,15 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
           leading: _indexBadge(context, row.hizb),
           title: Text(
             '${ArabicStrings.portionUnitHizb} ${ArabicNumerals.format(row.hizb)}',
-            style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.w600),
+            style: AppTypography.bodyLarge.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
           subtitle: Text(
             subtitle,
             style: AppTypography.caption.copyWith(color: colors.inkMuted),
           ),
-          trailing: Icon(
-            Icons.chevron_right,
-            color: colors.inkMuted,
-            size: 20,
-          ),
+          trailing: Icon(Icons.chevron_right, color: colors.inkMuted, size: 20),
           onTap: () => widget.onOpenPage(row.startPage),
         );
       },
@@ -335,7 +327,6 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
     );
   }
 }
-
 
 /// "تابع القراءة": resumes free reading at the last saved page.
 class _ContinueReadingCard extends StatefulWidget {

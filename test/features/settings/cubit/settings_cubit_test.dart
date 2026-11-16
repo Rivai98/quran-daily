@@ -9,6 +9,7 @@ import 'package:quran_daily/features/settings/cubit/settings_cubit.dart';
 import 'package:quran_daily/features/settings/cubit/settings_state.dart';
 
 class _MockSettingsRepo extends Mock implements SettingsRepository {}
+
 class _MockSessionGateway extends Mock implements SessionGateway {}
 
 void main() {
@@ -21,9 +22,9 @@ void main() {
   });
 
   SettingsCubit build() => SettingsCubit(
-        settingsRepository: settingsRepo,
-        sessionGateway: sessionGateway,
-      );
+    settingsRepository: settingsRepo,
+    sessionGateway: sessionGateway,
+  );
 
   group('SettingsCubit', () {
     test('initial state has default scale 1.0', () {
@@ -35,8 +36,9 @@ void main() {
     blocTest<SettingsCubit, SettingsState>(
       'loadSettings reads scale from repo',
       build: build,
-      setUp: () => when(() => settingsRepo.getQuranTextScale())
-          .thenAnswer((_) async => const Success(1.25)),
+      setUp: () =>
+          when(() => settingsRepo.getQuranTextScale())
+              .thenAnswer((_) async => const Success(1.25)),
       act: (cubit) => cubit.loadSettings(),
       expect: () => [
         const SettingsState(
@@ -49,14 +51,13 @@ void main() {
     blocTest<SettingsCubit, SettingsState>(
       'setQuranTextScale clamps between 0.85 and 1.6 and persists',
       build: build,
-      setUp: () => when(() => settingsRepo.setQuranTextScale(any()))
-          .thenAnswer((_) async => const Success(null)),
+      setUp: () =>
+          when(() => settingsRepo.setQuranTextScale(any()))
+              .thenAnswer((_) async => const Success(null)),
       act: (cubit) async {
         await cubit.setQuranTextScale(2.0); // should clamp to 1.6
       },
-      expect: () => [
-        const SettingsState(quranTextScale: 1.6),
-      ],
+      expect: () => [const SettingsState(quranTextScale: 1.6)],
       verify: (_) {
         verify(() => settingsRepo.setQuranTextScale(1.6)).called(1);
       },
@@ -65,8 +66,9 @@ void main() {
     blocTest<SettingsCubit, SettingsState>(
       'signOut calls session gateway and emits signedOut',
       build: build,
-      setUp: () => when(() => sessionGateway.signOut())
-          .thenAnswer((_) async => const Success(null)),
+      setUp: () =>
+          when(() => sessionGateway.signOut())
+              .thenAnswer((_) async => const Success(null)),
       act: (cubit) => cubit.signOut(),
       expect: () => [
         const SettingsState(status: SettingsStatus.signingOut),
@@ -77,8 +79,11 @@ void main() {
     blocTest<SettingsCubit, SettingsState>(
       'signOut failure emits failure state',
       build: build,
-      setUp: () => when(() => sessionGateway.signOut())
-          .thenAnswer((_) async => const FailureResult(UnknownFailure(message: 'error', code: 'unknown'))),
+      setUp: () => when(() => sessionGateway.signOut()).thenAnswer(
+        (_) async => const FailureResult(
+          UnknownFailure(message: 'error', code: 'unknown'),
+        ),
+      ),
       act: (cubit) => cubit.signOut(),
       expect: () => [
         const SettingsState(status: SettingsStatus.signingOut),

@@ -9,7 +9,10 @@ import 'auth_repository.dart';
 final _emailRe = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl({required this.dataSource, required this.googleAuthClient});
+  AuthRepositoryImpl({
+    required this.dataSource,
+    required this.googleAuthClient,
+  });
 
   final SupabaseAuthDataSource dataSource;
   final GoogleAuthClient googleAuthClient;
@@ -49,7 +52,7 @@ class AuthRepositoryImpl implements AuthRepository {
       if (session == null && dataSource.currentUserId() == null) {
         await dataSource.signIn(email: normalized.$2, password: password);
       }
-      return _authenticatedResult(email: normalized.$2);
+      return await _authenticatedResult(email: normalized.$2);
     } catch (error) {
       return FailureResult(_mapError(error));
     }
@@ -69,7 +72,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
     try {
       await dataSource.signIn(email: normalizedEmail, password: password);
-      return _authenticatedResult(email: normalizedEmail);
+      return await _authenticatedResult(email: normalizedEmail);
     } catch (error) {
       return FailureResult(_mapError(error));
     }
@@ -82,19 +85,28 @@ class AuthRepositoryImpl implements AuthRepository {
       if (tokens == null) return null;
       final idToken = tokens.idToken;
       if (idToken == null || idToken.isEmpty) {
-        return const FailureResult(AuthFailure(
-          message: 'missing Google ID token', code: 'google_auth_failed'));
+        return const FailureResult(
+          AuthFailure(
+            message: 'missing Google ID token',
+            code: 'google_auth_failed',
+          ),
+        );
       }
       await dataSource.signInWithGoogleIdToken(idToken: idToken);
       final userId = currentUserId;
       if (userId == null) {
-        return const FailureResult(AuthFailure(
-          message: 'no session', code: 'unauthenticated'));
+        return const FailureResult(
+          AuthFailure(message: 'no session', code: 'unauthenticated'),
+        );
       }
       final profile = await loadCurrentProfile();
-      return profile.when(
-        success: (value) => Success(AuthenticatedUser(
-          user: AppUser(id: userId, email: ''), profile: value)),
+      return await profile.when(
+        success: (value) => Success(
+          AuthenticatedUser(
+            user: AppUser(id: userId, email: ''),
+            profile: value,
+          ),
+        ),
         failure: FailureResult.new,
       );
     } catch (error) {
@@ -111,7 +123,9 @@ class AuthRepositoryImpl implements AuthRepository {
       );
     }
     try {
-      final profile = UserProfile.fromRow(await dataSource.selectProfile(userId));
+      final profile = UserProfile.fromRow(
+        await dataSource.selectProfile(userId),
+      );
       if (profile == null) {
         return const FailureResult(
           AuthFailure(message: 'profile missing', code: 'missing_profile'),
@@ -179,7 +193,8 @@ class AuthRepositoryImpl implements AuthRepository {
   AppFailure _mapError(Object error) {
     final code = _providerCode(error);
 
-    if (code == 'user_banned' || code == 'banned' ||
+    if (code == 'user_banned' ||
+        code == 'banned' ||
         error.toString().toLowerCase().contains('banned')) {
       return const AuthFailure(message: 'account suspended', code: 'suspended');
     }
@@ -188,17 +203,25 @@ class AuthRepositoryImpl implements AuthRepository {
       case 'user_already_exists':
       case 'email_exists':
         return const AuthFailure(
-            message: 'email already registered', code: 'email_exists');
+          message: 'email already registered',
+          code: 'email_exists',
+        );
       case 'invalid_credentials':
         return const AuthFailure(
-            message: 'credentials rejected', code: 'invalid_credentials');
+          message: 'credentials rejected',
+          code: 'invalid_credentials',
+        );
       case 'weak_password':
         return const AuthFailure(
-            message: 'invalid input', code: 'validation_failed');
+          message: 'invalid input',
+          code: 'validation_failed',
+        );
       case 'over_request_rate_limit':
       case 'rate_limited':
         return const AuthFailure(
-            message: 'too many attempts', code: 'rate_limited');
+          message: 'too many attempts',
+          code: 'rate_limited',
+        );
     }
 
     final text = error.toString();
@@ -208,8 +231,7 @@ class AuthRepositoryImpl implements AuthRepository {
         text.contains('ClientException') ||
         text.contains('TimeoutException') ||
         text.contains('Failed to fetch')) {
-      return const AuthFailure(
-          message: 'network unreachable', code: 'network');
+      return const AuthFailure(message: 'network unreachable', code: 'network');
     }
 
     return const AuthFailure(message: 'unexpected error', code: 'unknown');

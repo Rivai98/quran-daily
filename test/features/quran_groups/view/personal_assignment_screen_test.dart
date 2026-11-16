@@ -136,9 +136,7 @@ void main() {
     },
   );
 
-  testWidgets('completion button names the group portion unit', (
-    tester,
-  ) async {
+  testWidgets('completion button names the group portion unit', (tester) async {
     for (final unit in PortionUnit.values) {
       final snapshot = _snapshot(portionUnit: unit);
       final cubit = AssignmentCubit(
@@ -184,9 +182,8 @@ void main() {
     when(() => repository.markComplete('a-1', any())).thenAnswer(
       (_) async => Success(_snapshot(status: AssignmentStatusEnum.completed)),
     );
-    when(
-      () => repository.undoCompletion('a-1'),
-    ).thenAnswer((_) async => Success(_snapshot()));
+    when(() => repository.undoCompletion('a-1'))
+        .thenAnswer((_) async => Success(_snapshot()));
     addTearDown(cubit.close);
     await tester.pumpWidget(
       buildArabicTestApp(

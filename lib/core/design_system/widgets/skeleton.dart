@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../app_colors.dart';
 
@@ -34,9 +34,10 @@ class _SkeletonBoxState extends State<SkeletonBox>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
-    _animation = Tween<double>(begin: 0.6, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: 0.6,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.repeat(reverse: true);
   }
 
@@ -52,10 +53,7 @@ class _SkeletonBoxState extends State<SkeletonBox>
     final reduceMotion = MediaQuery.of(context).disableAnimations;
 
     final boxDecoration = widget.shape == BoxShape.circle
-        ? BoxDecoration(
-            color: colors.surfaceMuted,
-            shape: BoxShape.circle,
-          )
+        ? BoxDecoration(color: colors.surfaceMuted, shape: BoxShape.circle)
         : BoxDecoration(
             color: colors.surfaceMuted,
             borderRadius: BorderRadius.all(Radius.circular(widget.radius)),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/router.dart';
@@ -107,9 +107,9 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                                 Icon(
                                   Icons.auto_stories_rounded,
                                   size: 20,
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<AppColors>()!.inkMuted,
+                                  color: Theme.of(context)
+                                      .extension<AppColors>()!
+                                      .inkMuted,
                                 ),
                                 const SizedBox(width: AppSpacing.xs),
                                 Expanded(
@@ -151,9 +151,9 @@ class _PersonalAssignmentScreenState extends State<PersonalAssignmentScreen> {
                                         Icon(
                                           Icons.bookmark_outline_rounded,
                                           size: 18,
-                                          color: Theme.of(
-                                            context,
-                                          ).extension<AppColors>()!.inkMuted,
+                                          color: Theme.of(context)
+                                              .extension<AppColors>()!
+                                              .inkMuted,
                                         ),
                                         const SizedBox(width: AppSpacing.xs),
                                         Text(

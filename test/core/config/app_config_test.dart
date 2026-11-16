@@ -21,10 +21,13 @@ void main() {
     });
     expect(config.googleWebClientId, 'web-id');
     expect(config.googleIosClientId, 'ios-id');
-    expect(AppConfig.fromEnvironment(const {
-      AppConfig.supabaseUrlKey: 'https://example.supabase.co',
-      AppConfig.supabaseAnonKeyKey: 'anon-key',
-    }).googleWebClientId, isEmpty);
+    expect(
+      AppConfig.fromEnvironment(const {
+        AppConfig.supabaseUrlKey: 'https://example.supabase.co',
+        AppConfig.supabaseAnonKeyKey: 'anon-key',
+      }).googleWebClientId,
+      isEmpty,
+    );
   });
 
   test('rejects missing Supabase URL or anon key', () {

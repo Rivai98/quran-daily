@@ -33,15 +33,11 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
   Future<void> cacheProfile(String userId, Map<String, Object?> json) async {
     final db = await _db.database;
     await _ensureTable(db);
-    await db.insert(
-      'cached_profile',
-      {
-        'user_id': userId,
-        'json': jsonEncode(json),
-        'cached_at': DateTime.now().millisecondsSinceEpoch,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('cached_profile', {
+      'user_id': userId,
+      'json': jsonEncode(json),
+      'cached_at': DateTime.now().millisecondsSinceEpoch,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   @override

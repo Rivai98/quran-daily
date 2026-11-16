@@ -26,9 +26,8 @@ void main() {
   blocTest<JoinRequestsCubit, JoinRequestsState>(
     'lists requests then reports full group on approval',
     build: () {
-      when(
-        () => repository.listJoinRequests('g'),
-      ).thenAnswer((_) async => const Success([]));
+      when(() => repository.listJoinRequests('g'))
+          .thenAnswer((_) async => const Success([]));
       when(() => repository.reviewJoinRequest('r', true)).thenAnswer(
         (_) async => const FailureResult(
           UnknownFailure(message: 'full', code: 'group_full'),
@@ -97,9 +96,8 @@ void main() {
   blocTest<JoinRequestsCubit, JoinRequestsState>(
     'surfaces the membership limit distinctly when approving a request',
     build: () {
-      when(
-        () => repository.listJoinRequests('g'),
-      ).thenAnswer((_) async => const Success([]));
+      when(() => repository.listJoinRequests('g'))
+          .thenAnswer((_) async => const Success([]));
       when(() => repository.reviewJoinRequest('r', true)).thenAnswer(
         (_) async => const FailureResult(
           UnknownFailure(message: 'limit', code: 'membership_limit'),

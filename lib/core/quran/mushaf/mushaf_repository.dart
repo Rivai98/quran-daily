@@ -1,5 +1,7 @@
 import 'package:flutter/services.dart' show AssetBundle, rootBundle;
+
 import 'dart:convert';
+
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart' show compute;
 import 'package:xml/xml.dart';

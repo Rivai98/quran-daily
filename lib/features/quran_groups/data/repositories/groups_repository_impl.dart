@@ -19,18 +19,13 @@ import 'groups_repository.dart';
 /// failure flagged stale; all other methods are network-only.
 class GroupsRepositoryImpl implements GroupsRepository {
   GroupsRepositoryImpl({
-    required RpcClient rpc,
-    required GroupsRemoteDataSource remote,
-    required CachedGroupsDao cache,
+    required this._rpc,
+    required this._remote,
+    required this._cache,
     required SessionGateway sessionGateway,
-    required ConnectivityService connectivity,
-    SupabaseClientProvider? clientProvider,
-  }) : _rpc = rpc,
-       _remote = remote,
-       _cache = cache,
-       _session = sessionGateway,
-       _connectivity = connectivity,
-       _clientProvider = clientProvider;
+    required this._connectivity,
+    this._clientProvider,
+  }) : _session = sessionGateway;
 
   final RpcClient _rpc;
   final GroupsRemoteDataSource _remote;

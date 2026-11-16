@@ -13,7 +13,7 @@ import 'quran_portion.dart';
 /// juz starts, crossing sura boundaries via the file's ayah counts; juz 30
 /// ends at the last ayah of the last sura.
 class QuranMetadataRepository {
-  QuranMetadataRepository({AssetBundle? bundle}) : _bundle = bundle;
+  QuranMetadataRepository({this._bundle});
 
   static const String assetPath = 'assets/quran/quran-data.xml';
 

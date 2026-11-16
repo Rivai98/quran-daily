@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -15,6 +15,7 @@ import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/models/models.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/discovery_screen.dart';
+
 import '../../../helpers/widget_test_app.dart';
 import '../../../helpers/test_fixtures.dart';
 
@@ -45,9 +46,8 @@ void main() {
   late _Repository repository;
   setUp(() {
     repository = _Repository();
-    when(
-      () => repository.getMyGroups(),
-    ).thenAnswer((_) async => Success(TestFixtures.overview()));
+    when(() => repository.getMyGroups())
+        .thenAnswer((_) async => Success(TestFixtures.overview()));
   });
 
   testWidgets(
@@ -204,7 +204,10 @@ void main() {
       await tester.enterText(find.byType(TextField), 'zzz');
       await tester.pump(DiscoveryCubit.debounceDuration);
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('discovery-no-results')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('discovery-no-results')),
+        findsOneWidget,
+      );
       expect(find.text(ArabicStrings.discoveryNoResultsTitle), findsOneWidget);
 
       // Another keystroke while the list is empty: still no skeleton, the
@@ -240,9 +243,8 @@ void main() {
     await tester.tap(find.byType(TextField));
     await tester.pump();
 
-    verify(
-      () => repository.searchPublicGroups(query: '', limit: 20, offset: 0),
-    ).called(1);
+    verify(() => repository.searchPublicGroups(query: '', limit: 20, offset: 0))
+        .called(1);
   });
 
   testWidgets('keyboard submit searches immediately and cancels the debounce', (

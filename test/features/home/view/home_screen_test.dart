@@ -1,9 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:mocktail/mocktail.dart';
+
 import 'dart:async';
+
 import 'package:quran_daily/core/design_system/app_theme.dart';
 import 'package:quran_daily/core/design_system/app_colors.dart';
 import 'package:quran_daily/core/design_system/app_button.dart';
@@ -19,6 +21,7 @@ import 'package:quran_daily/features/home/data/today_repository.dart';
 import 'package:quran_daily/features/home/data/today_snapshot.dart';
 import 'package:quran_daily/features/home/view/home_screen.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/khatma_repository.dart';
+
 import '../../../helpers/widget_test_app.dart';
 
 void main() {
@@ -126,9 +129,8 @@ void main() {
         await _show(tester, Success(_pendingSnapshot), dark: dark);
         final colors = dark ? AppColors.dark : AppColors.light;
         expect(
-          IconTheme.of(
-            tester.element(find.byIcon(Icons.auto_stories_rounded)),
-          ).color,
+          IconTheme.of(tester.element(find.byIcon(Icons.auto_stories_rounded)))
+              .color,
           colors.onPrimary,
         );
         expect(

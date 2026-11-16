@@ -1,5 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -137,12 +137,13 @@ void main() {
     _expectSingleLineButtonLabels(tester, 'complete');
   });
 
-  testWidgets('downloading shows progress, percent and cancel', (
-    tester,
-  ) async {
+  testWidgets('downloading shows progress, percent and cancel', (tester) async {
     final cubit = await _pump(tester, _downloading);
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
-    expect(find.text(ArabicStrings.mushafDownloadingPercent(50)), findsOneWidget);
+    expect(
+      find.text(ArabicStrings.mushafDownloadingPercent(50)),
+      findsOneWidget,
+    );
     expect(find.byType(FilledButton), findsNothing);
     expect(find.text(ArabicStrings.mushafDeleteSaved), findsNothing);
     await tester.tap(find.text(ArabicStrings.mushafCancelDownload));

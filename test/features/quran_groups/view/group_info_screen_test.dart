@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -90,9 +90,8 @@ void main() {
       bundle: QuranMetadataTestAssetBundle(),
     );
     await metadataRepository.load();
-    when(
-      () => repository.getGroupInfo('g-1'),
-    ).thenAnswer((_) async => Success(ownerGroupInfo));
+    when(() => repository.getGroupInfo('g-1'))
+        .thenAnswer((_) async => Success(ownerGroupInfo));
   });
 
   group('GroupInfoScreen (T016, T017, T018, T019, T020)', () {

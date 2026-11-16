@@ -44,9 +44,8 @@ class CreateGroupState extends Equatable {
 /// S4 create group: client-side validation (3-60 name, ≤200 description),
 /// submit guard, limit error, success.
 class CreateGroupCubit extends Cubit<CreateGroupState> {
-  CreateGroupCubit({required GroupsRepository repository})
-    : _repository = repository,
-      super(const CreateGroupState());
+  CreateGroupCubit({required this._repository})
+    : super(const CreateGroupState());
 
   final GroupsRepository _repository;
 

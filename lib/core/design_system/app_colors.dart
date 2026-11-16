@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'assignment_status.dart';
 
@@ -211,10 +211,16 @@ class AppColors extends ThemeExtension<AppColors> {
     return AppColors(
       primary: Color.lerp(primary, other.primary, t)!,
       onPrimary: Color.lerp(onPrimary, other.onPrimary, t)!,
-      primaryContainer:
-          Color.lerp(primaryContainer, other.primaryContainer, t)!,
-      onPrimaryContainer:
-          Color.lerp(onPrimaryContainer, other.onPrimaryContainer, t)!,
+      primaryContainer: Color.lerp(
+        primaryContainer,
+        other.primaryContainer,
+        t,
+      )!,
+      onPrimaryContainer: Color.lerp(
+        onPrimaryContainer,
+        other.onPrimaryContainer,
+        t,
+      )!,
       accent: Color.lerp(accent, other.accent, t)!,
       background: Color.lerp(background, other.background, t)!,
       surface: Color.lerp(surface, other.surface, t)!,

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -12,6 +12,7 @@ import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/models/models.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/invite_join_screen.dart';
+
 import '../../../helpers/widget_test_app.dart';
 
 class _Repository extends Mock implements GroupsRepository {}
@@ -39,9 +40,8 @@ void main() {
   testWidgets('invite preview is readable across required layout variants', (
     tester,
   ) async {
-    when(
-      () => repository.getInvitePreview('AB234567'),
-    ).thenAnswer((_) async => const Success(_profile));
+    when(() => repository.getInvitePreview('AB234567'))
+        .thenAnswer((_) async => const Success(_profile));
     await pumpAllVariants(tester, _screen(repository), (tester, variant) async {
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
@@ -87,9 +87,8 @@ void main() {
     tester.view.physicalSize = const Size(360, 800);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    when(
-      () => repository.getInvitePreview('AB234567'),
-    ).thenAnswer((_) async => const Success(_profile));
+    when(() => repository.getInvitePreview('AB234567'))
+        .thenAnswer((_) async => const Success(_profile));
 
     await tester.pumpWidget(
       buildArabicTestApp(_screen(repository), size: const Size(360, 800)),
@@ -158,33 +157,33 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a malformed code shows a calm format reason, not a network one', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      buildArabicTestApp(
-        BlocProvider(
-          create: (_) => JoinCubit(repository: repository),
-          child: const InviteJoinScreen(),
+  testWidgets(
+    'a malformed code shows a calm format reason, not a network one',
+    (tester) async {
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          BlocProvider(
+            create: (_) => JoinCubit(repository: repository),
+            child: const InviteJoinScreen(),
+          ),
         ),
-      ),
-    );
-    await tester.enterText(find.byType(TextField), 'abc');
-    await tester.tap(find.text(ArabicStrings.previewInviteAction));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('invite-error-banner')), findsOneWidget);
-    expect(find.text(ArabicStrings.inviteCodeFormatError), findsOneWidget);
-    expect(find.text(ArabicStrings.joinError), findsNothing);
-    verifyNever(() => repository.getInvitePreview(any()));
-  });
+      );
+      await tester.enterText(find.byType(TextField), 'abc');
+      await tester.tap(find.text(ArabicStrings.previewInviteAction));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('invite-error-banner')), findsOneWidget);
+      expect(find.text(ArabicStrings.inviteCodeFormatError), findsOneWidget);
+      expect(find.text(ArabicStrings.joinError), findsNothing);
+      verifyNever(() => repository.getInvitePreview(any()));
+    },
+  );
 
   testWidgets(
     'invite form covers empty, loading, offline, and pending states',
     (tester) async {
       final completer = Completer<Result<PublicGroupProfile>>();
-      when(
-        () => repository.getInvitePreview('AB234567'),
-      ).thenAnswer((_) => completer.future);
+      when(() => repository.getInvitePreview('AB234567'))
+          .thenAnswer((_) => completer.future);
       when(
         () => repository.joinGroup(
           inviteCode: 'AB234567',
@@ -214,9 +213,8 @@ void main() {
       expect(find.text(ArabicStrings.authError('network')), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox.shrink());
-      when(
-        () => repository.getInvitePreview('AB234567'),
-      ).thenAnswer((_) async => const Success(_profile));
+      when(() => repository.getInvitePreview('AB234567'))
+          .thenAnswer((_) async => const Success(_profile));
       final pendingCubit = JoinCubit(repository: repository);
       await tester.pumpWidget(
         buildArabicTestApp(

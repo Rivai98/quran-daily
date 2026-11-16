@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
 import '../../../../app/router.dart';
 import '../../../../core/design_system/app_button.dart';
 import '../../../../core/design_system/app_spacing.dart';

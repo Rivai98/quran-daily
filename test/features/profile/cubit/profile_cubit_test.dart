@@ -35,7 +35,10 @@ void main() {
       ProfileKhatma(groupId: 'g-1', groupName: 'ختمة النور', completed: 1),
     ],
     badges: [
-      ProfileBadge(code: ProfileBadgeCode.firstKhatma, earnedAt: DateTime(2026, 11, 5)),
+      ProfileBadge(
+        code: ProfileBadgeCode.firstKhatma,
+        earnedAt: DateTime(2026, 11, 5),
+      ),
       const ProfileBadge(code: ProfileBadgeCode.streak7),
       const ProfileBadge(code: ProfileBadgeCode.streak30),
       const ProfileBadge(code: ProfileBadgeCode.streak100),
@@ -76,39 +79,48 @@ void main() {
       expect(cubit.state.isStale, false);
     });
 
-    test('load emits [loading, offline] when profile is stale from cache', () async {
-      final staleProfile = testProfile.copyWith(isStale: true);
-      repository.result = Success(staleProfile);
+    test(
+      'load emits [loading, offline] when profile is stale from cache',
+      () async {
+        final staleProfile = testProfile.copyWith(isStale: true);
+        repository.result = Success(staleProfile);
 
-      final expectedStates = [
-        const ProfileState(status: ProfileStatus.loading),
-        ProfileState(status: ProfileStatus.offline, profile: staleProfile),
-      ];
+        final expectedStates = [
+          const ProfileState(status: ProfileStatus.loading),
+          ProfileState(status: ProfileStatus.offline, profile: staleProfile),
+        ];
 
-      expectLater(cubit.stream, emitsInOrder(expectedStates));
+        expectLater(cubit.stream, emitsInOrder(expectedStates));
 
-      await cubit.load();
+        await cubit.load();
 
-      expect(cubit.state.status, ProfileStatus.offline);
-      expect(cubit.state.isStale, true);
-    });
+        expect(cubit.state.status, ProfileStatus.offline);
+        expect(cubit.state.isStale, true);
+      },
+    );
 
-    test('load emits [loading, failure] when repository returns failure', () async {
-      const failure = NetworkFailure(message: 'Connection failed', code: 'network');
-      repository.result = const FailureResult(failure);
+    test(
+      'load emits [loading, failure] when repository returns failure',
+      () async {
+        const failure = NetworkFailure(
+          message: 'Connection failed',
+          code: 'network',
+        );
+        repository.result = const FailureResult(failure);
 
-      final expectedStates = [
-        const ProfileState(status: ProfileStatus.loading),
-        const ProfileState(status: ProfileStatus.failure, failure: failure),
-      ];
+        final expectedStates = [
+          const ProfileState(status: ProfileStatus.loading),
+          const ProfileState(status: ProfileStatus.failure, failure: failure),
+        ];
 
-      expectLater(cubit.stream, emitsInOrder(expectedStates));
+        expectLater(cubit.stream, emitsInOrder(expectedStates));
 
-      await cubit.load();
+        await cubit.load();
 
-      expect(cubit.state.status, ProfileStatus.failure);
-      expect(cubit.state.failure, failure);
-    });
+        expect(cubit.state.status, ProfileStatus.failure);
+        expect(cubit.state.failure, failure);
+      },
+    );
 
     test('refresh calls repository with forceRefresh: true', () async {
       repository.result = Success(testProfile);

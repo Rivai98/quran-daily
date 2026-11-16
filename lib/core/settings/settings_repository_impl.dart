@@ -8,7 +8,7 @@ import 'settings_repository.dart';
 /// scale (clamped 0.85..1.6, default 1.0).
 class SettingsRepositoryImpl implements SettingsRepository {
   SettingsRepositoryImpl({SharedPreferencesAsync? prefs})
-      : _prefs = prefs ?? SharedPreferencesAsync();
+    : _prefs = prefs ?? SharedPreferencesAsync();
 
   static const _selectedGroupKey = 'selected_group_id';
   static const _quranTextScaleKey = 'quran_text_scale';
@@ -20,8 +20,9 @@ class SettingsRepositoryImpl implements SettingsRepository {
     try {
       return Success(await _prefs.getString(_selectedGroupKey));
     } catch (error) {
-      return FailureResult(NetworkFailure(
-          message: 'settings read failed', code: 'unknown'));
+      return FailureResult(
+        NetworkFailure(message: 'settings read failed', code: 'unknown'),
+      );
     }
   }
 
@@ -36,7 +37,8 @@ class SettingsRepositoryImpl implements SettingsRepository {
       return const Success<void>(null);
     } catch (error) {
       return FailureResult(
-          NetworkFailure(message: 'settings write failed', code: 'unknown'));
+        NetworkFailure(message: 'settings write failed', code: 'unknown'),
+      );
     }
   }
 
@@ -57,7 +59,8 @@ class SettingsRepositoryImpl implements SettingsRepository {
       return const Success<void>(null);
     } catch (error) {
       return FailureResult(
-          NetworkFailure(message: 'settings write failed', code: 'unknown'));
+        NetworkFailure(message: 'settings write failed', code: 'unknown'),
+      );
     }
   }
 }

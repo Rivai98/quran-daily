@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 import '../../../../core/errors/failures.dart';
 
 enum SettingsStatus {

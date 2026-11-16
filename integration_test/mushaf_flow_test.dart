@@ -10,7 +10,7 @@
 // account) -> swipe to the end page -> "تمت القراءة" -> the server dashboard
 // shows the assignment completed.
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:quran_daily/app/bootstrap.dart';
@@ -94,7 +94,10 @@ void main() {
     await enterField(tester, 'auth-email', 'it-mushaf-$stamp@test.local');
     await enterField(tester, 'auth-password', 'it-pass-12345');
     await enterField(tester, 'auth-confirmation', 'it-pass-12345');
-    await tapAndSettle(tester, find.text(ArabicStrings.createAccountTitle).last);
+    await tapAndSettle(
+      tester,
+      find.text(ArabicStrings.createAccountTitle).last,
+    );
 
     // Create a group with the hizb unit (from the مجموعاتي tab).
     await pumpUntil(tester, find.text(ArabicStrings.groupsTab));
@@ -205,12 +208,10 @@ void main() {
     final group = (myGroups['groups'] as List<dynamic>)
         .cast<Map<String, dynamic>>()
         .firstWhere((g) => g['name'] == groupName);
-    final dashboard =
-        await client.rpc(
-              'get_dashboard',
-              params: {'p_group_id': group['group_id']},
-            )
-            as Map<String, dynamic>;
+    final dashboard = await client.rpc(
+      'get_dashboard',
+      params: {'p_group_id': group['group_id']},
+    ) as Map<String, dynamic>;
     final mine = (dashboard['assignments'] as List<dynamic>)
         .cast<Map<String, dynamic>>()
         .firstWhere((a) => a['portion_index'] == 1);

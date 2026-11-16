@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +10,7 @@ import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
 import 'package:quran_daily/features/mushaf/cubit/reader_cubit.dart';
 import 'package:quran_daily/features/mushaf/data/reader_storage.dart';
 import 'package:quran_daily/features/mushaf/view/reader_screen.dart';
+
 import '../../../helpers/widget_test_app.dart';
 
 void main() {

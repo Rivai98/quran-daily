@@ -70,9 +70,8 @@ void main() {
           'pending_requests': [],
         }),
       );
-      when(
-        () => cache.upsert('u1', any()),
-      ).thenAnswer((_) async => Future<void>.value());
+      when(() => cache.upsert('u1', any()))
+          .thenAnswer((_) async => Future<void>.value());
 
       final result = await repository.getMyGroups();
 

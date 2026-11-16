@@ -53,8 +53,9 @@ class TestFixtures {
     bool offline = false,
   }) {
     final grid = TestFixtures.grid(
-      statusFor: (juz) =>
-          juz <= completed ? AssignmentStatusEnum.completed : AssignmentStatusEnum.pending,
+      statusFor: (juz) => juz <= completed
+          ? AssignmentStatusEnum.completed
+          : AssignmentStatusEnum.pending,
       readerFor: (juz) => juz == 1 ? 'سارة' : 'عضو $juz',
     );
     return DashboardSnapshot(
@@ -91,8 +92,8 @@ class TestFixtures {
         status: isEmpty
             ? AssignmentStatusEnum.available
             : (juz <= completed
-                ? AssignmentStatusEnum.completed
-                : AssignmentStatusEnum.pending),
+                  ? AssignmentStatusEnum.completed
+                  : AssignmentStatusEnum.pending),
         readerDisplayName: isEmpty ? null : 'عضو $seat',
         isMe: seat == mySeat,
       );
@@ -134,8 +135,11 @@ class TestFixtures {
     );
   }
 
-  static SeatMember member(int seat,
-      {GroupRole role = GroupRole.member, String? name}) {
+  static SeatMember member(
+    int seat, {
+    GroupRole role = GroupRole.member,
+    String? name,
+  }) {
     return SeatMember(
       membershipId: 'm-$seat',
       displayName: name ?? 'عضو $seat',

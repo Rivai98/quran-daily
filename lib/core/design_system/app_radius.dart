@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Radius tokens from constitution Principle VI.
 ///
@@ -20,12 +20,16 @@ class AppRadius {
   static const BorderRadius xlBR = BorderRadius.all(Radius.circular(xl));
   static const BorderRadius pillBR = BorderRadius.all(Radius.circular(pill));
 
-  static final RoundedRectangleBorder smShape =
-      RoundedRectangleBorder(borderRadius: smBR);
-  static final RoundedRectangleBorder mdShape =
-      RoundedRectangleBorder(borderRadius: mdBR);
-  static final RoundedRectangleBorder lgShape =
-      RoundedRectangleBorder(borderRadius: lgBR);
-  static final RoundedRectangleBorder xlShape =
-      RoundedRectangleBorder(borderRadius: xlBR);
+  static final RoundedRectangleBorder smShape = RoundedRectangleBorder(
+    borderRadius: smBR,
+  );
+  static final RoundedRectangleBorder mdShape = RoundedRectangleBorder(
+    borderRadius: mdBR,
+  );
+  static final RoundedRectangleBorder lgShape = RoundedRectangleBorder(
+    borderRadius: lgBR,
+  );
+  static final RoundedRectangleBorder xlShape = RoundedRectangleBorder(
+    borderRadius: xlBR,
+  );
 }

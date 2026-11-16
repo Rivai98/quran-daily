@@ -138,13 +138,31 @@ class CachedTodayDao {
   final LocalDatabase _db;
   Future<void> upsert(String userId, Map<String, Object?> json) async {
     final db = await _db.database;
-    await db.insert('cached_today', {'user_id': userId, 'json': jsonEncode(json), 'cached_at': DateTime.now().millisecondsSinceEpoch}, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('cached_today', {
+      'user_id': userId,
+      'json': jsonEncode(json),
+      'cached_at': DateTime.now().millisecondsSinceEpoch,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
-  Future<({Map<String, Object?> json, DateTime cachedAt})?> read(String userId) async {
+
+  Future<({Map<String, Object?> json, DateTime cachedAt})?> read(
+    String userId,
+  ) async {
     final db = await _db.database;
-    final rows = await db.query('cached_today', where: 'user_id = ?', whereArgs: [userId], limit: 1);
+    final rows = await db.query(
+      'cached_today',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
     if (rows.isEmpty) return null;
-    return (json: (jsonDecode(rows.first['json']! as String) as Map).cast<String, Object?>(), cachedAt: DateTime.fromMillisecondsSinceEpoch(rows.first['cached_at']! as int));
+    return (
+      json: (jsonDecode(rows.first['json']! as String) as Map)
+          .cast<String, Object?>(),
+      cachedAt: DateTime.fromMillisecondsSinceEpoch(
+        rows.first['cached_at']! as int,
+      ),
+    );
   }
 }
 

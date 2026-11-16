@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../core/errors/failures.dart';
 import '../../quran_groups/data/repositories/khatma_repository.dart';
 import '../data/today_repository.dart';
@@ -34,10 +35,9 @@ class HomeState extends Equatable {
 
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit({
-    required TodayRepository repository,
+    required this._repository,
     required KhatmaRepository khatmaRepository,
-  }) : _repository = repository,
-       _khatma = khatmaRepository,
+  }) : _khatma = khatmaRepository,
        super(const HomeState());
   final TodayRepository _repository;
   final KhatmaRepository _khatma;
@@ -60,14 +60,14 @@ class HomeCubit extends Cubit<HomeState> {
         if (snapshot.isStale && state.status == HomeStatus.content) return;
         _lastLoadedAt = DateTime.now();
         emit(
-        HomeState(
-          snapshot: snapshot,
-          status: snapshot.isStale
-              ? HomeStatus.offline
-              : snapshot.groups.isEmpty
-              ? HomeStatus.empty
-              : HomeStatus.content,
-        ),
+          HomeState(
+            snapshot: snapshot,
+            status: snapshot.isStale
+                ? HomeStatus.offline
+                : snapshot.groups.isEmpty
+                ? HomeStatus.empty
+                : HomeStatus.content,
+          ),
         );
       },
       failure: (failure) => emit(
@@ -85,11 +85,13 @@ class HomeCubit extends Cubit<HomeState> {
   /// Called when the Home tab is re-selected: refresh quietly, at most every 30 s.
   Future<void> refreshIfStale() {
     final last = _lastLoadedAt;
-    if (last != null && DateTime.now().difference(last) < const Duration(seconds: 30)) {
+    if (last != null &&
+        DateTime.now().difference(last) < const Duration(seconds: 30)) {
       return Future.value();
     }
     return load();
   }
+
   Future<void> pinMainGroup(String groupId) async {
     final result = await _repository.setMainGroup(groupId);
     if (result.isSuccess) await load();

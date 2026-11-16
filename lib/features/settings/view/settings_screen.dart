@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app/router.dart';
@@ -116,9 +116,8 @@ class _SettingsView extends StatelessWidget {
                       const SizedBox(height: AppSpacing.md),
                       Builder(
                         builder: (context) {
-                          final colors = Theme.of(
-                            context,
-                          ).extension<AppColors>()!;
+                          final colors = Theme.of(context)
+                              .extension<AppColors>()!;
                           return DecoratedBox(
                             decoration: BoxDecoration(
                               color: colors.surfaceMuted,
@@ -243,9 +242,9 @@ class _SettingsView extends StatelessWidget {
                     leading: const Icon(Icons.policy_outlined),
                     title: const Text(ArabicStrings.settingsLicensesEntry),
                     trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => Navigator.of(
-                      context,
-                    ).pushNamed(AppRoutes.mushafLicenses),
+                    onTap: () =>
+                        Navigator.of(context)
+                            .pushNamed(AppRoutes.mushafLicenses),
                   ),
                 ),
               ],

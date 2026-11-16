@@ -26,8 +26,9 @@ void main() {
     blocTest<HistoryCubit, HistoryState>(
       'loading history with data ends in success',
       build: build,
-      setUp: () => when(() => repo.getHistory(groupId, limit: any(named: 'limit')))
-          .thenAnswer((_) async => Success(TestFixtures.historyPage(days: 3))),
+      setUp: () => when(
+        () => repo.getHistory(groupId, limit: any(named: 'limit')),
+      ).thenAnswer((_) async => Success(TestFixtures.historyPage(days: 3))),
       act: (cubit) => cubit.loadHistory(),
       expect: () => [
         const HistoryState(groupId: groupId, status: HistoryStatus.loading),
@@ -41,8 +42,9 @@ void main() {
     blocTest<HistoryCubit, HistoryState>(
       'loading empty history ends in empty',
       build: build,
-      setUp: () => when(() => repo.getHistory(groupId, limit: any(named: 'limit')))
-          .thenAnswer((_) async => const Success([])),
+      setUp: () =>
+          when(() => repo.getHistory(groupId, limit: any(named: 'limit')))
+              .thenAnswer((_) async => const Success([])),
       act: (cubit) => cubit.loadHistory(),
       expect: () => [
         const HistoryState(groupId: groupId, status: HistoryStatus.loading),
@@ -55,21 +57,34 @@ void main() {
     blocTest<HistoryCubit, HistoryState>(
       'network failure with offline data sets offline status',
       build: build,
-      setUp: () => when(() => repo.getHistory(groupId, limit: any(named: 'limit')))
-          .thenAnswer((_) async => const FailureResult(NetworkFailure(message: 'offline', code: 'network'))),
+      setUp: () =>
+          when(() => repo.getHistory(groupId, limit: any(named: 'limit')))
+              .thenAnswer(
+                (_) async => const FailureResult(
+                  NetworkFailure(message: 'offline', code: 'network'),
+                ),
+              ),
       act: (cubit) => cubit.loadHistory(),
       expect: () => [
         const HistoryState(groupId: groupId, status: HistoryStatus.loading),
-        isA<HistoryState>()
-            .having((s) => s.status, 'status', HistoryStatus.offline),
+        isA<HistoryState>().having(
+          (s) => s.status,
+          'status',
+          HistoryStatus.offline,
+        ),
       ],
     );
 
     blocTest<HistoryCubit, HistoryState>(
       'general failure sets failure status',
       build: build,
-      setUp: () => when(() => repo.getHistory(groupId, limit: any(named: 'limit')))
-          .thenAnswer((_) async => const FailureResult(UnknownFailure(message: 'error', code: 'unknown'))),
+      setUp: () =>
+          when(() => repo.getHistory(groupId, limit: any(named: 'limit')))
+              .thenAnswer(
+                (_) async => const FailureResult(
+                  UnknownFailure(message: 'error', code: 'unknown'),
+                ),
+              ),
       act: (cubit) => cubit.loadHistory(),
       expect: () => [
         const HistoryState(groupId: groupId, status: HistoryStatus.loading),
@@ -93,14 +108,20 @@ void main() {
         days: page1,
         hasMore: true,
       ),
-      setUp: () => when(() => repo.getHistory(
-            groupId,
-            beforeDate: page1.last.groupDate,
-            limit: 30,
-          )).thenAnswer((_) async => Success(page2)),
+      setUp: () => when(
+        () => repo.getHistory(
+          groupId,
+          beforeDate: page1.last.groupDate,
+          limit: 30,
+        ),
+      ).thenAnswer((_) async => Success(page2)),
       act: (cubit) => cubit.loadMore(),
       expect: () => [
-        isA<HistoryState>().having((s) => s.isLoadingMore, 'isLoadingMore', true),
+        isA<HistoryState>().having(
+          (s) => s.isLoadingMore,
+          'isLoadingMore',
+          true,
+        ),
         isA<HistoryState>()
             .having((s) => s.isLoadingMore, 'isLoadingMore', false)
             .having((s) => s.days.length, 'days', 35)
@@ -129,8 +150,9 @@ void main() {
     blocTest<HistoryCubit, HistoryState>(
       'loads detail for a specific day',
       build: build,
-      setUp: () => when(() => repo.getHistoryDay(groupId, '2026-11-10'))
-          .thenAnswer((_) async => const Success(detailDay)),
+      setUp: () =>
+          when(() => repo.getHistoryDay(groupId, '2026-11-10'))
+              .thenAnswer((_) async => const Success(detailDay)),
       act: (cubit) => cubit.loadDayDetail('2026-11-10'),
       expect: () => [
         isA<HistoryState>()
@@ -152,7 +174,11 @@ void main() {
       ),
       act: (cubit) => cubit.clearSelectedDay(),
       expect: () => [
-        const HistoryState(groupId: groupId, selectedDay: null, selectedDayDate: null),
+        const HistoryState(
+          groupId: groupId,
+          selectedDay: null,
+          selectedDayDate: null,
+        ),
       ],
     );
   });

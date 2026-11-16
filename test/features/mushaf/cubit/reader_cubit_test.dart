@@ -5,6 +5,7 @@ import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/features/mushaf/cubit/reader_cubit.dart';
 import 'package:quran_daily/features/mushaf/data/mushaf_sync_repository.dart';
 import 'package:quran_daily/features/mushaf/data/reader_storage.dart';
+
 import '../mushaf_test_fixtures.dart';
 
 void main() {

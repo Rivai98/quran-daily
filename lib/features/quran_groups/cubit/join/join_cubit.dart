@@ -30,9 +30,7 @@ class JoinState extends Equatable {
 
 /// S3 invite join and one-tap matching view model.
 class JoinCubit extends Cubit<JoinState> {
-  JoinCubit({required GroupsRepository repository})
-    : _repository = repository,
-      super(const JoinState());
+  JoinCubit({required this._repository}) : super(const JoinState());
 
   final GroupsRepository _repository;
 

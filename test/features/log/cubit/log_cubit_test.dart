@@ -44,9 +44,8 @@ void main() {
   blocTest<LogCubit, LogState>(
     'uses cached data as offline state',
     build: () {
-      when(
-        () => repository.getLog(),
-      ).thenAnswer((_) async => Success(_log().copyWith(isStale: true)));
+      when(() => repository.getLog())
+          .thenAnswer((_) async => Success(_log().copyWith(isStale: true)));
       return LogCubit(repository: repository);
     },
     act: (cubit) => cubit.load(),
@@ -95,9 +94,8 @@ void main() {
         ],
       );
       when(() => repository.getLog()).thenAnswer((_) async => Success(first));
-      when(
-        () => repository.getLog(before: '2026-10-31'),
-      ).thenAnswer((_) async => Success(more));
+      when(() => repository.getLog(before: '2026-10-31'))
+          .thenAnswer((_) async => Success(more));
       return LogCubit(repository: repository);
     },
     act: (cubit) async {

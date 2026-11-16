@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_radius.dart';
@@ -36,7 +36,8 @@ class _BookmarksScreenState extends State<BookmarksScreen> {
   @override
   void initState() {
     super.initState();
-    _metadata = widget.metadata ??
+    _metadata =
+        widget.metadata ??
         (serviceLocator.isRegistered<QuranMetadataRepository>()
             ? serviceLocator<QuranMetadataRepository>()
             : null);
@@ -102,7 +103,8 @@ class _BookmarksScreenState extends State<BookmarksScreen> {
                 final pageStr =
                     '${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(bookmark.page)}';
                 if (bookmark.createdAt != null) {
-                  subtitleText = '$pageStr، ${_formatDate(bookmark.createdAt!)}';
+                  subtitleText =
+                      '$pageStr، ${_formatDate(bookmark.createdAt!)}';
                 } else {
                   subtitleText = pageStr;
                 }
@@ -126,15 +128,13 @@ class _BookmarksScreenState extends State<BookmarksScreen> {
                     color: colors.primaryContainer,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.bookmark,
-                    color: colors.primary,
-                    size: 20,
-                  ),
+                  child: Icon(Icons.bookmark, color: colors.primary, size: 20),
                 ),
                 title: Text(
                   titleText,
-                  style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.w600),
+                  style: AppTypography.bodyLarge.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,7 +142,9 @@ class _BookmarksScreenState extends State<BookmarksScreen> {
                     if (subtitleText != null)
                       Text(
                         subtitleText,
-                        style: AppTypography.caption.copyWith(color: colors.inkMuted),
+                        style: AppTypography.caption.copyWith(
+                          color: colors.inkMuted,
+                        ),
                       ),
                     if (bookmark.note != null && bookmark.note!.isNotEmpty)
                       Padding(
@@ -175,11 +177,17 @@ class _BookmarksScreenState extends State<BookmarksScreen> {
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outline, color: colors.danger, size: 20),
+                          Icon(
+                            Icons.delete_outline,
+                            color: colors.danger,
+                            size: 20,
+                          ),
                           const SizedBox(width: AppSpacing.xs),
                           Text(
                             ArabicStrings.deleteBookmarkAction,
-                            style: AppTypography.body.copyWith(color: colors.danger),
+                            style: AppTypography.body.copyWith(
+                              color: colors.danger,
+                            ),
                           ),
                         ],
                       ),

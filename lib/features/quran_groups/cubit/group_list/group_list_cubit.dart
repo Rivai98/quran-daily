@@ -42,9 +42,7 @@ class GroupListState extends Equatable {
 
 /// S1 group selection: my groups + pending rows + entry points.
 class GroupListCubit extends Cubit<GroupListState> {
-  GroupListCubit({required GroupsRepository repository})
-      : _repository = repository,
-        super(const GroupListState());
+  GroupListCubit({required this._repository}) : super(const GroupListState());
 
   final GroupsRepository _repository;
 
@@ -52,12 +50,16 @@ class GroupListCubit extends Cubit<GroupListState> {
     emit(state.copyWith(status: GroupListStatus.loading, clearFailure: true));
     final result = await _repository.getMyGroups();
     result.when(
-      success: (MyGroupsOverview overview) => emit(state.copyWith(
-        status: overview.groups.isEmpty && overview.pendingRequests.isEmpty
-            ? GroupListStatus.empty
-            : (overview.isStale ? GroupListStatus.offline : GroupListStatus.success),
-        overview: overview,
-      )),
+      success: (MyGroupsOverview overview) => emit(
+        state.copyWith(
+          status: overview.groups.isEmpty && overview.pendingRequests.isEmpty
+              ? GroupListStatus.empty
+              : (overview.isStale
+                    ? GroupListStatus.offline
+                    : GroupListStatus.success),
+          overview: overview,
+        ),
+      ),
       failure: (AppFailure failure) => emit(
         state.copyWith(status: GroupListStatus.failure, failure: failure),
       ),
@@ -71,16 +73,18 @@ class GroupListCubit extends Cubit<GroupListState> {
       success: (_) {
         final overview = state.overview;
         if (overview == null) return;
-        emit(state.copyWith(
-          overview: MyGroupsOverview(
-            groups: overview.groups,
-            pendingRequests: overview.pendingRequests
-                .where((r) => r.joinRequestId != joinRequestId)
-                .toList(),
-            isStale: overview.isStale,
-            cachedAt: overview.cachedAt,
+        emit(
+          state.copyWith(
+            overview: MyGroupsOverview(
+              groups: overview.groups,
+              pendingRequests: overview.pendingRequests
+                  .where((r) => r.joinRequestId != joinRequestId)
+                  .toList(),
+              isStale: overview.isStale,
+              cachedAt: overview.cachedAt,
+            ),
           ),
-        ));
+        );
       },
       failure: (AppFailure failure) => emit(state.copyWith(failure: failure)),
     );

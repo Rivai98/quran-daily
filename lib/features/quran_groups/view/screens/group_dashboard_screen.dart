@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/router.dart';
@@ -80,9 +80,9 @@ class GroupDashboardScreen extends StatelessWidget {
                                     Icon(
                                       Icons.people_alt_rounded,
                                       size: 16,
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<AppColors>()!.inkMuted,
+                                      color: Theme.of(context)
+                                          .extension<AppColors>()!
+                                          .inkMuted,
                                     ),
                                     const SizedBox(width: AppSpacing.xxs),
                                     Flexible(
@@ -92,9 +92,9 @@ class GroupDashboardScreen extends StatelessWidget {
                                           snapshot.portionUnit,
                                         ),
                                         style: AppTypography.caption.copyWith(
-                                          color: Theme.of(
-                                            context,
-                                          ).extension<AppColors>()!.inkMuted,
+                                          color: Theme.of(context)
+                                              .extension<AppColors>()!
+                                              .inkMuted,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -236,9 +236,9 @@ class GroupDashboardScreen extends StatelessWidget {
                         Icon(
                           Icons.calendar_today_rounded,
                           size: 20,
-                          color: Theme.of(
-                            context,
-                          ).extension<AppColors>()!.inkMuted,
+                          color: Theme.of(context)
+                              .extension<AppColors>()!
+                              .inkMuted,
                         ),
                         const SizedBox(width: AppSpacing.xs),
                         Text(

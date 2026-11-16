@@ -46,17 +46,15 @@ class DashboardState extends Equatable {
 
 class DashboardCubit extends Cubit<DashboardState> {
   DashboardCubit({
-    required KhatmaRepository repository,
+    required this._repository,
     required this.groupId,
     this.groupsRepository,
-    SyncPendingCompletions? syncPending,
+    this._syncPending,
     ConnectivityService? connectivityService,
     DashboardState initialState = const DashboardState(),
     this.onOpened,
     this.setAsMain,
-  }) : _repository = repository,
-       _syncPending = syncPending,
-       super(initialState) {
+  }) : super(initialState) {
     if (connectivityService != null) observeConnectivity(connectivityService);
   }
 
@@ -79,7 +77,11 @@ class DashboardCubit extends Cubit<DashboardState> {
   Future<void> refresh() async {
     if (!_markedOpened && onOpened != null) {
       _markedOpened = true;
-      try { await onOpened!(); } catch (_) { /* opening remains available offline */ }
+      try {
+        await onOpened!();
+      } catch (_) {
+        /* opening remains available offline */
+      }
     }
     try {
       await _syncPending?.call();

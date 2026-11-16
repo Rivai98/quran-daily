@@ -5,15 +5,13 @@ import '../../../core/errors/result.dart';
 import '../../../core/network/rpc_client.dart';
 import 'admin_repository.dart';
 
-typedef AdminFunctionInvoker =
-    Future<Object?> Function(String name, Map<String, Object?> body);
+typedef AdminFunctionInvoker = Future<Object?> Function(
+  String name,
+  Map<String, Object?> body,
+);
 
 class AdminRepositoryImpl implements AdminRepository {
-  AdminRepositoryImpl({
-    required RpcClient rpc,
-    required AdminFunctionInvoker invoke,
-  }) : _rpc = rpc,
-       _invoke = invoke;
+  AdminRepositoryImpl({required this._rpc, required this._invoke});
 
   final RpcClient _rpc;
   final AdminFunctionInvoker _invoke;

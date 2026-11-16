@@ -14,26 +14,12 @@ void main() {
         'portions_read': 45,
         'portions_late': 3,
         'khatmas': [
-          {
-            'group_id': 'g-1111',
-            'group_name': 'ختمة الفجر',
-            'completed': 2,
-          },
-          {
-            'group_id': 'g-2222',
-            'group_name': 'ختمة النور',
-            'completed': 1,
-          },
+          {'group_id': 'g-1111', 'group_name': 'ختمة الفجر', 'completed': 2},
+          {'group_id': 'g-2222', 'group_name': 'ختمة النور', 'completed': 1},
         ],
         'badges': [
-          {
-            'code': 'first_khatma',
-            'earned_at': '2026-11-05',
-          },
-          {
-            'code': 'streak_7',
-            'earned_at': '2026-11-08',
-          },
+          {'code': 'first_khatma', 'earned_at': '2026-11-05'},
+          {'code': 'streak_7', 'earned_at': '2026-11-08'},
         ],
       };
 
@@ -55,22 +41,32 @@ void main() {
 
       // Badges includes all 5 known badges, with earned status
       expect(profile.badges.length, 5);
-      final firstKhatma = profile.badges.firstWhere((b) => b.code == ProfileBadgeCode.firstKhatma);
+      final firstKhatma = profile.badges.firstWhere(
+        (b) => b.code == ProfileBadgeCode.firstKhatma,
+      );
       expect(firstKhatma.isEarned, true);
       expect(firstKhatma.earnedAt, DateTime(2026, 11, 5));
 
-      final streak7 = profile.badges.firstWhere((b) => b.code == ProfileBadgeCode.streak7);
+      final streak7 = profile.badges.firstWhere(
+        (b) => b.code == ProfileBadgeCode.streak7,
+      );
       expect(streak7.isEarned, true);
       expect(streak7.earnedAt, DateTime(2026, 11, 8));
 
-      final streak30 = profile.badges.firstWhere((b) => b.code == ProfileBadgeCode.streak30);
+      final streak30 = profile.badges.firstWhere(
+        (b) => b.code == ProfileBadgeCode.streak30,
+      );
       expect(streak30.isEarned, false);
       expect(streak30.earnedAt, isNull);
 
-      final streak100 = profile.badges.firstWhere((b) => b.code == ProfileBadgeCode.streak100);
+      final streak100 = profile.badges.firstWhere(
+        (b) => b.code == ProfileBadgeCode.streak100,
+      );
       expect(streak100.isEarned, false);
 
-      final portions100 = profile.badges.firstWhere((b) => b.code == ProfileBadgeCode.portions100);
+      final portions100 = profile.badges.firstWhere(
+        (b) => b.code == ProfileBadgeCode.portions100,
+      );
       expect(portions100.isEarned, false);
     });
 
@@ -111,7 +107,10 @@ void main() {
           ProfileKhatma(groupId: 'g-1', groupName: 'ختمة', completed: 1),
         ],
         badges: [
-          ProfileBadge(code: ProfileBadgeCode.firstKhatma, earnedAt: DateTime(2026, 10, 20)),
+          ProfileBadge(
+            code: ProfileBadgeCode.firstKhatma,
+            earnedAt: DateTime(2026, 10, 20),
+          ),
           const ProfileBadge(code: ProfileBadgeCode.streak7),
           const ProfileBadge(code: ProfileBadgeCode.streak30),
           const ProfileBadge(code: ProfileBadgeCode.streak100),

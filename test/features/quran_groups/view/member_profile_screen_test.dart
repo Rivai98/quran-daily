@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -54,9 +54,8 @@ void main() {
 
   setUp(() {
     repository = _MockGroupsRepository();
-    when(
-      () => repository.getMemberProfile(any(), any()),
-    ).thenAnswer((_) async => Success(memberProfileData));
+    when(() => repository.getMemberProfile(any(), any()))
+        .thenAnswer((_) async => Success(memberProfileData));
   });
 
   group('MemberProfileScreen (T012 & T014)', () {

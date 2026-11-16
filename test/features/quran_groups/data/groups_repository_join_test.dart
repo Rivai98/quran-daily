@@ -154,9 +154,8 @@ void main() {
   });
 
   test('cancel request uses the request identifier', () async {
-    when(
-      () => rpc.call<dynamic>('cancel_join_request', any()),
-    ).thenAnswer((_) async => const Success<dynamic>(null));
+    when(() => rpc.call<dynamic>('cancel_join_request', any()))
+        .thenAnswer((_) async => const Success<dynamic>(null));
 
     final result = await repository.cancelJoinRequest('r4');
 

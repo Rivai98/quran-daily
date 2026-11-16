@@ -57,9 +57,8 @@ class QpcFontIntegrityException implements Exception {
 
 /// Reads the owner supplied QPC V2 SQLite sources without transforming their text.
 class QpcV2Repository {
-  QpcV2Repository({AssetBundle? bundle, Directory? storageDirectory})
-    : _bundle = bundle ?? rootBundle,
-      _storageDirectory = storageDirectory;
+  QpcV2Repository({AssetBundle? bundle, this._storageDirectory})
+    : _bundle = bundle ?? rootBundle;
 
   static const layoutAsset = 'assets/quran/qpc_v2/qpc-v2-15-lines.db';
   static const wordsAsset = 'assets/quran/qpc_v2/qpc-v2.db';
@@ -103,9 +102,9 @@ class QpcV2Repository {
     final wordsFile = await _materialize(wordsAsset, sourceDir);
     _layoutDb = await openDatabase(layoutFile.path, readOnly: true);
     _wordsDb = await openDatabase(wordsFile.path, readOnly: true);
-    _fontManifest =
-        jsonDecode(await _bundle.loadString(manifestAsset))
-            as Map<String, dynamic>;
+    _fontManifest = jsonDecode(
+      await _bundle.loadString(manifestAsset),
+    ) as Map<String, dynamic>;
     _totalWords =
         Sqflite.firstIntValue(
           await _wordsDb!.rawQuery('SELECT COUNT(*) FROM words'),
@@ -279,18 +278,19 @@ class QpcV2Repository {
   }
 }
 
-typedef QpcFontRegistrar =
-    Future<void> Function(String family, List<int> bytes);
+typedef QpcFontRegistrar = Future<void> Function(
+  String family,
+  List<int> bytes,
+);
 
 /// Downloads, verifies, and caches only manifest-matching page fonts.
 class QpcFontManager {
   QpcFontManager({
     required this.layout,
-    Directory? storageDirectory,
+    this._storageDirectory,
     HttpClient Function()? httpClientFactory,
     QpcFontRegistrar? registerFont,
-  }) : _storageDirectory = storageDirectory,
-       _httpClientFactory = httpClientFactory ?? HttpClient.new,
+  }) : _httpClientFactory = httpClientFactory ?? HttpClient.new,
        _registerFont = registerFont ?? _registerFlutterFont;
 
   /// Byte-identical mirrors of the KFGQPC QPC V2 page fonts (verified against the

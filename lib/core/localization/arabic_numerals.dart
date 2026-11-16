@@ -11,9 +11,9 @@ class ArabicNumerals {
   /// Arabic-Indic counterpart; all other characters pass through.
   static String format(Object value) {
     return value.toString().replaceAllMapped(
-          RegExp('[0-9]'),
-          (match) => _digits[int.parse(match.group(0)!)],
-        );
+      RegExp('[0-9]'),
+      (match) => _digits[int.parse(match.group(0)!)],
+    );
   }
 
   /// `40` → `٤٠٪` (Arabic percent sign U+066A).

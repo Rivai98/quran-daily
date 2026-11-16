@@ -1,11 +1,13 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/core/quran/mushaf/mushaf_models.dart';
 import 'package:quran_daily/core/quran/mushaf/mushaf_repository.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/localization/arabic_formatting.dart';
+
 import '../../../helpers/widget_test_app.dart';
+
 import 'package:quran_daily/core/di/service_locator.dart';
 import 'package:quran_daily/features/mushaf/data/reader_storage.dart';
 import 'package:quran_daily/features/mushaf/view/mushaf_index_screen.dart';
@@ -127,31 +129,30 @@ void main() {
     },
   );
 
-  testWidgets('renders surah rows with number badge, meta template, and chevron', (tester) async {
+  testWidgets(
+    'renders surah rows with number badge, meta template, and chevron',
+    (tester) async {
+      final repo = _DetailedRepository();
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          MushafIndexScreen(repository: repo, onOpenPage: (_) {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('الفاتحة'), findsOneWidget);
+      expect(find.text(ArabicStrings.surahAyahMeta(1, 7)), findsOneWidget);
+      expect(find.byIcon(Icons.chevron_right), findsWidgets);
+    },
+  );
+
+  testWidgets('renders juz and hizb rows with start page and chevron', (
+    tester,
+  ) async {
     final repo = _DetailedRepository();
     await tester.pumpWidget(
       buildArabicTestApp(
-        MushafIndexScreen(
-          repository: repo,
-          onOpenPage: (_) {},
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('الفاتحة'), findsOneWidget);
-    expect(find.text(ArabicStrings.surahAyahMeta(1, 7)), findsOneWidget);
-    expect(find.byIcon(Icons.chevron_right), findsWidgets);
-  });
-
-  testWidgets('renders juz and hizb rows with start page and chevron', (tester) async {
-    final repo = _DetailedRepository();
-    await tester.pumpWidget(
-      buildArabicTestApp(
-        MushafIndexScreen(
-          repository: repo,
-          onOpenPage: (_) {},
-        ),
+        MushafIndexScreen(repository: repo, onOpenPage: (_) {}),
       ),
     );
     await tester.pumpAndSettle();

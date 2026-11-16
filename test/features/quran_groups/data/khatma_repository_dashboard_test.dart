@@ -45,9 +45,8 @@ void main() {
   };
 
   test('network success returns and caches the dashboard snapshot', () async {
-    when(
-      () => remote.getDashboard('g1'),
-    ).thenAnswer((_) async => const Success<dynamic>(snapshotJson));
+    when(() => remote.getDashboard('g1'))
+        .thenAnswer((_) async => const Success<dynamic>(snapshotJson));
     when(() => cache.upsert('g1', any())).thenAnswer((_) async {});
 
     final result = await repository.getDashboard('g1');
@@ -66,9 +65,8 @@ void main() {
           NetworkFailure(message: 'offline', code: 'network'),
         ),
       );
-      when(
-        () => cache.read('g1'),
-      ).thenAnswer((_) async => (json: snapshotJson, cachedAt: cachedAt));
+      when(() => cache.read('g1'))
+          .thenAnswer((_) async => (json: snapshotJson, cachedAt: cachedAt));
 
       final result = await repository.getDashboard('g1');
 
@@ -92,9 +90,8 @@ void main() {
 
   test('cache watcher emits the initial cached snapshot', () async {
     final cachedAt = DateTime.parse('2026-11-14T22:00:00Z');
-    when(
-      () => cache.read('g1'),
-    ).thenAnswer((_) async => (json: snapshotJson, cachedAt: cachedAt));
+    when(() => cache.read('g1'))
+        .thenAnswer((_) async => (json: snapshotJson, cachedAt: cachedAt));
 
     final snapshots = await repository
         .watchCachedDashboard('g1')
@@ -135,9 +132,8 @@ void main() {
     when(
       () => remote.overrideAssignment('a1', 'm1'),
     ).thenAnswer((_) async => const Success<dynamic>({'membership_id': 'm1'}));
-    when(
-      () => remote.getDashboard('g1'),
-    ).thenAnswer((_) async => Success<dynamic>(updated));
+    when(() => remote.getDashboard('g1'))
+        .thenAnswer((_) async => Success<dynamic>(updated));
     when(() => cache.readAll()).thenAnswer(
       (_) async => [
         (

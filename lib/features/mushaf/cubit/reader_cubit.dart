@@ -121,19 +121,13 @@ class ReaderState extends Equatable {
 
 class ReaderCubit extends Cubit<ReaderState> {
   ReaderCubit({
-    required MushafRepository repository,
-    required ReaderStorage storage,
-    SettingsRepository? settings,
-    Future<bool> Function()? onComplete,
-    QpcV2Repository? qpcLayout,
-    QpcFontManager? qpcFonts,
-  }) : _repository = repository,
-       _storage = storage,
-       _settings = settings,
-       _onComplete = onComplete,
-       _qpcLayout = qpcLayout,
-       _qpcFonts = qpcFonts,
-       super(const ReaderState());
+    required this._repository,
+    required this._storage,
+    this._settings,
+    this._onComplete,
+    this._qpcLayout,
+    this._qpcFonts,
+  }) : super(const ReaderState());
 
   final MushafRepository _repository;
   final ReaderStorage _storage;

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/design_system/app_button.dart';
@@ -142,9 +142,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final selected = tester.widget<ChoiceChip>(find.byType(ChoiceChip).first);
-    final colors = Theme.of(
-      tester.element(find.byType(ChoiceChip).first),
-    ).extension<AppColors>()!;
+    final colors = Theme.of(tester.element(find.byType(ChoiceChip).first))
+        .extension<AppColors>()!;
     expect(selected.selected, isTrue);
     expect(selected.selectedColor, colors.primaryContainer);
     expect(

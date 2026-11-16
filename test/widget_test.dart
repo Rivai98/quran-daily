@@ -13,11 +13,17 @@ void main() {
     when(() => repository.watchAuthState())
         .thenAnswer((_) => const Stream.empty());
 
-    await tester.pumpWidget(QuranDailyApp(
-      authCubit: AuthCubit(repository: repository)
-        ..emit(const AuthState(
-            status: AuthStatus.unauthenticated, mode: AuthMode.login)),
-    ));
+    await tester.pumpWidget(
+      QuranDailyApp(
+        authCubit: AuthCubit(repository: repository)
+          ..emit(
+            const AuthState(
+              status: AuthStatus.unauthenticated,
+              mode: AuthMode.login,
+            ),
+          ),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text(ArabicStrings.appName), findsOneWidget);

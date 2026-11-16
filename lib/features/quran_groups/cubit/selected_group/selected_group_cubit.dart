@@ -7,16 +7,16 @@ import '../../../../core/auth/session_gateway.dart';
 import '../../../../core/settings/settings_repository.dart';
 
 class SelectedGroupState extends Equatable {
-  const SelectedGroupState({
-    this.selectedGroupId,
-    this.loading = true,
-  });
+  const SelectedGroupState({this.selectedGroupId, this.loading = true});
 
   final String? selectedGroupId;
   final bool loading;
 
-  SelectedGroupState copyWith(
-      {String? selectedGroupId, bool? loading, bool clear = false}) {
+  SelectedGroupState copyWith({
+    String? selectedGroupId,
+    bool? loading,
+    bool clear = false,
+  }) {
     return SelectedGroupState(
       selectedGroupId: clear ? null : (selectedGroupId ?? this.selectedGroupId),
       loading: loading ?? this.loading,
@@ -33,9 +33,9 @@ class SelectedGroupCubit extends Cubit<SelectedGroupState> {
   SelectedGroupCubit({
     required SettingsRepository settingsRepository,
     required SessionGateway sessionGateway,
-  })  : _settings = settingsRepository,
-        _session = sessionGateway,
-        super(const SelectedGroupState());
+  }) : _settings = settingsRepository,
+       _session = sessionGateway,
+       super(const SelectedGroupState());
 
   final SettingsRepository _settings;
 

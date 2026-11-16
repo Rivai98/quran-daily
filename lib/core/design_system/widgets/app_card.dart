@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../app_colors.dart';
 import '../app_radius.dart';
@@ -42,7 +42,8 @@ class AppCard extends StatelessWidget {
     final colors = Theme.of(context).extension<AppColors>()!;
     final effectiveRadius = borderRadius ?? AppRadius.lgBR;
     final effectiveColor = color ?? colors.surface;
-    final effectiveBorderSide = borderSide ??
+    final effectiveBorderSide =
+        borderSide ??
         BorderSide(
           color: highlighted ? colors.primary : colors.border,
           width: highlighted ? 1.5 : 1,
@@ -51,24 +52,22 @@ class AppCard extends StatelessWidget {
     Widget content = Padding(padding: padding, child: child);
 
     if (onTap != null) {
-      content = Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: effectiveRadius,
-          child: content,
-        ),
+      content = InkWell(
+        onTap: onTap,
+        borderRadius: effectiveRadius,
+        child: content,
       );
     }
 
-    return Container(
-      decoration: ShapeDecoration(
-        color: effectiveColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: effectiveRadius,
-          side: effectiveBorderSide,
-        ),
+    // A Material (not a decorated box) so ripples of the card itself and of
+    // ListTiles/InkWells inside it stay visible.
+    return Material(
+      color: effectiveColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: effectiveRadius,
+        side: effectiveBorderSide,
       ),
+      clipBehavior: Clip.antiAlias,
       child: content,
     );
   }

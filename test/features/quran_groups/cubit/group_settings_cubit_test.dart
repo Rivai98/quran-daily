@@ -32,8 +32,11 @@ void main() {
       },
       act: (cubit) => cubit.startKhatma(startJuz: 1),
       expect: () => [
-        isA<GroupSettingsState>()
-            .having((s) => s.status, 'status', GroupSettingsStatus.submitting),
+        isA<GroupSettingsState>().having(
+          (s) => s.status,
+          'status',
+          GroupSettingsStatus.submitting,
+        ),
         isA<GroupSettingsState>()
             .having((s) => s.status, 'status', GroupSettingsStatus.started)
             .having((s) => s.startedSnapshot, 'snapshot', isNotNull),
@@ -58,12 +61,17 @@ void main() {
       build: build,
       seed: () => const GroupSettingsState(groupId: 'g1'),
       setUp: () => when(() => repo.startKhatma('g1', 1)).thenAnswer(
-          (_) async => const FailureResult(
-              PermissionFailure(message: 'forbidden', code: 'forbidden'))),
+        (_) async => const FailureResult(
+          PermissionFailure(message: 'forbidden', code: 'forbidden'),
+        ),
+      ),
       act: (cubit) => cubit.startKhatma(startJuz: 1),
       expect: () => [
-        isA<GroupSettingsState>()
-            .having((s) => s.status, 'status', GroupSettingsStatus.submitting),
+        isA<GroupSettingsState>().having(
+          (s) => s.status,
+          'status',
+          GroupSettingsStatus.submitting,
+        ),
         isA<GroupSettingsState>()
             .having((s) => s.status, 'status', GroupSettingsStatus.failure)
             .having((s) => s.failure!.kind, 'kind', FailureKind.forbidden),
@@ -75,14 +83,18 @@ void main() {
     blocTest<GroupSettingsCubit, GroupSettingsState>(
       'owner regenerates the invite code',
       build: build,
-      seed: () => const GroupSettingsState(
-          groupId: 'g1', inviteCode: 'OLDCODE1'),
-      setUp: () => when(() => repo.regenerateInvite('g1'))
-          .thenAnswer((_) async => const Success('NEWCODE2')),
+      seed: () =>
+          const GroupSettingsState(groupId: 'g1', inviteCode: 'OLDCODE1'),
+      setUp: () =>
+          when(() => repo.regenerateInvite('g1'))
+              .thenAnswer((_) async => const Success('NEWCODE2')),
       act: (cubit) => cubit.regenerateInvite(),
       expect: () => [
-        isA<GroupSettingsState>()
-            .having((s) => s.status, 'status', GroupSettingsStatus.submitting),
+        isA<GroupSettingsState>().having(
+          (s) => s.status,
+          'status',
+          GroupSettingsStatus.submitting,
+        ),
         isA<GroupSettingsState>()
             .having((s) => s.status, 'status', GroupSettingsStatus.success)
             .having((s) => s.inviteCode, 'inviteCode', 'NEWCODE2'),
@@ -95,14 +107,21 @@ void main() {
       'valid patch saves and ends success',
       build: build,
       seed: () => const GroupSettingsState(groupId: 'g1'),
-      setUp: () => when(() => repo.updateGroupSettings('g1', any()))
-          .thenAnswer((_) async => Success(TestFixtures.myGroup())),
+      setUp: () =>
+          when(() => repo.updateGroupSettings('g1', any()))
+              .thenAnswer((_) async => Success(TestFixtures.myGroup())),
       act: (cubit) => cubit.saveSettings(name: 'اسم جديد'),
       expect: () => [
-        isA<GroupSettingsState>()
-            .having((s) => s.status, 'status', GroupSettingsStatus.submitting),
-        isA<GroupSettingsState>()
-            .having((s) => s.status, 'status', GroupSettingsStatus.success),
+        isA<GroupSettingsState>().having(
+          (s) => s.status,
+          'status',
+          GroupSettingsStatus.submitting,
+        ),
+        isA<GroupSettingsState>().having(
+          (s) => s.status,
+          'status',
+          GroupSettingsStatus.success,
+        ),
       ],
     );
 
@@ -116,8 +135,7 @@ void main() {
             .having((s) => s.status, 'status', GroupSettingsStatus.failure)
             .having((s) => s.failure!.code, 'code', 'validation_failed'),
       ],
-      verify: (_) =>
-          verifyNever(() => repo.updateGroupSettings(any(), any())),
+      verify: (_) => verifyNever(() => repo.updateGroupSettings(any(), any())),
     );
   });
 
@@ -126,14 +144,21 @@ void main() {
       'archive succeeds and ends archived',
       build: build,
       seed: () => const GroupSettingsState(groupId: 'g1'),
-      setUp: () => when(() => repo.archiveGroup('g1'))
-          .thenAnswer((_) async => const Success<void>(null)),
+      setUp: () =>
+          when(() => repo.archiveGroup('g1'))
+              .thenAnswer((_) async => const Success<void>(null)),
       act: (cubit) => cubit.archiveGroup(),
       expect: () => [
-        isA<GroupSettingsState>()
-            .having((s) => s.status, 'status', GroupSettingsStatus.submitting),
-        isA<GroupSettingsState>()
-            .having((s) => s.status, 'status', GroupSettingsStatus.archived),
+        isA<GroupSettingsState>().having(
+          (s) => s.status,
+          'status',
+          GroupSettingsStatus.submitting,
+        ),
+        isA<GroupSettingsState>().having(
+          (s) => s.status,
+          'status',
+          GroupSettingsStatus.archived,
+        ),
       ],
     );
   });

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../localization/arabic_strings.dart';
 import '../app_colors.dart';
@@ -73,17 +73,9 @@ class StatusChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            status.icon,
-            size: 18,
-            color: fg,
-            fill: filledIcon ? 1.0 : 0.0,
-          ),
+          Icon(status.icon, size: 18, color: fg, fill: filledIcon ? 1.0 : 0.0),
           const SizedBox(width: 4),
-          Text(
-            status.label,
-            style: AppTypography.label.copyWith(color: fg),
-          ),
+          Text(status.label, style: AppTypography.label.copyWith(color: fg)),
         ],
       ),
     );

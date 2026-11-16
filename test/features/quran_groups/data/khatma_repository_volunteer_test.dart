@@ -102,9 +102,8 @@ void main() {
     when(
       () => remote.volunteer('a1'),
     ).thenAnswer((_) async => const Success<dynamic>({'assignment_id': 'a1'}));
-    when(
-      () => remote.getDashboard('g1'),
-    ).thenAnswer((_) async => const Success<dynamic>(updated));
+    when(() => remote.getDashboard('g1'))
+        .thenAnswer((_) async => const Success<dynamic>(updated));
     when(() => cache.upsert('g1', any())).thenAnswer((_) async {});
     final result = await repository.volunteer('a1');
     expect(result.valueOrNull?.myAssignments.single.kind.name, 'volunteer');

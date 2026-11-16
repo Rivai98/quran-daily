@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'
+    show GlobalWidgetsLocalizations;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:quran_daily/core/design_system/app_theme.dart';
@@ -72,9 +74,8 @@ Widget buildArabicTestApp(
       Widget tree = builtChild ?? const SizedBox.shrink();
       if (textScale != 1.0) {
         tree = MediaQuery(
-          data: MediaQuery.of(
-            context,
-          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(textScale)),
           child: tree,
         );
       }

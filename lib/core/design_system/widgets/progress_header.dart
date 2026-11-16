@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../localization/arabic_numerals.dart';
 import '../app_colors.dart';
@@ -95,8 +95,7 @@ class ProgressHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ratio,
-              if (caption != null)
-                Text(caption!, style: AppTypography.caption),
+              if (caption != null) Text(caption!, style: AppTypography.caption),
             ],
           ),
         ),

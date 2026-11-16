@@ -10,10 +10,7 @@ abstract class SupabaseAuthDataSource {
     required String displayName,
   });
 
-  Future<Object?> signIn({
-    required String email,
-    required String password,
-  });
+  Future<Object?> signIn({required String email, required String password});
 
   String? currentUserId();
 
@@ -28,7 +25,7 @@ abstract class SupabaseAuthDataSource {
 
 class SupabaseAuthDataSourceImpl implements SupabaseAuthDataSource {
   SupabaseAuthDataSourceImpl({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+    : _client = client ?? Supabase.instance.client;
 
   final SupabaseClient _client;
 

@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../app_colors.dart';
 import 'islamic_ornament.dart';
@@ -52,9 +52,8 @@ class _AvatarPainter extends CustomPainter {
     canvas.scale(size.width / 100, size.height / 100);
     canvas.drawColor(colors.primaryContainer, BlendMode.src);
     if (avatarKey == 'ornament') {
-      GirihPainter(
-        colors.accent.withValues(alpha: .12),
-      ).paint(canvas, Size(100, 100));
+      GirihPainter(colors.accent.withValues(alpha: .12))
+          .paint(canvas, Size(100, 100));
       final gold = Paint()..color = colors.accent;
       canvas.drawCircle(
         const Offset(50, 50),

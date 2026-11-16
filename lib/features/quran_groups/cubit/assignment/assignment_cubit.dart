@@ -7,12 +7,11 @@ import 'assignment_state.dart';
 
 class AssignmentCubit extends Cubit<AssignmentState> {
   AssignmentCubit({
-    required KhatmaRepository repository,
+    required this._repository,
     required Assignment assignment,
     this.groupId,
     this.dayState = DayState.open,
-  }) : _repository = repository,
-       super(AssignmentState(assignment: assignment, dayState: dayState));
+  }) : super(AssignmentState(assignment: assignment, dayState: dayState));
 
   final KhatmaRepository _repository;
   final String? groupId;

@@ -20,16 +20,15 @@ void main() {
     session = _MockSession();
   });
 
-  SelectedGroupCubit build() => SelectedGroupCubit(
-        settingsRepository: settings,
-        sessionGateway: session,
-      );
+  SelectedGroupCubit build() =>
+      SelectedGroupCubit(settingsRepository: settings, sessionGateway: session);
 
   blocTest<SelectedGroupCubit, SelectedGroupState>(
     'load restores the persisted selection',
     build: build,
-    setUp: () => when(() => settings.getSelectedGroupId())
-        .thenAnswer((_) async => const Success('g1')),
+    setUp: () =>
+        when(() => settings.getSelectedGroupId())
+            .thenAnswer((_) async => const Success('g1')),
     act: (cubit) => cubit.load(),
     expect: () => [
       const SelectedGroupState(loading: true),
@@ -40,8 +39,9 @@ void main() {
   blocTest<SelectedGroupCubit, SelectedGroupState>(
     'load without a selection stays cleared and not loading',
     build: build,
-    setUp: () => when(() => settings.getSelectedGroupId())
-        .thenAnswer((_) async => const Success<String?>(null)),
+    setUp: () =>
+        when(() => settings.getSelectedGroupId())
+            .thenAnswer((_) async => const Success<String?>(null)),
     act: (cubit) => cubit.load(),
     expect: () => [
       const SelectedGroupState(loading: true),
@@ -52,36 +52,40 @@ void main() {
   blocTest<SelectedGroupCubit, SelectedGroupState>(
     'selectGroup updates state and persists',
     build: build,
-    setUp: () => when(() => settings.setSelectedGroupId('g2'))
-        .thenAnswer((_) async => const Success<void>(null)),
+    setUp: () =>
+        when(() => settings.setSelectedGroupId('g2'))
+            .thenAnswer((_) async => const Success<void>(null)),
     act: (cubit) => cubit.selectGroup('g2'),
     expect: () => [const SelectedGroupState(selectedGroupId: 'g2')],
-    verify: (_) =>
-        verify(() => settings.setSelectedGroupId('g2')).called(1),
+    verify: (_) => verify(() => settings.setSelectedGroupId('g2')).called(1),
   );
 
   blocTest<SelectedGroupCubit, SelectedGroupState>(
     'clearSelection clears state and persists the removal',
     build: build,
     seed: () => const SelectedGroupState(selectedGroupId: 'g1', loading: false),
-    setUp: () => when(() => settings.setSelectedGroupId(null))
-        .thenAnswer((_) async => const Success<void>(null)),
+    setUp: () =>
+        when(() => settings.setSelectedGroupId(null))
+            .thenAnswer((_) async => const Success<void>(null)),
     act: (cubit) => cubit.clearSelection(),
     expect: () => [const SelectedGroupState(loading: false)],
-    verify: (_) =>
-        verify(() => settings.setSelectedGroupId(null)).called(1),
+    verify: (_) => verify(() => settings.setSelectedGroupId(null)).called(1),
   );
 
-  test('settings read failure keeps the app usable (cleared, not loading)',
-      () async {
-    when(() => settings.getSelectedGroupId()).thenAnswer(
+  test(
+    'settings read failure keeps the app usable (cleared, not loading)',
+    () async {
+      when(() => settings.getSelectedGroupId()).thenAnswer(
         (_) async => const FailureResult(
-            UnknownFailure(message: 'disk error', code: 'unknown')));
-    final cubit = build();
-    await cubit.load();
-    expect(cubit.state.loading, isFalse);
-    expect(cubit.state.selectedGroupId, isNull);
-  });
+          UnknownFailure(message: 'disk error', code: 'unknown'),
+        ),
+      );
+      final cubit = build();
+      await cubit.load();
+      expect(cubit.state.loading, isFalse);
+      expect(cubit.state.selectedGroupId, isNull);
+    },
+  );
 
   test('quran text scale is clamped by the repository contract', () async {
     // covered in settings_repository tests; asserted here for the clamp

@@ -33,8 +33,7 @@ String groupInitials(String? name) {
       .trim()
       .split(RegExp(r'\s+'))
       .where(
-        (word) =>
-            word.isNotEmpty && !RegExp(r'^[0-9٠-٩]+$').hasMatch(word),
+        (word) => word.isNotEmpty && !RegExp(r'^[0-9٠-٩]+$').hasMatch(word),
       )
       .toList();
   if (words.isEmpty) return '';

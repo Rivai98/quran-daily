@@ -18,6 +18,5 @@ class JuzInfo extends Equatable {
   final int endAya;
 
   @override
-  List<Object?> get props =>
-      [number, startSura, startAya, endSura, endAya];
+  List<Object?> get props => [number, startSura, startAya, endSura, endAya];
 }

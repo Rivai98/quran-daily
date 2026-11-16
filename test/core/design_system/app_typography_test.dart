@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/core/design_system/app_typography.dart';
 
@@ -9,30 +9,45 @@ import 'package:quran_daily/core/design_system/app_typography.dart';
 void main() {
   TextStyle cairo(TokenSpec s, TextStyle style) {
     expect(style.fontSize, s.size, reason: '${s.name} size');
-    expect(style.height! * style.fontSize!, closeTo(s.lineHeight, 0.001),
-        reason: '${s.name} line height');
+    expect(
+      style.height! * style.fontSize!,
+      closeTo(s.lineHeight, 0.001),
+      reason: '${s.name} line height',
+    );
     expect(style.fontWeight, s.weight, reason: '${s.name} weight');
     expect(style.fontFamily, 'Cairo', reason: '${s.name} family');
-    expect(style.fontVariations, [FontVariation('wght', s.weight!.value.toDouble())],
-        reason: '${s.name} variable weight axis');
+    expect(style.fontVariations, [
+      FontVariation('wght', s.weight!.value.toDouble()),
+    ], reason: '${s.name} variable weight axis');
     return style;
   }
 
   test('the 8 constitution tokens are exact', () {
-    cairo(const TokenSpec('display', 28, 40, FontWeight.w700),
-        AppTypography.display);
-    cairo(const TokenSpec('headline', 24, 36, FontWeight.w700),
-        AppTypography.headline);
-    cairo(const TokenSpec('title', 18, 28, FontWeight.w600),
-        AppTypography.title);
-    cairo(const TokenSpec('bodyLarge', 16, 26, FontWeight.w400),
-        AppTypography.bodyLarge);
-    cairo(const TokenSpec('body', 15, 24, FontWeight.w400),
-        AppTypography.body);
-    cairo(const TokenSpec('label', 14, 20, FontWeight.w600),
-        AppTypography.label);
-    cairo(const TokenSpec('caption', 13, 20, FontWeight.w500),
-        AppTypography.caption);
+    cairo(
+      const TokenSpec('display', 28, 40, FontWeight.w700),
+      AppTypography.display,
+    );
+    cairo(
+      const TokenSpec('headline', 24, 36, FontWeight.w700),
+      AppTypography.headline,
+    );
+    cairo(
+      const TokenSpec('title', 18, 28, FontWeight.w600),
+      AppTypography.title,
+    );
+    cairo(
+      const TokenSpec('bodyLarge', 16, 26, FontWeight.w400),
+      AppTypography.bodyLarge,
+    );
+    cairo(const TokenSpec('body', 15, 24, FontWeight.w400), AppTypography.body);
+    cairo(
+      const TokenSpec('label', 14, 20, FontWeight.w600),
+      AppTypography.label,
+    );
+    cairo(
+      const TokenSpec('caption', 13, 20, FontWeight.w500),
+      AppTypography.caption,
+    );
 
     final quran = AppTypography.quranLabel;
     expect(quran.fontSize, 20);

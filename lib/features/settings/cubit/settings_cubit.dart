@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../core/auth/session_gateway.dart';
 import '../../../core/settings/settings_repository.dart';
 import '../../admin/data/admin_repository.dart';
@@ -6,13 +7,10 @@ import 'settings_state.dart';
 
 class SettingsCubit extends Cubit<SettingsState> {
   SettingsCubit({
-    required SettingsRepository settingsRepository,
-    required SessionGateway sessionGateway,
-    AdminRepository? adminRepository,
-  }) : _settingsRepository = settingsRepository,
-       _sessionGateway = sessionGateway,
-       _adminRepository = adminRepository,
-       super(const SettingsState());
+    required this._settingsRepository,
+    required this._sessionGateway,
+    this._adminRepository,
+  }) : super(const SettingsState());
 
   final SettingsRepository _settingsRepository;
   final SessionGateway _sessionGateway;

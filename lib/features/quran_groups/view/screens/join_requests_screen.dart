@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/design_system/app_spacing.dart';
@@ -142,9 +142,9 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
                                             ? Icons.auto_awesome_rounded
                                             : Icons.public_rounded,
                                         size: 18,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
                                       ),
                                       const SizedBox(width: AppSpacing.xxs),
                                       Expanded(
@@ -168,9 +168,9 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
                             Icon(
                               Icons.schedule_rounded,
                               size: 18,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                           ],
                         ),

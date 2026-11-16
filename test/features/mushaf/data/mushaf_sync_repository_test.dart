@@ -56,34 +56,36 @@ void main() {
     expect(await storage.pendingSyncOperations(), isEmpty);
   });
 
-  test('pull replaces local bookmarks and takes a newer remote position',
-      () async {
-    final remoteBookmark = ReaderBookmark(
-      id: ReaderBookmark.newId(),
-      page: 300,
-      surah: 18,
-      ayah: 1,
-      note: 'kahf',
-      createdAt: DateTime(2026, 11, 1),
-    );
-    remote.snapshot = RemoteReaderSnapshot(
-      position: RemoteReadingPosition(
+  test(
+    'pull replaces local bookmarks and takes a newer remote position',
+    () async {
+      final remoteBookmark = ReaderBookmark(
+        id: ReaderBookmark.newId(),
         page: 300,
-        updatedAt: DateTime.now().add(const Duration(minutes: 1)),
-      ),
-      bookmarks: [remoteBookmark],
-    );
+        surah: 18,
+        ayah: 1,
+        note: 'kahf',
+        createdAt: DateTime(2026, 11, 1),
+      );
+      remote.snapshot = RemoteReaderSnapshot(
+        position: RemoteReadingPosition(
+          page: 300,
+          updatedAt: DateTime.now().add(const Duration(minutes: 1)),
+        ),
+        bookmarks: [remoteBookmark],
+      );
 
-    await sync.sync();
+      await sync.sync();
 
-    expect(await storage.lastPage(), 300);
-    expect(await storage.bookmarks(), [remoteBookmark]);
-    expect(
-      await storage.pendingSyncOperations(),
-      isEmpty,
-      reason: 'merging the server copy must not queue writes back',
-    );
-  });
+      expect(await storage.lastPage(), 300);
+      expect(await storage.bookmarks(), [remoteBookmark]);
+      expect(
+        await storage.pendingSyncOperations(),
+        isEmpty,
+        reason: 'merging the server copy must not queue writes back',
+      );
+    },
+  );
 
   test('an older remote position does not overwrite the local one', () async {
     await storage.savePage(42);
@@ -96,47 +98,57 @@ void main() {
     expect(await storage.lastPage(), 42);
   });
 
-  test('a network failure stops the pass, keeps the queue, and skips the pull',
-      () async {
-    await storage.savePage(5);
-    await storage.addBookmark(
-      ReaderBookmark(id: ReaderBookmark.newId(), page: 5, surah: 2),
-    );
-    remote.failWith = Exception('SocketException: offline');
-    remote.snapshot = const RemoteReaderSnapshot(bookmarks: []);
+  test(
+    'a network failure stops the pass, keeps the queue, and skips the pull',
+    () async {
+      await storage.savePage(5);
+      await storage.addBookmark(
+        ReaderBookmark(id: ReaderBookmark.newId(), page: 5, surah: 2),
+      );
+      remote.failWith = Exception('SocketException: offline');
+      remote.snapshot = const RemoteReaderSnapshot(bookmarks: []);
 
-    final report = await sync.sync();
+      final report = await sync.sync();
 
-    expect(report.pushed, 0);
-    expect(report.pulled, isFalse);
-    expect(await storage.pendingSyncOperations(), hasLength(2));
-    expect(await storage.bookmarks(), hasLength(1));
-  });
+      expect(report.pushed, 0);
+      expect(report.pulled, isFalse);
+      expect(await storage.pendingSyncOperations(), hasLength(2));
+      expect(await storage.bookmarks(), hasLength(1));
+    },
+  );
 
-  test('a permanently rejected write is dropped and the pass continues',
-      () async {
-    final bad = ReaderBookmark(id: 'not-a-uuid', page: 1, surah: 1);
-    await storage.addBookmark(bad);
-    await storage.savePage(3);
-    remote.rejectIds.add(bad.id);
+  test(
+    'a permanently rejected write is dropped and the pass continues',
+    () async {
+      final bad = ReaderBookmark(id: 'not-a-uuid', page: 1, surah: 1);
+      await storage.addBookmark(bad);
+      await storage.savePage(3);
+      remote.rejectIds.add(bad.id);
 
-    final report = await sync.sync();
+      final report = await sync.sync();
 
-    expect(report.dropped, 1);
-    expect(report.pushed, 1);
-    expect(report.pulled, isTrue);
-    expect(await storage.pendingSyncOperations(), isEmpty);
-  });
+      expect(report.dropped, 1);
+      expect(report.pushed, 1);
+      expect(report.pulled, isTrue);
+      expect(await storage.pendingSyncOperations(), isEmpty);
+    },
+  );
 
-  test('pull keeps local bookmarks while this user has unsent changes',
-      () async {
-    final local = ReaderBookmark(id: ReaderBookmark.newId(), page: 9, surah: 2);
-    await storage.addBookmark(local);
+  test(
+    'pull keeps local bookmarks while this user has unsent changes',
+    () async {
+      final local = ReaderBookmark(
+        id: ReaderBookmark.newId(),
+        page: 9,
+        surah: 2,
+      );
+      await storage.addBookmark(local);
 
-    await storage.applyRemote(const RemoteReaderSnapshot(bookmarks: []));
+      await storage.applyRemote(const RemoteReaderSnapshot(bookmarks: []));
 
-    expect((await storage.bookmarks()).single.id, local.id);
-  });
+      expect((await storage.bookmarks()).single.id, local.id);
+    },
+  );
 
   test('leaves queued writes of another account untouched', () async {
     final other = SqfliteReaderStorage(database: db, userId: 'user-2');

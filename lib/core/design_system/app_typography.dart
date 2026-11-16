@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Type scale from constitution Principle VI (v2.4.0).
 ///
@@ -101,20 +101,20 @@ class AppTypography {
   /// Colors are intentionally left unset so ThemeData fills them from the
   /// colorScheme (onSurface / onSurfaceVariant).
   static TextTheme get textTheme => const TextTheme(
-        displayLarge: display,
-        displayMedium: display,
-        displaySmall: display,
-        headlineLarge: headline,
-        headlineMedium: headline,
-        headlineSmall: headline,
-        titleLarge: title,
-        titleMedium: bodyLarge,
-        titleSmall: label,
-        bodyLarge: bodyLarge,
-        bodyMedium: body,
-        bodySmall: caption,
-        labelLarge: label,
-        labelMedium: label,
-        labelSmall: caption,
-      );
+    displayLarge: display,
+    displayMedium: display,
+    displaySmall: display,
+    headlineLarge: headline,
+    headlineMedium: headline,
+    headlineSmall: headline,
+    titleLarge: title,
+    titleMedium: bodyLarge,
+    titleSmall: label,
+    bodyLarge: bodyLarge,
+    bodyMedium: body,
+    bodySmall: caption,
+    labelLarge: label,
+    labelMedium: label,
+    labelSmall: caption,
+  );
 }

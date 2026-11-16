@@ -45,12 +45,12 @@ class SyncOperation extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        type,
-        assignmentId,
-        clientRecordedAt,
-        status,
-        attempts,
-        lastErrorKind,
-      ];
+    id,
+    type,
+    assignmentId,
+    clientRecordedAt,
+    status,
+    attempts,
+    lastErrorKind,
+  ];
 }

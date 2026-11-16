@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../app_colors.dart';
 import '../app_radius.dart';
@@ -6,12 +6,7 @@ import '../app_spacing.dart';
 import '../app_typography.dart';
 
 /// Semantic variants for [AppBanner] following constitution Principle VI status pairs.
-enum AppBannerVariant {
-  error,
-  warning,
-  info,
-  success,
-}
+enum AppBannerVariant { error, warning, info, success }
 
 /// A calm, consistent banner for notices, errors, and warnings (Constitution Principle VI).
 ///
@@ -121,25 +116,25 @@ class AppBanner extends StatelessWidget {
 
     final (fg, bg, defaultIcon) = switch (variant) {
       AppBannerVariant.error => (
-          colors.danger,
-          colors.missedBg,
-          Icons.error_outline_rounded,
-        ),
+        colors.danger,
+        colors.missedBg,
+        Icons.error_outline_rounded,
+      ),
       AppBannerVariant.warning => (
-          colors.pendingFg,
-          colors.pendingBg,
-          Icons.warning_amber_rounded,
-        ),
+        colors.pendingFg,
+        colors.pendingBg,
+        Icons.warning_amber_rounded,
+      ),
       AppBannerVariant.info => (
-          colors.infoFg,
-          colors.infoBg,
-          Icons.info_outline_rounded,
-        ),
+        colors.infoFg,
+        colors.infoBg,
+        Icons.info_outline_rounded,
+      ),
       AppBannerVariant.success => (
-          colors.completedFg,
-          colors.completedBg,
-          Icons.check_circle_outline_rounded,
-        ),
+        colors.completedFg,
+        colors.completedBg,
+        Icons.check_circle_outline_rounded,
+      ),
     };
 
     final effectiveIcon = icon ?? defaultIcon;

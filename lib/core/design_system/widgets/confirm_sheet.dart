@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../localization/arabic_strings.dart';
 import '../app_button.dart';
@@ -28,7 +28,9 @@ class ConfirmSheet {
       isScrollControlled: true,
       builder: (sheetContext) {
         final mediaQuery = MediaQuery.of(sheetContext);
-        final isCompact = mediaQuery.size.width < 340 || mediaQuery.textScaler.scale(1) > 1.25;
+        final isCompact =
+            mediaQuery.size.width < 340 ||
+            mediaQuery.textScaler.scale(1) > 1.25;
 
         final confirmButton = AppButton(
           label: confirmLabel,

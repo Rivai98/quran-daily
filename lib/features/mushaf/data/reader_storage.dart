@@ -113,8 +113,7 @@ abstract class ReaderStorage {
 
 /// Offline-first reader state backed by SQLite. Writes are recorded for sync.
 class SqfliteReaderStorage implements ReaderStorage, ReaderSyncStore {
-  SqfliteReaderStorage({required LocalDatabase database, required this.userId})
-    : _database = database;
+  SqfliteReaderStorage({required this._database, required this.userId});
 
   final LocalDatabase _database;
   @override

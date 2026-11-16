@@ -56,10 +56,7 @@ void main() {
       expect: () => [
         const AuthState(status: AuthStatus.checkingSession),
         const AuthState(status: AuthStatus.loadingProfile),
-        const AuthState(
-          status: AuthStatus.authenticated,
-          profile: profile,
-        ),
+        const AuthState(status: AuthStatus.authenticated, profile: profile),
       ],
     );
 
@@ -69,15 +66,20 @@ void main() {
       setUp: () {
         when(() => repository.currentUserId).thenReturn(user.id);
         when(() => repository.loadCurrentProfile()).thenAnswer(
-            (_) async => const FailureResult(AuthFailure(
-                message: 'profile missing', code: 'missing_profile')));
+          (_) async => const FailureResult(
+            AuthFailure(message: 'profile missing', code: 'missing_profile'),
+          ),
+        );
       },
       act: (cubit) => cubit.bootstrap(),
       expect: () => [
         const AuthState(status: AuthStatus.checkingSession),
         const AuthState(status: AuthStatus.loadingProfile),
-        isA<AuthState>()
-            .having((s) => s.status, 'status', AuthStatus.profileFailure),
+        isA<AuthState>().having(
+          (s) => s.status,
+          'status',
+          AuthStatus.profileFailure,
+        ),
       ],
     );
   });
@@ -92,7 +94,9 @@ void main() {
         ..showLogin(),
       expect: () => [
         const AuthState(
-            status: AuthStatus.unauthenticated, mode: AuthMode.signup),
+          status: AuthStatus.unauthenticated,
+          mode: AuthMode.signup,
+        ),
         const AuthState(status: AuthStatus.unauthenticated),
       ],
     );
@@ -104,10 +108,12 @@ void main() {
       build: buildCubit,
       seed: () => const AuthState(status: AuthStatus.unauthenticated),
       setUp: () {
-        when(() => repository.signIn(
-              email: 'sara@test.local',
-              password: 'password123',
-            )).thenAnswer((_) async => const Success(authenticated));
+        when(
+          () => repository.signIn(
+            email: 'sara@test.local',
+            password: 'password123',
+          ),
+        ).thenAnswer((_) async => const Success(authenticated));
       },
       act: (cubit) =>
           cubit.submitLogin(email: 'sara@test.local', password: 'password123'),
@@ -122,14 +128,21 @@ void main() {
       build: buildCubit,
       seed: () => const AuthState(status: AuthStatus.unauthenticated),
       setUp: () {
-        when(() => repository.signIn(
-              email: 'sara@test.local',
-              password: 'wrong-password',
-            )).thenAnswer((_) async => const FailureResult(AuthFailure(
-            message: 'provider noise', code: 'invalid_credentials')));
+        when(
+          () => repository.signIn(
+            email: 'sara@test.local',
+            password: 'wrong-password',
+          ),
+        ).thenAnswer(
+          (_) async => const FailureResult(
+            AuthFailure(message: 'provider noise', code: 'invalid_credentials'),
+          ),
+        );
       },
       act: (cubit) => cubit.submitLogin(
-          email: 'sara@test.local', password: 'wrong-password'),
+        email: 'sara@test.local',
+        password: 'wrong-password',
+      ),
       skip: 1,
       expect: () => [
         isA<AuthState>()
@@ -149,8 +162,12 @@ void main() {
             .having((s) => s.failure!.code, 'code', 'validation_failed'),
       ],
       verify: (_) {
-        verifyNever(() => repository.signIn(
-            email: any(named: 'email'), password: any(named: 'password')));
+        verifyNever(
+          () => repository.signIn(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        );
       },
     );
 
@@ -158,12 +175,16 @@ void main() {
       'duplicate submissions while submitting are ignored',
       build: buildCubit,
       seed: () => const AuthState(status: AuthStatus.submitting),
-      act: (cubit) => cubit.submitLogin(
-          email: 'sara@test.local', password: 'password123'),
+      act: (cubit) =>
+          cubit.submitLogin(email: 'sara@test.local', password: 'password123'),
       expect: () => <AuthState>[],
       verify: (_) {
-        verifyNever(() => repository.signIn(
-            email: any(named: 'email'), password: any(named: 'password')));
+        verifyNever(
+          () => repository.signIn(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        );
       },
     );
   });
@@ -173,7 +194,9 @@ void main() {
       'mismatched confirmation fails validation before network',
       build: buildCubit,
       seed: () => const AuthState(
-          status: AuthStatus.unauthenticated, mode: AuthMode.signup),
+        status: AuthStatus.unauthenticated,
+        mode: AuthMode.signup,
+      ),
       act: (cubit) => cubit.submitSignup(
         displayName: 'سارة',
         email: 'sara@test.local',
@@ -186,10 +209,13 @@ void main() {
             .having((s) => s.failure!.code, 'code', 'password_mismatch'),
       ],
       verify: (_) {
-        verifyNever(() => repository.signUp(
+        verifyNever(
+          () => repository.signUp(
             displayName: any(named: 'displayName'),
             email: any(named: 'email'),
-            password: any(named: 'password')));
+            password: any(named: 'password'),
+          ),
+        );
       },
     );
 
@@ -197,13 +223,17 @@ void main() {
       'success path authenticates',
       build: buildCubit,
       seed: () => const AuthState(
-          status: AuthStatus.unauthenticated, mode: AuthMode.signup),
+        status: AuthStatus.unauthenticated,
+        mode: AuthMode.signup,
+      ),
       setUp: () {
-        when(() => repository.signUp(
-              displayName: 'سارة',
-              email: 'sara@test.local',
-              password: 'password123',
-            )).thenAnswer((_) async => const Success(authenticated));
+        when(
+          () => repository.signUp(
+            displayName: 'سارة',
+            email: 'sara@test.local',
+            password: 'password123',
+          ),
+        ).thenAnswer((_) async => const Success(authenticated));
       },
       act: (cubit) => cubit.submitSignup(
         displayName: 'سارة',
@@ -212,12 +242,12 @@ void main() {
         confirmation: 'password123',
       ),
       expect: () => [
+        const AuthState(status: AuthStatus.submitting, mode: AuthMode.signup),
         const AuthState(
-            status: AuthStatus.submitting, mode: AuthMode.signup),
-        const AuthState(
-            status: AuthStatus.authenticated,
-            mode: AuthMode.signup,
-            profile: profile),
+          status: AuthStatus.authenticated,
+          mode: AuthMode.signup,
+          profile: profile,
+        ),
       ],
     );
   });
@@ -227,8 +257,9 @@ void main() {
       'success authenticates the Google profile',
       build: buildCubit,
       seed: () => const AuthState(status: AuthStatus.unauthenticated),
-      setUp: () => when(() => repository.signInWithGoogle())
-          .thenAnswer((_) async => const Success(authenticated)),
+      setUp: () =>
+          when(() => repository.signInWithGoogle())
+              .thenAnswer((_) async => const Success(authenticated)),
       act: (cubit) => cubit.signInWithGoogle(),
       expect: () => [
         const AuthState(status: AuthStatus.submitting),
@@ -240,8 +271,9 @@ void main() {
       'cancellation returns to idle without a failure',
       build: buildCubit,
       seed: () => const AuthState(status: AuthStatus.unauthenticated),
-      setUp: () => when(() => repository.signInWithGoogle())
-          .thenAnswer((_) async => null),
+      setUp: () =>
+          when(() => repository.signInWithGoogle())
+              .thenAnswer((_) async => null),
       act: (cubit) => cubit.signInWithGoogle(),
       expect: () => [
         const AuthState(status: AuthStatus.submitting),
@@ -254,8 +286,10 @@ void main() {
       build: buildCubit,
       seed: () => const AuthState(status: AuthStatus.unauthenticated),
       setUp: () => when(() => repository.signInWithGoogle()).thenAnswer(
-          (_) async => const FailureResult(AuthFailure(
-              message: 'provider detail', code: 'google_auth_failed'))),
+        (_) async => const FailureResult(
+          AuthFailure(message: 'provider detail', code: 'google_auth_failed'),
+        ),
+      ),
       act: (cubit) => cubit.signInWithGoogle(),
       expect: () => [
         const AuthState(status: AuthStatus.submitting),
@@ -279,8 +313,8 @@ void main() {
         );
         return AuthCubit(repository: repository);
       },
-      seed: () => const AuthState(
-          status: AuthStatus.authenticated, profile: profile),
+      seed: () =>
+          const AuthState(status: AuthStatus.authenticated, profile: profile),
       wait: const Duration(milliseconds: 30),
       expect: () => [
         const AuthState(
@@ -293,10 +327,11 @@ void main() {
     blocTest<AuthCubit, AuthState>(
       'signOut clears the session through the repository',
       build: buildCubit,
-      seed: () => const AuthState(
-          status: AuthStatus.authenticated, profile: profile),
+      seed: () =>
+          const AuthState(status: AuthStatus.authenticated, profile: profile),
       setUp: () {
-        when(() => repository.signOut()).thenAnswer((_) async => const Success<void>(null));
+        when(() => repository.signOut())
+            .thenAnswer((_) async => const Success<void>(null));
       },
       act: (cubit) => cubit.signOut(),
       expect: () => [

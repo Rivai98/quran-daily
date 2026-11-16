@@ -16,8 +16,19 @@ void main() {
 }
 
 class _Repo implements TodayRepository {
-  @override Future<Result<TodaySnapshot>> getToday() async => Success(TodaySnapshot(serverGeneratedAt: DateTime.utc(2026), mainGroupId: null, groups: const []));
-  @override Future<Result<void>> setMainGroup(String? groupId) async => const Success(null);
-  @override Future<void> markGroupOpened(String groupId) async {}
+  @override
+  Future<Result<TodaySnapshot>> getToday() async => Success(
+    TodaySnapshot(
+      serverGeneratedAt: DateTime.utc(2026),
+      mainGroupId: null,
+      groups: const [],
+    ),
+  );
+  @override
+  Future<Result<void>> setMainGroup(String? groupId) async =>
+      const Success(null);
+  @override
+  Future<void> markGroupOpened(String groupId) async {}
 }
+
 class _Khatma extends Mock implements KhatmaRepository {}

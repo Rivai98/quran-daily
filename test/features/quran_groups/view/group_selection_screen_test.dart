@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/errors/failures.dart';
@@ -100,9 +100,8 @@ void main() {
   });
 
   testWidgets('empty: branded panel with one helpful action', (tester) async {
-    when(
-      () => repo.getMyGroups(),
-    ).thenAnswer((_) async => Success(TestFixtures.overview()));
+    when(() => repo.getMyGroups())
+        .thenAnswer((_) async => Success(TestFixtures.overview()));
 
     await tester.pumpWidget(
       buildArabicTestApp(pump(const GroupSelectionScreen())),
@@ -118,9 +117,8 @@ void main() {
   });
 
   testWidgets('My Groups uses the standard section header', (tester) async {
-    when(
-      () => repo.getMyGroups(),
-    ).thenAnswer((_) async => Success(TestFixtures.overview()));
+    when(() => repo.getMyGroups())
+        .thenAnswer((_) async => Success(TestFixtures.overview()));
 
     await tester.pumpWidget(
       buildArabicTestApp(pump(const GroupSelectionScreen())),
@@ -177,9 +175,8 @@ void main() {
       findsOneWidget,
     );
 
-    when(
-      () => repo.cancelJoinRequest('jr1'),
-    ).thenAnswer((_) async => const Success<void>(null));
+    when(() => repo.cancelJoinRequest('jr1'))
+        .thenAnswer((_) async => const Success<void>(null));
     await tester.tap(find.text(ArabicStrings.cancelJoinRequestAction));
     await tester.pumpAndSettle();
     verify(() => repo.cancelJoinRequest('jr1')).called(1);

@@ -13,7 +13,7 @@
 
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:quran_daily/app/bootstrap.dart';
@@ -197,7 +197,10 @@ void main() {
     await enterField(tester, 'auth-email', email);
     await enterField(tester, 'auth-password', password);
     await enterField(tester, 'auth-confirmation', password);
-    await tapAndSettle(tester, find.text(ArabicStrings.createAccountTitle).last);
+    await tapAndSettle(
+      tester,
+      find.text(ArabicStrings.createAccountTitle).last,
+    );
 
     // HomeShell opens on الرئيسية: empty Today state with the tab bar.
     await pumpUntil(tester, find.byType(NavigationBar));
@@ -322,7 +325,10 @@ void main() {
 
     // History.
     await optional(tester, 'history', () async {
-      await tapAndSettle(tester, find.byTooltip(ArabicStrings.groupMenuTooltip));
+      await tapAndSettle(
+        tester,
+        find.byTooltip(ArabicStrings.groupMenuTooltip),
+      );
       await pumpUntil(tester, find.text(ArabicStrings.openHistoryAction));
       await tapAndSettle(
         tester,
@@ -336,14 +342,20 @@ void main() {
 
     Future<void> openGroupMenuItem(String label) async {
       await pumpUntil(tester, find.byTooltip(ArabicStrings.groupMenuTooltip));
-      await tapAndSettle(tester, find.byTooltip(ArabicStrings.groupMenuTooltip));
+      await tapAndSettle(
+        tester,
+        find.byTooltip(ArabicStrings.groupMenuTooltip),
+      );
       await pumpUntil(tester, find.text(label));
       await tapAndSettle(tester, find.text(label).last);
       await settle(tester, 2000);
     }
 
     await optional(tester, 'group_menu', () async {
-      await tapAndSettle(tester, find.byTooltip(ArabicStrings.groupMenuTooltip));
+      await tapAndSettle(
+        tester,
+        find.byTooltip(ArabicStrings.groupMenuTooltip),
+      );
       await pumpUntil(tester, find.text(ArabicStrings.manageMembersAction));
       await shot(tester, '14_group_menu');
       await popFrom(tester, find.text(ArabicStrings.manageMembersAction));
@@ -405,7 +417,10 @@ void main() {
       await settle(tester, 1500);
       await shot(tester, '20_mushaf_reader_portion_start');
       // Turn two pages forward (RTL: next page is on the left, so drag right).
-      for (final name in ['20b_mushaf_portion_page2', '20c_mushaf_portion_page3']) {
+      for (final name in [
+        '20b_mushaf_portion_page2',
+        '20c_mushaf_portion_page3',
+      ]) {
         await tester.fling(
           find.byKey(const ValueKey('mushaf-page-view')),
           const Offset(400, 0),
@@ -415,10 +430,14 @@ void main() {
         await shot(tester, name);
       }
       // Tap the page to hide the chrome (immersive) and capture it.
-      await tester.tapAt(tester.getCenter(find.byKey(const ValueKey('mushaf-page-view'))));
+      await tester.tapAt(
+        tester.getCenter(find.byKey(const ValueKey('mushaf-page-view'))),
+      );
       await settle(tester, 800);
       await shot(tester, '20d_mushaf_immersive');
-      await tester.tapAt(tester.getCenter(find.byKey(const ValueKey('mushaf-page-view'))));
+      await tester.tapAt(
+        tester.getCenter(find.byKey(const ValueKey('mushaf-page-view'))),
+      );
       await settle(tester, 800);
 
       await optional(tester, 'mushaf_index', () async {
@@ -501,9 +520,7 @@ void main() {
       await shot(tester, '26_dashboard_reader_names');
 
       await optional(tester, 'portion_detail_sheet', () async {
-        final mine = find.byWidgetPredicate(
-          (w) => w is PartTile && w.isMine,
-        );
+        final mine = find.byWidgetPredicate((w) => w is PartTile && w.isMine);
         await tapAndSettle(tester, mine);
         await pumpUntil(tester, find.byType(PortionDetailSheet));
         await shot(tester, '27_portion_detail_sheet');
@@ -544,7 +561,10 @@ void main() {
       await settle(tester, 1500);
       await shot(tester, '30_mushaf_tab');
       // Open surah rows 2 and 5 from the index (page 2 and a surah-start page).
-      for (final entry in const {2: '30b_mushaf_free_row2', 5: '30c_mushaf_free_row5'}.entries) {
+      for (final entry in const {
+        2: '30b_mushaf_free_row2',
+        5: '30c_mushaf_free_row5',
+      }.entries) {
         await optional(tester, entry.value, () async {
           final badge = find
               .descendant(
@@ -573,7 +593,10 @@ void main() {
       await pumpUntil(tester, find.byType(ProfileScreen));
       await settle(tester, 2500);
       await shot(tester, '31_profile');
-      await scrollTo(tester, find.text(ArabicStrings.profileSettingsNavigation));
+      await scrollTo(
+        tester,
+        find.text(ArabicStrings.profileSettingsNavigation),
+      );
       await shot(tester, '31b_profile_links');
 
       await optional(tester, 'personal_log', () async {

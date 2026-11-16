@@ -75,45 +75,42 @@ void main() {
     },
   );
 
-  test(
-    'returns none when nothing is pending, skips past slots, respects mutes, and falls back to personal',
-    () {
-      final noPending = planReminders(
-        date: date,
-        now: DateTime(2026, 11, 14),
-        prayerTimes: prayers,
-        personal: const PersonalReminderSettings(),
-        pending: const [],
-      );
-      expect(noPending, isEmpty);
-      final past = planReminders(
-        date: date,
-        now: DateTime(2026, 11, 15, 6),
-        prayerTimes: prayers,
-        personal: const PersonalReminderSettings(enabled: true),
-        pending: pending,
-      );
-      expect(past.map((e) => e.slot), isNot(contains(ReminderSlot.fajr)));
-      final muted = planReminders(
-        date: date,
-        now: DateTime(2026, 11, 14),
-        prayerTimes: prayers,
-        personal: const PersonalReminderSettings(enabled: true),
-        pending: pending,
-        groupSchedules: const [
-          GroupReminderSchedule(groupId: 'g1', groupName: 'الفجر'),
-        ],
-        mutedGroupIds: const {'g1'},
-      );
-      expect(muted, isEmpty);
-      final fallback = planReminders(
-        date: date,
-        now: DateTime(2026, 11, 14),
-        prayerTimes: prayers,
-        personal: const PersonalReminderSettings(enabled: true),
-        pending: pending,
-      );
-      expect(fallback, isNotEmpty);
-    },
-  );
+  test('returns none when nothing is pending, skips past slots, respects mutes, and falls back to personal', () {
+    final noPending = planReminders(
+      date: date,
+      now: DateTime(2026, 11, 14),
+      prayerTimes: prayers,
+      personal: const PersonalReminderSettings(),
+      pending: const [],
+    );
+    expect(noPending, isEmpty);
+    final past = planReminders(
+      date: date,
+      now: DateTime(2026, 11, 15, 6),
+      prayerTimes: prayers,
+      personal: const PersonalReminderSettings(enabled: true),
+      pending: pending,
+    );
+    expect(past.map((e) => e.slot), isNot(contains(ReminderSlot.fajr)));
+    final muted = planReminders(
+      date: date,
+      now: DateTime(2026, 11, 14),
+      prayerTimes: prayers,
+      personal: const PersonalReminderSettings(enabled: true),
+      pending: pending,
+      groupSchedules: const [
+        GroupReminderSchedule(groupId: 'g1', groupName: 'الفجر'),
+      ],
+      mutedGroupIds: const {'g1'},
+    );
+    expect(muted, isEmpty);
+    final fallback = planReminders(
+      date: date,
+      now: DateTime(2026, 11, 14),
+      prayerTimes: prayers,
+      personal: const PersonalReminderSettings(enabled: true),
+      pending: pending,
+    );
+    expect(fallback, isNotEmpty);
+  });
 }

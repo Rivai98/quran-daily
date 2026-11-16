@@ -13,16 +13,12 @@ import 'khatma_repository.dart';
 /// Network-backed khatma repository with a local dashboard snapshot cache.
 class KhatmaRepositoryImpl extends KhatmaRepository {
   KhatmaRepositoryImpl({
-    required KhatmaRemoteDataSource remote,
-    required CachedSnapshotsDao cache,
-    SyncQueueDao? queue,
-    CachedHistoryDao? historyDao,
-    Future<void> Function(String groupId)? onCompletionChanged,
-  }) : _remote = remote,
-       _cache = cache,
-       _queue = queue,
-       _historyDao = historyDao,
-       _onCompletionChanged = onCompletionChanged;
+    required this._remote,
+    required this._cache,
+    this._queue,
+    this._historyDao,
+    this._onCompletionChanged,
+  });
 
   final KhatmaRemoteDataSource _remote;
   final CachedSnapshotsDao _cache;

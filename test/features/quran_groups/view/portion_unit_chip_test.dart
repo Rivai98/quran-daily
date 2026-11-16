@@ -10,31 +10,30 @@ import '../../../helpers/widget_test_app.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets(
-    'keeps the selected unit chip on one line in all variants',
-    (tester) async {
-      final metadata = QuranMetadataRepository(
-        bundle: QuranMetadataTestAssetBundle(),
-      );
-      await tester.runAsync(metadata.load);
+  testWidgets('keeps the selected unit chip on one line in all variants', (
+    tester,
+  ) async {
+    final metadata = QuranMetadataRepository(
+      bundle: QuranMetadataTestAssetBundle(),
+    );
+    await tester.runAsync(metadata.load);
 
-      await pumpAllVariants(
-        tester,
-        PortionUnitChip(unit: PortionUnit.hizb, metadataRepository: metadata),
-        (tester, variant) async {
-          expect(
-            find.text(ArabicStrings.dailyUnitChip(PortionUnit.hizb)),
-            findsOneWidget,
-            reason: variant,
-          );
-          expect(
-            find.text(ArabicStrings.khatmaDays(2)),
-            findsNothing,
-            reason: variant,
-          );
-          expect(tester.takeException(), isNull, reason: variant);
-        },
-      );
-    },
-  );
+    await pumpAllVariants(
+      tester,
+      PortionUnitChip(unit: PortionUnit.hizb, metadataRepository: metadata),
+      (tester, variant) async {
+        expect(
+          find.text(ArabicStrings.dailyUnitChip(PortionUnit.hizb)),
+          findsOneWidget,
+          reason: variant,
+        );
+        expect(
+          find.text(ArabicStrings.khatmaDays(2)),
+          findsNothing,
+          reason: variant,
+        );
+        expect(tester.takeException(), isNull, reason: variant);
+      },
+    );
+  });
 }

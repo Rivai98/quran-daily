@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -41,9 +41,8 @@ void main() {
 
   testWidgets('loading state shows skeletons', (tester) async {
     final completer = Completer<Result<List<HistoryDaySummary>>>();
-    when(
-      () => repo.getHistory(groupId, limit: any(named: 'limit')),
-    ).thenAnswer((_) => completer.future);
+    when(() => repo.getHistory(groupId, limit: any(named: 'limit')))
+        .thenAnswer((_) => completer.future);
 
     await tester.pumpWidget(
       buildArabicTestApp(pump(const HistoryScreen(groupId: groupId))),
@@ -56,9 +55,8 @@ void main() {
   });
 
   testWidgets('empty state shows StatePanel with empty copy', (tester) async {
-    when(
-      () => repo.getHistory(groupId, limit: any(named: 'limit')),
-    ).thenAnswer((_) async => const Success([]));
+    when(() => repo.getHistory(groupId, limit: any(named: 'limit')))
+        .thenAnswer((_) async => const Success([]));
 
     await tester.pumpWidget(
       buildArabicTestApp(pump(const HistoryScreen(groupId: groupId))),
@@ -134,9 +132,8 @@ void main() {
         ),
       ];
 
-      when(
-        () => repo.getHistory(groupId, limit: any(named: 'limit')),
-      ).thenAnswer((_) async => Success(days));
+      when(() => repo.getHistory(groupId, limit: any(named: 'limit')))
+          .thenAnswer((_) async => Success(days));
 
       await tester.pumpWidget(
         buildArabicTestApp(pump(const HistoryScreen(groupId: groupId))),
@@ -178,12 +175,10 @@ void main() {
       perJuz: null,
     );
 
-    when(
-      () => repo.getHistory(groupId, limit: any(named: 'limit')),
-    ).thenAnswer((_) async => const Success([memberDay]));
-    when(
-      () => repo.getHistoryDay(groupId, '2026-11-14'),
-    ).thenAnswer((_) async => const Success(memberDay));
+    when(() => repo.getHistory(groupId, limit: any(named: 'limit')))
+        .thenAnswer((_) async => const Success([memberDay]));
+    when(() => repo.getHistoryDay(groupId, '2026-11-14'))
+        .thenAnswer((_) async => const Success(memberDay));
 
     await tester.pumpWidget(
       buildArabicTestApp(pump(const HistoryScreen(groupId: groupId))),
@@ -221,12 +216,10 @@ void main() {
       perJuz: perJuz,
     );
 
-    when(
-      () => repo.getHistory(groupId, limit: any(named: 'limit')),
-    ).thenAnswer((_) async => Success([ownerDay]));
-    when(
-      () => repo.getHistoryDay(groupId, '2026-11-14'),
-    ).thenAnswer((_) async => Success(ownerDay));
+    when(() => repo.getHistory(groupId, limit: any(named: 'limit')))
+        .thenAnswer((_) async => Success([ownerDay]));
+    when(() => repo.getHistoryDay(groupId, '2026-11-14'))
+        .thenAnswer((_) async => Success(ownerDay));
 
     await tester.pumpWidget(
       buildArabicTestApp(pump(const HistoryScreen(groupId: groupId))),
@@ -244,9 +237,8 @@ void main() {
   testWidgets('all variants render without overflow', (tester) async {
     final days = TestFixtures.historyPage(days: 4);
 
-    when(
-      () => repo.getHistory(groupId, limit: any(named: 'limit')),
-    ).thenAnswer((_) async => Success(days));
+    when(() => repo.getHistory(groupId, limit: any(named: 'limit')))
+        .thenAnswer((_) async => Success(days));
 
     await pumpAllVariants(tester, pump(const HistoryScreen(groupId: groupId)), (
       tester,

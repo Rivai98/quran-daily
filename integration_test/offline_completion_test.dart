@@ -149,9 +149,12 @@ void main() {
     );
     expect(completion.failureOrNull?.code, 'offline_queued');
     expect(
-      (await repository.getDashboard(
-        'g1',
-      )).valueOrNull?.myAssignments.single.status.name,
+      (await repository.getDashboard('g1'))
+          .valueOrNull
+          ?.myAssignments
+          .single
+          .status
+          .name,
       'completed',
     );
     expect((await queue.pending()).length, 1);
@@ -164,9 +167,12 @@ void main() {
     expect(await queue.pending(), isEmpty);
     expect((await repository.getDashboard('g1')).valueOrNull?.isStale, isFalse);
     expect(
-      (await repository.getDashboard(
-        'g1',
-      )).valueOrNull?.myAssignments.single.status.name,
+      (await repository.getDashboard('g1'))
+          .valueOrNull
+          ?.myAssignments
+          .single
+          .status
+          .name,
       'completed',
     );
   });

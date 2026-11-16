@@ -42,9 +42,8 @@ void main() {
   blocTest<JoinCubit, JoinState>(
     'normalizes invite codes, previews, and records pending outcome',
     build: () {
-      when(
-        () => repository.getInvitePreview('AB234567'),
-      ).thenAnswer((_) async => const Success(_profile));
+      when(() => repository.getInvitePreview('AB234567'))
+          .thenAnswer((_) async => const Success(_profile));
       when(
         () => repository.joinGroup(
           inviteCode: 'AB234567',

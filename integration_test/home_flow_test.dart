@@ -3,7 +3,7 @@
 // Compile with the other integration tests; run only on a connected device:
 //   flutter test integration_test/home_flow_test.dart -d <device-id> --dart-define-from-file=.env
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:quran_daily/app/bootstrap.dart';

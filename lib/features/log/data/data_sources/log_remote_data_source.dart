@@ -11,7 +11,8 @@ class LogRemoteDataSource {
       'p_days': days,
     });
     return result.when(
-      success: (payload) => PersonalLog.fromJson((payload! as Map).cast<String, Object?>()),
+      success: (payload) =>
+          PersonalLog.fromJson((payload! as Map).cast<String, Object?>()),
       failure: (failure) => throw failure,
     );
   }

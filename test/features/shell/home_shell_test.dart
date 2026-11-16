@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/features/shell/home_shell.dart';
+
 import '../../helpers/widget_test_app.dart';
 
 void main() {

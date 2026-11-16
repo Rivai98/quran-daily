@@ -12,7 +12,7 @@ typedef RpcExecutor = Future<Object?> Function(
 /// Thin wrapper around `supabase.rpc` that maps Postgres/provider errors to
 /// stable [AppFailure]s (backend codes keep flowing through `code`).
 class RpcClient {
-  RpcClient({required RpcExecutor execute}) : _execute = execute;
+  RpcClient({required this._execute});
 
   factory RpcClient.forClient(SupabaseClient client) {
     return RpcClient(
@@ -48,19 +48,28 @@ class RpcClient {
       switch (error.code) {
         case '42501':
           return const PermissionFailure(
-              message: 'permission denied', code: 'forbidden');
+            message: 'permission denied',
+            code: 'forbidden',
+          );
         case 'PGRST301':
         case '401':
           return const AuthFailure(
-              message: 'not signed in', code: 'unauthenticated');
+            message: 'not signed in',
+            code: 'unauthenticated',
+          );
       }
       if (error.message.contains('socket') ||
           error.message.contains('fetch') ||
           error.message.contains('network')) {
         return const NetworkFailure(
-            message: 'network unreachable', code: 'network');
+          message: 'network unreachable',
+          code: 'network',
+        );
       }
-      return UnknownFailure(message: error.message, code: error.code ?? 'unknown');
+      return UnknownFailure(
+        message: error.message,
+        code: error.code ?? 'unknown',
+      );
     }
 
     final text = error.toString();
@@ -69,7 +78,9 @@ class RpcClient {
         text.contains('fetch failed') ||
         text.contains('TimeoutException')) {
       return const NetworkFailure(
-          message: 'network unreachable', code: 'network');
+        message: 'network unreachable',
+        code: 'network',
+      );
     }
     return UnknownFailure(message: 'rpc failed', code: 'unknown');
   }

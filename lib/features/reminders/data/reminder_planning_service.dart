@@ -11,14 +11,11 @@ import 'reminders_repository.dart';
 /// Rebuilds the next three local days from cached assignments and preferences.
 class ReminderPlanningService {
   ReminderPlanningService({
-    required CachedSnapshotsDao snapshots,
-    required QuranMetadataRepository metadata,
-    required RemindersRepository preferences,
-    required NotificationScheduler notifications,
-  }) : _snapshots = snapshots,
-       _metadata = metadata,
-       _preferences = preferences,
-       _notifications = notifications;
+    required this._snapshots,
+    required this._metadata,
+    required this._preferences,
+    required this._notifications,
+  });
 
   final CachedSnapshotsDao _snapshots;
   final QuranMetadataRepository _metadata;

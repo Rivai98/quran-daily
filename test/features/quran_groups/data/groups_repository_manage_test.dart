@@ -32,9 +32,8 @@ void main() {
       connectivity: connectivity,
     );
     when(() => connectivity.isOnline).thenAnswer((_) async => true);
-    when(
-      () => rpc.call<dynamic>(any(), any()),
-    ).thenAnswer((_) async => const Success<dynamic>(null));
+    when(() => rpc.call<dynamic>(any(), any()))
+        .thenAnswer((_) async => const Success<dynamic>(null));
     when(() => rpc.call<dynamic>('get_group_members', any())).thenAnswer(
       (_) async => const Success<dynamic>({
         'group_id': 'g',

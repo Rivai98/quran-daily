@@ -58,22 +58,25 @@ void main() {
       expect(cubit.state.groupInfo, isNull);
     });
 
-    test('load emits [loading, success] on successful repository call', () async {
-      when(() => repository.getGroupInfo('g1'))
-          .thenAnswer((_) async => Success(sampleGroupInfo));
+    test(
+      'load emits [loading, success] on successful repository call',
+      () async {
+        when(() => repository.getGroupInfo('g1'))
+            .thenAnswer((_) async => Success(sampleGroupInfo));
 
-      final expectedStates = [
-        const GroupInfoState(status: GroupInfoStatus.loading),
-        GroupInfoState(
-          status: GroupInfoStatus.success,
-          groupInfo: sampleGroupInfo,
-        ),
-      ];
+        final expectedStates = [
+          const GroupInfoState(status: GroupInfoStatus.loading),
+          GroupInfoState(
+            status: GroupInfoStatus.success,
+            groupInfo: sampleGroupInfo,
+          ),
+        ];
 
-      expectLater(cubit.stream, emitsInOrder(expectedStates));
+        expectLater(cubit.stream, emitsInOrder(expectedStates));
 
-      await cubit.load('g1');
-    });
+        await cubit.load('g1');
+      },
+    );
 
     test('load emits [loading, offline] on NetworkFailure', () async {
       const failure = NetworkFailure(message: 'offline', code: 'network');
@@ -82,10 +85,7 @@ void main() {
 
       final expectedStates = [
         const GroupInfoState(status: GroupInfoStatus.loading),
-        const GroupInfoState(
-          status: GroupInfoStatus.offline,
-          failure: failure,
-        ),
+        const GroupInfoState(status: GroupInfoStatus.offline, failure: failure),
       ];
 
       expectLater(cubit.stream, emitsInOrder(expectedStates));
@@ -96,12 +96,20 @@ void main() {
     test('updateDetails updates group name and description', () async {
       when(() => repository.getGroupInfo('g1'))
           .thenAnswer((_) async => Success(sampleGroupInfo));
-      when(() => repository.updateGroupDetails('g1', 'اسم جديد', description: 'وصف جديد'))
-          .thenAnswer((_) async => const Success(null));
+      when(
+        () => repository.updateGroupDetails(
+          'g1',
+          'اسم جديد',
+          description: 'وصف جديد',
+        ),
+      ).thenAnswer((_) async => const Success(null));
 
       await cubit.load('g1');
 
-      final success = await cubit.updateDetails(name: 'اسم جديد', description: 'وصف جديد');
+      final success = await cubit.updateDetails(
+        name: 'اسم جديد',
+        description: 'وصف جديد',
+      );
       expect(success, isTrue);
       expect(cubit.state.groupInfo?.name, 'اسم جديد');
       expect(cubit.state.groupInfo?.description, 'وصف جديد');
