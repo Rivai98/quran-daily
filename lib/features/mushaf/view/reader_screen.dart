@@ -494,6 +494,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
                                 );
                               }
                             },
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(48),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: AppRadius.mdBR,
+                              ),
+                            ),
                             child: const Text(ArabicStrings.readerBackAction),
                           ),
                         ],
@@ -507,6 +513,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
                       child: OutlinedButton(
                         key: const ValueKey('reader-completion-back'),
                         onPressed: () => Navigator.of(context).maybePop(),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.mdBR,
+                          ),
+                        ),
                         child: const Text(ArabicStrings.readerBackAction),
                       ),
                     ),
