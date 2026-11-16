@@ -15,6 +15,8 @@ import 'package:quran_daily/features/quran_groups/view/screens/create_group_scre
 import 'package:quran_daily/features/quran_groups/view/widgets/forming_group_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'support/onboarding.dart';
+
 Future<void> pumpUntil(
   WidgetTester tester,
   Finder finder, {
@@ -148,6 +150,8 @@ void main() {
       tester,
       find.text(ArabicStrings.createAccountTitle).last,
     );
+    await pumpUntil(tester, find.byType(NavigationBar));
+    await dismissReminderOnboarding(tester);
 
     await createGroup(tester, groupName);
     await openGroup(tester, groupName);

@@ -23,6 +23,8 @@ import 'package:quran_daily/features/quran_groups/view/screens/personal_assignme
 import 'package:quran_daily/features/quran_groups/view/widgets/forming_group_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'support/onboarding.dart';
+
 Future<void> pumpUntil(
   WidgetTester tester,
   Finder finder, {
@@ -90,6 +92,8 @@ void main() {
       tester,
       find.text(ArabicStrings.createAccountTitle).last,
     );
+    await pumpUntil(tester, find.byType(NavigationBar));
+    await dismissReminderOnboarding(tester);
 
     // 2. Create a group.
     await pumpUntil(tester, find.text(ArabicStrings.groupsTab));
@@ -204,8 +208,11 @@ void main() {
     // 8. Back to the dashboard, then history.
     Navigator.of(tester.element(find.byType(PersonalAssignmentScreen))).pop();
     await tester.pump(const Duration(milliseconds: 500));
-    await pumpUntil(tester, find.byTooltip(ArabicStrings.openHistoryAction));
-    await tapAndSettle(tester, find.byTooltip(ArabicStrings.openHistoryAction));
+    // History lives in the group overflow menu.
+    await pumpUntil(tester, find.byTooltip(ArabicStrings.groupMenuTooltip));
+    await tapAndSettle(tester, find.byTooltip(ArabicStrings.groupMenuTooltip));
+    await pumpUntil(tester, find.text(ArabicStrings.openHistoryAction));
+    await tapAndSettle(tester, find.text(ArabicStrings.openHistoryAction).last);
     await pumpUntil(tester, find.byType(HistoryScreen));
   });
 }

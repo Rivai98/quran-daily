@@ -26,6 +26,8 @@ import 'package:quran_daily/features/quran_groups/view/screens/group_dashboard_s
 import 'package:quran_daily/features/quran_groups/view/widgets/forming_group_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'support/onboarding.dart';
+
 Future<void> pumpUntil(
   WidgetTester tester,
   Finder finder, {
@@ -98,6 +100,8 @@ void main() {
       tester,
       find.text(ArabicStrings.createAccountTitle).last,
     );
+    await pumpUntil(tester, find.byType(NavigationBar));
+    await dismissReminderOnboarding(tester);
 
     // Create a group with the hizb unit (from the مجموعاتي tab).
     await pumpUntil(tester, find.text(ArabicStrings.groupsTab));
