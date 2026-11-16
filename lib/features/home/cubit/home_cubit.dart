@@ -42,6 +42,7 @@ class HomeCubit extends Cubit<HomeState> {
   final TodayRepository _repository;
   final KhatmaRepository _khatma;
   DateTime? _lastLoadedAt;
+  static const _reselectDebounce = Duration(seconds: 3);
   bool _loading = false;
 
   Future<void> load() async {
@@ -82,11 +83,12 @@ class HomeCubit extends Cubit<HomeState> {
 
   Future<void> refresh() => load();
 
-  /// Called when the Home tab is re-selected: refresh quietly, at most every 30 s.
+  /// Called when the Home tab is re-selected: refresh quietly (content stays
+  /// on screen). Groups created, joined or started on other tabs must show at
+  /// once, so only a near-duplicate tap within [_reselectDebounce] is skipped.
   Future<void> refreshIfStale() {
     final last = _lastLoadedAt;
-    if (last != null &&
-        DateTime.now().difference(last) < const Duration(seconds: 30)) {
+    if (last != null && DateTime.now().difference(last) < _reselectDebounce) {
       return Future.value();
     }
     return load();
