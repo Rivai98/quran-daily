@@ -56,7 +56,8 @@ EN: First release of Halaqa.
 
 ## Graphics checklist
 
-- [ ] App icon 512×512 PNG
-- [ ] Feature graphic 1024×500 PNG
-- [ ] 4–8 phone screenshots (1080×2400): Home, My groups, Group dashboard, Mushaf page, Mushaf index, Profile/badges, Reminders, dark-mode Home
+- [x] App icon 512×512 PNG (graphics/icon-512.png)
+- [x] Feature graphic 1024×500 PNG (graphics/feature-1024x500.png)
+- [x] 6 phone screenshots 1080×1920 (graphics/screens/01–06.png)
+- [x] Promo video 21 s 1080×1920 (graphics/halaqa-promo.mp4)
 - [ ] Signed release APK (`build/app/outputs/flutter-apk/app-release.apk`)
