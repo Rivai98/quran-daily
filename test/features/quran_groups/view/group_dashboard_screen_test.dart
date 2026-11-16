@@ -14,6 +14,7 @@ import 'package:quran_daily/features/quran_groups/cubit/dashboard/dashboard_cubi
 import 'package:quran_daily/features/quran_groups/data/entities/entities.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/khatma_repository.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/groups_repository.dart';
+import 'package:quran_daily/core/errors/failures.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/design_system/widgets/part_tile.dart';
 import 'package:quran_daily/core/design_system/widgets/skeleton.dart';
@@ -35,6 +36,7 @@ DashboardSnapshot _snapshot({
   PortionUnit? pendingPortionUnit,
   PortionUnit portionUnit = PortionUnit.juz,
   CycleInfo? cycle,
+  bool volunteered = false,
 }) {
   final assignments = List.generate(
     30,
@@ -51,6 +53,16 @@ DashboardSnapshot _snapshot({
       isMe: i == 0,
     ),
   );
+  if (volunteered) {
+    assignments[1] = const Assignment(
+      assignmentId: 'a1',
+      juz: 2,
+      seatNumber: 2,
+      kind: AssignmentKind.volunteer,
+      status: AssignmentStatusEnum.pending,
+      isMe: true,
+    );
+  }
   return DashboardSnapshot(
     groupId: 'g1',
     groupName: 'مجموعة',
@@ -70,7 +82,7 @@ DashboardSnapshot _snapshot({
       endsAt: DateTime.parse('2026-11-15T23:59:00Z'),
     ),
     assignments: assignments,
-    myAssignments: [assignments.first],
+    myAssignments: [assignments.first, if (volunteered) assignments[1]],
     activeMemberCount: 1,
     isStale: stale,
     pendingPortionUnit: pendingPortionUnit,
@@ -80,6 +92,72 @@ DashboardSnapshot _snapshot({
 }
 
 void main() {
+  testWidgets('volunteered juz is shown in my dashboard card', (tester) async {
+    final cubit = DashboardCubit(
+      repository: _Repository(),
+      groupId: 'g1',
+      initialState: DashboardState(
+        status: DashboardStatus.success,
+        snapshot: _snapshot(volunteered: true),
+      ),
+    );
+    addTearDown(cubit.close);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: GroupDashboardScreen(
+            metadataRepository: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    expect(find.textContaining(ArabicStrings.volunteeredJuz), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a taken juz conflict refreshes and shows Arabic feedback', (
+    tester,
+  ) async {
+    final repository = _Repository();
+    when(() => repository.volunteer('a1')).thenAnswer(
+      (_) async => const FailureResult<DashboardSnapshot>(
+        SyncConflictFailure(message: 'taken', code: 'juz_already_taken'),
+      ),
+    );
+    when(
+      () => repository.getDashboard('g1'),
+    ).thenAnswer((_) async => Success(_snapshot()));
+    final cubit = DashboardCubit(
+      repository: repository,
+      groupId: 'g1',
+      initialState: DashboardState(
+        status: DashboardStatus.success,
+        snapshot: _snapshot(),
+      ),
+    );
+    addTearDown(cubit.close);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: GroupDashboardScreen(
+            metadataRepository: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final action = find.text(ArabicStrings.volunteerForJuz).first;
+    await tester.ensureVisible(action);
+    await tester.pumpAndSettle();
+    await tester.tap(action);
+    await tester.pumpAndSettle();
+    expect(find.text(ArabicStrings.volunteerConflict), findsOneWidget);
+    verify(() => repository.getDashboard('g1')).called(1);
+    expect(tester.takeException(), isNull);
+  });
+
   setUpAll(loadAppFontsForGoldenTests);
 
   testWidgets('golden: active dashboard at 360x800 in light and dark themes', (
