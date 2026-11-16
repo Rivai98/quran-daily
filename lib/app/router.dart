@@ -49,6 +49,7 @@ import '../features/profile/view/profile_screen.dart';
 import '../features/log/cubit/log_cubit.dart';
 import '../features/log/data/repositories/log_repository.dart';
 import '../features/log/view/log_screen.dart';
+import '../features/shell/shell_cubit.dart';
 
 String? inviteCodeFromDeepLink(Uri uri) {
   if (uri.scheme != 'qurandaily' ||
@@ -438,4 +439,11 @@ Widget _mushafUnavailable() => Scaffold(
 /// Clears every route above the gate (which re-decides auth vs private).
 void resetToGate() {
   navigatorKey.currentState?.popUntil((route) => route.isFirst);
+}
+
+/// A tapped wird reminder opens الرئيسية (spec 006): close pushed routes and
+/// bring the Home tab to the front.
+void openHomeFromReminder() {
+  resetToGate();
+  ShellNavigation.showHome();
 }

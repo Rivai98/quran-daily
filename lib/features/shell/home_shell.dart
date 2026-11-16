@@ -38,6 +38,20 @@ class _HomeShellState extends State<HomeShell> {
     (_) => GlobalKey<NavigatorState>(),
   );
   late final _cubit = ShellCubit();
+  StreamSubscription<int>? _tabRequests;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabRequests = ShellNavigation.tabRequests.listen(_showTab);
+  }
+
+  void _showTab(int index) {
+    if (!mounted || index < 0 || index >= _keys.length) return;
+    _keys[index].currentState?.popUntil((route) => route.isFirst);
+    _cubit.select(index);
+    if (index == 0) widget.onHomeSelected?.call();
+  }
 
   Widget _tab(int index, TabScreenBuilder? builder) => Navigator(
     key: _keys[index],
@@ -80,6 +94,7 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   void dispose() {
+    _tabRequests?.cancel();
     _cubit.close();
     super.dispose();
   }
