@@ -1,6 +1,6 @@
 # APKPure listing — حلقة (Halaqa)
 
-- **Package:** com.qurandaily.app
+- **Package:** com.halaqa.app
 - **Version:** 1.0.0 (1)
 - **Category:** Books & Reference (alternative: Lifestyle)
 - **Content rating:** Everyone

@@ -1,4 +1,4 @@
-package com.qurandaily.app
+package com.halaqa.app
 
 import io.flutter.embedding.android.FlutterActivity
 

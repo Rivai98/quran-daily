@@ -10,7 +10,7 @@
 //   008 T017  a normal user sees no admin entry and cannot load the console
 //
 // Run (grant the notification permission first, it is a fresh install):
-//   adb -s emulator-5554 shell pm grant com.qurandaily.app \
+//   adb -s emulator-5554 shell pm grant com.halaqa.app \
 //     android.permission.POST_NOTIFICATIONS
 //   flutter test integration_test/spec_validation_test.dart \
 //     -d emulator-5554 --dart-define-from-file=.env

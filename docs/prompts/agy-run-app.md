@@ -7,7 +7,7 @@ agy -i "<the prompt below on one line>"
 ```
 
 ```text
-You are running the Halaqa Flutter app (package com.qurandaily.app) for the project owner.
+You are running the Halaqa Flutter app (package com.halaqa.app) for the project owner.
 Workspace: H:\quran_daily (branch main). Toolchain: Flutter 3.50.0 / Dart 3.14, Gradle 9.5.0, AGP 9.3.1, compileSdk 37.
 Goal: build and launch the app in debug mode on the owner's Android phone (device id RZCTC0TNMRW, Samsung SM A536E) and keep the session alive so the owner can press r (hot reload) and R (hot restart).
 Steps:
