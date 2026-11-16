@@ -41,7 +41,7 @@ Test-first (constitution III): write each test task before its implementation.
 - [X] T028 [US3] LogDayDetailScreen: each item with portion name/range from metadata and link to that group's history day
 - [X] T029 [P] [US3] Widget tests `test/features/log/view/log_screen_test.dart` (RTL, dark, 320dp, 200% text)
 - [X] T030 [P] FR-004c: map `membership_limit` to "يمكنك الانضمام إلى مجموعتين بحد أقصى" in create, join, join-any, invite preview (with link to مجموعاتي), approve request; tests
-- [ ] T031 [US4] Member initial avatars, role and seat icons on members list and group cards; group status icons; Islamic ornament on Log/Home empty states; gold only for ornament (Home feature is not present in this branch)
+- [X] T031 [US4] Member initial avatars, role and seat icons on members list and group cards; group status icons; Islamic ornament on Log/Home empty states; gold only for ornament (Home feature is not present in this branch)
 - [X] T032 [US4] Golden/contrast tests for the new visuals (light + dark)
 - [X] T033 DI (marked block) and strings (marked block)
 
@@ -56,10 +56,10 @@ Test-first (constitution III): write each test task before its implementation.
 
 ## Phase 4: Integration + validation (orchestrator)
 
-- [ ] T034 Merge agent branches into `005-home-today`; mount Mushaf index (spec 003) as المصحف tab and ProfileScreen as حسابي tab; resolve shared-file blocks
+- [X] T034 Merge agent branches into `005-home-today`; mount Mushaf index (spec 003) as المصحف tab and ProfileScreen as حسابي tab; resolve shared-file blocks
 - [X] T035 Integration test `integration_test/home_flow_test.dart`: sign up, create group, start, Home hero shows portion, mark complete from Home, profile shows, 3rd group creation refused (written; device run pending)
 - [X] T036 Update spec 001 T111 / spec 004 T016 integration tests for the new shell navigation (written; device run pending)
-- [ ] T037 Final validation: `flutter analyze` 0, `flutter test` all green, pgTAP all files 0 failed, integration tests on Android; record results below
+- [ ] T037 (pending: final re-run of spec_validation + tour stopped by owner) Final validation: `flutter analyze` 0, `flutter test` all green, pgTAP all files 0 failed, integration tests on Android; record results below
 
 ## Dependencies
 
@@ -68,4 +68,11 @@ fakes and can run in parallel with Phase 1. Phase 4 needs all three.
 
 ## Validation log
 
-_(filled at T037)_
+### 2026-11-16 (qa)
+- T031 verified in code and tests: members list UserAvatar + role badge icon (stars/shield) + seat icon (`members_screen_test`), group cards GroupAvatar + status badge icons (`group_selection_screen_test`), Islamic ornament on Log empty (`IslamicOrnamentBand`, `log_screen_test`) and Home empty (HalaqaLogo, `home_screen_test`, commit 3d03852). Gold (`accent`) is used only by ornament/logo/avatar art.
+- T034 verified on emulator-5554 by `spec_validation_test.dart`: four tabs present; المصحف opens MushafIndexScreen; حسابي opens ProfileScreen ("005 T034 PASS").
+- Fixed on the way: Home stayed on the empty state after creating/starting a group within 30 s (fab9d47); first-run reminders sheet popped over other tabs (92564cd).
+- Gates on qa @ 4a49987: `flutter analyze` No issues; `flutter test` 595 passed, 0 failed.
+- pgTAP (hosted DEV, `scripts/run_remote_pgtap.py`, every file in `supabase/tests`): 24 files, 593 passed, 0 failed.
+- Integration tests on emulator-5554 (Android, swiftshader) @ 4a49987: group_flow, home_flow, mushaf_flow, offline_completion, portion_flow all passed.
+- `integration_test/spec_validation_test.dart` passed in full @ 28c435e (log below). Its re-run in the final pass, and the screenshot tour re-run, were stopped by the owner's publish request, so they were not repeated after 92564cd/fab9d47/745f152.
