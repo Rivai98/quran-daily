@@ -168,6 +168,8 @@ void main() {
     expect(find.text(groupName), findsWidgets);
     expect(find.text(portionName), findsWidgets);
 
+    // First time Home is in front: the reminders sheet asks once.
+    await dismissReminderOnboarding(tester);
     await tapAndSettle(tester, find.text(ArabicStrings.portionCompleteAction));
     await pumpUntil(tester, find.text(ArabicStrings.portionUndoAction));
 

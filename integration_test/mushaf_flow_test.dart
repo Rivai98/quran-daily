@@ -11,16 +11,19 @@
 // shows the assignment completed.
 
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:quran_daily/app/bootstrap.dart';
+import 'package:quran_daily/core/design_system/assignment_status.dart';
 import 'package:quran_daily/core/design_system/widgets/status_chip.dart';
+import 'package:quran_daily/features/quran_groups/view/widgets/my_juz_card.dart';
 import 'package:quran_daily/core/di/service_locator.dart';
-import 'package:quran_daily/core/localization/arabic_numerals.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/quran/mushaf/mushaf_repository.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/features/mushaf/data/mushaf_sync_repository.dart';
+import 'package:quran_daily/features/mushaf/cubit/reader_cubit.dart';
 import 'package:quran_daily/features/mushaf/view/reader_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/screens/group_dashboard_screen.dart';
 import 'package:quran_daily/features/quran_groups/view/widgets/forming_group_view.dart';
@@ -66,12 +69,13 @@ Future<void> enterField(WidgetTester tester, String key, String text) async {
 
 final _pageView = find.byKey(const ValueKey('mushaf-page-view'));
 
-int _visiblePage(WidgetTester tester) =>
-    tester.widget<PageView>(_pageView).controller!.page!.round() + 1;
-
-Finder _pageHeader(int page) => find.textContaining(
-  '${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(page)}',
-);
+/// The Mushaf page the reader shows (portion mode indexes from its start).
+int _visiblePage(WidgetTester tester) => tester
+    .element(find.byType(ReaderScreen))
+    .read<ReaderCubit>()
+    .state
+    .page!
+    .number;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -156,19 +160,27 @@ void main() {
     await pumpUntil(tester, _pageView, timeout: const Duration(seconds: 60));
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.byType(ReaderScreen), findsOneWidget);
-    expect(_pageHeader(range.startPage), findsOneWidget);
     expect(_visiblePage(tester), range.startPage);
     expect(
       find.widgetWithText(FilledButton, ArabicStrings.completeReadingAction),
       findsNothing,
     );
+    // The slim chrome shows the portion progress «صفحة ١ من N».
     expect(
-      find.textContaining(ArabicStrings.portionName(PortionUnit.hizb, 1)),
-      findsWidgets,
+      find.text(
+        ArabicStrings.portionPageProgress(
+          1,
+          range.endPage - range.startPage + 1,
+        ),
+      ),
+      findsOneWidget,
     );
 
     // Bookmark the start page; it reaches the account's bookmarks table.
-    await tapAndSettle(tester, find.byTooltip(ArabicStrings.addBookmarkAction));
+    // Bookmarks live in the reader's slim menu.
+    await tapAndSettle(tester, find.byTooltip(ArabicStrings.mushafTitle));
+    await pumpUntil(tester, find.text(ArabicStrings.addBookmarkAction));
+    await tapAndSettle(tester, find.text(ArabicStrings.addBookmarkAction).last);
     await pumpUntil(tester, find.text(ArabicStrings.save));
     await tapAndSettle(tester, find.text(ArabicStrings.save));
     await pumpUntil(tester, find.text(ArabicStrings.bookmarkSaved));
@@ -181,30 +193,45 @@ void main() {
     expect(remoteBookmarks, hasLength(1));
     expect(remoteBookmarks.single['page'], range.startPage);
 
-    // Swipe forward (right-to-left, like a printed Mushaf) to the end page.
+    // Turn forward like a printed Mushaf: the next page lies on the LEFT, so
+    // the finger drags from left to right.
     for (var i = 0; i < 40 && _visiblePage(tester) < range.endPage; i++) {
       final before = _visiblePage(tester);
-      await tester.fling(_pageView, const Offset(-400, 0), 1500);
-      await tester.pump(const Duration(milliseconds: 600));
+      await tester.fling(_pageView, const Offset(400, 0), 1500);
+      await tester.pump(const Duration(milliseconds: 800));
       expect(_visiblePage(tester), before + 1, reason: 'swipe goes forward');
     }
-    await pumpUntil(tester, _pageHeader(range.endPage));
     expect(_visiblePage(tester), range.endPage);
+    // One more turn shows the calm completion page; the portion never wraps.
+    await tester.fling(_pageView, const Offset(400, 0), 1500);
+    await tester.pump(const Duration(milliseconds: 800));
+    await pumpUntil(tester, find.byKey(const ValueKey('reader-completion-page')));
+    await tester.fling(_pageView, const Offset(400, 0), 1500);
+    await tester.pump(const Duration(milliseconds: 800));
+    expect(
+      find.byKey(const ValueKey('reader-completion-page')),
+      findsOneWidget,
+      reason: 'cannot pass the completion page',
+    );
 
     // "تمت القراءة" is offered on the end page and completes the assignment.
     await pumpUntil(tester, find.text(ArabicStrings.completeReadingAction));
     await tapAndSettle(tester, find.text(ArabicStrings.completeReadingAction));
+    // Completing closes the reader and the dashboard shows the portion done.
+    final reader = find.byType(ReaderScreen);
+    final closeBy = DateTime.now().add(const Duration(seconds: 30));
+    while (reader.evaluate().isNotEmpty && DateTime.now().isBefore(closeBy)) {
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    expect(reader, findsNothing);
     await pumpUntil(
       tester,
       find.descendant(
-        of: find.byType(ReaderScreen),
-        matching: find.byType(StatusChip),
+        of: find.byType(MyJuzCard),
+        matching: find.byWidgetPredicate(
+          (w) => w is StatusChip && w.status == AssignmentStatus.completed,
+        ),
       ),
-    );
-    // The completed chip reuses the same words; the action button is gone.
-    expect(
-      find.widgetWithText(FilledButton, ArabicStrings.completeReadingAction),
-      findsNothing,
     );
 
     // Server check: the owner's hizb 1 assignment is completed.
