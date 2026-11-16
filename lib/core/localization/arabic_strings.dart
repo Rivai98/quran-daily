@@ -276,8 +276,9 @@ class ArabicStrings {
       '\u{642}\u{631}\u{623} ${ArabicFormatting.isolate(ArabicNumerals.format(completed))} \u{645}\u{646} ${ArabicFormatting.isolate(ArabicNumerals.format(activeMembers))} \u{639}\u{636}\u{648}\u{64b}\u{627}';
   static String groupDashboardMeta(int members, PortionUnit unit) =>
       '${membersProgress(members)}، ${portionUnitName(unit)}';
-  static String pageRangeLabel(int start, int end) =>
-      '\u{635}\u{641}\u{62d}\u{629} ${ArabicFormatting.isolate(ArabicNumerals.format(start))} \u{625}\u{644}\u{649} ${ArabicFormatting.isolate(ArabicNumerals.format(end))}';
+  static String pageRangeLabel(int start, int end) => start == end
+      ? '$pageNumberLabel ${ArabicFormatting.isolate(ArabicNumerals.format(start))}'
+      : '$pageNumberLabel ${ArabicFormatting.isolate(ArabicNumerals.format(start))} \u{625}\u{644}\u{649} ${ArabicFormatting.isolate(ArabicNumerals.format(end))}';
   static String historyWeekOf(DateTime weekStart) =>
       '\u{623}\u{633}\u{628}\u{648}\u{639} \u{64a}\u{628}\u{62f}\u{623} \u{641}\u{64a} ${ArabicFormatting.isolate(ArabicNumerals.format(weekStart.year))}/${ArabicFormatting.isolate(ArabicNumerals.format(weekStart.month))}/${ArabicFormatting.isolate(ArabicNumerals.format(weekStart.day))}';
 
@@ -384,6 +385,9 @@ class ArabicStrings {
     required String endSura,
     required int endAya,
   }) {
+    if (startSura == endSura && startAya == endAya) {
+      return 'من سورة $startSura آية ${_num(startAya)}';
+    }
     return 'من سورة $startSura آية ${_num(startAya)}'
         ' إلى سورة $endSura آية ${_num(endAya)}';
   }
@@ -877,8 +881,9 @@ class ArabicStrings {
     int startAya,
     String endSura,
     int endAya,
-  ) =>
-      'من $startSura آية ${ArabicFormatting.isolate(ArabicNumerals.format(startAya))} إلى $endSura آية ${ArabicFormatting.isolate(ArabicNumerals.format(endAya))}';
+  ) => startSura == endSura && startAya == endAya
+      ? 'من $startSura آية ${ArabicFormatting.isolate(ArabicNumerals.format(startAya))}'
+      : 'من $startSura آية ${ArabicFormatting.isolate(ArabicNumerals.format(startAya))} إلى $endSura آية ${ArabicFormatting.isolate(ArabicNumerals.format(endAya))}';
   static String cycleProgress(int day, int length, int completed, int total) =>
       'اليوم ${ArabicFormatting.isolate(ArabicNumerals.format(day))} من ${ArabicFormatting.isolate(ArabicNumerals.format(length))}، أُنجز ${ArabicFormatting.isolate(ArabicNumerals.format(completed))} من ${ArabicFormatting.isolate(ArabicNumerals.format(total))}';
   static String homeGroupProgress(
@@ -886,7 +891,64 @@ class ArabicStrings {
     int completedMembers,
     int activeMembers,
   ) =>
-      'اليوم ${ArabicFormatting.isolate(ArabicNumerals.format(day))} من الختمة، قرأ ${ArabicFormatting.isolate(ArabicNumerals.format(completedMembers))} من ${ArabicFormatting.isolate(ArabicNumerals.format(activeMembers))} عضوًا';
+      'اليوم ${ArabicFormatting.isolate(ArabicNumerals.format(day < 1 ? 1 : day))} من الختمة، ${activeMembers == 1 && completedMembers == 1 ? 'قرأ عضو واحد' : 'قرأ ${ArabicFormatting.isolate(ArabicNumerals.format(completedMembers))} من ${countedNoun(activeMembers, singular: 'عضو', dual: 'عضوين', plural: 'أعضاء', accusative: 'عضوًا')}'}';
+  static String tomorrowPortion(String portion) => 'غدًا: $portion';
+  static const khatmaEndsToday = 'تنتهي الختمة اليوم';
+  static const tomorrowWird = 'ورد الغد';
+  static const badgeComingTitle = 'الشارة القادمة';
+
+  /// Arabic counted-noun form for masculine nouns: 1, 2, 3–10, and 11+.
+  static String countedNoun(
+    int count, {
+    required String singular,
+    required String dual,
+    required String plural,
+    required String accusative,
+  }) {
+    if (count == 1) return '$singular واحد';
+    if (count == 2) return dual;
+    final number = ArabicFormatting.isolate(ArabicNumerals.format(count));
+    if (count >= 3 && count <= 10) {
+      return '$number $plural';
+    }
+    return '$number $accusative';
+  }
+
+  static String badgeRemaining(
+    int count,
+    String badge, {
+    required String unit,
+  }) {
+    final number = ArabicFormatting.isolate(ArabicNumerals.format(count));
+    final amount = switch (unit) {
+      'day' =>
+        count == 1
+            ? 'يوم واحد'
+            : count == 2
+            ? 'يومان'
+            : count <= 10
+            ? '$number أيام'
+            : '$number يومًا',
+      'khatma' =>
+        count == 1
+            ? 'ختمة واحدة'
+            : count == 2
+            ? 'ختمتان'
+            : count <= 10
+            ? '$number ختمات'
+            : '$number ختمة',
+      _ =>
+        count == 1
+            ? 'جزء واحد'
+            : count == 2
+            ? 'جزءان'
+            : count <= 10
+            ? '$number أجزاء'
+            : '$number جزءًا',
+    };
+    return 'باقي $amount على شارة $badge';
+  }
+
   static const restDay = 'لا ورد اليوم';
   static const volunteeredPortion = 'وحدة تطوعت بقراءتها';
   static String restDaySeatLabel(String seat) =>

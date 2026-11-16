@@ -3,8 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/errors/failures.dart';
 import '../../quran_groups/data/repositories/khatma_repository.dart';
+import '../../profile/data/entities/profile_entities.dart';
+import '../../profile/data/repositories/profile_repository.dart';
 import '../data/today_repository.dart';
 import '../data/today_snapshot.dart';
+import '../data/tomorrow_rotation.dart';
 
 enum HomeStatus { initial, loading, content, empty, offline, failure }
 
@@ -14,11 +17,17 @@ class HomeState extends Equatable {
     this.snapshot,
     this.failure,
     this.updatingId,
+    this.tomorrowPortions = const {},
+    this.khatmasEndingToday = const {},
+    this.profile,
   });
   final HomeStatus status;
   final TodaySnapshot? snapshot;
   final AppFailure? failure;
   final String? updatingId;
+  final Map<String, int> tomorrowPortions;
+  final Set<String> khatmasEndingToday;
+  final UserProfile? profile;
   bool get allDone =>
       snapshot != null &&
       snapshot!.groups
@@ -30,23 +39,34 @@ class HomeState extends Equatable {
           .expand((g) => g.items)
           .every((i) => i.status == 'completed' || i.status == 'late');
   @override
-  List<Object?> get props => [status, snapshot, failure, updatingId];
+  List<Object?> get props => [
+    status,
+    snapshot,
+    failure,
+    updatingId,
+    tomorrowPortions,
+    khatmasEndingToday,
+    profile,
+  ];
 }
 
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit({
     required this._repository,
     required KhatmaRepository khatmaRepository,
+    this.profileRepository,
   }) : _khatma = khatmaRepository,
        super(const HomeState());
   final TodayRepository _repository;
   final KhatmaRepository _khatma;
+  final ProfileRepository? profileRepository;
   DateTime? _lastLoadedAt;
   bool _loading = false;
 
   Future<void> load() async {
     if (_loading) return;
     _loading = true;
+    _loadProfileQuietly();
     // Only show the loading state on the very first load; later refreshes keep the
     // current content on screen so the cards don't jump.
     if (state.snapshot == null) {
@@ -67,6 +87,9 @@ class HomeCubit extends Cubit<HomeState> {
                 : snapshot.groups.isEmpty
                 ? HomeStatus.empty
                 : HomeStatus.content,
+            tomorrowPortions: _tomorrowFor(snapshot),
+            khatmasEndingToday: _endingTodayFor(snapshot),
+            profile: state.profile,
           ),
         );
       },
@@ -78,6 +101,69 @@ class HomeCubit extends Cubit<HomeState> {
         ),
       ),
     );
+  }
+
+  Future<void> _loadProfileQuietly() async {
+    final repository = profileRepository;
+    if (repository == null) return;
+    final result = await repository.getProfile();
+    result.when(
+      success: (profile) => emit(
+        HomeState(
+          status: state.status,
+          snapshot: state.snapshot,
+          failure: state.failure,
+          updatingId: state.updatingId,
+          tomorrowPortions: state.tomorrowPortions,
+          khatmasEndingToday: state.khatmasEndingToday,
+          profile: profile,
+        ),
+      ),
+      failure: (_) {},
+    );
+  }
+
+  Map<String, int> _tomorrowFor(TodaySnapshot snapshot) {
+    final result = <String, int>{};
+    for (final group in snapshot.groups) {
+      final day = group.day;
+      final seatItems = group.items.where((item) => item.kind == 'seat');
+      final seatItem = seatItems.isEmpty ? null : seatItems.first;
+      if (day == null || day.restDay || seatItem == null) continue;
+      final next = tomorrowSeatPortion(
+        unit: group.portionUnit,
+        currentPortion: seatItem.portionIndex,
+        seatNumber: seatItem.seatNumber,
+        cycleNumber: day.cycleNumber,
+        cycleDay: day.cycleDay,
+        cycleLength: day.cycleLength,
+      );
+      if (next != null) result[group.groupId] = next;
+    }
+    return result;
+  }
+
+  Set<String> _endingTodayFor(TodaySnapshot snapshot) {
+    final result = <String>{};
+    for (final group in snapshot.groups) {
+      final day = group.day;
+      final seatItems = group.items.where((item) => item.kind == 'seat');
+      final seatItem = seatItems.isEmpty ? null : seatItems.first;
+      if (day == null || day.restDay || seatItem == null) continue;
+      if (day.cycleDay == day.cycleLength - 1 &&
+          tomorrowSeatPortion(
+                unit: group.portionUnit,
+                currentPortion: seatItem.portionIndex,
+                seatNumber: seatItem.seatNumber,
+                cycleNumber: day.cycleNumber,
+                cycleDay: day.cycleDay,
+                cycleLength: day.cycleLength,
+              ) ==
+              null) {
+        result.add(group.groupId);
+      }
+    }
+    return result;
   }
 
   Future<void> refresh() => load();
