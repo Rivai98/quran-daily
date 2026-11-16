@@ -1,5 +1,15 @@
 import '../../../core/quran/portion_unit.dart';
 
+int portionCycleLength(PortionUnit unit) {
+  final count = switch (unit) {
+    PortionUnit.juz => 30,
+    PortionUnit.halfJuz || PortionUnit.hizb => 60,
+    PortionUnit.quarter => 240,
+    PortionUnit.page => 604,
+  };
+  return (count + 29) ~/ 30;
+}
+
 /// Mirrors public.portion_for_seat from migration 20261115090001.
 /// The inputs are the persisted rotation offsets, where cycleDay is zero based.
 int? tomorrowSeatPortion({
@@ -24,7 +34,7 @@ int? tomorrowSeatPortion({
       cycleLength < 1) {
     return null;
   }
-  final cycleLen = (count + 29) ~/ 30;
+  final cycleLen = portionCycleLength(unit);
   final currentSeatOffset = cycleDay * 30 + seatNumber - 1;
   if (currentSeatOffset >= count) return null;
   final rawStart = currentPortion - 1 - cycleNumber - currentSeatOffset;

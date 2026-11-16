@@ -25,7 +25,7 @@ void main() {
           name: 'ح',
           role: 'member',
           status: 'active',
-          portionUnit: PortionUnit.juz,
+          portionUnit: PortionUnit.page,
           isMain: true,
           day: TodayDay(
             groupDate: '2026-01-01',
@@ -34,7 +34,7 @@ void main() {
             closesAt: DateTime.utc(2026),
             cycleNumber: 0,
             cycleDay: 0,
-            cycleLength: 1,
+            cycleLength: 21,
             completedCount: 0,
             totalCount: 30,
             restDay: false,
@@ -57,7 +57,55 @@ void main() {
       khatmaRepository: _Khatma(),
     );
     await cubit.load();
-    expect(cubit.state.tomorrowPortions['g'], 2);
+    expect(cubit.state.tomorrowPortions['g'], 31);
+    await cubit.close();
+  });
+
+  test('marks the known final cycle day as khatma completion', () async {
+    final day = TodayDay(
+      groupDate: '2026-01-01',
+      state: 'open',
+      endsAt: DateTime.utc(2026),
+      closesAt: DateTime.utc(2026),
+      cycleNumber: 0,
+      cycleDay: 0,
+      cycleLength: 1,
+      completedCount: 0,
+      totalCount: 30,
+      restDay: false,
+    );
+    final snapshot = TodaySnapshot(
+      serverGeneratedAt: DateTime.utc(2026),
+      mainGroupId: 'g',
+      groups: [
+        TodayGroup(
+          groupId: 'g',
+          name: 'ح',
+          role: 'member',
+          status: 'active',
+          portionUnit: PortionUnit.juz,
+          isMain: true,
+          day: day,
+          items: const [
+            TodayItem(
+              assignmentId: 'a',
+              kind: 'seat',
+              seatNumber: 1,
+              portionIndex: 1,
+              status: 'pending',
+              canUndo: false,
+            ),
+          ],
+        ),
+      ],
+    );
+    final cubit = HomeCubit(
+      repository: _Repo(snapshot),
+      khatmaRepository: _Khatma(),
+    );
+    await cubit.load();
+    expect(cubit.state.tomorrowPortions, isEmpty);
+    expect(cubit.state.khatmasEndingToday, contains('g'));
     await cubit.close();
   });
 }

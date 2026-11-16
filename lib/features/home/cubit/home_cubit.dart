@@ -107,6 +107,7 @@ class HomeCubit extends Cubit<HomeState> {
     final repository = profileRepository;
     if (repository == null) return;
     final result = await repository.getProfile();
+    if (isClosed) return;
     result.when(
       success: (profile) => emit(
         HomeState(
@@ -130,6 +131,7 @@ class HomeCubit extends Cubit<HomeState> {
       final seatItems = group.items.where((item) => item.kind == 'seat');
       final seatItem = seatItems.isEmpty ? null : seatItems.first;
       if (day == null || day.restDay || seatItem == null) continue;
+      if (day.cycleDay == day.cycleLength - 1) continue;
       final next = tomorrowSeatPortion(
         unit: group.portionUnit,
         currentPortion: seatItem.portionIndex,
@@ -151,15 +153,7 @@ class HomeCubit extends Cubit<HomeState> {
       final seatItem = seatItems.isEmpty ? null : seatItems.first;
       if (day == null || day.restDay || seatItem == null) continue;
       if (day.cycleDay == day.cycleLength - 1 &&
-          tomorrowSeatPortion(
-                unit: group.portionUnit,
-                currentPortion: seatItem.portionIndex,
-                seatNumber: seatItem.seatNumber,
-                cycleNumber: day.cycleNumber,
-                cycleDay: day.cycleDay,
-                cycleLength: day.cycleLength,
-              ) ==
-              null) {
+          day.cycleLength == portionCycleLength(group.portionUnit)) {
         result.add(group.groupId);
       }
     }
