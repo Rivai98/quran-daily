@@ -316,7 +316,21 @@ class _ReaderScreenState extends State<ReaderScreen> {
                       child: GestureDetector(
                         key: const ValueKey('reader-page-tap-area'),
                         behavior: HitTestBehavior.opaque,
-                        onTap: _toggleChrome,
+                        onTapUp: (details) {
+                          final width = MediaQuery.sizeOf(context).width;
+                          final dx = details.localPosition.dx;
+                          // In RTL Arabic layout:
+                          // - Left edge (dx < width * 0.22) steps forward to the next page.
+                          // - Right edge (dx > width * 0.78) steps back to the previous page.
+                          // - Middle area (width * 0.22 .. 0.78) toggles the reader chrome.
+                          if (dx < width * 0.22) {
+                            _stepNext();
+                          } else if (dx > width * 0.78) {
+                            _stepPrevious();
+                          } else {
+                            _toggleChrome();
+                          }
+                        },
                         child: PageView.builder(
                           key: const ValueKey('mushaf-page-view'),
                           controller: _pages ??= PageController(
@@ -528,6 +542,26 @@ class _ReaderScreenState extends State<ReaderScreen> {
         },
       ),
     );
+  }
+
+  void _stepNext() {
+    final pages = _pages;
+    if (pages?.hasClients == true) {
+      pages!.nextPage(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  void _stepPrevious() {
+    final pages = _pages;
+    if (pages?.hasClients == true) {
+      pages!.previousPage(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+      );
+    }
   }
 
   Future<void> _addBookmark(
@@ -754,8 +788,37 @@ class _QpcPageView extends StatefulWidget {
   State<_QpcPageView> createState() => _QpcPageViewState();
 }
 
-class _QpcPageViewState extends State<_QpcPageView> {
-  late Future<_QpcPageData> _data = _load();
+class _QpcPageViewState extends State<_QpcPageView>
+    with AutomaticKeepAliveClientMixin {
+  late Future<_QpcPageData> _data;
+  _QpcPageData? _syncData;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncData = _tryLoadSync();
+    _data = _syncData != null ? Future.value(_syncData) : _load();
+  }
+
+  _QpcPageData? _tryLoadSync() {
+    if (!widget.layout.isLoaded || !widget.fonts.isLoaded(widget.pageNumber)) {
+      return null;
+    }
+    final lines = widget.layout.linesForPage(widget.pageNumber);
+    final hasBasmallah =
+        lines.any((line) => line.lineType == QpcLineType.basmallah);
+    if (hasBasmallah && !widget.fonts.isLoaded(1)) {
+      return null;
+    }
+    final family = 'qpcv2_p${widget.pageNumber}';
+    final basmalaFamily = hasBasmallah ? 'qpcv2_p1' : null;
+    final basmala =
+        hasBasmallah ? widget.layout.basmallahWords : const <QpcWord>[];
+    return _QpcPageData(lines, family, basmalaFamily, basmala);
+  }
 
   Future<_QpcPageData> _load() async {
     await widget.layout.load();
@@ -768,12 +831,24 @@ class _QpcPageViewState extends State<_QpcPageView> {
       basmalaFamily = await widget.fonts.ensureLoaded(1);
       basmala = widget.layout.basmallahWords;
     }
-    return _QpcPageData(lines, family, basmalaFamily, basmala);
+    final result = _QpcPageData(lines, family, basmalaFamily, basmala);
+    if (mounted) setState(() => _syncData = result);
+    return result;
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final colors = Theme.of(context).extension<AppColors>()!;
+    if (_syncData != null) {
+      return _QpcPageBody(
+        data: _syncData!,
+        startAyah: widget.startAyah,
+        endAyah: widget.endAyah,
+        onLongPress: widget.onLongPress,
+        surahName: widget.surahName,
+      );
+    }
     return FutureBuilder<_QpcPageData>(
       future: _data,
       builder: (context, snapshot) {

@@ -210,6 +210,8 @@ class QpcV2Repository {
     }
   }
 
+  bool get isLoaded => _pages.isNotEmpty;
+
   List<QpcLine> linesForPage(int page) {
     final result = _pages[page];
     if (result == null) {
@@ -319,6 +321,9 @@ class QpcFontManager {
   }
 
   final Map<int, Future<String>> _inFlight = {};
+
+  /// Whether the font for [page] has already been verified and registered in the engine.
+  bool isLoaded(int page) => _loaded.contains(page);
 
   /// Returns the registered font family for [page]. Already-registered pages
   /// return immediately (no file read or hash), so page turns stay instant.

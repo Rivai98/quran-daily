@@ -264,10 +264,34 @@ class ReaderCubit extends Cubit<ReaderState> {
     }
   }
 
+  Future<void> stepNext() async {
+    if (state.isCompletionPage) return;
+    final current = state.page?.number ?? state.startPage ?? 1;
+    final max = state.isPortion ? state.endPage! : _repository.pageCount;
+    if (state.isPortion && current >= max) {
+      showCompletionPage();
+    } else if (current < max) {
+      await turnTo(current + 1);
+    }
+  }
+
+  Future<void> stepPrevious() async {
+    if (state.isCompletionPage) {
+      final end = state.endPage ?? _repository.pageCount;
+      await turnTo(end);
+      return;
+    }
+    final current = state.page?.number ?? state.startPage ?? 1;
+    final min = state.isPortion ? state.startPage! : 1;
+    if (current > min) {
+      await turnTo(current - 1);
+    }
+  }
+
   void _prefetchAround(int number) {
     final fonts = _qpcFonts;
     if (fonts == null) return;
-    for (final page in [number - 1, number + 1, number + 2]) {
+    for (final page in [number - 2, number - 1, number + 1, number + 2, number + 3]) {
       if (page >= 1 && page <= 604) {
         unawaited(fonts.ensureLoaded(page).catchError((_) => ''));
       }

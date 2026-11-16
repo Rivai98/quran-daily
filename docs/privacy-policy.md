@@ -34,7 +34,7 @@
 
 ## التواصل
 
-للاستفسارات أو طلب حذف البيانات: **[CONTACT_EMAIL]**
+للاستفسارات أو طلب حذف البيانات: **omarabdelnasser298@gmail.com**
 
 ---
 
@@ -74,4 +74,4 @@ The app is not intended for children under 13 without a parent's supervision.
 
 ## Contact
 
-Questions or deletion requests: **[CONTACT_EMAIL]**
+Questions or deletion requests: **omarabdelnasser298@gmail.com**
