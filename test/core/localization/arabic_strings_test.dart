@@ -57,6 +57,79 @@ void main() {
     expect(ArabicStrings.roleMember, 'عضو');
   });
 
+  test('counted nouns use Arabic forms for one, two, three through ten, and eleven plus', () {
+    expect(
+      ArabicStrings.countedNoun(
+        1,
+        singular: 'عضو',
+        dual: 'عضوين',
+        plural: 'أعضاء',
+        accusative: 'عضوًا',
+      ),
+      'عضو واحد',
+    );
+    expect(
+      ArabicStrings.countedNoun(
+        2,
+        singular: 'عضو',
+        dual: 'عضوين',
+        plural: 'أعضاء',
+        accusative: 'عضوًا',
+      ),
+      'عضوين',
+    );
+    expect(
+      ArabicStrings.countedNoun(
+        3,
+        singular: 'عضو',
+        dual: 'عضوين',
+        plural: 'أعضاء',
+        accusative: 'عضوًا',
+      ),
+      allOf(contains('٣'), contains('أعضاء')),
+    );
+    expect(
+      ArabicStrings.countedNoun(
+        10,
+        singular: 'عضو',
+        dual: 'عضوين',
+        plural: 'أعضاء',
+        accusative: 'عضوًا',
+      ),
+      allOf(contains('١٠'), contains('أعضاء')),
+    );
+    expect(
+      ArabicStrings.countedNoun(
+        11,
+        singular: 'عضو',
+        dual: 'عضوين',
+        plural: 'أعضاء',
+        accusative: 'عضوًا',
+      ),
+      allOf(contains('١١'), contains('عضوًا')),
+    );
+  });
+
+  test('badge countdown uses the matching Arabic counted noun', () {
+    expect(
+      ArabicStrings.badgeRemaining(2, 'المداومة', unit: 'day'),
+      contains('يومان'),
+    );
+    expect(
+      ArabicStrings.badgeRemaining(3, 'الختمة', unit: 'khatma'),
+      contains('ختمات'),
+    );
+  });
+
+  test('equal range boundaries render once', () {
+    expect(ArabicStrings.pageRangeLabel(1, 1), contains('صفحة'));
+    expect(ArabicStrings.pageRangeLabel(1, 1), isNot(contains('إلى')));
+    expect(
+      ArabicStrings.portionRange('الفاتحة', 1, 'الفاتحة', 1),
+      isNot(contains('إلى')),
+    );
+  });
+
   test('maps a suspended sign-in refusal to calm Arabic guidance', () {
     expect(
       ArabicStrings.authError('suspended'),

@@ -484,6 +484,7 @@ void configureServiceLocator({
         () => HomeCubit(
           repository: locator<TodayRepository>(),
           khatmaRepository: locator<KhatmaRepository>(),
+          profileRepository: locator<ProfileRepository>(),
         ),
       );
     }

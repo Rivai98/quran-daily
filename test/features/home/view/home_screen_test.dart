@@ -20,6 +20,8 @@ import 'package:quran_daily/features/home/cubit/home_cubit.dart';
 import 'package:quran_daily/features/home/data/today_repository.dart';
 import 'package:quran_daily/features/home/data/today_snapshot.dart';
 import 'package:quran_daily/features/home/view/home_screen.dart';
+import 'package:quran_daily/features/profile/data/entities/profile_entities.dart';
+import 'package:quran_daily/features/profile/data/repositories/profile_repository.dart';
 import 'package:quran_daily/features/quran_groups/data/repositories/khatma_repository.dart';
 
 import '../../../helpers/widget_test_app.dart';
@@ -92,20 +94,39 @@ void main() {
     expect(find.text(ArabicStrings.readNowAction), findsOneWidget);
     expect(find.text(ArabicStrings.portionCompleteAction), findsOneWidget);
     expect(find.byType(StatusChip), findsOneWidget);
+    expect(find.text(ArabicStrings.continueReadingTitle), findsNothing);
     expect(tester.getSize(find.byType(StatusChip)).width, lessThan(220));
   });
 
-  testWidgets('other group cards reuse the badge and action styles', (
+  testWidgets('shows the nearest unearned badge from profile data', (
+    tester,
+  ) async {
+    await _setSmallScreen(tester);
+    await _show(
+      tester,
+      Success(_pendingSnapshot),
+      profileRepository: _ProfileRepository(),
+    );
+    await tester.scrollUntilVisible(
+      find.text(ArabicStrings.badgeComingTitle),
+      300,
+    );
+    expect(find.text(ArabicStrings.badgeComingTitle), findsOneWidget);
+    expect(find.textContaining('يومان'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsNWidgets(2));
+  });
+
+  testWidgets('the second group is a compact, navigable status card', (
     tester,
   ) async {
     await _setSmallScreen(tester);
     await _show(tester, Success(_withOtherGroup));
     await tester.scrollUntilVisible(find.text('حلقة المساء'), 300);
 
-    expect(find.text(ArabicStrings.readNowAction), findsNWidgets(2));
+    expect(find.text(ArabicStrings.readNowAction), findsOneWidget);
     expect(find.byType(StatusChip), findsNWidgets(2));
-    expect(find.byIcon(Icons.auto_stories_rounded), findsNWidgets(2));
-    expect(find.text(ArabicStrings.portionCompleteAction), findsNWidgets(2));
+    expect(find.byIcon(Icons.auto_stories_rounded), findsOneWidget);
+    expect(find.text(ArabicStrings.portionCompleteAction), findsOneWidget);
     expect(
       find
           .byType(AppButton)
@@ -162,6 +183,22 @@ void main() {
         find.byType(HomeScreen),
         matchesGoldenFile(
           '../../../goldens/home_${theme ? 'dark' : 'light'}_360x800.png',
+        ),
+      );
+    });
+
+    testWidgets('Home two groups ${theme ? 'dark' : 'light'} golden at 360x800', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await _show(tester, Success(_withOtherGroup), dark: theme);
+      await expectLater(
+        find.byType(HomeScreen),
+        matchesGoldenFile(
+          '../../../goldens/home_two_groups_${theme ? 'dark' : 'light'}_360x800.png',
         ),
       );
     });
@@ -226,10 +263,12 @@ Future<void> _show(
   bool largeText = false,
   String? displayName,
   DateTime? date,
+  ProfileRepository? profileRepository,
 }) async {
   final cubit = HomeCubit(
     repository: _TodayRepository(result),
     khatmaRepository: _KhatmaRepository(),
+    profileRepository: profileRepository,
   );
   await tester.pumpWidget(
     MaterialApp(
@@ -258,6 +297,29 @@ Future<void> _show(
   addTearDown(cubit.close);
 }
 
+class _ProfileRepository implements ProfileRepository {
+  @override
+  Future<Result<UserProfile>> getProfile({bool forceRefresh = false}) async =>
+      Success(
+        UserProfile(
+          displayName: 'أحمد',
+          streak: 5,
+          bestStreak: 5,
+          portionsRead: 40,
+          portionsLate: 0,
+          khatmas: const [
+            ProfileKhatma(groupId: 'g', groupName: 'ح', completed: 1),
+          ],
+          badges: [
+            ProfileBadge(
+              code: ProfileBadgeCode.firstKhatma,
+              earnedAt: DateTime.utc(2026),
+            ),
+          ],
+        ),
+      );
+}
+
 final _emptySnapshot = TodaySnapshot(
   serverGeneratedAt: DateTime.utc(2026),
   mainGroupId: null,
@@ -276,7 +338,7 @@ final _group = TodayGroup(
     endsAt: DateTime.utc(2026, 11, 15, 20),
     closesAt: DateTime.utc(2026, 11, 16),
     cycleNumber: 1,
-    cycleDay: 1,
+    cycleDay: 0,
     cycleLength: 30,
     completedCount: 1,
     totalCount: 30,

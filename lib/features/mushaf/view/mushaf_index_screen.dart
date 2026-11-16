@@ -1,15 +1,11 @@
-import 'dart:async';
-
 import 'package:material_ui/material_ui.dart';
 
+import '../../../core/design_system/widgets/continue_reading_card.dart';
 import '../../../core/design_system/app_colors.dart';
-import '../data/reader_storage.dart';
-import '../../../core/design_system/app_radius.dart';
 import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/di/service_locator.dart';
 import '../../../core/localization/arabic_numerals.dart';
-import '../../../core/localization/arabic_formatting.dart';
 import '../../../core/localization/arabic_search.dart';
 import '../../../core/localization/arabic_strings.dart';
 import '../../../core/quran/mushaf/mushaf_repository.dart';
@@ -93,7 +89,7 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
           }
           return Column(
             children: [
-              _ContinueReadingCard(
+              ContinueReadingCard(
                 repository: widget.repository,
                 metadata: _metadata,
                 onOpenPage: widget.onOpenPage,
@@ -329,124 +325,3 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
 }
 
 /// "تابع القراءة": resumes free reading at the last saved page.
-class _ContinueReadingCard extends StatefulWidget {
-  const _ContinueReadingCard({
-    required this.repository,
-    required this.metadata,
-    required this.onOpenPage,
-  });
-
-  final MushafRepository repository;
-  final QuranMetadataRepository? metadata;
-  final ValueChanged<int> onOpenPage;
-
-  @override
-  State<_ContinueReadingCard> createState() => _ContinueReadingCardState();
-}
-
-class _ContinueReadingCardState extends State<_ContinueReadingCard> {
-  late Future<int?> _lastPage = _load();
-  StreamSubscription<int>? _positionChanges;
-
-  @override
-  void initState() {
-    super.initState();
-    // The tab stays alive in the shell, so follow every saved position.
-    _positionChanges = ReaderStorage.positionChanges.listen((_) {
-      if (!mounted) return;
-      setState(() {
-        _lastPage = _load();
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _positionChanges?.cancel();
-    super.dispose();
-  }
-
-  Future<int?> _load() async {
-    if (!serviceLocator.isRegistered<ReaderStorage>()) return null;
-    try {
-      return await serviceLocator<ReaderStorage>().lastPage();
-    } on Object {
-      return null;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    return FutureBuilder<int?>(
-      future: _lastPage,
-      builder: (context, snapshot) {
-        final page = snapshot.data;
-        if (page == null) return const SizedBox.shrink();
-        final mushafPage = widget.repository.page(page);
-        String? surah;
-        try {
-          surah = widget.metadata?.suraName(mushafPage.firstSurah);
-        } on Object {
-          surah = null;
-        }
-        final subtitle = surah == null
-            ? '${ArabicStrings.pageNumberLabel} ${ArabicFormatting.isolate(ArabicNumerals.format(page))}'
-            : '${ArabicStrings.surahWord} $surah، ${ArabicStrings.pageNumberLabel} ${ArabicFormatting.isolate(ArabicNumerals.format(page))}';
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            AppSpacing.sm,
-            AppSpacing.md,
-            AppSpacing.xs,
-          ),
-          child: Material(
-            color: colors.primaryContainer,
-            borderRadius: AppRadius.lgBR,
-            child: InkWell(
-              borderRadius: AppRadius.lgBR,
-              onTap: () => widget.onOpenPage(page),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.auto_stories_rounded,
-                      color: colors.onPrimaryContainer,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            ArabicStrings.continueReadingTitle,
-                            style: AppTypography.title.copyWith(
-                              color: colors.onPrimaryContainer,
-                            ),
-                          ),
-                          Text(
-                            subtitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.caption.copyWith(
-                              color: colors.onPrimaryContainer,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      color: colors.onPrimaryContainer,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
