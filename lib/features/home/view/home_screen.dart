@@ -39,6 +39,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  /// The first-run reminders sheet is due but Home was not in front yet.
+  bool _onboardingDue = false;
+
   @override
   void initState() {
     super.initState();
@@ -46,8 +49,24 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       await context.read<HomeCubit>().load();
       // First run only: explain and ask for notification permission.
-      if (mounted) await NotificationOnboarding.maybeAsk(context);
+      _onboardingDue = true;
+      await _askOnboarding();
     });
+  }
+
+  Future<void> _askOnboarding() async {
+    if (!mounted || !_onboardingDue) return;
+    final handled = await NotificationOnboarding.maybeAsk(context);
+    if (handled) _onboardingDue = false;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Rebuilt when the Home tab comes back to the front (TickerMode).
+    if (_onboardingDue && TickerMode.valuesOf(context).enabled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _askOnboarding());
+    }
   }
 
   @override

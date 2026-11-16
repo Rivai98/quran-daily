@@ -27,8 +27,19 @@
 - [X] T018 Strings block `// --- 006 reminders ---`
 
 ## Phase 4: Validation
-- [ ] T019 Emulator: schedule a reminder 1 min ahead with a pending portion → notification text and tap opens Home; complete → later reminders cancelled
+- [X] T019 Emulator: schedule a reminder 1 min ahead with a pending portion → notification text and tap opens Home; complete → later reminders cancelled
 - [X] T020 analyze 0, all tests green, pgTAP 0 failed; validation log; merge to main
 
 ## Validation log
 `flutter analyze`: No issues found. `flutter test`: All tests passed (341 tests). Backend pgTAP remains green from T004; no SQL changes were made in this app worktree. T019 device-level notification/tap check was not run because it requires an authenticated test group and assignment on the emulator.
+
+### 2026-11-16 (qa) T019
+`integration_test/spec_validation_test.dart` on emulator-5554 @ 28c435e, fresh test accounts:
+- scheduled: 3 reminders for 09:05 with a pending juz; title «وردك اليوم», body «الجزء الأول في تحقق 1794812584060» (pendingNotificationRequests);
+- delivered: the same text appeared in the active notifications;
+- tap: the plugin's tap handler (`openHomeFromReminder`) shows الرئيسية with the Home tab selected. App bug fixed first: the tap used to push مجموعاتي on the root stack (16fd999). The OS-level tap itself was not automated (outside Flutter's test driver);
+- cancel: after «تمت القراءة» on Home, no reminders remained for that group.
+- Gates on qa @ 4a49987: `flutter analyze` No issues; `flutter test` 595 passed, 0 failed.
+- pgTAP (hosted DEV, `scripts/run_remote_pgtap.py`, every file in `supabase/tests`): 24 files, 593 passed, 0 failed.
+- Integration tests on emulator-5554 (Android, swiftshader) @ 4a49987: group_flow, home_flow, mushaf_flow, offline_completion, portion_flow all passed.
+- `integration_test/spec_validation_test.dart` passed in full @ 28c435e (log below). Its re-run in the final pass, and the screenshot tour re-run, were stopped by the owner's publish request, so they were not repeated after 92564cd/fab9d47/745f152.

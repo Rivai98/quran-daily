@@ -56,6 +56,7 @@ class DashboardCubit extends Cubit<DashboardState> {
     this.setAsMain,
   }) : super(initialState) {
     if (connectivityService != null) observeConnectivity(connectivityService);
+    _followCache();
   }
 
   final KhatmaRepository _repository;
@@ -66,6 +67,35 @@ class DashboardCubit extends Cubit<DashboardState> {
   final Future<void> Function()? setAsMain;
   bool _markedOpened = false;
   StreamSubscription<bool>? _connectivitySubscription;
+  StreamSubscription<DashboardSnapshot?>? _cacheSubscription;
+
+  /// Completions made outside this screen (the Mushaf reader, Home, the
+  /// personal assignment) refresh the shared cache; show them here at once.
+  void _followCache() {
+    try {
+      _cacheSubscription = _repository
+          .watchCachedDashboard(groupId)
+          .listen(_applyCached, onError: (_) {});
+    } on Object {
+      // Repositories without a cache stream simply refresh on demand.
+    }
+  }
+
+  void _applyCached(DashboardSnapshot? snapshot) {
+    if (isClosed || snapshot == null || snapshot.isStale) return;
+    if (snapshot == state.snapshot) return;
+    if (state.status == DashboardStatus.loading) return; // refresh emits it
+    emit(
+      DashboardState(
+        status: snapshot.status == GroupStatus.forming
+            ? DashboardStatus.empty
+            : DashboardStatus.success,
+        snapshot: snapshot,
+        volunteeringAssignmentId: state.volunteeringAssignmentId,
+        startingKhatma: state.startingKhatma,
+      ),
+    );
+  }
 
   void observeConnectivity(ConnectivityService connectivityService) {
     _connectivitySubscription ??= connectivityService.online.listen((online) {
@@ -252,6 +282,7 @@ class DashboardCubit extends Cubit<DashboardState> {
   @override
   Future<void> close() async {
     await _connectivitySubscription?.cancel();
+    await _cacheSubscription?.cancel();
     await super.close();
   }
 }

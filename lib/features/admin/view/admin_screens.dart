@@ -11,6 +11,7 @@ import '../../../core/design_system/app_radius.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/widgets/app_card.dart';
 import '../../../core/design_system/widgets/app_page_content.dart';
+import '../../../core/design_system/widgets/app_section_header.dart';
 import '../../../core/design_system/widgets/confirm_sheet.dart';
 import '../../../core/design_system/widgets/state_panel.dart';
 import '../../../core/di/service_locator.dart';
@@ -72,34 +73,98 @@ class _AdminOverviewView extends StatelessWidget {
             children: [
               if (state.status == AdminStatus.loading)
                 const LinearProgressIndicator(),
-              Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  _metric(ArabicStrings.adminTotalUsers, users['total']),
-                  _metric(ArabicStrings.adminNewUsers, users['new_7d']),
-                  _metric(ArabicStrings.adminNewUsers30, users['new_30d']),
-                  _metric(
-                    ArabicStrings.adminActiveToday,
-                    users['active_today'],
-                  ),
-                  _metric(ArabicStrings.adminTotalGroups, groups['total']),
-                  _metric(ArabicStrings.adminFormingGroups, groups['forming']),
-                  _metric(ArabicStrings.adminActiveGroups, groups['active']),
-                  _metric(
-                    ArabicStrings.adminArchivedGroups,
-                    groups['archived'],
-                  ),
-                  _metric(
-                    ArabicStrings.adminTodayRate,
-                    today['rate_percent'],
-                    suffix: '٪',
-                  ),
-                  _metric(ArabicStrings.adminKhatmas, khatmas['last_30d']),
-                  _metric(ArabicStrings.adminKhatmas7, khatmas['last_7d']),
-                ],
+              const AppSectionHeader(
+                title: ArabicStrings.adminUsers,
+                icon: Icons.people_outline_rounded,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              _metricPair(
+                _metric(
+                  context,
+                  ArabicStrings.adminTotalUsers,
+                  users['total'],
+                  Icons.people_alt_outlined,
+                ),
+                _metric(
+                  context,
+                  ArabicStrings.adminActiveToday,
+                  users['active_today'],
+                  Icons.bolt_rounded,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _metricPair(
+                _metric(
+                  context,
+                  ArabicStrings.adminNewUsers,
+                  users['new_7d'],
+                  Icons.person_add_alt_1_outlined,
+                ),
+                _metric(
+                  context,
+                  ArabicStrings.adminNewUsers30,
+                  users['new_30d'],
+                  Icons.calendar_today_outlined,
+                ),
               ),
               const SizedBox(height: AppSpacing.lg),
+              const AppSectionHeader(
+                title: ArabicStrings.adminGroups,
+                icon: Icons.groups_outlined,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              _metricPair(
+                _metric(
+                  context,
+                  ArabicStrings.adminTotalGroups,
+                  groups['total'],
+                  Icons.grid_view_rounded,
+                ),
+                _metric(
+                  context,
+                  ArabicStrings.adminActiveGroups,
+                  groups['active'],
+                  Icons.play_circle_outline_rounded,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _metricPair(
+                _metric(
+                  context,
+                  ArabicStrings.adminFormingGroups,
+                  groups['forming'],
+                  Icons.hourglass_top_rounded,
+                ),
+                _metric(
+                  context,
+                  ArabicStrings.adminArchivedGroups,
+                  groups['archived'],
+                  Icons.inventory_2_outlined,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              const AppSectionHeader(
+                title: ArabicStrings.adminPerformance,
+                icon: Icons.auto_graph_rounded,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              _rateCard(context, today['rate_percent']),
+              const SizedBox(height: AppSpacing.sm),
+              _metricPair(
+                _metric(
+                  context,
+                  ArabicStrings.adminKhatmas7,
+                  khatmas['last_7d'],
+                  Icons.menu_book_rounded,
+                ),
+                _metric(
+                  context,
+                  ArabicStrings.adminKhatmas,
+                  khatmas['last_30d'],
+                  Icons.workspace_premium_outlined,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
               AppCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,22 +193,27 @@ class _AdminOverviewView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
+              const AppSectionHeader(
+                title: ArabicStrings.adminSections,
+                icon: Icons.explore_outlined,
+              ),
+              const SizedBox(height: AppSpacing.xs),
               _go(
                 context,
                 ArabicStrings.adminGroups,
-                Icons.groups,
+                Icons.groups_outlined,
                 '/admin/groups',
               ),
               _go(
                 context,
                 ArabicStrings.adminUsers,
-                Icons.people,
+                Icons.people_alt_outlined,
                 '/admin/users',
               ),
               _go(
                 context,
                 ArabicStrings.adminAudit,
-                Icons.history,
+                Icons.history_rounded,
                 '/admin/audit',
               ),
             ],
@@ -153,39 +223,180 @@ class _AdminOverviewView extends StatelessWidget {
     ),
   );
 
-  Widget _metric(String label, Object? value, {String suffix = ''}) => SizedBox(
-    width: AppSpacing.xxl * 5,
-    child: AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: AppTypography.caption),
-          const SizedBox(height: AppSpacing.xxs),
-          Text(
-            ArabicFormatting.isolate(
-              suffix == '٪'
-                  ? ArabicNumerals.percent(int.tryParse('$value') ?? 0)
-                  : ArabicNumerals.format(int.tryParse('$value') ?? 0),
-            ),
-            style: AppTypography.display,
-          ),
-        ],
-      ),
+  Widget _metricPair(Widget first, Widget second) => IntrinsicHeight(
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(child: first),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(child: second),
+      ],
     ),
   );
 
-  Widget _go(BuildContext context, String label, IconData icon, String route) =>
-      Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-        child: AppCard(
-          child: ListTile(
-            leading: Icon(icon),
-            title: Text(label, style: AppTypography.title),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.pushNamed(context, route),
+  Widget _metric(
+    BuildContext context,
+    String label,
+    Object? value,
+    IconData icon,
+  ) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final intVal = int.tryParse('$value') ?? 0;
+    final formattedValue = ArabicFormatting.isolate(
+      ArabicNumerals.format(intVal),
+    );
+
+    return AppCard(
+      padding: AppSpacing.compactCard,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.xs),
+            decoration: BoxDecoration(
+              color: colors.primaryContainer,
+              borderRadius: AppRadius.smBR,
+            ),
+            child: Icon(
+              icon,
+              size: 20,
+              color: colors.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              formattedValue,
+              style: AppTypography.display.copyWith(
+                color: colors.ink,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xxs),
+          Text(
+            label,
+            style: AppTypography.caption.copyWith(
+              color: colors.inkMuted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _rateCard(BuildContext context, Object? value) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final intVal = int.tryParse('$value') ?? 0;
+    final formattedValue = ArabicFormatting.isolate(
+      ArabicNumerals.percent(intVal),
+    );
+    final progress = (intVal / 100.0).clamp(0.0, 1.0);
+
+    return AppCard(
+      padding: AppSpacing.card,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.xs),
+                decoration: BoxDecoration(
+                  color: colors.primaryContainer,
+                  borderRadius: AppRadius.smBR,
+                ),
+                child: Icon(
+                  Icons.trending_up_rounded,
+                  size: 20,
+                  color: colors.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  ArabicStrings.adminTodayRate,
+                  style: AppTypography.title.copyWith(color: colors.ink),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              formattedValue,
+              style: AppTypography.display.copyWith(
+                color: colors.primary,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          ClipRRect(
+            borderRadius: AppRadius.pillBR,
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: colors.surfaceMuted,
+              valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
+              minHeight: AppSpacing.xs,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _go(
+    BuildContext context,
+    String label,
+    IconData icon,
+    String route,
+  ) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: AppCard(
+        padding: EdgeInsets.zero,
+        child: InkWell(
+          borderRadius: AppRadius.lgBR,
+          onTap: () => Navigator.pushNamed(context, route),
+          child: Padding(
+            padding: AppSpacing.card,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.xs),
+                  decoration: BoxDecoration(
+                    color: colors.primaryContainer,
+                    borderRadius: AppRadius.smBR,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 20,
+                    color: colors.onPrimaryContainer,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: AppTypography.title.copyWith(color: colors.ink),
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: colors.inkMuted,
+                  size: 24,
+                ),
+              ],
+            ),
           ),
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _CompletionChart extends CustomPainter {

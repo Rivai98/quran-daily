@@ -61,8 +61,7 @@ class _QuranDailyAppState extends State<QuranDailyApp>
       unawaited(
         serviceLocator<NotificationScheduler>()
             .initialize(
-              onTap: (_) =>
-                  navigatorKey.currentState?.pushNamed(AppRoutes.groups),
+              onTap: (_) => openHomeFromReminder(),
             )
             .then((_) async {
               if (serviceLocator.isRegistered<ReminderPlanningService>()) {

@@ -180,6 +180,8 @@ class ArabicStrings {
   static const adminKhatmas = 'الختمات المكتملة خلال ٣٠ يومًا';
   static const adminKhatmas7 = 'ختمات آخر ٧ أيام';
   static const adminLast30Days = 'إنجازات آخر ٣٠ يومًا';
+  static const adminPerformance = 'الأداء والختمات';
+  static const adminSections = 'أقسام الإدارة';
   static const adminGroupDetail = 'تفاصيل المجموعة';
   static const adminUserDetail = 'تفاصيل المستخدم';
   static const adminArchive = 'أرشف المجموعة';

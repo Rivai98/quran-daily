@@ -2,11 +2,42 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/features/shell/home_shell.dart';
+import 'package:quran_daily/features/shell/shell_cubit.dart';
 
 import '../../helpers/widget_test_app.dart';
 
 void main() {
   setUpAll(loadArabicUiFontsForGoldenTests);
+
+  testWidgets('a reminder tap request brings the Home tab to the front', (
+    tester,
+  ) async {
+    var homeSelected = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: HomeShell(
+          homeBuilder: _home,
+          groupsBuilder: _groups,
+          mushafBuilder: _mushaf,
+          profileBuilder: _profile,
+          onHomeSelected: () => homeSelected++,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(ArabicStrings.groupsTab));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OPEN GROUP DETAIL'));
+    await tester.pumpAndSettle();
+    expect(find.text('GROUP DETAIL'), findsOneWidget);
+
+    ShellNavigation.showHome();
+    await tester.pumpAndSettle();
+
+    expect(find.text('HOME CONTENT').hitTestable(), findsOneWidget);
+    expect(find.text('GROUP DETAIL').hitTestable(), findsNothing);
+    expect(homeSelected, 1);
+  });
 
   testWidgets('refreshes Home when returning to its tab', (tester) async {
     var homeSelected = 0;

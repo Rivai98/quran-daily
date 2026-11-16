@@ -138,6 +138,12 @@ void main() {
             reason: variant,
           );
           expect(find.byType(UserAvatar), findsOneWidget, reason: variant);
+          // 005 T031: role badge icon next to the member.
+          expect(
+            find.byIcon(Icons.shield_rounded),
+            findsOneWidget,
+            reason: variant,
+          );
           expect(
             find.byIcon(Icons.event_seat_rounded),
             findsOneWidget,

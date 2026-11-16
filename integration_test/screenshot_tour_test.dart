@@ -42,6 +42,8 @@ import 'package:quran_daily/features/settings/view/edit_profile_screen.dart';
 import 'package:quran_daily/features/settings/view/settings_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'support/onboarding.dart';
+
 late IntegrationTestWidgetsFlutterBinding binding;
 final List<String> taken = [];
 final List<String> skipped = [];
@@ -205,6 +207,7 @@ void main() {
     // HomeShell opens on الرئيسية: empty Today state with the tab bar.
     await pumpUntil(tester, find.byType(NavigationBar));
     await pumpUntil(tester, find.byType(HomeScreen));
+    await dismissReminderOnboarding(tester);
     await settle(tester, 2000);
     await shot(tester, '03_home_empty');
 
@@ -572,7 +575,7 @@ void main() {
                 matching: find.text(ArabicNumerals.format(entry.key)),
               )
               .hitTestable();
-          await scrollTo(tester, badge);
+          await scrollTo(tester, badge.first);
           await tapAndSettle(tester, badge.first);
           await pumpUntil(
             tester,
@@ -581,7 +584,7 @@ void main() {
           );
           await settle(tester, 3000);
           await shot(tester, entry.value);
-          await tester.pageBack();
+          navigatorKey.currentState!.popUntil((route) => route.isFirst);
           await settle(tester, 1500);
         });
       }

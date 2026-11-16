@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:quran_daily/core/design_system/app_theme.dart';
 import 'package:quran_daily/core/design_system/app_colors.dart';
 import 'package:quran_daily/core/design_system/app_button.dart';
+import 'package:quran_daily/core/design_system/widgets/halaqa_logo.dart';
 import 'package:quran_daily/core/design_system/widgets/status_chip.dart';
 import 'package:quran_daily/core/design_system/widgets/skeleton.dart';
 import 'package:quran_daily/core/errors/failures.dart';
@@ -38,6 +39,8 @@ void main() {
       await _show(tester, Success(_emptySnapshot), largeText: true);
       expect(find.text(ArabicStrings.homeEmptyTitle), findsOneWidget);
       expect(find.text(ArabicStrings.searchGroupAction), findsOneWidget);
+      // 005 T031: the empty state carries the Islamic ornament mark.
+      expect(find.byType(HalaqaLogo), findsOneWidget);
       expect(_rtl(tester), isTrue);
       expect(tester.takeException(), isNull);
     },

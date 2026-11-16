@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -190,5 +192,36 @@ void main() {
     ],
     verify: (_) =>
         verify(() => repository.overrideAssignment('a1', 'm1')).called(1),
+  );
+
+  test(
+    'a fresh snapshot saved elsewhere (reader or Home completion) updates the '
+    'open dashboard',
+    () async {
+      final cache = StreamController<DashboardSnapshot?>();
+      when(
+        () => repository.watchCachedDashboard('g1'),
+      ).thenAnswer((_) => cache.stream);
+      final cubit = DashboardCubit(
+        repository: repository,
+        groupId: 'g1',
+        initialState: DashboardState(
+          status: DashboardStatus.success,
+          snapshot: _snapshot(),
+        ),
+      );
+      // The first event is the cached copy on subscribe; stale copies are
+      // ignored so they never replace fresh content.
+      cache.add(_snapshot(stale: true));
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state.snapshot!.isStale, isFalse);
+
+      cache.add(_snapshot(date: '2026-11-16'));
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state.snapshot!.today!.groupDate, '2026-11-16');
+      expect(cubit.state.status, DashboardStatus.success);
+      await cubit.close();
+      await cache.close();
+    },
   );
 }

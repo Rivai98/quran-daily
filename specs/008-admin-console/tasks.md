@@ -23,8 +23,15 @@
 - [X] T016 [P] Widget tests (RTL, dark, 320dp, 200%)
 
 ## Phase 3: Validation
-- [ ] T017 Emulator: admin vs normal user; delete a test group; suspend/unsuspend a test user
-- [ ] T018 analyze 0, all tests green, pgTAP 0 failed; validation log; merge to main
+- [ ] T017 (pending: admin path needs an owner-added admin) Emulator: admin vs normal user; delete a test group; suspend/unsuspend a test user
+- [ ] T018 (pending: final re-run stopped by owner) analyze 0, all tests green, pgTAP 0 failed; validation log; merge to main
 
 ## Validation log
-_(filled at T018)_
+
+### 2026-11-16 (qa)
+- T017 normal user on emulator-5554 (`spec_validation_test.dart` @ 28c435e): no «لوحة الإدارة» entry; pushing /admin shows the load-error panel with no data; `admin_overview` raises `not_admin`; `admin_is_admin` = false.
+- Admin path NOT validated on device: it needs a row in `private.app_admins`, which only the owner can add, and no admin test account exists. Not faked. Covered by widget tests (admin entry shown/hidden, 268636e; admin screens tests) and pgTAP `008_admin_guard_test.sql` (31 passed) and `008_admin_actions_test.sql` (65 passed). Deleting a test group and suspending/unsuspending a test user from the UI remain to be done with an admin account.
+- Gates on qa @ 4a49987: `flutter analyze` No issues; `flutter test` 595 passed, 0 failed.
+- pgTAP (hosted DEV, `scripts/run_remote_pgtap.py`, every file in `supabase/tests`): 24 files, 593 passed, 0 failed.
+- Integration tests on emulator-5554 (Android, swiftshader) @ 4a49987: group_flow, home_flow, mushaf_flow, offline_completion, portion_flow all passed.
+- `integration_test/spec_validation_test.dart` passed in full @ 28c435e (log below). Its re-run in the final pass, and the screenshot tour re-run, were stopped by the owner's publish request, so they were not repeated after 92564cd/fab9d47/745f152.
