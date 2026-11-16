@@ -1,7 +1,16 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 2.3.0 -> 2.4.0
+Version change: 2.4.0 -> 2.5.0
+Bump type: MINOR - New binding section "Toolchain & Dependency Currency"
+  under Technology Stack, and Agent Compliance rule 7 (owner decision,
+  2026-11-16): always build on the latest stable Flutter/Dart and keep every
+  package on its latest compatible version; check before each spec and before
+  every merge to main.
+Templates: plan-template Constitution Check reads this file directly (no
+  template text change needed).
+
+Previous amendment: 2.3.0 -> 2.4.0
 Bump type: MINOR - Principle VI status table gains `available` (متاح) and
   `unread` (لم يقرأه أحد) for empty-seat juz (spec 001 amendment). Both reuse
   existing color tokens; no new hex values. Button-rule examples updated to
@@ -407,6 +416,25 @@ wins and the mock MUST be corrected in the same change.
 - **Linting**: `flutter_lints` ^6.0.0; all lints MUST pass with no suppressions
   unless justified in a code comment
 
+### Toolchain & Dependency Currency (NON-NEGOTIABLE)
+
+- The project MUST build on the **latest stable** Flutter release and the Dart
+  SDK it ships. `pubspec.yaml` `environment.sdk` MUST match that Dart version.
+- Every direct dependency MUST be on its **latest stable version**, including
+  new major versions, unless an upgrade is blocked. A blocked upgrade MUST be
+  recorded in `docs/dependencies.md` with the package, the target version, the
+  reason, and the date to retry. Version pins and `dependency_overrides` are
+  allowed only with such a record.
+- Before starting any spec and before every merge to `main`, run
+  `flutter upgrade --verify-only` and `flutter pub outdated`. If anything is
+  behind, upgrade it first in its own commit, with breaking changes fixed and
+  all gates green (`flutter analyze`, `flutter test`, the integration tests on
+  a device or emulator).
+- Never add a package that is discontinued, unmaintained (no release in the last
+  12 months), or not null-safe. Prefer official `flutter.dev` / `dart.dev`
+  packages.
+- Deprecated APIs reported by the analyzer MUST be migrated, not suppressed.
+
 ## Development Workflow
 
 - Features follow the speckit workflow: `/speckit-specify` -> `/speckit-plan` ->
@@ -441,6 +469,10 @@ plan, task list, or code in this repository:
 6. Never write, generate, or edit Quranic text, surah names, or juz ranges by
    hand; read them from the verified source files (Principle VII). If the data
    is not available, stop and ask the project owner.
+7. Before writing code, check that Flutter and every package are on their
+   latest stable versions (Toolchain & Dependency Currency). Upgrade first, or
+   record why an upgrade is blocked. Never start feature work on an outdated
+   toolchain.
 
 ## Governance
 
@@ -464,4 +496,4 @@ for clarifications and wording.
 these principles. Reviewers are empowered to block merges for constitution
 violations.
 
-**Version**: 2.4.0 | **Ratified**: 2026-06-20 | **Last Amended**: 2026-11-14
+**Version**: 2.5.0 | **Ratified**: 2026-06-20 | **Last Amended**: 2026-11-16
