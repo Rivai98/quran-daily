@@ -10,11 +10,16 @@ import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_radius.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/widgets/widgets.dart';
+import '../../../core/design_system/widgets/continue_reading_card.dart';
 import '../../../core/localization/arabic_strings.dart';
+import '../../../core/localization/arabic_formatting.dart';
 import '../../../core/localization/arabic_numerals.dart';
 import '../../../core/quran/quran_metadata_repository.dart';
+import '../../../core/quran/portion_unit.dart';
 import '../../../core/quran/mushaf/mushaf_repository.dart';
 import '../../../core/di/service_locator.dart';
+import '../../profile/data/entities/profile_entities.dart';
+import '../../shell/shell_cubit.dart';
 import '../cubit/home_cubit.dart';
 import '../data/today_snapshot.dart';
 import 'widgets/date_header.dart';
@@ -103,6 +108,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 undo: context.read<HomeCubit>().undo,
                 busyId: state.updatingId,
               ),
+              if (state.tomorrowPortions.containsKey(main.groupId) ||
+                  state.khatmasEndingToday.contains(main.groupId)) ...[
+                const SizedBox(height: AppSpacing.xs),
+                _TomorrowWirdLine(
+                  group: main,
+                  portionIndex: state.tomorrowPortions[main.groupId],
+                  metadata: widget.metadataRepository,
+                  endsToday: state.khatmasEndingToday.contains(main.groupId),
+                ),
+              ],
               for (final item in main.items.skip(1)) ...[
                 const SizedBox(height: AppSpacing.sm),
                 _TodayItemCard(
@@ -117,36 +132,38 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
               if (others.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.lg),
-                Text(
-                  ArabicStrings.otherGroupsTitle,
-                  style: AppTypography.title,
+                _SecondGroupCard(
+                  group: others.first,
+                  item: others.first.items.isEmpty
+                      ? null
+                      : others.first.items.first,
+                  metadata: widget.metadataRepository,
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                for (final group in others) ...[
-                  if (group.items.isEmpty) ...[
-                    _TodayItemCard(
-                      group: group,
+              ],
+              if (serviceLocator.isRegistered<MushafRepository>()) ...[
+                const SizedBox(height: AppSpacing.lg),
+                FutureBuilder<void>(
+                  future: serviceLocator<MushafRepository>().load(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState != ConnectionState.done ||
+                        snapshot.hasError) {
+                      return const SizedBox.shrink();
+                    }
+                    final repository = serviceLocator<MushafRepository>();
+                    return ContinueReadingCard(
+                      repository: repository,
                       metadata: widget.metadataRepository,
-                      compact: true,
-                      complete: context.read<HomeCubit>().complete,
-                      undo: context.read<HomeCubit>().undo,
-                      busyId: state.updatingId,
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                  ] else
-                    for (final item in group.items) ...[
-                      _TodayItemCard(
-                        group: group,
-                        item: item,
-                        compact: true,
-                        metadata: widget.metadataRepository,
-                        complete: context.read<HomeCubit>().complete,
-                        undo: context.read<HomeCubit>().undo,
-                        busyId: state.updatingId,
+                      onOpenPage: (page) => AppRoutes.pushReader(
+                        context,
+                        arguments: {'page': page},
                       ),
-                      const SizedBox(height: AppSpacing.sm),
-                    ],
-                ],
+                    );
+                  },
+                ),
+              ],
+              if (state.profile != null) ...[
+                const SizedBox(height: AppSpacing.lg),
+                _UpcomingBadgeCard(profile: state.profile!),
               ],
             ],
           ),
@@ -217,6 +234,244 @@ class _HomeSkeleton extends StatelessWidget {
   );
 }
 
+class _TomorrowWirdLine extends StatelessWidget {
+  const _TomorrowWirdLine({
+    required this.group,
+    required this.portionIndex,
+    required this.metadata,
+    required this.endsToday,
+  });
+  final TodayGroup group;
+  final int? portionIndex;
+  final QuranMetadataRepository metadata;
+  final bool endsToday;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsetsDirectional.only(
+      start: AppSpacing.md,
+      end: AppSpacing.md,
+    ),
+    child: FutureBuilder<void>(
+      future: metadata.load(),
+      builder: (context, snapshot) {
+        if (endsToday) {
+          return _MetaLine(
+            icon: Icons.event_available_rounded,
+            label: ArabicStrings.khatmaEndsToday,
+          );
+        }
+        if (snapshot.connectionState != ConnectionState.done ||
+            snapshot.hasError ||
+            portionIndex == null) {
+          return const SizedBox.shrink();
+        }
+        final portion = group.portionUnit == PortionUnit.page
+            ? '${ArabicStrings.pageNumberLabel} ${ArabicFormatting.isolate(ArabicNumerals.format(portionIndex!))}'
+            : ArabicStrings.portionName(group.portionUnit, portionIndex!);
+        final colors = Theme.of(context).extension<AppColors>()!;
+        return Row(
+          children: [
+            Icon(Icons.calendar_today_rounded, color: colors.inkMuted),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Text(
+                ArabicStrings.tomorrowPortion(portion),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.caption.copyWith(color: colors.inkMuted),
+              ),
+            ),
+          ],
+        );
+      },
+    ),
+  );
+}
+
+class _SecondGroupCard extends StatelessWidget {
+  const _SecondGroupCard({
+    required this.group,
+    required this.item,
+    required this.metadata,
+  });
+  final TodayGroup group;
+  final TodayItem? item;
+  final QuranMetadataRepository metadata;
+
+  @override
+  Widget build(BuildContext context) => AppCard(
+    padding: AppSpacing.compactCard,
+    child: InkWell(
+      onTap: () => Navigator.pushNamed(
+        context,
+        AppRoutes.dashboard,
+        arguments: group.groupId,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              GroupAvatar(
+                name: group.name,
+                photoPath: group.photoPath,
+                size: 40,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  group.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.title,
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: Theme.of(context).extension<AppColors>()!.inkMuted,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          if (item == null)
+            Text(
+              group.day?.restDay == true
+                  ? ArabicStrings.restDay
+                  : ArabicStrings.noAssignmentToday,
+              style: AppTypography.body,
+            )
+          else
+            _PortionLabel(
+              group: group,
+              item: item!,
+              metadata: metadata,
+              status: item!.status,
+            ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _UpcomingBadgeCard extends StatelessWidget {
+  const _UpcomingBadgeCard({required this.profile});
+  final UserProfile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    final khatmas = profile.khatmas.fold<int>(
+      0,
+      (sum, item) => sum + item.completed,
+    );
+    final earned = profile.badges
+        .where((badge) => badge.isEarned)
+        .map((badge) => badge.code)
+        .toSet();
+    final candidates =
+        <
+              ({
+                ProfileBadgeCode code,
+                int current,
+                int target,
+                String title,
+                String unit,
+              })
+            >[
+              (
+                code: ProfileBadgeCode.firstKhatma,
+                current: khatmas,
+                target: 1,
+                title: ArabicStrings.badgeFirstKhatmaTitle,
+                unit: 'khatma',
+              ),
+              (
+                code: ProfileBadgeCode.streak7,
+                current: profile.streak,
+                target: 7,
+                title: ArabicStrings.badgeStreak7Title,
+                unit: 'day',
+              ),
+              (
+                code: ProfileBadgeCode.streak30,
+                current: profile.streak,
+                target: 30,
+                title: ArabicStrings.badgeStreak30Title,
+                unit: 'day',
+              ),
+              (
+                code: ProfileBadgeCode.streak100,
+                current: profile.streak,
+                target: 100,
+                title: ArabicStrings.badgeStreak100Title,
+                unit: 'day',
+              ),
+              (
+                code: ProfileBadgeCode.portions100,
+                current: profile.portionsRead,
+                target: 100,
+                title: ArabicStrings.badgePortions100Title,
+                unit: 'portion',
+              ),
+            ]
+            .where((item) => !earned.contains(item.code))
+            .toList();
+    if (candidates.isEmpty) return const SizedBox.shrink();
+    candidates.sort(
+      (a, b) => (a.target - a.current).compareTo(b.target - b.current),
+    );
+    final next = candidates.first;
+    final remaining = (next.target - next.current).clamp(0, next.target);
+    final progress = next.current.clamp(0, next.target) / next.target;
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return AppCard(
+      padding: AppSpacing.compactCard,
+      child: InkWell(
+        onTap: () => context.read<ShellCubit>().select(3),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.workspace_premium_outlined, color: colors.primary),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: Text(
+                    ArabicStrings.badgeComingTitle,
+                    style: AppTypography.title,
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, color: colors.inkMuted),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              ArabicStrings.badgeRemaining(
+                remaining,
+                next.title,
+                unit: next.unit,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.body,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            ClipRRect(
+              borderRadius: AppRadius.pillBR,
+              child: LinearProgressIndicator(
+                minHeight: AppSpacing.xxs,
+                value: progress,
+                color: colors.primary,
+                backgroundColor: colors.surfaceMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _MainGroupHeroCard extends StatelessWidget {
   const _MainGroupHeroCard({
     required this.group,
@@ -271,7 +526,7 @@ class _MainGroupHeroCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             ArabicStrings.homeGroupProgress(
-              group.day!.cycleDay,
+              group.day!.cycleDay + 1,
               group.day!.completedMemberCount,
               group.activeMemberCount,
             ),
@@ -340,7 +595,6 @@ class _TodayItemCard extends StatelessWidget {
     required this.group,
     this.item,
     this.showGroupName = true,
-    this.compact = false,
     required this.metadata,
     required this.complete,
     required this.undo,
@@ -349,13 +603,12 @@ class _TodayItemCard extends StatelessWidget {
   final TodayGroup group;
   final TodayItem? item;
   final bool showGroupName;
-  final bool compact;
   final QuranMetadataRepository metadata;
   final Future<void> Function(TodayItem) complete, undo;
   final String? busyId;
   @override
   Widget build(BuildContext context) => AppCard(
-    padding: compact ? AppSpacing.compactCard : AppSpacing.card,
+    padding: AppSpacing.card,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -365,7 +618,7 @@ class _TodayItemCard extends StatelessWidget {
               GroupAvatar(
                 name: group.name,
                 photoPath: group.photoPath,
-                size: compact ? 36 : 40,
+                size: 40,
               ),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
@@ -379,14 +632,14 @@ class _TodayItemCard extends StatelessWidget {
             ],
           ),
         if (item != null) ...[
-          SizedBox(height: compact ? AppSpacing.xxs : AppSpacing.xs),
+          const SizedBox(height: AppSpacing.xs),
           _PortionLabel(
             group: group,
             item: item!,
             metadata: metadata,
             status: item!.status,
           ),
-          SizedBox(height: compact ? AppSpacing.xxs : AppSpacing.xs),
+          const SizedBox(height: AppSpacing.xs),
           if (item!.status != 'completed' && item!.status != 'late') ...[
             AppButton(
               label: ArabicStrings.readNowAction,
@@ -494,8 +747,10 @@ class _PortionLabel extends StatelessWidget {
                 );
                 return _MetaLine(
                   icon: Icons.auto_stories_rounded,
-                  label:
-                      '${ArabicStrings.pageNumberLabel} ${ArabicNumerals.format(pages.startPage)} – ${ArabicNumerals.format(pages.endPage)}',
+                  label: ArabicStrings.pageRangeLabel(
+                    pages.startPage,
+                    pages.endPage,
+                  ),
                 );
               },
             ),
