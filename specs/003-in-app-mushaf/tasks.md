@@ -4,7 +4,7 @@
 
 ## Phase 0: Source files (owner)
 - [X] T000 Owner approves the source and downloads (or approves the download of) the KFGQPC Hafs font + text data file; files placed byte-for-byte under `assets/quran/hafs/` and `assets/fonts/kfgqpc_hafs/`; `SOURCE.md` + checksums recorded. OWNER-PROVIDED.
-- [ ] T000b Owner provides the khatm dua text + its source (optional; feature hidden without it). OWNER-PROVIDED.
+- [ ] T000b Owner provides the khatm dua text + its source (optional; feature hidden without it). OWNER-PROVIDED. «deferred by owner (feature hidden)» (2026-11-16).
 
 ## Phase 1: Backend (codex-1)
 - [X] T001 pgTAP `supabase/tests/003_mushaf_sync_test.sql`: owner-only RLS on `reading_positions` and `bookmarks`; upsert last page; bookmark CRUD
