@@ -7,6 +7,7 @@ import 'package:quran_daily/core/design_system/app_typography.dart';
 import 'package:quran_daily/core/errors/result.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/settings/settings_repository.dart';
+import 'package:quran_daily/features/admin/data/admin_repository.dart';
 import 'package:quran_daily/features/settings/cubit/settings_cubit.dart';
 import 'package:quran_daily/features/settings/view/settings_screen.dart';
 
@@ -15,6 +16,8 @@ import '../../../helpers/widget_test_app.dart';
 class _MockSettingsRepo extends Mock implements SettingsRepository {}
 
 class _MockSessionGateway extends Mock implements SessionGateway {}
+
+class _MockAdminRepo extends Mock implements AdminRepository {}
 
 void main() {
   setUpAll(loadDesignSystemFonts);
@@ -34,6 +37,35 @@ void main() {
     settingsRepository: settingsRepo,
     sessionGateway: sessionGateway,
   );
+
+  for (final admin in [true, false]) {
+    testWidgets(
+      '008: admin entry is ${admin ? 'shown to an app admin' : 'hidden from a normal user'}',
+      (tester) async {
+        final adminRepo = _MockAdminRepo();
+        when(adminRepo.isAdmin).thenAnswer((_) async => Success(admin));
+        final cubit = SettingsCubit(
+          settingsRepository: settingsRepo,
+          sessionGateway: sessionGateway,
+          adminRepository: adminRepo,
+        )..loadSettings();
+        await tester.pumpWidget(
+          buildArabicTestApp(SettingsScreen(cubit: cubit)),
+        );
+        await tester.pumpAndSettle();
+        await tester.scrollUntilVisible(
+          find.text(ArabicStrings.settingsLicensesEntry),
+          300,
+          scrollable: find.byType(Scrollable).first,
+        );
+        expect(
+          find.text(ArabicStrings.adminEntry),
+          admin ? findsOneWidget : findsNothing,
+        );
+        verify(adminRepo.isAdmin).called(1);
+      },
+    );
+  }
 
   testWidgets('settings renders at 360x800 in both themes', (tester) async {
     tester.view.physicalSize = const Size(360, 800);
