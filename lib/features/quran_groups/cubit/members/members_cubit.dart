@@ -34,19 +34,31 @@ class MembersCubit extends Cubit<MembersState> {
   final GroupsRepository _repository;
   String? _groupId;
 
-  Future<void> load(String groupId) async {
+  final Map<String, Future<void>> _loads = {};
+
+  Future<void> load(String groupId) => _loads.putIfAbsent(
+    groupId,
+    () => _load(groupId).whenComplete(() {
+      _loads.remove(groupId);
+    }),
+  );
+
+  Future<void> _load(String groupId) async {
     final previousMembers = _groupId == groupId ? state.members : null;
     _groupId = groupId;
     emit(MembersState(status: MembersStatus.loading, members: previousMembers));
-    final result = await _repository.getMembers(groupId);
+    final membersRead = _repository.getMembers(groupId);
+    final infoRead = _repository.getGroupInfo(groupId);
+    final result = await membersRead;
+    final infoResult = await infoRead;
+    if (isClosed || _groupId != groupId) return;
     result.when(
-      success: (value) async {
+      success: (value) {
         if (value.members.isEmpty) {
           emit(MembersState(status: MembersStatus.empty, members: value));
           return;
         }
         final userIds = <String, String>{};
-        final infoResult = await _repository.getGroupInfo(groupId);
         infoResult.when(
           success: (info) {
             for (final member in info.members) {

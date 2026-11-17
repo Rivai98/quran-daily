@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -23,6 +25,20 @@ void main() {
   });
   late _Groups repository;
   setUp(() => repository = _Groups());
+  test('overlapping requests loads share one request (#7)', () async {
+    final response = Completer<Result<List<PublicJoinRequestInfo>>>();
+    when(() => repository.listJoinRequests('g'))
+        .thenAnswer((_) => response.future);
+    final cubit = JoinRequestsCubit(repository);
+    final first = cubit.load('g');
+    final second = cubit.load('g');
+    verify(() => repository.listJoinRequests('g')).called(1);
+    response.complete(const Success([]));
+    await Future.wait([first, second]);
+    expect(cubit.state.status, JoinRequestsStatus.empty);
+    await cubit.close();
+  });
+
   blocTest<JoinRequestsCubit, JoinRequestsState>(
     'lists requests then reports full group on approval',
     build: () {
