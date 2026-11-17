@@ -82,6 +82,14 @@ setup and font-cache preparation. Host tests finished before runtime capture.
 | B / repeat 120 → 100 | 540 | 823.871 | 475.137 | 7.41% | 30.56% | 30.56% |
 | C / cold registration 100 → 120 | 346 | 825.496 | 226.307 | 15.61% | 36.13% | 36.42% |
 | C / repeat 120 → 100 | 695 | 619.777 | 217.647 | 5.90% | 26.33% | 26.33% |
+| D / cold registration 100 → 120 | 744 | 140.935 | 556.613 | 6.99% | 25.40% | 26.34% |
+| D / repeat 120 → 100 | 762 | 108.525 | 151.838 | 5.38% | 24.15% | 24.28% |
+| E / cold registration 100 → 120 | 638 | 281.228 | 1011.501 | 8.93% | 22.57% | 23.51% |
+| E / repeat 120 → 100 | 750 | 108.461 | 155.492 | 5.47% | 20.40% | 20.53% |
+| Final E+F, Impeller / cold registration 100 → 120 | 862 | 60.702 | 118.387 | 3.36% | 17.87% | 18.33% |
+| Final E+F, Impeller / repeat 120 → 100 | 896 | 67.178 | 105.723 | 2.12% | 24.22% | 24.22% |
+| Final E+F, Skia / cold registration 100 → 120 | 849 | 16.946 | 250.994 | 0.12% | 16.02% | 16.02% |
+| Final E+F, Skia / repeat 120 → 100 | 903 | 14.552 | 179.783 | 0.00% | 19.93% | 19.93% |
 
 Raw capture: [baseline-android-emulator-impeller.json](baseline-android-emulator-impeller.json).
 Its renderer field is `default`; the engine log above identifies the backend
@@ -238,3 +246,144 @@ The outer PowerShell launch returned exit code 1 despite the harness reporting
 success and writing complete data, with no failed test assertion in the log.
 The cause of that launcher discrepancy is unresolved; the raw timing data and
 harness result are reported separately from the process status.
+
+## Step E: idle layout preparation
+
+After the adjacent font is ready, the reader waits for another painted frame,
+all transient animation callbacks to finish, and the scheduler's idle gate
+before shaping that page. Preparation also loads the verified page-1 font when
+the source page requires basmala. Paragraph shaping uses Flutter's root isolate;
+this is speculative idle work, not concurrent shaping on another isolate.
+
+`QpcPageLayoutCache` owns at most one speculative layout. A page with identical
+source data, dimensions, inherited style, locale and system text scale takes
+ownership of it on first display. Mounted layouts prevent redundant preparation
+and remain owned by their page bodies. Replacing a speculative layout, changing
+viewport inputs or closing the reader disposes unused paragraphs. Generation
+checks discard obsolete font/idle callbacks after scrolling, reversal or exit.
+
+Tests exercise identity reuse with the existing golden, replacement, changed
+viewport rejection, late work after closure, mounted ownership and paragraph
+disposal. The reader-level regression holds font completion across an animation
+and verifies shaping waits until idle. Its real repository setup uses
+`tester.runAsync` because repository loading spawns an isolate; ordinary fake
+async cannot finish that work. The unchanged page-2 font fixture is
+retained, documented in `test/fixtures/qpc_v2/README.md`, and verified against
+the approved manifest before registration. Old untracked golden failure output
+was deleted; no golden images changed.
+
+E gates: analyze zero issues; all 633 host tests pass. Commit: `dd6e668`.
+The profile harness and launcher both passed (exit 0), with Impeller OpenGLES,
+a 53.7-second build and an 87-second device test. Raw capture:
+[step-e-android-emulator-impeller.json](step-e-android-emulator-impeller.json);
+local log: `build-step-e-profile.log`.
+
+Compared with D, the captured-frame over-budget fraction fell from 26.34% to
+23.51% forward and from 24.28% to 20.53% in reverse. Cold-route worst build
+and raster times increased, including a 1011.501 ms raster outlier. Idle
+preparation has therefore not eliminated stalls in this software-graphics
+emulator; these single samples cannot isolate its effect from host variance.
+
+## Step F: rebuilds, position writes and page lifetime
+
+The reader shell's `BlocBuilder.buildWhen` compares only inputs that affect
+its structure and page content. Page-number changes update a separate toolbar
+builder, including portion progress and the current-page bookmark action.
+The existing PageView and page contents remain intact on an ordinary turn.
+Completion, errors, fallback/offline indicators and text-scale changes still
+update the shell.
+
+Free-reading position writes wait for 600 ms of idle. A new scroll cancels the
+timer; it restarts after scroll-end, including when a held drag has already
+crossed a page boundary. Rapid turns coalesce to the latest page and sync
+operation. Writes are serialized so a slow earlier operation cannot overwrite
+a later page. Pending writes flush on reader disposal, Cubit closure, app
+backgrounding or opening a different reading session. The initial free-reading
+page still saves immediately; portion reading preserves the free-reading
+position. Storage failures retain the existing non-blocking reading behavior.
+
+`ReaderPage` keeps visited QPC and fallback page bodies alive only within two
+pages of the current page, using `updateKeepAlive` when that condition changes.
+The previous unconditional QPC keep-alive is removed. Pages outside that range
+release their native paragraphs; returning recreates their layouts using the
+already loaded fonts. The portion's scroll anchor is assigned only on its
+start page, preventing duplicate keys when several fallback pages are retained.
+
+Regression tests first failed on the previous behavior, then passed for shell
+and pager identity, toolbar progress, retention/eviction, native paragraph
+disposal, held drags, the exact idle delay, sync coalescing, ordered slow writes,
+closure and background flushing. Completed save Futures are cleared so widget
+test teardown does not retain a dependency on an expired fake-clock zone.
+F gates: analyze zero issues; all 638 host tests pass, including all unchanged
+goldens. Commit: `0d79b6b`.
+
+## Step G: renderer comparison
+
+The emulator was available, so Skia was measured with the same profile harness
+and final E+F code, using `--no-enable-impeller` and
+`--dart-define=PERF_RENDERER=skia`. No rendering-backend setting was changed in
+the app. Raw completed capture:
+[final-android-emulator-skia.json](final-android-emulator-skia.json);
+local log: `build-final-skia-profile.log`. The completed retry passed both the
+harness and launcher (exit 0), with an 11.5-second build and a 76-second device
+test. Process-specific logcat confirms Impeller opt-out for process 7726;
+that evidence is retained locally in `build-final-skia-renderer.log`.
+
+The first Skia attempt failed the unchanged font-readiness assertion after the
+800 ms turn allowance and produced metadata only, without a complete route.
+Its emulator log includes stalls over a second. It is excluded from timing
+comparisons, rather than counted as a passing sample. The failed local log is
+`build-final-skia-attempt-1-profile.log`; its metadata is retained locally as
+`build/mushaf-perf/final-android-emulator-skia-attempt-1-incomplete.json`.
+This failure is additional evidence that this environment cannot meet the
+no-stalls target consistently.
+
+In the completed samples, Skia's combined miss fractions were lower
+than final Impeller: 16.02% versus 18.33% forward, and 19.93% versus 24.22% in
+reverse. Skia had worse peak raster times: 250.994 versus 118.387 ms forward,
+and 179.783 versus 105.723 ms in reverse. This is a mixed result from one
+completed sample per renderer, with one failed Skia attempt and uncontrolled
+host load. **Keep the platform default.** No comparable physical-phone evidence
+supports changing it, and this emulator's software graphics do not model the
+phone GPU.
+
+## Step H: final profile capture and acceptance limits
+
+The final E+F code (`0d79b6b`) was re-run on `emulator-5554` with the original
+profile harness, routes, 800 ms turn allowance, dark theme, resolution and
+default-renderer launch. Both the harness and launcher passed (exit 0), with a
+49.0-second build and a 69-second device test. Process-specific Android logcat
+for process 8086 confirms **Impeller OpenGLES**; local evidence:
+`build-final-impeller-renderer.log`. Raw complete capture:
+[final-android-emulator-impeller.json](final-android-emulator-impeller.json);
+local runtime log: `build-final-impeller-profile.log`.
+
+| Default renderer / metric | Baseline forward | Final forward | Baseline reverse | Final reverse |
+|---|---:|---:|---:|---:|
+| Worst build (ms) | 570.424 | 60.702 | 670.206 | 67.178 |
+| Worst raster (ms) | 225.057 | 118.387 | 193.696 | 105.723 |
+| Build >16 ms | 14.99% | 3.36% | 5.80% | 2.12% |
+| Raster >16 ms | 39.78% | 17.87% | 28.85% | 24.22% |
+| Either >16 ms | 39.78% | 18.33% | 28.85% | 24.22% |
+
+The combined miss fraction fell by 21.45 percentage points forward and 4.64
+points in reverse relative to baseline. Relative to E alone, it fell from
+23.51% to 18.33% forward but increased from 20.53% to 24.22% in reverse.
+Keeping only nearby layouts means the long reverse route now recreates evicted
+paragraphs, so it is no longer a route through twenty retained page layouts.
+Loaded font registration is still reused. These single runs do not isolate
+that tradeoff from software-renderer and host scheduling variance.
+
+The AVD remains Android 15 / API 35, 1080 × 2400, density 420, 60 Hz, four
+virtual CPUs and 2 GB RAM, with `hw.gpu.enabled=no`. **These are software-GPU
+emulator numbers, not the Samsung A53 phone target.** Large raster stalls and
+over-budget frames remain; the no-dropped-frames phone target is unverified.
+No physical Android phone is connected. iOS simulator validation is also
+unavailable on this Windows host. Profile both renderers on the target phone
+and run the platform integration suite before claiming mobile acceptance.
+No host tests or builds ran concurrently with the captured device routes.
+
+All final host gates pass: analyze zero issues and all 638 tests green, including
+the existing QPC light/dark and scaled goldens. No golden images, Quran source
+assets, source text, glyphs, line breaks or design-system tokens changed. No
+Supabase changes or push were performed.
