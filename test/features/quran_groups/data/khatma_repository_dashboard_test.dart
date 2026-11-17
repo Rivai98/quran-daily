@@ -19,7 +19,11 @@ void main() {
   setUp(() {
     remote = _Remote();
     cache = _Cache();
-    repository = KhatmaRepositoryImpl(remote: remote, cache: cache);
+    repository = KhatmaRepositoryImpl(
+      now: () => DateTime.utc(2026, 11, 15, 12),
+      remote: remote,
+      cache: cache,
+    );
   });
 
   const snapshotJson = <String, Object?>{

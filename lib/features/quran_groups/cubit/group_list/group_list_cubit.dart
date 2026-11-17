@@ -50,8 +50,12 @@ class GroupListCubit extends Cubit<GroupListState> {
 
   final GroupsRepository _repository;
 
-  Future<void> refresh() async {
-    if (state.isRefreshing) return;
+  Future<void>? _refreshing;
+  Future<void> refresh() => _refreshing ??= _refresh().whenComplete(() {
+    _refreshing = null;
+  });
+
+  Future<void> _refresh() async {
     emit(
       state.copyWith(
         status: state.overview == null ? GroupListStatus.loading : state.status,
@@ -59,19 +63,10 @@ class GroupListCubit extends Cubit<GroupListState> {
         clearFailure: true,
       ),
     );
-    final result = await _repository.getMyGroups();
+    final result = await _repository.getMyGroups(onCached: _applyOverview);
+    if (isClosed) return;
     result.when(
-      success: (MyGroupsOverview overview) => emit(
-        state.copyWith(
-          status: overview.groups.isEmpty && overview.pendingRequests.isEmpty
-              ? GroupListStatus.empty
-              : (overview.isStale
-                    ? GroupListStatus.offline
-                    : GroupListStatus.success),
-          overview: overview,
-          isRefreshing: false,
-        ),
-      ),
+      success: (overview) => _applyOverview(overview, refreshing: false),
       failure: (AppFailure failure) => emit(
         state.copyWith(
           status: state.overview == null
@@ -80,6 +75,21 @@ class GroupListCubit extends Cubit<GroupListState> {
           failure: failure,
           isRefreshing: false,
         ),
+      ),
+    );
+  }
+
+  void _applyOverview(MyGroupsOverview overview, {bool refreshing = true}) {
+    if (isClosed) return;
+    emit(
+      state.copyWith(
+        status: overview.groups.isEmpty && overview.pendingRequests.isEmpty
+            ? GroupListStatus.empty
+            : overview.isStale
+            ? GroupListStatus.offline
+            : GroupListStatus.success,
+        overview: overview,
+        isRefreshing: refreshing,
       ),
     );
   }

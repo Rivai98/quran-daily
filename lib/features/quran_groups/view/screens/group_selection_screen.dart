@@ -63,7 +63,9 @@ class _GroupSelectionScreenState extends State<GroupSelectionScreen> {
                 if (state.isRefreshing)
                   const Align(
                     alignment: Alignment.topCenter,
-                    child: LinearProgressIndicator(),
+                    child: LinearProgressIndicator(
+                      semanticsLabel: ArabicStrings.loading,
+                    ),
                   ),
               ],
             );

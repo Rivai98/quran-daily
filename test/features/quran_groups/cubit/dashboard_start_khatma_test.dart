@@ -50,7 +50,7 @@ void main() {
   );
 
   blocTest<DashboardCubit, DashboardState>(
-    'startKhatma reloads the dashboard through the caching repository',
+    'startKhatma reuses the already cached start result (#8)',
     setUp: () {
       when(() => groups.startKhatma('g1', 7))
           .thenAnswer((_) async => Success(_active()));
@@ -60,9 +60,7 @@ void main() {
     build: build,
     act: (cubit) => cubit.startKhatma(7),
     verify: (cubit) {
-      // KhatmaRepository.getDashboard caches the snapshot, so completion can
-      // find today's assignments afterwards (T111 regression).
-      verify(() => khatma.getDashboard('g1')).called(1);
+      verifyNever(() => khatma.getDashboard('g1'));
       expect(cubit.state.startingKhatma, false);
       expect(cubit.state.status, DashboardStatus.success);
       expect(cubit.state.snapshot?.status, GroupStatus.active);

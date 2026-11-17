@@ -40,7 +40,7 @@ void main() {
     tester,
   ) async {
     final overview = TestFixtures.overview(groups: [TestFixtures.myGroup()]);
-    when(() => repo.getMyGroups()).thenAnswer((_) async => Success(overview));
+    when(() => repo.getMyGroups(onCached: any(named: 'onCached'))).thenAnswer((_) async => Success(overview));
     final cubit = GroupListCubit(repository: repo);
     await tester.pumpWidget(
       buildArabicTestApp(
@@ -51,7 +51,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     final response = Completer<Result<MyGroupsOverview>>();
-    when(() => repo.getMyGroups()).thenAnswer((_) => response.future);
+    when(() => repo.getMyGroups(onCached: any(named: 'onCached'))).thenAnswer((_) => response.future);
     final refresh = cubit.refresh();
     await tester.pump();
     await tester.pump();
@@ -79,7 +79,7 @@ void main() {
   testWidgets('content: lists my groups with name and role marker', (
     tester,
   ) async {
-    when(() => repo.getMyGroups()).thenAnswer(
+    when(() => repo.getMyGroups(onCached: any(named: 'onCached'))).thenAnswer(
       (_) async => Success(
         TestFixtures.overview(
           groups: [
@@ -110,7 +110,7 @@ void main() {
     tester.view.physicalSize = const Size(360, 800);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    when(() => repo.getMyGroups()).thenAnswer(
+    when(() => repo.getMyGroups(onCached: any(named: 'onCached'))).thenAnswer(
       (_) async => Success(
         TestFixtures.overview(
           groups: [TestFixtures.myGroup(status: GroupStatus.forming)],
@@ -143,7 +143,7 @@ void main() {
   });
 
   testWidgets('empty: branded panel with one helpful action', (tester) async {
-    when(() => repo.getMyGroups())
+    when(() => repo.getMyGroups(onCached: any(named: 'onCached')))
         .thenAnswer((_) async => Success(TestFixtures.overview()));
 
     await tester.pumpWidget(
@@ -160,7 +160,7 @@ void main() {
   });
 
   testWidgets('My Groups uses the standard section header', (tester) async {
-    when(() => repo.getMyGroups())
+    when(() => repo.getMyGroups(onCached: any(named: 'onCached')))
         .thenAnswer((_) async => Success(TestFixtures.overview()));
 
     await tester.pumpWidget(
@@ -175,7 +175,7 @@ void main() {
   testWidgets('pending rows show the pending chip and cancel action', (
     tester,
   ) async {
-    when(() => repo.getMyGroups()).thenAnswer(
+    when(() => repo.getMyGroups(onCached: any(named: 'onCached'))).thenAnswer(
       (_) async => Success(
         TestFixtures.overview(
           pending: [
@@ -235,7 +235,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     const longName =
         'حلقة الفجر للمراجعة اليومية مع الأهل والأصدقاء في الحي القديم والجديد';
-    when(() => repo.getMyGroups()).thenAnswer(
+    when(() => repo.getMyGroups(onCached: any(named: 'onCached'))).thenAnswer(
       (_) async => Success(
         TestFixtures.overview(
           pending: [
@@ -275,7 +275,7 @@ void main() {
   testWidgets('offline: stale overview shows the offline banner', (
     tester,
   ) async {
-    when(() => repo.getMyGroups()).thenAnswer(
+    when(() => repo.getMyGroups(onCached: any(named: 'onCached'))).thenAnswer(
       (_) async => Success(
         TestFixtures.overview(groups: [TestFixtures.myGroup()], stale: true),
       ),
@@ -290,7 +290,7 @@ void main() {
   });
 
   testWidgets('failure: StatePanel with retry', (tester) async {
-    when(() => repo.getMyGroups()).thenAnswer(
+    when(() => repo.getMyGroups(onCached: any(named: 'onCached'))).thenAnswer(
       (_) async =>
           const FailureResult(NetworkFailure(message: 'n', code: 'network')),
     );
@@ -306,7 +306,7 @@ void main() {
   testWidgets('all constitution variants render without overflow', (
     tester,
   ) async {
-    when(() => repo.getMyGroups()).thenAnswer(
+    when(() => repo.getMyGroups(onCached: any(named: 'onCached'))).thenAnswer(
       (_) async => Success(
         TestFixtures.overview(
           groups: [

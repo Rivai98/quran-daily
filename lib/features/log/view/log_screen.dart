@@ -44,21 +44,24 @@ class LogScreen extends StatelessWidget {
 
 class _EmptyLogRepository implements LogRepository {
   @override
-  Future<Result<PersonalLog>> getLog({String? before, int days = 30}) async =>
-      Success(
-        PersonalLog(
-          streak: 0,
-          bestStreak: 0,
-          month: LogMonthSummary(
-            year: DateTime.now().year,
-            month: DateTime.now().month,
-            fullDays: 0,
-            daysWithItems: 0,
-          ),
-          days: const [],
-          nextBefore: null,
-        ),
-      );
+  Future<Result<PersonalLog>> getLog({
+    String? before,
+    int days = 30,
+    void Function(PersonalLog)? onCached,
+  }) async => Success(
+    PersonalLog(
+      streak: 0,
+      bestStreak: 0,
+      month: LogMonthSummary(
+        year: DateTime.now().year,
+        month: DateTime.now().month,
+        fullDays: 0,
+        daysWithItems: 0,
+      ),
+      days: const [],
+      nextBefore: null,
+    ),
+  );
 }
 
 class _LogView extends StatefulWidget {
@@ -85,7 +88,7 @@ class _LogViewState extends State<_LogView> {
     body: BlocBuilder<LogCubit, LogState>(
       builder: (context, state) {
         if (state.status == LogStatus.initial ||
-            state.status == LogStatus.loading) {
+            (state.status == LogStatus.loading && state.log == null)) {
           return ListView(
             padding: AppSpacing.screenContent,
             children: const [
@@ -99,7 +102,7 @@ class _LogViewState extends State<_LogView> {
             ],
           );
         }
-        if (state.status == LogStatus.failure) {
+        if (state.status == LogStatus.failure && state.log == null) {
           return StatePanel(
             icon: Icons.error_outline,
             title: ArabicStrings.logErrorTitle,

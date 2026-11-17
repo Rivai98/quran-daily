@@ -447,7 +447,7 @@ class _TodayRepository implements TodayRepository {
   final Result<TodaySnapshot>? result;
   final Future<Result<TodaySnapshot>>? pendingResult;
   @override
-  Future<Result<TodaySnapshot>> getToday() =>
+  Future<Result<TodaySnapshot>> getToday({void Function(TodaySnapshot)? onCached}) =>
       pendingResult ?? Future.value(result!);
   @override
   Future<Result<void>> setMainGroup(String? groupId) async =>

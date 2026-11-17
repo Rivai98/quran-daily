@@ -1,3 +1,4 @@
+import '../sync/personal_operation_overlay.dart';
 import '../design_system/cubit/group_photo_cubit.dart';
 
 import 'package:get_it/get_it.dart';
@@ -244,6 +245,15 @@ void configureServiceLocator({
       );
     }
 
+    if (!locator.isRegistered<PersonalOperationOverlay>()) {
+      locator.registerLazySingleton<PersonalOperationOverlay>(
+        () => PersonalOperationOverlay(
+          queue: locator<SyncQueueDao>(),
+          snapshots: locator<CachedSnapshotsDao>(),
+        ),
+      );
+    }
+
     if (!locator.isRegistered<KhatmaRemoteDataSource>()) {
       locator.registerLazySingleton<KhatmaRemoteDataSource>(
         () => KhatmaRemoteDataSourceImpl(locator<RpcClient>()),
@@ -256,6 +266,7 @@ void configureServiceLocator({
           remote: locator<KhatmaRemoteDataSource>(),
           cache: locator<CachedSnapshotsDao>(),
           queue: locator<SyncQueueDao>(),
+          pendingOperations: locator<PersonalOperationOverlay>(),
           historyDao: CachedHistoryDao(locator<LocalDatabase>()),
           onCompletionChanged: (_) async {
             locator<ProfileRepository>().invalidate();
@@ -354,6 +365,7 @@ void configureServiceLocator({
           clientProvider: locator.isRegistered<SupabaseClientProvider>()
               ? locator<SupabaseClientProvider>()
               : null,
+          khatmaRepository: locator<KhatmaRepository>(),
           onProfileChanged: () => locator<ProfileRepository>().invalidate(),
         ),
       );
@@ -413,6 +425,7 @@ void configureServiceLocator({
           remote: locator<LogRemoteDataSource>(),
           cache: CachedHistoryDao(locator<LocalDatabase>()),
           session: locator<SessionGateway>(),
+          pendingOperations: locator<PersonalOperationOverlay>(),
         ),
       );
     }
@@ -491,6 +504,7 @@ void configureServiceLocator({
           remote: locator<TodayRemoteDataSource>(),
           cache: locator<CachedTodayDao>(),
           session: locator<SessionGateway>(),
+          pendingOperations: locator<PersonalOperationOverlay>(),
         ),
       );
     }

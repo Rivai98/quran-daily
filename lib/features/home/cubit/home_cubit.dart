@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import '../../../core/sync/current_group_day.dart';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -55,59 +59,99 @@ class HomeCubit extends Cubit<HomeState> {
     required this._repository,
     required KhatmaRepository khatmaRepository,
     this.profileRepository,
-  }) : _khatma = khatmaRepository,
+    DateTime Function()? clock,
+  }) : _now = clock ?? DateTime.now,
+       _khatma = khatmaRepository,
        super(const HomeState());
   final TodayRepository _repository;
+  final DateTime Function() _now;
   final KhatmaRepository _khatma;
   final ProfileRepository? profileRepository;
   DateTime? _lastLoadedAt;
   static const _reselectDebounce = Duration(seconds: 3);
-  bool _loading = false;
+  Future<void>? _loading;
+  Timer? _rollover;
+  String? _updatingId;
 
-  Future<void> load() async {
-    if (_loading) return;
-    _loading = true;
+  Future<void> load() => _loading ??= _load().whenComplete(() {
+    _loading = null;
+  });
+
+  Future<void> _load() async {
     _loadProfileQuietly();
     // Only show the loading state on the very first load; later refreshes keep the
     // current content on screen so the cards don't jump.
     if (state.snapshot == null) {
       emit(HomeState(status: HomeStatus.loading, snapshot: state.snapshot));
     }
-    final result = await _repository.getToday();
-    _loading = false;
+    final result = await _repository.getToday(onCached: _applyToday);
+    if (isClosed) return;
     result.when(
       success: (snapshot) {
-        // A cached (stale) snapshot must not replace fresh content already shown.
-        if (snapshot.isStale && state.status == HomeStatus.content) return;
-        _lastLoadedAt = DateTime.now();
-        emit(
-          HomeState(
-            snapshot: snapshot,
-            status: snapshot.isStale
-                ? HomeStatus.offline
-                : snapshot.groups.isEmpty
-                ? HomeStatus.empty
-                : HomeStatus.content,
-            tomorrowPortions: _tomorrowFor(snapshot),
-            khatmasEndingToday: _endingTodayFor(snapshot),
-            profile: state.profile,
-          ),
-        );
+        _lastLoadedAt = _now();
+        _applyToday(snapshot);
       },
       failure: (failure) => emit(
         HomeState(
-          status: HomeStatus.failure,
+          status: state.snapshot == null
+              ? HomeStatus.failure
+              : HomeStatus.offline,
           snapshot: state.snapshot,
           failure: failure,
+          profile: state.profile,
         ),
       ),
     );
   }
 
-  Future<void> _loadProfileQuietly() async {
+  void _applyToday(TodaySnapshot snapshot) {
+    if (isClosed) return;
+    emit(
+      HomeState(
+        snapshot: snapshot,
+        status: snapshot.isStale
+            ? HomeStatus.offline
+            : snapshot.groups.isEmpty
+            ? HomeStatus.empty
+            : HomeStatus.content,
+        tomorrowPortions: _tomorrowFor(snapshot),
+        khatmasEndingToday: _endingTodayFor(snapshot),
+        profile: state.profile,
+        updatingId: _updatingId,
+      ),
+    );
+    _rollover?.cancel();
+    final ends =
+        snapshot.groups
+            .map((g) => g.day?.endsAt)
+            .nonNulls
+            .where((end) => end.isAfter(_now()))
+            .toList()
+          ..sort();
+    if (ends.isEmpty) return;
+    _rollover = Timer(ends.first.difference(_now()), () {
+      if (isClosed) return;
+      profileRepository?.invalidate();
+      _applyToday(
+        TodaySnapshot.fromJson(
+          currentTodayJson(snapshot.toJson(), _now()),
+          isStale: true,
+        ),
+      );
+      unawaited(load());
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _rollover?.cancel();
+    return super.close();
+  }
+
+  Future<void> _loadProfileQuietly({bool forceRefresh = false}) async {
     final repository = profileRepository;
     if (repository == null) return;
-    final result = await repository.getProfile();
+    final result = await repository.getProfile(forceRefresh: forceRefresh);
     if (isClosed) return;
     result.when(
       success: (profile) => emit(
@@ -161,14 +205,17 @@ class HomeCubit extends Cubit<HomeState> {
     return result;
   }
 
-  Future<void> refresh() => load();
+  Future<void> refresh() async {
+    unawaited(_loadProfileQuietly(forceRefresh: true));
+    await load();
+  }
 
   /// Called when the Home tab is re-selected: refresh quietly (content stays
   /// on screen). Groups created, joined or started on other tabs must show at
   /// once, so only a near-duplicate tap within [_reselectDebounce] is skipped.
   Future<void> refreshIfStale() {
     final last = _lastLoadedAt;
-    if (last != null && DateTime.now().difference(last) < _reselectDebounce) {
+    if (last != null && _now().difference(last) < _reselectDebounce) {
       return Future.value();
     }
     return load();
@@ -179,29 +226,42 @@ class HomeCubit extends Cubit<HomeState> {
     if (result.isSuccess) await load();
   }
 
-  Future<void> complete(TodayItem item) async {
-    if (state.updatingId != null) return;
-    emit(
-      HomeState(
-        status: state.status,
-        snapshot: state.snapshot,
-        updatingId: item.assignmentId,
-      ),
-    );
-    await _khatma.markComplete(item.assignmentId, DateTime.now());
-    await load();
-  }
+  Future<void> complete(TodayItem item) => _mutatePersonal(
+    item,
+    () => _khatma.markComplete(item.assignmentId, _now()),
+  );
 
   Future<void> undo(TodayItem item) async {
-    if (state.updatingId != null || !item.canUndo) return;
+    if (!item.canUndo) return;
+    await _mutatePersonal(
+      item,
+      () => _khatma.undoCompletion(item.assignmentId),
+    );
+  }
+
+  Future<void> _mutatePersonal(
+    TodayItem item,
+    Future<Object?> Function() action,
+  ) async {
+    if (_updatingId != null) return;
+    _updatingId = item.assignmentId;
     emit(
       HomeState(
         status: state.status,
         snapshot: state.snapshot,
-        updatingId: item.assignmentId,
+        updatingId: _updatingId,
+        profile: state.profile,
+        tomorrowPortions: state.tomorrowPortions,
+        khatmasEndingToday: state.khatmasEndingToday,
       ),
     );
-    await _khatma.undoCompletion(item.assignmentId);
-    await load();
+    try {
+      await action();
+      profileRepository?.invalidate();
+      await _loading;
+    } finally {
+      _updatingId = null;
+    }
+    if (!isClosed) await load();
   }
 }

@@ -6,17 +6,20 @@ class SyncReport {
     required this.succeeded,
     required this.failed,
     required this.remaining,
+    this.refreshedGroupIds = const {},
   });
 
   final int succeeded;
   final int failed;
   final int remaining;
+  final Set<String> refreshedGroupIds;
 }
 
 /// Daily khatma read/completion repository (repository contract).
 abstract class KhatmaRepository {
-  /// Network; on success caches the snapshot. On network failure returns
-  /// the cached snapshot flagged `isStale`, or `Failure(network)` if none.
+  /// Shared network revalidation; caches the result with pending personal
+  /// operations applied. Network failure returns stale cache when available.
+  /// Views subscribe to [watchCachedDashboard] for immediate cached content.
   Future<Result<DashboardSnapshot>> getDashboard(String groupId);
 
   /// Emits the cached snapshot (or null) whenever the cache changes.
