@@ -197,7 +197,12 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      await _show(tester, Success(_withOtherGroup), dark: theme);
+      await _show(
+        tester,
+        Success(_withOtherGroup),
+        dark: theme,
+        date: DateTime(2026, 11, 16),
+      );
       await expectLater(
         find.byType(HomeScreen),
         matchesGoldenFile(
