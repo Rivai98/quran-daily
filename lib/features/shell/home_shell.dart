@@ -114,10 +114,21 @@ class _HomeShellState extends State<HomeShell> {
           body: IndexedStack(
             index: state.index,
             children: [
-              _tab(0, widget.homeBuilder),
-              _tab(1, widget.groupsBuilder),
-              _tab(2, widget.mushafBuilder),
-              _tab(3, widget.profileBuilder),
+              for (var index = 0; index < _keys.length; index++)
+                TickerMode(
+                  enabled: index == state.index,
+                  child: state.mountedTabs.contains(index)
+                      ? _tab(
+                          index,
+                          [
+                            widget.homeBuilder,
+                            widget.groupsBuilder,
+                            widget.mushafBuilder,
+                            widget.profileBuilder,
+                          ][index],
+                        )
+                      : const SizedBox.shrink(),
+                ),
             ],
           ),
           bottomNavigationBar: AppTabBar(

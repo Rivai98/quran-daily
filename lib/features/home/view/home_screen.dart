@@ -17,7 +17,6 @@ import '../../../core/localization/arabic_numerals.dart';
 import '../../../core/quran/quran_metadata_repository.dart';
 import '../../../core/quran/portion_unit.dart';
 import '../../../core/quran/mushaf/mushaf_repository.dart';
-import '../../../core/di/service_locator.dart';
 import '../../profile/data/entities/profile_entities.dart';
 import '../../shell/shell_cubit.dart';
 import '../cubit/home_cubit.dart';
@@ -28,10 +27,12 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     required this.metadataRepository,
+    this.mushafRepository,
     this.displayName,
     this.date,
   });
   final QuranMetadataRepository metadataRepository;
+  final MushafRepository? mushafRepository;
   final String? displayName;
   final DateTime? date;
   @override
@@ -41,15 +42,26 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   /// The first-run reminders sheet is due but Home was not in front yet.
   bool _onboardingDue = false;
-  late final MushafRepository? _mushaf =
-      serviceLocator.isRegistered<MushafRepository>()
-      ? serviceLocator<MushafRepository>()
-      : null;
-  late final Future<void>? _mushafReady = _mushaf?.load();
+  Future<void>? _mushafReady;
+  MushafRepository? get _mushaf => widget.mushafRepository;
+
+  void _initializeMushaf() {
+    _mushafReady = _mushaf?.load();
+    _mushafReady?.ignore();
+  }
+
+  @override
+  void didUpdateWidget(covariant HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.mushafRepository != widget.mushafRepository) {
+      _initializeMushaf();
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    _initializeMushaf();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       await context.read<HomeCubit>().load();
@@ -75,7 +87,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => _HomeQuranData(
+    repository: _mushaf,
+    ready: _mushafReady,
+    child: _scaffold(context),
+  );
+
+  Widget _scaffold(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text(
         ArabicStrings.homeGreeting(widget.displayName),
@@ -164,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   metadata: widget.metadataRepository,
                 ),
               ],
-              if (serviceLocator.isRegistered<MushafRepository>()) ...[
+              if (_mushaf != null) ...[
                 const SizedBox(height: AppSpacing.lg),
                 FutureBuilder<void>(
                   future: _mushafReady,
@@ -173,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         snapshot.hasError) {
                       return const SizedBox.shrink();
                     }
-                    final repository = serviceLocator<MushafRepository>();
+                    final repository = _mushaf!;
                     return ContinueReadingCard(
                       repository: repository,
                       metadata: widget.metadataRepository,
@@ -218,6 +236,20 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ],
   );
+}
+
+class _HomeQuranData extends InheritedWidget {
+  const _HomeQuranData({
+    required this.repository,
+    required this.ready,
+    required super.child,
+  });
+  final MushafRepository? repository;
+  final Future<void>? ready;
+  static _HomeQuranData of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_HomeQuranData>()!;
+  @override
+  bool updateShouldNotify(_HomeQuranData oldWidget) => oldWidget.ready != ready;
 }
 
 class _HomeSkeleton extends StatelessWidget {
@@ -733,11 +765,6 @@ class _PortionLabel extends StatefulWidget {
 
 class _PortionLabelState extends State<_PortionLabel> {
   late Future<void> _ready = widget.metadata.load();
-  late final MushafRepository? _mushaf =
-      serviceLocator.isRegistered<MushafRepository>()
-      ? serviceLocator<MushafRepository>()
-      : null;
-  late final Future<void>? _mushafReady = _mushaf?.load();
   TodayGroup get group => widget.group;
   TodayItem get item => widget.item;
   QuranMetadataRepository get metadata => widget.metadata;
@@ -772,7 +799,8 @@ class _PortionLabelState extends State<_PortionLabel> {
         metadata.suraName(portion.endSura),
         portion.endAya,
       );
-      final mushaf = _mushaf;
+      final quran = _HomeQuranData.of(context);
+      final mushaf = quran.repository;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -794,7 +822,7 @@ class _PortionLabelState extends State<_PortionLabel> {
           _MetaLine(icon: Icons.menu_book_rounded, label: range),
           if (mushaf != null)
             FutureBuilder<void>(
-              future: _mushafReady,
+              future: quran.ready,
               builder: (context, mushafState) {
                 if (mushafState.connectionState != ConnectionState.done ||
                     mushafState.hasError) {
