@@ -1,3 +1,5 @@
+import '../../../core/storage/daos/daos.dart';
+
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,11 +12,13 @@ import 'reminders_repository.dart';
 class RemindersRepositoryImpl implements RemindersRepository {
   RemindersRepositoryImpl({
     required this._rpc,
+    this.snapshots,
     Future<SharedPreferences> Function()? preferences,
     this._onChanged,
   }) : _preferences = preferences ?? SharedPreferences.getInstance;
 
   final RpcClient _rpc;
+  final CachedSnapshotsDao? snapshots;
   final Future<SharedPreferences> Function() _preferences;
   final Future<void> Function()? _onChanged;
   static const _personalKey = 'reminders.personal.v1';
@@ -68,26 +72,15 @@ class RemindersRepositoryImpl implements RemindersRepository {
   Future<GroupReminderSchedule?> loadGroupSchedule(String groupId) async {
     final prefs = await _preferences();
     final cached = prefs.getString('$_groupPrefix$groupId');
-    final result = await _rpc.call<Object?>('get_dashboard', {
-      'p_group_id': groupId,
-    });
-    if (result.isSuccess) {
-      final payload = result.valueOrNull;
-      final dashboard = payload is Map ? payload : const <Object?, Object?>{};
-      final raw = dashboard['reminder_schedule'];
-      if (raw is Map) {
-        final schedule = _scheduleFromJson(
-          raw.cast<String, Object?>(),
-          _groupName(dashboard, groupId),
-        );
-        await prefs.setString(
-          '$_groupPrefix$groupId',
-          jsonEncode(_scheduleToJson(schedule)),
-        );
-        return schedule;
-      }
-      return null;
+    final dashboard = (await snapshots?.read(groupId))?.json;
+    final raw = dashboard?['reminder_schedule'];
+    if (raw is Map) {
+      return _scheduleFromJson(
+        raw.cast<String, Object?>(),
+        _groupName(dashboard!, groupId),
+      );
     }
+    if (dashboard?.containsKey('reminder_schedule') ?? false) return null;
     if (cached == null) return null;
     final json = (jsonDecode(cached) as Map).cast<String, Object?>();
     return _scheduleFromJson(json, json['groupName'] as String? ?? groupId);
@@ -113,6 +106,13 @@ class RemindersRepositoryImpl implements RemindersRepository {
       '$_groupPrefix${schedule.groupId}',
       jsonEncode(_scheduleToJson(schedule)),
     );
+    final cached = await snapshots?.read(schedule.groupId);
+    if (cached != null) {
+      await snapshots!.upsert(schedule.groupId, {
+        ...cached.json,
+        'reminder_schedule': _scheduleToJson(schedule),
+      });
+    }
     await _notifyChanged();
   }
 

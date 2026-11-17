@@ -189,6 +189,7 @@ void configureServiceLocator({
         () => RemindersRepositoryImpl(
           rpc: locator<RpcClient>(),
           onChanged: () => locator<ReminderPlanningService>().refresh(),
+          snapshots: locator<CachedSnapshotsDao>(),
         ),
       );
     }
