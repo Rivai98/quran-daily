@@ -1,8 +1,11 @@
 import 'package:flutter/widgets.dart';
 
 import 'app/bootstrap.dart';
+import 'app/app.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(await bootstrapApp());
+  runApp(
+    const BootstrapApp(initialize: initializeServices, app: QuranDailyApp()),
+  );
 }

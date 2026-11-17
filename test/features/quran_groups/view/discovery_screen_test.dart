@@ -46,7 +46,7 @@ void main() {
   late _Repository repository;
   setUp(() {
     repository = _Repository();
-    when(() => repository.getMyGroups())
+    when(() => repository.getMyGroups(onCached: any(named: 'onCached')))
         .thenAnswer((_) async => Success(TestFixtures.overview()));
   });
 
@@ -294,16 +294,17 @@ void main() {
   testWidgets('membership limit is shown once above the results', (
     tester,
   ) async {
-    when(() => repository.getMyGroups()).thenAnswer(
-      (_) async => Success(
-        TestFixtures.overview(
-          groups: [
-            TestFixtures.myGroup(groupId: 'g-active-1'),
-            TestFixtures.myGroup(groupId: 'g-active-2'),
-          ],
-        ),
-      ),
-    );
+    when(() => repository.getMyGroups(onCached: any(named: 'onCached')))
+        .thenAnswer(
+          (_) async => Success(
+            TestFixtures.overview(
+              groups: [
+                TestFixtures.myGroup(groupId: 'g-active-1'),
+                TestFixtures.myGroup(groupId: 'g-active-2'),
+              ],
+            ),
+          ),
+        );
     when(
       () => repository.searchPublicGroups(
         query: any(named: 'query'),

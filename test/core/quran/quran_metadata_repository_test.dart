@@ -32,6 +32,20 @@ void main() {
     await repository.load();
   });
 
+  test('derived portions reuse immutable objects per unit (#17)', () {
+    for (final unit in PortionUnit.values) {
+      final portions = repository.portions(unit);
+      expect(identical(repository.portions(unit), portions), isTrue);
+      expect(identical(repository.portion(unit, 1), portions.first), isTrue);
+      expect(() => portions.clear(), throwsUnsupportedError);
+      expect(() => repository.portion(unit, 0), throwsRangeError);
+      expect(
+        () => repository.portion(unit, portions.length + 1),
+        throwsRangeError,
+      );
+    }
+  });
+
   group('file integrity (Principle VII)', () {
     test('quran-data.xml matches checksums.sha256 byte-for-byte', () async {
       final checksumLine = (await File(

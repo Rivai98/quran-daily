@@ -80,6 +80,10 @@ class _FallbackKhatmaRepository implements KhatmaRepository {
       throw UnimplementedError();
 
   @override
+  Future<Result<DashboardSnapshot>> refreshDashboard(String groupId) =>
+      getDashboard(groupId);
+
+  @override
   Stream<DashboardSnapshot?> watchCachedDashboard(String groupId) =>
       throw UnimplementedError();
 

@@ -1,3 +1,5 @@
+import 'khatma_repository.dart';
+
 import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,8 +17,8 @@ import '../models/models.dart';
 import 'groups_repository.dart';
 
 /// Groups repository over Supabase RPCs + SQLite cache (repository
-/// contract): network-first; `getMyGroups` falls back to cache on network
-/// failure flagged stale; all other methods are network-only.
+/// contract): `getMyGroups` delivers its optional stale cache before shared
+/// revalidation; management and discovery remain network-only.
 class GroupsRepositoryImpl implements GroupsRepository {
   GroupsRepositoryImpl({
     required this._rpc,
@@ -25,8 +27,12 @@ class GroupsRepositoryImpl implements GroupsRepository {
     required SessionGateway sessionGateway,
     required this._connectivity,
     this._clientProvider,
+    this.khatmaRepository,
+    this.onProfileChanged,
   }) : _session = sessionGateway;
 
+  final KhatmaRepository? khatmaRepository;
+  final void Function()? onProfileChanged;
   final RpcClient _rpc;
   final GroupsRemoteDataSource _remote;
   final CachedGroupsDao _cache;
@@ -35,8 +41,11 @@ class GroupsRepositoryImpl implements GroupsRepository {
   final SupabaseClientProvider? _clientProvider;
   final Map<String, Uint8List> _photoCache = {};
 
+  final Map<String, Future<Result<MyGroupsOverview>>> _groupRefreshes = {};
   @override
-  Future<Result<MyGroupsOverview>> getMyGroups() async {
+  Future<Result<MyGroupsOverview>> getMyGroups({
+    void Function(MyGroupsOverview)? onCached,
+  }) async {
     final userId = _session.currentUserId;
     if (userId == null) {
       return const FailureResult(
@@ -44,7 +53,42 @@ class GroupsRepositoryImpl implements GroupsRepository {
       );
     }
 
+    if (onCached != null) {
+      final cached = await _cachedGroups(userId);
+      if (cached != null && _session.currentUserId == userId) onCached(cached);
+    }
+    return _groupRefreshes.putIfAbsent(
+      userId,
+      () => _fetchGroups(userId).whenComplete(() {
+        _groupRefreshes.remove(userId);
+      }),
+    );
+  }
+
+  Future<MyGroupsOverview?> _cachedGroups(String userId) async {
+    final cached = await _cache.read(userId);
+    if (cached == null) return null;
+    return MyGroupsOverview(
+      groups: [
+        for (final raw in cached.json['groups'] as List? ?? const [])
+          myGroupSummaryFromJson((raw as Map).cast<String, Object?>()),
+      ],
+      pendingRequests: [
+        for (final raw in cached.json['pending_requests'] as List? ?? const [])
+          pendingJoinRequestFromJson((raw as Map).cast<String, Object?>()),
+      ],
+      isStale: true,
+      cachedAt: cached.cachedAt,
+    );
+  }
+
+  Future<Result<MyGroupsOverview>> _fetchGroups(String userId) async {
     final result = await _remote.call('get_my_groups');
+    if (_session.currentUserId != userId) {
+      return const FailureResult(
+        AuthFailure(message: 'session changed', code: 'unauthenticated'),
+      );
+    }
     return result.when(
       success: (payload) async {
         final json = (payload! as Map).cast<String, Object?>();
@@ -176,6 +220,8 @@ class GroupsRepositoryImpl implements GroupsRepository {
     if (result.isFailure) return FailureResult(result.failureOrNull!);
     // start_khatma returns a summary ({today: true, status, ...}), not the
     // dashboard read model, so load the fresh dashboard after starting.
+    final khatma = khatmaRepository;
+    if (khatma != null) return khatma.refreshDashboard(groupId);
     final dashboard = await _rpc.call<dynamic>('get_dashboard', {
       'p_group_id': groupId,
     });
@@ -473,6 +519,7 @@ class GroupsRepositoryImpl implements GroupsRepository {
       'update_my_profile',
       GroupsParams.updateMyProfile(displayName, bio, avatarKey),
     );
+    if (result.isSuccess) onProfileChanged?.call();
     return result.when(
       success: (payload) => Success(
         userProfileFromJson((payload! as Map).cast<String, Object?>()),

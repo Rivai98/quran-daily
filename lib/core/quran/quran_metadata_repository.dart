@@ -24,6 +24,7 @@ class QuranMetadataRepository {
   List<Map<String, String>>? _quarters;
   List<Map<String, String>>? _pages;
   Future<void>? _loading;
+  final Map<PortionUnit, List<QuranPortion>> _portions = {};
 
   /// Parses the bundled metadata; throws when the asset is missing or
   /// malformed. Safe to call repeatedly (parses once).
@@ -109,6 +110,10 @@ class QuranMetadataRepository {
   /// hizb entries for hizb and half-juz units.
   List<QuranPortion> portions(PortionUnit unit) {
     _ensureLoaded();
+    return _portions.putIfAbsent(unit, () => _derivePortions(unit));
+  }
+
+  List<QuranPortion> _derivePortions(PortionUnit unit) {
     final starts = switch (unit) {
       PortionUnit.juz => _juzs!,
       PortionUnit.quarter => _quarters!,

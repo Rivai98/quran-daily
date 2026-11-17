@@ -94,7 +94,9 @@ abstract class EquatableInput extends Equatable {
 /// Groups/joining/management repository (repository contract). Network-only
 /// methods return `Failure(network)` when offline — nothing is queued.
 abstract class GroupsRepository {
-  Future<Result<MyGroupsOverview>> getMyGroups();
+  Future<Result<MyGroupsOverview>> getMyGroups({
+    void Function(MyGroupsOverview)? onCached,
+  });
 
   Future<Result<CreatedGroup>> createGroup(CreateGroupInput input);
   Future<Result<MyGroupSummary>> updateGroupSettings(

@@ -8,20 +8,38 @@ class LogCubit extends Cubit<LogState> {
   LogCubit({required this._repository}) : super(const LogState());
   final LogRepository _repository;
 
-  Future<void> load() async {
-    emit(state.copyWith(status: LogStatus.loading, clearFailure: true));
-    final result = await _repository.getLog();
-    result.when(
-      success: (log) => emit(
-        state.copyWith(
-          status: log.isStale
-              ? LogStatus.offline
-              : (log.days.isEmpty ? LogStatus.empty : LogStatus.success),
-          log: log,
-        ),
+  Future<void>? _loading;
+  Future<void> load() => _loading ??= _load().whenComplete(() {
+    _loading = null;
+  });
+
+  Future<void> _load() async {
+    emit(
+      state.copyWith(
+        status: state.log == null ? LogStatus.loading : state.status,
+        clearFailure: true,
       ),
+    );
+    final result = await _repository.getLog(onCached: _applyLog);
+    if (isClosed) return;
+    result.when(
+      success: _applyLog,
       failure: (failure) =>
           emit(state.copyWith(status: LogStatus.failure, failure: failure)),
+    );
+  }
+
+  void _applyLog(PersonalLog log) {
+    if (isClosed) return;
+    emit(
+      state.copyWith(
+        status: log.isStale
+            ? LogStatus.offline
+            : log.days.isEmpty
+            ? LogStatus.empty
+            : LogStatus.success,
+        log: log,
+      ),
     );
   }
 

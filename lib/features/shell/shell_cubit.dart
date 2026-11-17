@@ -4,16 +4,24 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ShellState extends Equatable {
-  const ShellState(this.index);
+  const ShellState(this.index, {this.mountedTabs = const {0}});
   final int index;
+  final Set<int> mountedTabs;
   @override
-  List<Object?> get props => [index];
+  List<Object?> get props => [index, mountedTabs];
 }
 
 class ShellCubit extends Cubit<ShellState> {
   ShellCubit() : super(const ShellState(0));
   void select(int index) {
-    if (index >= 0 && index < 4) emit(ShellState(index));
+    if (index >= 0 && index < 4) {
+      emit(
+        ShellState(
+          index,
+          mountedTabs: Set.unmodifiable({...state.mountedTabs, index}),
+        ),
+      );
+    }
   }
 }
 
