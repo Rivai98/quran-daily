@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/quran/mushaf/mushaf_models.dart';
 import 'package:quran_daily/core/quran/mushaf/mushaf_repository.dart';
+import 'package:quran_daily/core/quran/mushaf/qpc_v2_repository.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/features/mushaf/cubit/reader_cubit.dart';
 import 'package:quran_daily/features/mushaf/data/mushaf_sync_repository.dart';
@@ -31,6 +35,110 @@ void main() {
   });
 
   tearDown(() => cubit.close());
+
+  test('turning does not prefetch until the current page settles', () async {
+    final fonts = _Fonts();
+    final requested = <int>[];
+    when(() => fonts.prefetch(any())).thenAnswer((call) async {
+      requested.add(call.positionalArguments.single as int);
+    });
+    final reader = ReaderCubit(
+      repository: repository,
+      storage: storage,
+      qpcFonts: fonts,
+    );
+    addTearDown(reader.close);
+    await reader.openPage(5);
+    await reader.turnTo(6);
+    expect(requested, isEmpty);
+    await reader.prefetchSettledPage(5);
+    expect(requested, isEmpty, reason: 'obsolete settle signal is ignored');
+    await reader.prefetchSettledPage(6);
+    expect(requested, [7]);
+  });
+
+  test(
+    'rapid reversal waits for stale work and prepares only the new direction',
+    () async {
+      final fonts = _Fonts();
+      final requested = <int>[];
+      final pending = Completer<void>();
+      when(() => fonts.prefetch(any())).thenAnswer((call) {
+        requested.add(call.positionalArguments.single as int);
+        return requested.length == 1 ? pending.future : Future.value();
+      });
+      final reader = ReaderCubit(
+        repository: repository,
+        storage: storage,
+        qpcFonts: fonts,
+      );
+      addTearDown(reader.close);
+      await reader.openPage(5);
+      await reader.turnTo(6);
+      final first = reader.prefetchSettledPage(6);
+      expect(requested, [7]);
+      reader.pageTurnStarted();
+      await reader.turnTo(5);
+      await reader.prefetchSettledPage(5);
+      await reader.prefetchSettledPage(6);
+      expect(requested, [7], reason: 'only one background operation may run');
+      pending.complete();
+      await first;
+      expect(requested, [7, 4]);
+      expect(reader.state.page?.number, 5);
+    },
+  );
+
+  test('settled prefetch respects both portion boundaries', () async {
+    final fonts = _Fonts();
+    final requested = <int>[];
+    when(() => fonts.prefetch(any())).thenAnswer((call) async {
+      requested.add(call.positionalArguments.single as int);
+    });
+    final reader = ReaderCubit(
+      repository: repository,
+      storage: storage,
+      qpcFonts: fonts,
+    );
+    addTearDown(reader.close);
+    await reader.openPortion(PortionUnit.hizb, 1, assignmentId: 'portion');
+    expect(
+      requested,
+      isEmpty,
+      reason: 'opening does not eagerly warm the portion',
+    );
+    await reader.turnTo(5);
+    await reader.prefetchSettledPage(5);
+    expect(requested, isEmpty);
+    await reader.turnTo(4);
+    await reader.prefetchSettledPage(4);
+    await reader.turnTo(3);
+    await reader.prefetchSettledPage(3);
+    expect(requested, [3]);
+  });
+
+  test('closing clears a queued direction while an uncancelable operation finishes', () async {
+    final fonts = _Fonts();
+    final requested = <int>[];
+    final pending = Completer<void>();
+    when(() => fonts.prefetch(any())).thenAnswer((call) {
+      requested.add(call.positionalArguments.single as int);
+      return pending.future;
+    });
+    final reader = ReaderCubit(
+      repository: repository,
+      storage: storage,
+      qpcFonts: fonts,
+    );
+    await reader.openPage(5);
+    final active = reader.prefetchSettledPage(5);
+    await reader.turnTo(4);
+    await reader.prefetchSettledPage(4);
+    await reader.close();
+    pending.complete();
+    await active;
+    expect(requested, [6]);
+  });
 
   test('opens a requested page and saves the last position', () async {
     await cubit.openPage(2);
@@ -143,6 +251,9 @@ void main() {
     );
   });
 }
+
+// The font manager is the platform/network boundary; no font work runs in Cubit tests.
+class _Fonts extends Mock implements QpcFontManager {}
 
 class _Repository implements MushafRepository {
   _Repository(this.ayahs);

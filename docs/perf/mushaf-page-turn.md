@@ -80,6 +80,8 @@ setup and font-cache preparation. Host tests finished before runtime capture.
 | Baseline / repeat 120 → 100 | 707 | 670.206 | 193.696 | 5.80% | 28.85% | 28.85% |
 | B / cold registration 100 → 120 | 270 | 822.540 | 264.326 | 18.52% | 43.70% | 43.70% |
 | B / repeat 120 → 100 | 540 | 823.871 | 475.137 | 7.41% | 30.56% | 30.56% |
+| C / cold registration 100 → 120 | 346 | 825.496 | 226.307 | 15.61% | 36.13% | 36.42% |
+| C / repeat 120 → 100 | 695 | 619.777 | 217.647 | 5.90% | 26.33% | 26.33% |
 
 Raw capture: [baseline-android-emulator-impeller.json](baseline-android-emulator-impeller.json).
 Its renderer field is `default`; the engine log above identifies the backend
@@ -136,3 +138,45 @@ forward route and 1.70 points on the reverse route. Hashing/file work now runs
 off-isolate, but this change alone does not resolve page-turn jank. Host-load
 variance and the unchanged widget/layout/paint work prevent attributing those
 deltas to one cause. The target remains unmet; subsequent steps must be measured.
+
+## Step C: directional prefetch after settling
+
+The reader observes only the top-level horizontal `ScrollStartNotification`
+and `ScrollEndNotification`. A new scroll invalidates queued post-frame/idle
+callbacks and background requests. After scroll-end (or the initial content
+frame), it waits through any remaining transient animation callbacks, then
+schedules the preparation task at `Priority.idle`. Waiting on painted frames
+first avoids polling idle tasks while a route animation is active. A widget
+regression verifies no prefetch starts during the page animation and that the
+next target starts after settling.
+
+`ReaderCubit` prepares only the adjacent page in the last page-number direction
+(in RTL, increasing numbers still mean the next page on the left), respecting
+both portion boundaries. It serializes speculative work: a reversal clears the
+old queued target and waits for the active operation to finish/cancel before
+starting the latest settled target. Obsolete settle callbacks and reader
+closure cannot start new work. The five-page turn-time fanout and automatic
+portion-wide font warmup are removed; the explicit offline font-download flow
+is unchanged.
+
+The font manager distinguishes speculative and foreground consumers. A visible
+page promotes an existing shared font request so background cancellation cannot
+interrupt it. Stale background HTTP clients are closed; cancellation checks
+after cache IO/verification prevent stale results entering FontLoader. Work
+already inside `Isolate.run` or FontLoader cannot be forcibly canceled; verified
+cache bytes remain valid, and a registration already entered may complete.
+Such completion does not publish obsolete reader state. Foreground page loading
+and its ordinary error/fallback behavior remain immediate.
+
+Tests cover settle-only requests, one active background operation, rapid
+reversal, portion boundaries, closure, background network cancellation and
+foreground promotion. Step C gates: analyze zero issues, all 627 host tests pass;
+no golden images changed.
+
+The same Impeller OpenGLES profile benchmark passed after C (122.1 seconds to
+build, 75 seconds for the test). Raw capture:
+[step-c-android-emulator-impeller.json](step-c-android-emulator-impeller.json);
+local runtime log: `build-step-c-profile.log`. Compared with B, the captured-frame
+over-budget fraction fell by 7.29 percentage points forward and 4.22 points in
+reverse. Large worst-frame times remain; this emulator result does not establish
+the physical-device target or isolate every remaining source of jank.

@@ -2,9 +2,11 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/quran/mushaf/mushaf_models.dart';
 import 'package:quran_daily/core/quran/mushaf/mushaf_repository.dart';
+import 'package:quran_daily/core/quran/mushaf/qpc_v2_repository.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
 import 'package:quran_daily/features/mushaf/cubit/reader_cubit.dart';
@@ -14,6 +16,57 @@ import 'package:quran_daily/features/mushaf/view/reader_screen.dart';
 import '../../../helpers/widget_test_app.dart';
 
 void main() {
+  testWidgets('page prefetch waits until the scroll animation has settled', (
+    tester,
+  ) async {
+    final repository = _RichRepository();
+    final storage = _Storage();
+    final fonts = _Fonts();
+    final prepared = <int>[];
+    when(() => fonts.prefetch(any())).thenAnswer((call) async {
+      prepared.add(call.positionalArguments.single as int);
+    });
+    final cubit = ReaderCubit(
+      repository: repository,
+      storage: storage,
+      qpcFonts: fonts,
+    );
+    await cubit.openPage(5);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: ReaderScreen(
+            repository: repository,
+            storage: storage,
+            metadata: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.pump(Duration.zero);
+    expect(prepared, [6]);
+    final pages = tester.widget<PageView>(
+      find.byKey(const ValueKey('mushaf-page-view')),
+    );
+    final turn = pages.controller!.animateToPage(
+      5,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.linear,
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(prepared, [
+      6,
+    ], reason: 'page change during animation must not prefetch');
+    await tester.pumpAndSettle();
+    await turn;
+    await tester.pump(Duration.zero);
+    expect(prepared, [6, 7]);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await cubit.close();
+  });
   testWidgets(
     'renders RTL reader (next page on the left) in RTL, dark, 200%, and 320dp variants',
     (tester) async {
@@ -527,6 +580,8 @@ void main() {
     await cubit.close();
   });
 }
+
+class _Fonts extends Mock implements QpcFontManager {}
 
 class _FlowRepository implements MushafRepository {
   @override

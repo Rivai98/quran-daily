@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -135,6 +133,56 @@ class ReaderCubit extends Cubit<ReaderState> {
   final Future<bool> Function()? _onComplete;
   final QpcV2Repository? _qpcLayout;
   final QpcFontManager? _qpcFonts;
+  int _readingDirection = 1;
+  int? _queuedPrefetch;
+  bool _prefetchRunning = false;
+
+  void pageTurnStarted() {
+    _queuedPrefetch = null;
+    _qpcFonts?.cancelPrefetch();
+  }
+
+  /// Called only after scroll-end, a painted frame and the scheduler's idle gate.
+  /// Speculative font errors never change the visible reader state.
+  Future<void> prefetchSettledPage(int page) async {
+    final fonts = _qpcFonts;
+    if (isClosed ||
+        fonts == null ||
+        state.page?.number != page ||
+        state.isCompletionPage) {
+      return;
+    }
+    final target = page + _readingDirection;
+    final minimum = state.startPage ?? 1;
+    final maximum = state.endPage ?? _repository.pageCount;
+    if (target < minimum || target > maximum) return;
+    _queuedPrefetch = target;
+    if (_prefetchRunning) return;
+    await _drainPrefetch(fonts);
+  }
+
+  Future<void> _drainPrefetch(QpcFontManager fonts) async {
+    _prefetchRunning = true;
+    try {
+      while (!isClosed && _queuedPrefetch != null) {
+        final next = _queuedPrefetch!;
+        _queuedPrefetch = null;
+        try {
+          await fonts.prefetch(next);
+        } on Object {
+          // Visible-page loading retries normally if preparation was unavailable.
+        }
+      }
+    } finally {
+      _prefetchRunning = false;
+    }
+  }
+
+  @override
+  Future<void> close() {
+    pageTurnStarted();
+    return super.close();
+  }
 
   Future<void> openLastPosition() async {
     int? saved;
@@ -147,6 +195,8 @@ class ReaderCubit extends Cubit<ReaderState> {
   }
 
   Future<void> openPage(int number) async {
+    pageTurnStarted();
+    _readingDirection = 1;
     emit(const ReaderState(status: ReaderStatus.loading));
     try {
       await _repository.load();
@@ -179,6 +229,8 @@ class ReaderCubit extends Cubit<ReaderState> {
     required String assignmentId,
     bool alreadyCompleted = false,
   }) async {
+    pageTurnStarted();
+    _readingDirection = 1;
     emit(const ReaderState(status: ReaderStatus.loading));
     try {
       await _repository.load();
@@ -203,13 +255,6 @@ class ReaderCubit extends Cubit<ReaderState> {
           isFontFallback: exact.$3,
         ),
       );
-      final fonts = _qpcFonts;
-      final layout = _qpcLayout;
-      if (fonts != null && layout != null) {
-        for (var page = range.startPage + 1; page <= range.endPage; page++) {
-          unawaited(fonts.ensureLoaded(page).catchError((_) => ''));
-        }
-      }
     } catch (error) {
       emit(ReaderState(status: ReaderStatus.error, error: error));
     }
@@ -219,6 +264,11 @@ class ReaderCubit extends Cubit<ReaderState> {
     final minimum = state.isPortion ? state.startPage! : 1;
     final maximum = state.isPortion ? state.endPage! : _repository.pageCount;
     if (number < minimum || number > maximum) return;
+    final previous = state.page?.number;
+    if (previous != null && number != previous) {
+      _readingDirection = number > previous ? 1 : -1;
+    }
+    pageTurnStarted();
     try {
       emit(
         state.copyWith(
@@ -227,10 +277,6 @@ class ReaderCubit extends Cubit<ReaderState> {
           isCompletionPage: false,
         ),
       );
-      // Each printed page loads its own lines and font inside the page view, so a
-      // page turn only updates the current page number (no second rebuild) and
-      // warms up the neighbouring pages' fonts in the background.
-      _prefetchAround(number);
       if (!state.isPortion) {
         try {
           await _storage.savePage(number);
@@ -245,6 +291,7 @@ class ReaderCubit extends Cubit<ReaderState> {
 
   void showCompletionPage() {
     if (!state.isPortion || state.isCompletionPage) return;
+    pageTurnStarted();
     emit(
       state.copyWith(
         page: _repository.page(state.endPage!),
@@ -285,16 +332,6 @@ class ReaderCubit extends Cubit<ReaderState> {
     final min = state.isPortion ? state.startPage! : 1;
     if (current > min) {
       await turnTo(current - 1);
-    }
-  }
-
-  void _prefetchAround(int number) {
-    final fonts = _qpcFonts;
-    if (fonts == null) return;
-    for (final page in [number - 2, number - 1, number + 1, number + 2, number + 3]) {
-      if (page >= 1 && page <= 604) {
-        unawaited(fonts.ensureLoaded(page).catchError((_) => ''));
-      }
     }
   }
 
