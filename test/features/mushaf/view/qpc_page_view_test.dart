@@ -1,16 +1,25 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/quran/mushaf/mushaf_models.dart';
+import 'package:quran_daily/core/di/service_locator.dart';
+import 'package:quran_daily/core/quran/mushaf/mushaf_repository.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/quran/mushaf/qpc_v2_repository.dart';
 import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
 import 'package:quran_daily/features/mushaf/view/widgets/qpc_page_view.dart';
 import 'package:quran_daily/features/mushaf/view/widgets/qpc_page_painter.dart';
+import 'package:quran_daily/features/mushaf/view/widgets/qpc_page_layout_cache.dart';
+import 'package:quran_daily/features/mushaf/view/widgets/qpc_page_layout.dart';
+import 'package:quran_daily/features/mushaf/cubit/reader_cubit.dart';
+import 'package:quran_daily/features/mushaf/data/reader_storage.dart';
+import 'package:quran_daily/features/mushaf/view/reader_screen.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../../../helpers/widget_test_app.dart';
@@ -31,7 +40,7 @@ void main() {
     await layout.load();
     await metadata.load();
     await loadArabicUiFontsForGoldenTests();
-    for (final page in [1, 100, 106, 604]) {
+    for (final page in [1, 2, 100, 106, 604]) {
       final bytes = await File('test/fixtures/qpc_v2/p$page.ttf').readAsBytes();
       final manifest = layout.fontInfo(page);
       QpcV2Repository.verifyFontBytes(
@@ -58,6 +67,7 @@ void main() {
     double scale = 1,
     double width = 360,
     ValueChanged<QpcWord>? onLongPress,
+    QpcPageLayoutCache? layoutCache,
   }) async {
     tester.view.physicalSize = Size(width, 740);
     tester.view.devicePixelRatio = 1;
@@ -77,6 +87,7 @@ void main() {
                 pageNumber: page,
                 layout: layout,
                 fonts: fonts,
+                layoutCache: layoutCache,
                 startAyah: AyahRef(surah: first.surah, ayah: first.ayah),
                 endAyah: AyahRef(surah: last.surah, ayah: last.ayah),
                 onLongPress: onLongPress ?? (_) {},
@@ -110,6 +121,167 @@ void main() {
     }
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('idle prepared layout transfers to the first displayed page', (
+    tester,
+  ) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final cache = QpcPageLayoutCache();
+    addTearDown(cache.dispose);
+    await showPage(tester, 100, layoutCache: cache);
+    final next = QpcPageData(
+      layout.linesForPage(106),
+      'qpcv2_p106',
+      'qpcv2_p1',
+      layout.basmallahWords,
+    );
+    final prepared = QpcPageLayout(cache.specFor(next)!);
+    cache.store(prepared);
+    await showPage(tester, 106, layoutCache: cache);
+    final painter =
+        tester
+                .widget<CustomPaint>(
+                  find.byKey(const ValueKey('qpc-page-canvas')),
+                )
+                .painter!
+            as QpcPagePainter;
+    expect(painter.layout, same(prepared));
+    await expectLater(
+      find.byKey(const ValueKey('printed-page')),
+      matchesGoldenFile('goldens/qpc_106_light.png'),
+    );
+    expect(
+      cache.specFor(next),
+      isNull,
+      reason: 'mounted matching layout is already prepared',
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+    expect(prepared.words.first.painter.debugDisposed, isTrue);
+  });
+
+  testWidgets(
+    'warm cache keeps one layout and disposes stale viewport and closed work',
+    (tester) async {
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final cache = QpcPageLayoutCache();
+      await showPage(tester, 100, layoutCache: cache);
+      final next = QpcPageData.forLoadedPage(layout, fonts, 106)!;
+      final oldSpec = cache.specFor(next)!;
+      final first = QpcPageLayout(oldSpec);
+      cache.store(first);
+      final replacement = QpcPageLayout(
+        cache.specFor(QpcPageData.forLoadedPage(layout, fonts, 1)!)!,
+      );
+      cache.store(replacement);
+      expect(first.words.first.painter.debugDisposed, isTrue);
+      await showPage(
+        tester,
+        100,
+        dark: true,
+        scale: 2,
+        width: 320,
+        layoutCache: cache,
+      );
+      expect(replacement.words.first.painter.debugDisposed, isTrue);
+      final stale = QpcPageLayout(oldSpec);
+      cache.store(stale);
+      expect(stale.words.first.painter.debugDisposed, isTrue);
+      final ready = QpcPageLayout(cache.specFor(next)!);
+      cache.store(ready);
+      cache.dispose();
+      expect(ready.words.first.painter.debugDisposed, isTrue);
+      final mounted =
+          tester
+                  .widget<CustomPaint>(
+                    find.byKey(const ValueKey('qpc-page-canvas')),
+                  )
+                  .painter!
+              as QpcPagePainter;
+      expect(mounted.layout.words.first.painter.debugDisposed, isFalse);
+      final closed = QpcPageLayout(oldSpec);
+      cache.store(closed);
+      expect(closed.words.first.painter.debugDisposed, isTrue);
+      await tester.pumpWidget(const SizedBox.shrink());
+      expect(mounted.layout.words.first.painter.debugDisposed, isTrue);
+    },
+  );
+
+  testWidgets(
+    'font completion prepares the next page after a painted idle frame',
+    (tester) async {
+      final repository = MushafRepositoryImpl(metadata: metadata);
+      // Repository loading spawns an isolate, which cannot finish in fake async.
+      await tester.runAsync(repository.load);
+      final storage = _ReaderStorage();
+      final readerFonts = _LoadedFonts();
+      final pending = Completer<void>();
+      when(() => storage.savePage(any())).thenAnswer((_) async {});
+      when(
+        () => readerFonts.isLoaded(any()),
+      ).thenAnswer((call) => [1, 2].contains(call.positionalArguments.single));
+      when(
+        () => readerFonts.ensureLoaded(any()),
+      ).thenAnswer((call) async => 'qpcv2_p${call.positionalArguments.single}');
+      when(() => readerFonts.prefetch(any())).thenAnswer((_) async {});
+      when(() => readerFonts.prefetch(2)).thenAnswer((_) => pending.future);
+      serviceLocator.registerSingleton<QpcFontManager>(readerFonts);
+      final cubit = ReaderCubit(
+        repository: repository,
+        storage: storage,
+        qpcLayout: layout,
+        qpcFonts: readerFonts,
+      );
+      addTearDown(() async {
+        await cubit.close();
+        serviceLocator.unregister<QpcFontManager>();
+      });
+      await cubit.openPage(1);
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          BlocProvider.value(
+            value: cubit,
+            child: ReaderScreen(
+              repository: repository,
+              storage: storage,
+              metadata: metadata,
+              qpcLayout: layout,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(Duration.zero);
+      final cache = tester
+          .widget<QpcPageView>(find.byType(QpcPageView).first)
+          .layoutCache!;
+      final next = QpcPageData.forLoadedPage(layout, readerFonts, 2)!;
+      expect(cache.specFor(next), isNotNull);
+      final animation = AnimationController(
+        vsync: tester,
+        duration: const Duration(milliseconds: 200),
+      )..forward();
+      pending.complete();
+      expect(
+        cache.specFor(next),
+        isNotNull,
+        reason: 'font readiness alone has not shaped the page',
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(
+        cache.specFor(next),
+        isNotNull,
+        reason: 'shaping waits until animations finish',
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(Duration.zero);
+      expect(cache.specFor(next), isNull, reason: 'idle layout is now ready');
+      animation.dispose();
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
 
   testWidgets('words share one canvas with long-press word hit testing', (
     tester,
@@ -225,3 +397,5 @@ void main() {
 }
 
 class _LoadedFonts extends Mock implements QpcFontManager {}
+
+class _ReaderStorage extends Mock implements ReaderStorage {}

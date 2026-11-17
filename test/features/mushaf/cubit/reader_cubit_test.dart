@@ -62,7 +62,9 @@ void main() {
     () async {
       final fonts = _Fonts();
       final requested = <int>[];
+      final prepared = <int>[];
       final pending = Completer<void>();
+      when(() => fonts.isLoaded(any())).thenReturn(true);
       when(() => fonts.prefetch(any())).thenAnswer((call) {
         requested.add(call.positionalArguments.single as int);
         return requested.length == 1 ? pending.future : Future.value();
@@ -75,17 +77,20 @@ void main() {
       addTearDown(reader.close);
       await reader.openPage(5);
       await reader.turnTo(6);
-      final first = reader.prefetchSettledPage(6);
+      final first = reader.prefetchSettledPage(6, onPrepared: prepared.add);
       expect(requested, [7]);
       reader.pageTurnStarted();
       await reader.turnTo(5);
-      await reader.prefetchSettledPage(5);
+      await reader.prefetchSettledPage(5, onPrepared: prepared.add);
       await reader.prefetchSettledPage(6);
       expect(requested, [7], reason: 'only one background operation may run');
       pending.complete();
       await first;
       expect(requested, [7, 4]);
       expect(reader.state.page?.number, 5);
+      expect(prepared, [
+        4,
+      ], reason: 'stale completion cannot warm the old direction');
     },
   );
 
@@ -120,7 +125,9 @@ void main() {
   test('closing clears a queued direction while an uncancelable operation finishes', () async {
     final fonts = _Fonts();
     final requested = <int>[];
+    final prepared = <int>[];
     final pending = Completer<void>();
+    when(() => fonts.isLoaded(any())).thenReturn(true);
     when(() => fonts.prefetch(any())).thenAnswer((call) {
       requested.add(call.positionalArguments.single as int);
       return pending.future;
@@ -131,13 +138,18 @@ void main() {
       qpcFonts: fonts,
     );
     await reader.openPage(5);
-    final active = reader.prefetchSettledPage(5);
+    final active = reader.prefetchSettledPage(5, onPrepared: prepared.add);
     await reader.turnTo(4);
     await reader.prefetchSettledPage(4);
     await reader.close();
     pending.complete();
     await active;
     expect(requested, [6]);
+    expect(
+      prepared,
+      isEmpty,
+      reason: 'closed readers cannot publish layout work',
+    );
   });
 
   test('opens a requested page and saves the last position', () async {

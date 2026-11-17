@@ -6,6 +6,7 @@ import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/quran/mushaf/mushaf_models.dart';
 import '../../../../core/quran/mushaf/qpc_v2_repository.dart';
 import 'qpc_page_layout.dart';
+import 'qpc_page_layout_cache.dart';
 import 'qpc_page_painter.dart';
 import 'surah_title_band.dart';
 
@@ -24,6 +25,7 @@ class QpcPageView extends StatefulWidget {
     required this.endAyah,
     required this.onLongPress,
     required this.surahName,
+    this.layoutCache,
   });
 
   final int pageNumber;
@@ -33,6 +35,7 @@ class QpcPageView extends StatefulWidget {
   final AyahRef? endAyah;
   final ValueChanged<QpcWord> onLongPress;
   final String Function(int) surahName;
+  final QpcPageLayoutCache? layoutCache;
 
   @override
   State<QpcPageView> createState() => _QpcPageViewState();
@@ -55,23 +58,11 @@ class _QpcPageViewState extends State<QpcPageView>
 
   QpcPageData? _tryLoadSync() {
     try {
-      if (!widget.layout.isLoaded ||
-          !widget.fonts.isLoaded(widget.pageNumber)) {
-        return null;
-      }
-      final lines = widget.layout.linesForPage(widget.pageNumber);
-      final hasBasmallah = lines.any(
-        (line) => line.lineType == QpcLineType.basmallah,
+      return QpcPageData.forLoadedPage(
+        widget.layout,
+        widget.fonts,
+        widget.pageNumber,
       );
-      if (hasBasmallah && !widget.fonts.isLoaded(1)) {
-        return null;
-      }
-      final family = 'qpcv2_p${widget.pageNumber}';
-      final basmalaFamily = hasBasmallah ? 'qpcv2_p1' : null;
-      final basmala = hasBasmallah
-          ? widget.layout.basmallahWords
-          : const <QpcWord>[];
-      return QpcPageData(lines, family, basmalaFamily, basmala);
     } catch (_) {
       return null;
     }
@@ -108,6 +99,7 @@ class _QpcPageViewState extends State<QpcPageView>
         endAyah: widget.endAyah,
         onLongPress: widget.onLongPress,
         surahName: widget.surahName,
+        layoutCache: widget.layoutCache,
       );
     }
     return FutureBuilder<QpcPageData>(
@@ -160,6 +152,7 @@ class _QpcPageViewState extends State<QpcPageView>
           endAyah: widget.endAyah,
           onLongPress: widget.onLongPress,
           surahName: widget.surahName,
+          layoutCache: widget.layoutCache,
         );
       },
     );
@@ -173,6 +166,7 @@ class _QpcPageBody extends StatefulWidget {
     required this.endAyah,
     required this.onLongPress,
     required this.surahName,
+    required this.layoutCache,
   });
 
   final QpcPageData data;
@@ -180,6 +174,7 @@ class _QpcPageBody extends StatefulWidget {
   final AyahRef? endAyah;
   final ValueChanged<QpcWord> onLongPress;
   final String Function(int) surahName;
+  final QpcPageLayoutCache? layoutCache;
 
   @override
   State<_QpcPageBody> createState() => _QpcPageBodyState();
@@ -187,10 +182,29 @@ class _QpcPageBody extends StatefulWidget {
 
 class _QpcPageBodyState extends State<_QpcPageBody> {
   QpcPageLayout? _layout;
+  QpcPageLayoutCache? _layoutOwner;
+
+  void _releaseLayout() {
+    final layout = _layout;
+    if (layout == null) return;
+    if (_layoutOwner case final cache?) {
+      cache.release(layout);
+    } else {
+      layout.dispose();
+    }
+    _layout = null;
+    _layoutOwner = null;
+  }
+
+  @override
+  void didUpdateWidget(covariant _QpcPageBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.layoutCache != widget.layoutCache) _releaseLayout();
+  }
 
   @override
   void dispose() {
-    _layout?.dispose();
+    _releaseLayout();
     super.dispose();
   }
 
@@ -212,8 +226,9 @@ class _QpcPageBodyState extends State<_QpcPageBody> {
             locale: locale,
           );
           if (_layout?.spec != spec) {
-            _layout?.dispose();
-            _layout = QpcPageLayout(spec);
+            _releaseLayout();
+            _layoutOwner = widget.layoutCache;
+            _layout = _layoutOwner?.acquire(spec) ?? QpcPageLayout(spec);
           }
           final layout = _layout!;
           return Stack(

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:material_ui/material_ui.dart';
 
 import '../../../../core/design_system/app_spacing.dart';
@@ -12,6 +13,37 @@ class QpcPageData {
   final String family;
   final String? basmalaFamily;
   final List<QpcWord> basmala;
+
+  static QpcPageData? forLoadedPage(
+    QpcV2Repository layout,
+    QpcFontManager fonts,
+    int page,
+  ) {
+    if (!layout.isLoaded || !fonts.isLoaded(page)) return null;
+    final lines = layout.linesForPage(page);
+    final hasBasmala = lines.any(
+      (line) => line.lineType == QpcLineType.basmallah,
+    );
+    if (hasBasmala && !fonts.isLoaded(1)) return null;
+    return QpcPageData(
+      lines,
+      'qpcv2_p$page',
+      hasBasmala ? 'qpcv2_p1' : null,
+      hasBasmala ? layout.basmallahWords : const [],
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is QpcPageData &&
+      other.lines == lines &&
+      other.family == family &&
+      other.basmalaFamily == basmalaFamily &&
+      listEquals(other.basmala, basmala);
+
+  @override
+  int get hashCode =>
+      Object.hash(lines, family, basmalaFamily, Object.hashAll(basmala));
 }
 
 /// Inputs that affect shaping. Highlights and callbacks never invalidate layout.

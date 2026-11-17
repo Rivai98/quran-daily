@@ -24,6 +24,8 @@ import '../cubit/reader_cubit.dart';
 import '../data/reader_storage.dart';
 import 'widgets/ayah_flow_paragraph.dart';
 import 'widgets/qpc_page_view.dart';
+import 'widgets/qpc_page_layout.dart';
+import 'widgets/qpc_page_layout_cache.dart';
 import 'widgets/reader_completion_page.dart';
 import 'widgets/snappy_mushaf_scroll_physics.dart';
 import 'widgets/surah_title_band.dart';
@@ -54,6 +56,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   int? _settledPageIndex;
   int _prefetchGeneration = 0;
   late final ReaderCubit _reader;
+  final _qpcLayouts = QpcPageLayoutCache();
 
   @override
   void initState() {
@@ -82,6 +85,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   void dispose() {
     _prefetchGeneration++;
     _reader.pageTurnStarted();
+    _qpcLayouts.dispose();
     _pages?.dispose();
     unawaited(WakelockPlus.disable());
     unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
@@ -105,18 +109,33 @@ class _ReaderScreenState extends State<ReaderScreen> {
   void _schedulePrefetch(int? page) {
     if (page == null) return;
     final generation = ++_prefetchGeneration;
+    _scheduleIdlePreparation(generation, () {
+      unawaited(
+        _reader.prefetchSettledPage(
+          page,
+          onPrepared: widget.qpcLayout == null
+              ? null
+              : (next) {
+                  unawaited(_preparePageLayout(next, generation));
+                },
+        ),
+      );
+    });
+  }
+
+  void _scheduleIdlePreparation(int generation, VoidCallback prepare) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _queueIdlePrefetch(page, generation);
+      _queueIdlePreparation(generation, prepare);
     });
     WidgetsBinding.instance.ensureVisualUpdate();
   }
 
-  void _queueIdlePrefetch(int page, int generation) {
+  void _queueIdlePreparation(int generation, VoidCallback prepare) {
     if (!mounted || generation != _prefetchGeneration) return;
     // Wait on frames rather than polling idle tasks during route/scroll animations.
     if (SchedulerBinding.instance.transientCallbackCount > 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _queueIdlePrefetch(page, generation);
+        _queueIdlePreparation(generation, prepare);
       });
       return;
     }
@@ -128,12 +147,40 @@ class _ReaderScreenState extends State<ReaderScreen> {
               _pages?.position.isScrollingNotifier.value == true) {
             return;
           }
-          unawaited(_reader.prefetchSettledPage(page));
+          prepare();
         },
         Priority.idle,
-        debugLabel: 'mushaf-page-prefetch',
+        debugLabel: 'mushaf-idle-preparation',
       ),
     );
+  }
+
+  Future<void> _preparePageLayout(int page, int generation) async {
+    final layout = widget.qpcLayout;
+    final fonts = _qpcFonts();
+    if (!mounted ||
+        generation != _prefetchGeneration ||
+        layout == null ||
+        fonts == null) {
+      return;
+    }
+    final hasBasmala = layout
+        .linesForPage(page)
+        .any((line) => line.lineType == QpcLineType.basmallah);
+    if (hasBasmala && !fonts.isLoaded(1)) {
+      try {
+        await fonts.prefetch(1);
+      } on Object {
+        return;
+      }
+    }
+    if (!mounted || generation != _prefetchGeneration) return;
+    final data = QpcPageData.forLoadedPage(layout, fonts, page);
+    if (data == null) return;
+    _scheduleIdlePreparation(generation, () {
+      final spec = _qpcLayouts.specFor(data);
+      if (spec != null) _qpcLayouts.store(QpcPageLayout(spec));
+    });
   }
 
   void _toggleChrome() {
@@ -445,6 +492,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                                         pageNumber: mushafPage.number,
                                         layout: widget.qpcLayout!,
                                         fonts: qpcFonts,
+                                        layoutCache: _qpcLayouts,
                                         startAyah: state.startAyah,
                                         endAyah: state.endAyah,
                                         onLongPress: (word) => _addBookmark(

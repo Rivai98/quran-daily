@@ -134,17 +134,22 @@ class ReaderCubit extends Cubit<ReaderState> {
   final QpcV2Repository? _qpcLayout;
   final QpcFontManager? _qpcFonts;
   int _readingDirection = 1;
-  int? _queuedPrefetch;
+  ({int page, int generation, void Function(int)? onPrepared})? _queuedPrefetch;
   bool _prefetchRunning = false;
+  int _prefetchGeneration = 0;
 
   void pageTurnStarted() {
+    _prefetchGeneration++;
     _queuedPrefetch = null;
     _qpcFonts?.cancelPrefetch();
   }
 
   /// Called only after scroll-end, a painted frame and the scheduler's idle gate.
   /// Speculative font errors never change the visible reader state.
-  Future<void> prefetchSettledPage(int page) async {
+  Future<void> prefetchSettledPage(
+    int page, {
+    void Function(int)? onPrepared,
+  }) async {
     final fonts = _qpcFonts;
     if (isClosed ||
         fonts == null ||
@@ -156,7 +161,11 @@ class ReaderCubit extends Cubit<ReaderState> {
     final minimum = state.startPage ?? 1;
     final maximum = state.endPage ?? _repository.pageCount;
     if (target < minimum || target > maximum) return;
-    _queuedPrefetch = target;
+    _queuedPrefetch = (
+      page: target,
+      generation: _prefetchGeneration,
+      onPrepared: onPrepared,
+    );
     if (_prefetchRunning) return;
     await _drainPrefetch(fonts);
   }
@@ -168,9 +177,16 @@ class ReaderCubit extends Cubit<ReaderState> {
         final next = _queuedPrefetch!;
         _queuedPrefetch = null;
         try {
-          await fonts.prefetch(next);
+          await fonts.prefetch(next.page);
         } on Object {
           // Visible-page loading retries normally if preparation was unavailable.
+          continue;
+        }
+        if (!isClosed &&
+            next.generation == _prefetchGeneration &&
+            next.onPrepared != null &&
+            fonts.isLoaded(next.page)) {
+          next.onPrepared!(next.page);
         }
       }
     } finally {
