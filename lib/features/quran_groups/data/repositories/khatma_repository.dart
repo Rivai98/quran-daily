@@ -22,6 +22,9 @@ abstract class KhatmaRepository {
   /// Views subscribe to [watchCachedDashboard] for immediate cached content.
   Future<Result<DashboardSnapshot>> getDashboard(String groupId);
 
+  /// Discards reads started before a successful mutation and revalidates.
+  Future<Result<DashboardSnapshot>> refreshDashboard(String groupId);
+
   /// Emits the cached snapshot (or null) whenever the cache changes.
   Stream<DashboardSnapshot?> watchCachedDashboard(String groupId);
 

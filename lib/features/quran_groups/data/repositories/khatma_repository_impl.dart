@@ -97,6 +97,12 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
     return read;
   }
 
+  @override
+  Future<Result<DashboardSnapshot>> refreshDashboard(String groupId) {
+    _invalidateDashboard(groupId);
+    return getDashboard(groupId);
+  }
+
   Future<Result<DashboardSnapshot>> _fetchDashboard(
     String groupId,
     int version,
@@ -182,8 +188,7 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
             offlineSync: false,
           );
     if (remoteResult.isSuccess) {
-      _invalidateDashboard(groupId);
-      final dashboard = await getDashboard(groupId);
+      final dashboard = await refreshDashboard(groupId);
       if (dashboard.isSuccess) {
         unawaited(_refreshReminders(groupId));
         return dashboard;
@@ -205,7 +210,6 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
     if (failure.kind != FailureKind.network || queue == null) {
       return FailureResult(failure);
     }
-    _invalidateDashboard(groupId);
     final snapshot = await _writeCache(groupId, () async {
       await queue.enqueue(
         SyncOperation(
@@ -217,6 +221,8 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
           clientRecordedAt: recordedAt,
         ),
       );
+      // Reads must observe a revision change after the operation is durable.
+      _invalidateDashboard(groupId);
       return _optimistic(groupId, assignmentId, recordedAt, undo: undo);
     });
     if (snapshot == null) return FailureResult(failure);
@@ -347,7 +353,7 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
     }
     final result = await _remote.volunteer(assignmentId);
     if (result.isFailure) return FailureResult(result.failureOrNull!);
-    return getDashboard(cached.groupId);
+    return refreshDashboard(cached.groupId);
   }
 
   @override
@@ -366,7 +372,7 @@ class KhatmaRepositoryImpl extends KhatmaRepository {
     }
     final result = await _remote.overrideAssignment(assignmentId, membershipId);
     return result.when(
-      success: (_) => getDashboard(cached.groupId),
+      success: (_) => refreshDashboard(cached.groupId),
       failure: FailureResult<DashboardSnapshot>.new,
     );
   }

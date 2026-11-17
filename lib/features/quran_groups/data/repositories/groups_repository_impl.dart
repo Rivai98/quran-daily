@@ -221,7 +221,7 @@ class GroupsRepositoryImpl implements GroupsRepository {
     // start_khatma returns a summary ({today: true, status, ...}), not the
     // dashboard read model, so load the fresh dashboard after starting.
     final khatma = khatmaRepository;
-    if (khatma != null) return khatma.getDashboard(groupId);
+    if (khatma != null) return khatma.refreshDashboard(groupId);
     final dashboard = await _rpc.call<dynamic>('get_dashboard', {
       'p_group_id': groupId,
     });
