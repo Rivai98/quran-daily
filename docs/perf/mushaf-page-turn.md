@@ -180,3 +180,61 @@ local runtime log: `build-step-c-profile.log`. Compared with B, the captured-fra
 over-budget fraction fell by 7.29 percentage points forward and 4.22 points in
 reverse. Large worst-frame times remain; this emulator result does not establish
 the physical-device target or isolate every remaining source of jank.
+
+## Step D: cached page painting and word hit testing
+
+`QpcPageLayout` shapes each word once per page size, inherited text style,
+locale and system text scale. It retains the `TextPainter` paragraphs, measured
+widths and final word rectangles. `QpcPagePainter` uses those paragraphs for all
+Quran lines, basmala and start/end ayah highlights. One page-level gesture
+detector hit-tests the same rectangles for long press; ordinary repaints and
+highlight changes do not reshape the words. Native paragraphs are disposed when
+their page body is disposed or its layout inputs change.
+
+Each page has a `RepaintBoundary`. The former per-word `Text`/`GestureDetector`
+and per-line row/FittedBox tree is removed. The existing `SurahTitleBand` remains
+as a rare positioned overlay inside that boundary to preserve its ornament and
+UI typography exactly. Thus the Quran content has one painted render object;
+a page with titles also has the existing title widgets. The band is not
+reimplemented in the painter.
+
+The painter provides word long-press semantics and source-ordered header
+semantics. Repeated basmala words have occurrence-specific keys; a page 604
+regression reproduced duplicate-key failure before that fix. Integer source
+ordinals prevent floating-point placement differences from reordering words
+within one line. The visible title overlay is excluded from semantics to avoid
+duplicate announcements.
+
+There were no existing printed-QPC page goldens. Before replacing the widgets,
+six references were captured from the old implementation: pages 1, 100 and 106
+in light and dark themes, with start/end highlights. The painter matches all
+six **pixel for pixel**. Four offline test fonts are byte-verified against the
+approved manifest, including page 604 for repeated-basmala semantics. Quran
+glyphs, text, fonts and source line breaks are unchanged.
+
+The new 320 dp / 200% tests exposed an existing justified-row overflow of
+264–278 pixels: the old natural-width calculation ignored system text scaling.
+The painter uniformly fits those same source words into their existing line
+area. Two scaled-page goldens intentionally record this correction rather than
+the old overflow stripes; the six 100% references were not updated. Tests also
+exercise word and semantic long press, blank-space rejection, complete source
+reading order, and hit testing after resize/text-scale changes.
+
+
+Step D gates: `flutter analyze` reports zero issues and all 630 host tests pass.
+The profile integration harness reports all tests passed and retained both
+complete routes after a 60.4-second build and 78-second test. Current-process
+Android logcat confirms Impeller OpenGLES. Raw capture:
+[step-d-android-emulator-impeller.json](step-d-android-emulator-impeller.json);
+local runtime log: `build-step-d-profile.log`.
+
+Compared with C, captured-frame over-budget fractions fell by 10.07 percentage
+points forward and 2.05 points in reverse. Worst build time fell from 825.496 to
+140.935 ms forward and 619.777 to 108.525 ms in reverse. Raster work remains over
+budget, including a 556.613 ms cold-route outlier. This remains a single
+software-graphics emulator run, not physical-phone acceptance.
+
+The outer PowerShell launch returned exit code 1 despite the harness reporting
+success and writing complete data, with no failed test assertion in the log.
+The cause of that launcher discrepancy is unresolved; the raw timing data and
+harness result are reported separately from the process status.
