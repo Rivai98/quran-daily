@@ -1,3 +1,5 @@
+import '../design_system/cubit/group_photo_cubit.dart';
+
 import 'package:get_it/get_it.dart';
 
 import '../auth/session_gateway.dart';
@@ -123,6 +125,14 @@ void configureServiceLocator({
   if (!locator.isRegistered<ConnectivityService>()) {
     locator.registerLazySingleton<ConnectivityService>(
       ConnectivityServiceImpl.new,
+    );
+  }
+
+  if (!locator.isRegistered<GroupPhotoCubit>()) {
+    locator.registerFactory<GroupPhotoCubit>(
+      () => GroupPhotoCubit(
+        loadPhoto: locator<GroupsRepository>().getGroupPhotoBytes,
+      ),
     );
   }
 

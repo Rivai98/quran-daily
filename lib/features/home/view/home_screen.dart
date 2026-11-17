@@ -41,6 +41,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   /// The first-run reminders sheet is due but Home was not in front yet.
   bool _onboardingDue = false;
+  late final MushafRepository? _mushaf =
+      serviceLocator.isRegistered<MushafRepository>()
+      ? serviceLocator<MushafRepository>()
+      : null;
+  late final Future<void>? _mushafReady = _mushaf?.load();
 
   @override
   void initState() {
@@ -162,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
               if (serviceLocator.isRegistered<MushafRepository>()) ...[
                 const SizedBox(height: AppSpacing.lg),
                 FutureBuilder<void>(
-                  future: serviceLocator<MushafRepository>().load(),
+                  future: _mushafReady,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState != ConnectionState.done ||
                         snapshot.hasError) {
@@ -253,7 +258,7 @@ class _HomeSkeleton extends StatelessWidget {
   );
 }
 
-class _TomorrowWirdLine extends StatelessWidget {
+class _TomorrowWirdLine extends StatefulWidget {
   const _TomorrowWirdLine({
     required this.group,
     required this.portionIndex,
@@ -266,13 +271,29 @@ class _TomorrowWirdLine extends StatelessWidget {
   final bool endsToday;
 
   @override
+  State<_TomorrowWirdLine> createState() => _TomorrowWirdLineState();
+}
+
+class _TomorrowWirdLineState extends State<_TomorrowWirdLine> {
+  late Future<void> _ready = widget.metadata.load();
+  @override
+  void didUpdateWidget(covariant _TomorrowWirdLine oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.metadata != widget.metadata) _ready = widget.metadata.load();
+  }
+
+  TodayGroup get group => widget.group;
+  int? get portionIndex => widget.portionIndex;
+  bool get endsToday => widget.endsToday;
+
+  @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsetsDirectional.only(
       start: AppSpacing.md,
       end: AppSpacing.md,
     ),
     child: FutureBuilder<void>(
-      future: metadata.load(),
+      future: _ready,
       builder: (context, snapshot) {
         if (endsToday) {
           return _MetaLine(
@@ -695,7 +716,7 @@ class _TodayItemCard extends StatelessWidget {
   );
 }
 
-class _PortionLabel extends StatelessWidget {
+class _PortionLabel extends StatefulWidget {
   const _PortionLabel({
     required this.group,
     required this.item,
@@ -707,8 +728,29 @@ class _PortionLabel extends StatelessWidget {
   final QuranMetadataRepository metadata;
   final String status;
   @override
+  State<_PortionLabel> createState() => _PortionLabelState();
+}
+
+class _PortionLabelState extends State<_PortionLabel> {
+  late Future<void> _ready = widget.metadata.load();
+  late final MushafRepository? _mushaf =
+      serviceLocator.isRegistered<MushafRepository>()
+      ? serviceLocator<MushafRepository>()
+      : null;
+  late final Future<void>? _mushafReady = _mushaf?.load();
+  TodayGroup get group => widget.group;
+  TodayItem get item => widget.item;
+  QuranMetadataRepository get metadata => widget.metadata;
+  String get status => widget.status;
+  @override
+  void didUpdateWidget(covariant _PortionLabel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.metadata != widget.metadata) _ready = widget.metadata.load();
+  }
+
+  @override
   Widget build(BuildContext context) => FutureBuilder<void>(
-    future: metadata.load(),
+    future: _ready,
     builder: (context, state) {
       if (state.connectionState != ConnectionState.done || state.hasError) {
         return Row(
@@ -730,9 +772,7 @@ class _PortionLabel extends StatelessWidget {
         metadata.suraName(portion.endSura),
         portion.endAya,
       );
-      final mushaf = serviceLocator.isRegistered<MushafRepository>()
-          ? serviceLocator<MushafRepository>()
-          : null;
+      final mushaf = _mushaf;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -754,7 +794,7 @@ class _PortionLabel extends StatelessWidget {
           _MetaLine(icon: Icons.menu_book_rounded, label: range),
           if (mushaf != null)
             FutureBuilder<void>(
-              future: mushaf.load(),
+              future: _mushafReady,
               builder: (context, mushafState) {
                 if (mushafState.connectionState != ConnectionState.done ||
                     mushafState.hasError) {

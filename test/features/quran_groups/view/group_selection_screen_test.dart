@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:quran_daily/core/design_system/widgets/skeleton.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -32,6 +35,46 @@ void main() {
     create: (_) => GroupListCubit(repository: repo),
     child: child,
   );
+
+  testWidgets('refresh keeps groups visible with a separate indicator (#18)', (
+    tester,
+  ) async {
+    final overview = TestFixtures.overview(groups: [TestFixtures.myGroup()]);
+    when(() => repo.getMyGroups()).thenAnswer((_) async => Success(overview));
+    final cubit = GroupListCubit(repository: repo);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(value: cubit, child: const GroupSelectionScreen()),
+        dark: true,
+        textScale: 2,
+      ),
+    );
+    await tester.pumpAndSettle();
+    final response = Completer<Result<MyGroupsOverview>>();
+    when(() => repo.getMyGroups()).thenAnswer((_) => response.future);
+    final refresh = cubit.refresh();
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(TestFixtures.groupName), findsOneWidget);
+    expect(find.byType(SkeletonBox), findsNothing);
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is LinearProgressIndicator && w.value == null,
+      ),
+      findsOneWidget,
+    );
+    response.complete(Success(overview));
+    await refresh;
+    await tester.pumpAndSettle();
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is LinearProgressIndicator && w.value == null,
+      ),
+      findsNothing,
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+    await cubit.close();
+  });
 
   testWidgets('content: lists my groups with name and role marker', (
     tester,

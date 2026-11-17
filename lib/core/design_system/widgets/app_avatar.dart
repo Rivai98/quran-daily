@@ -1,11 +1,11 @@
-import 'dart:typed_data';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../cubit/group_photo_cubit.dart';
 
 import 'package:material_ui/material_ui.dart';
 
 import '../../localization/arabic_initials.dart';
-import '../../errors/result.dart';
 import '../../di/service_locator.dart';
-import '../../../features/quran_groups/data/repositories/groups_repository.dart';
 import '../app_colors.dart';
 import '../app_radius.dart';
 import '../app_typography.dart';
@@ -55,7 +55,7 @@ class UserAvatar extends StatelessWidget {
 }
 
 /// Group avatar: photo if available, or generated avatar (initials over geometric ornament, T019).
-class GroupAvatar extends StatelessWidget {
+class GroupAvatar extends StatefulWidget {
   const GroupAvatar({
     super.key,
     required this.name,
@@ -72,53 +72,68 @@ class GroupAvatar extends StatelessWidget {
   final double? radius;
 
   @override
+  State<GroupAvatar> createState() => _GroupAvatarState();
+}
+
+class _GroupAvatarState extends State<GroupAvatar> {
+  late final GroupPhotoCubit _photo =
+      serviceLocator.isRegistered<GroupPhotoCubit>()
+      ? serviceLocator<GroupPhotoCubit>()
+      : GroupPhotoCubit();
+  double get size => widget.size;
+
+  @override
+  void initState() {
+    super.initState();
+    _photo.show(bytes: widget.photoBytes, path: widget.photoPath);
+  }
+
+  @override
+  void didUpdateWidget(covariant GroupAvatar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(widget.photoBytes, oldWidget.photoBytes) ||
+        widget.photoPath != oldWidget.photoPath) {
+      _photo.show(bytes: widget.photoBytes, path: widget.photoPath);
+    }
+  }
+
+  @override
+  void dispose() {
+    _photo.close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    final borderRadius = BorderRadius.circular(radius ?? AppRadius.md);
-
-    if (photoBytes != null && photoBytes!.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: borderRadius,
-        child: Image.memory(
-          Uint8List.fromList(photoBytes!),
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-        ),
-      );
-    }
-
-    final initials = groupInitials(name);
-
-    if (photoPath != null &&
-        photoPath!.isNotEmpty &&
-        serviceLocator.isRegistered<GroupsRepository>()) {
-      return FutureBuilder<Result<List<int>>>(
-        future: serviceLocator<GroupsRepository>().getGroupPhotoBytes(
-          photoPath!,
-        ),
-        builder: (context, snapshot) {
-          final bytes = snapshot.data?.when(
-            success: (b) => b,
-            failure: (_) => null,
-          );
-          if (bytes != null && bytes.isNotEmpty) {
-            return ClipRRect(
-              borderRadius: borderRadius,
-              child: Image.memory(
-                Uint8List.fromList(bytes),
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-              ),
+    final borderRadius = BorderRadius.circular(widget.radius ?? AppRadius.md);
+    final pixels = (size * MediaQuery.devicePixelRatioOf(context)).ceil();
+    return BlocProvider.value(
+      value: _photo,
+      child: BlocBuilder<GroupPhotoCubit, GroupPhotoState>(
+        builder: (context, state) {
+          final bytes = state.bytes;
+          if (bytes == null || bytes.isEmpty) {
+            return _buildGeneratedAvatar(
+              colors,
+              borderRadius,
+              groupInitials(widget.name),
             );
           }
-          return _buildGeneratedAvatar(colors, borderRadius, initials);
+          return ClipRRect(
+            borderRadius: borderRadius,
+            child: Image.memory(
+              bytes,
+              width: size,
+              height: size,
+              cacheWidth: pixels,
+              cacheHeight: pixels,
+              fit: BoxFit.cover,
+            ),
+          );
         },
-      );
-    }
-
-    return _buildGeneratedAvatar(colors, borderRadius, initials);
+      ),
+    );
   }
 
   Widget _buildGeneratedAvatar(
