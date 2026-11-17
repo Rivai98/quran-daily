@@ -307,6 +307,9 @@ Future<void> _show(
 
 class _ProfileRepository implements ProfileRepository {
   @override
+  void invalidate() {}
+
+  @override
   Future<Result<UserProfile>> getProfile({bool forceRefresh = false}) async =>
       Success(
         UserProfile(

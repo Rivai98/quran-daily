@@ -256,8 +256,10 @@ void configureServiceLocator({
           cache: locator<CachedSnapshotsDao>(),
           queue: locator<SyncQueueDao>(),
           historyDao: CachedHistoryDao(locator<LocalDatabase>()),
-          onCompletionChanged: (_) =>
-              locator<ReminderPlanningService>().refresh(),
+          onCompletionChanged: (_) async {
+            locator<ProfileRepository>().invalidate();
+            await locator<ReminderPlanningService>().refresh();
+          },
         ),
       );
     }
@@ -351,6 +353,7 @@ void configureServiceLocator({
           clientProvider: locator.isRegistered<SupabaseClientProvider>()
               ? locator<SupabaseClientProvider>()
               : null,
+          onProfileChanged: () => locator<ProfileRepository>().invalidate(),
         ),
       );
     }
@@ -460,6 +463,7 @@ void configureServiceLocator({
           cache: locator<ProfileLocalDataSource>(),
           sessionGateway: locator<SessionGateway>(),
           connectivity: locator<ConnectivityService>(),
+          nextRollover: () => _nextProfileRollover(locator),
         ),
       );
     }
@@ -504,4 +508,23 @@ void configureServiceLocator({
 
 Future<void> resetServiceLocator({GetIt? getIt}) {
   return (getIt ?? serviceLocator).reset();
+}
+
+Future<DateTime?> _nextProfileRollover(GetIt locator) async {
+  final ends = <DateTime>[];
+  final userId = locator<SessionGateway>().currentUserId;
+  if (userId != null) {
+    final today = await locator<CachedTodayDao>().read(userId);
+    for (final raw in today?.json['groups'] as List? ?? const []) {
+      final day = (raw as Map)['day'] as Map?;
+      if (day != null) ends.add(DateTime.parse(day['ends_at'] as String));
+    }
+  }
+  for (final row in await locator<CachedSnapshotsDao>().readAll()) {
+    final day = row.json['today'] as Map?;
+    if (day != null) ends.add(DateTime.parse(day['ends_at'] as String));
+  }
+  ends.removeWhere((end) => !end.isAfter(DateTime.now()));
+  ends.sort();
+  return ends.firstOrNull;
 }

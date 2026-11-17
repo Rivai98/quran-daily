@@ -25,6 +25,7 @@ class GroupsRepositoryImpl implements GroupsRepository {
     required SessionGateway sessionGateway,
     required this._connectivity,
     this._clientProvider,
+    this.onProfileChanged,
   }) : _session = sessionGateway;
 
   final RpcClient _rpc;
@@ -33,6 +34,7 @@ class GroupsRepositoryImpl implements GroupsRepository {
   final SessionGateway _session;
   final ConnectivityService _connectivity;
   final SupabaseClientProvider? _clientProvider;
+  final void Function()? onProfileChanged;
   final Map<String, Uint8List> _photoCache = {};
 
   @override
@@ -473,6 +475,7 @@ class GroupsRepositoryImpl implements GroupsRepository {
       'update_my_profile',
       GroupsParams.updateMyProfile(displayName, bio, avatarKey),
     );
+    if (result.isSuccess) onProfileChanged?.call();
     return result.when(
       success: (payload) => Success(
         userProfileFromJson((payload! as Map).cast<String, Object?>()),
