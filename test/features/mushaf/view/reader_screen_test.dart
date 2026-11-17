@@ -2,9 +2,11 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:quran_daily/core/localization/arabic_strings.dart';
 import 'package:quran_daily/core/quran/mushaf/mushaf_models.dart';
 import 'package:quran_daily/core/quran/mushaf/mushaf_repository.dart';
+import 'package:quran_daily/core/quran/mushaf/qpc_v2_repository.dart';
 import 'package:quran_daily/core/quran/portion_unit.dart';
 import 'package:quran_daily/core/quran/quran_metadata_repository.dart';
 import 'package:quran_daily/features/mushaf/cubit/reader_cubit.dart';
@@ -14,6 +16,166 @@ import 'package:quran_daily/features/mushaf/view/reader_screen.dart';
 import '../../../helpers/widget_test_app.dart';
 
 void main() {
+  testWidgets('backgrounding flushes a page before the idle delay', (
+    tester,
+  ) async {
+    final repository = _Repository();
+    final storage = _Storage();
+    final cubit = ReaderCubit(repository: repository, storage: storage);
+    await cubit.openPage(1);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: ReaderScreen(
+            repository: repository,
+            storage: storage,
+            metadata: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await cubit.turnTo(2);
+    expect(storage.savedPage, 1);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await tester.pump();
+    expect(storage.savedPage, 2);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await cubit.close();
+  });
+
+  testWidgets('page turns update chrome without rebuilding the reader shell', (
+    tester,
+  ) async {
+    final repository = _PagedRepository();
+    final storage = _Storage();
+    final cubit = ReaderCubit(repository: repository, storage: storage);
+    addTearDown(cubit.close);
+    await cubit.openPage(5);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: ReaderScreen(
+            repository: repository,
+            storage: storage,
+            metadata: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final shell = tester.widget<Scaffold>(find.byType(Scaffold));
+    final pager = tester.widget<PageView>(find.byType(PageView));
+    await cubit.turnTo(6);
+    await tester.pumpAndSettle();
+    expect(tester.widget<Scaffold>(find.byType(Scaffold)), same(shell));
+    expect(tester.widget<PageView>(find.byType(PageView)), same(pager));
+    expect(pager.controller!.page, 5);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets(
+    'visited pages stay alive through two neighbors and then dispose',
+    (tester) async {
+      final repository = _PagedRepository();
+      final storage = _Storage();
+      final cubit = ReaderCubit(repository: repository, storage: storage);
+      addTearDown(cubit.close);
+      await cubit.openPage(1);
+      await tester.pumpWidget(
+        buildArabicTestApp(
+          BlocProvider.value(
+            value: cubit,
+            child: ReaderScreen(
+              repository: repository,
+              storage: storage,
+              metadata: QuranMetadataRepository(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final firstPage = find.byKey(
+        const PageStorageKey<int>(1),
+        skipOffstage: false,
+      );
+      final original = tester.element(firstPage);
+      final controller = tester
+          .widget<PageView>(find.byType(PageView))
+          .controller!;
+      for (final index in [1, 2]) {
+        controller.jumpToPage(index);
+        await tester.pumpAndSettle();
+      }
+      expect(tester.element(firstPage), same(original));
+      controller.jumpToPage(3);
+      await tester.pumpAndSettle();
+      expect(firstPage, findsNothing);
+      expect(original.mounted, isFalse);
+      controller.jumpToPage(1);
+      await tester.pumpAndSettle();
+      expect(
+        tester.element(find.byKey(const PageStorageKey<int>(2))),
+        isNotNull,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets('page prefetch waits until the scroll animation has settled', (
+    tester,
+  ) async {
+    final repository = _RichRepository();
+    final storage = _Storage();
+    final fonts = _Fonts();
+    final prepared = <int>[];
+    when(() => fonts.prefetch(any())).thenAnswer((call) async {
+      prepared.add(call.positionalArguments.single as int);
+    });
+    final cubit = ReaderCubit(
+      repository: repository,
+      storage: storage,
+      qpcFonts: fonts,
+    );
+    await cubit.openPage(5);
+    await tester.pumpWidget(
+      buildArabicTestApp(
+        BlocProvider.value(
+          value: cubit,
+          child: ReaderScreen(
+            repository: repository,
+            storage: storage,
+            metadata: QuranMetadataRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.pump(Duration.zero);
+    expect(prepared, [6]);
+    final pages = tester.widget<PageView>(
+      find.byKey(const ValueKey('mushaf-page-view')),
+    );
+    final turn = pages.controller!.animateToPage(
+      5,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.linear,
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(prepared, [
+      6,
+    ], reason: 'page change during animation must not prefetch');
+    await tester.pumpAndSettle();
+    await turn;
+    await tester.pump(Duration.zero);
+    expect(prepared, [6, 7]);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await cubit.close();
+  });
   testWidgets(
     'renders RTL reader (next page on the left) in RTL, dark, 200%, and 320dp variants',
     (tester) async {
@@ -528,6 +690,8 @@ void main() {
   });
 }
 
+class _Fonts extends Mock implements QpcFontManager {}
+
 class _FlowRepository implements MushafRepository {
   @override
   Future<void> load() async {}
@@ -672,12 +836,19 @@ class _Repository implements MushafRepository {
   List<({int hizb, int startPage})> hizbIndex() => [];
 }
 
+class _PagedRepository extends _Repository {
+  @override
+  int get pageCount => 10;
+}
+
 class _Storage implements ReaderStorage {
+  int? savedPage;
+
   @override
   Future<int?> lastPage() async => 1;
 
   @override
-  Future<void> savePage(int page) async {}
+  Future<void> savePage(int page) async => savedPage = page;
 
   @override
   Future<List<ReaderBookmark>> bookmarks() async => [];

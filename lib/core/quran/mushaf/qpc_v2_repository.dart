@@ -6,6 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'qpc_font_cache.dart';
+
+export 'qpc_font_cache.dart' show QpcFontIntegrityException;
+
 enum QpcLineType { surahName, basmallah, ayah, blank }
 
 class QpcWord {
@@ -46,13 +50,6 @@ class QpcLine {
   final int? lastWordId;
   final int? surahNumber;
   final List<QpcWord> words;
-}
-
-class QpcFontIntegrityException implements Exception {
-  const QpcFontIntegrityException(this.message);
-  final String message;
-  @override
-  String toString() => 'QpcFontIntegrityException: $message';
 }
 
 /// Reads the owner supplied QPC V2 SQLite sources without transforming their text.
@@ -285,6 +282,23 @@ typedef QpcFontRegistrar = Future<void> Function(
   List<int> bytes,
 );
 
+class _QpcFontLoad {
+  _QpcFontLoad({required this.foreground});
+
+  bool foreground;
+  bool cancelled = false;
+  HttpClient? client;
+  late Future<String> result;
+
+  void checkActive() {
+    if (cancelled) throw const _QpcPrefetchCancelled();
+  }
+}
+
+class _QpcPrefetchCancelled implements Exception {
+  const _QpcPrefetchCancelled();
+}
+
 /// Downloads, verifies, and caches only manifest-matching page fonts.
 class QpcFontManager {
   QpcFontManager({
@@ -320,48 +334,80 @@ class QpcFontManager {
     return total;
   }
 
-  final Map<int, Future<String>> _inFlight = {};
+  final Map<int, _QpcFontLoad> _inFlight = {};
 
   /// Whether the font for [page] has already been verified and registered in the engine.
   bool isLoaded(int page) => _loaded.contains(page);
 
   /// Returns the registered font family for [page]. Already-registered pages
   /// return immediately (no file read or hash), so page turns stay instant.
-  Future<String> ensureLoaded(int page) {
-    if (_loaded.contains(page)) return Future.value('qpcv2_p$page');
-    return _inFlight.putIfAbsent(page, () async {
-      try {
-        return await _ensureLoaded(page);
-      } finally {
-        _inFlight.remove(page);
-      }
-    });
+  Future<String> ensureLoaded(int page) => _loadPage(page, foreground: true);
+
+  /// Optional page preparation. A visible-page consumer promotes the shared
+  /// request, protecting it from later background cancellation.
+  Future<void> prefetch(int page) async {
+    try {
+      await _loadPage(page, foreground: false);
+    } on _QpcPrefetchCancelled {
+      // Stale speculative work has no result to publish.
+    }
   }
 
-  Future<String> _ensureLoaded(int page) async {
+  void cancelPrefetch() {
+    for (final entry in _inFlight.entries.toList()) {
+      final request = entry.value;
+      if (request.foreground) continue;
+      request.cancelled = true;
+      request.client?.close(force: true);
+      _inFlight.remove(entry.key);
+    }
+  }
+
+  Future<String> _loadPage(int page, {required bool foreground}) {
+    if (_loaded.contains(page)) return Future.value('qpcv2_p$page');
+    final existing = _inFlight[page];
+    if (existing != null) {
+      if (foreground) existing.foreground = true;
+      return existing.result;
+    }
+    final request = _QpcFontLoad(foreground: foreground);
+    _inFlight[page] = request;
+    request.result = () async {
+      try {
+        return await _ensureLoaded(page, request);
+      } catch (_) {
+        if (request.cancelled) throw const _QpcPrefetchCancelled();
+        rethrow;
+      } finally {
+        if (identical(_inFlight[page], request)) _inFlight.remove(page);
+      }
+    }();
+    return request.result;
+  }
+
+  Future<String> _ensureLoaded(int page, _QpcFontLoad request) async {
     await layout.load();
+    request.checkActive();
     final info = layout.fontInfo(page);
     final dir = await _fontDirectory();
-    final file = File('${dir.path}${Platform.pathSeparator}p$page.ttf');
-    List<int> bytes;
-    if (await file.exists()) {
-      bytes = await file.readAsBytes();
-      try {
-        QpcV2Repository.verifyFontBytes(
-          page: page,
-          bytes: bytes,
-          expectedSha256: info['sha256']! as String,
-          expectedBytes: info['bytes']! as int,
-        );
-      } on QpcFontIntegrityException {
-        await file.delete();
-        bytes = await _download(page, info, file);
-      }
-    } else {
-      bytes = await _download(page, info, file);
+    final cache = QpcFontCache(
+      directory: dir,
+      page: page,
+      expectedBytes: info['bytes']! as int,
+      expectedSha256: info['sha256']! as String,
+    );
+    List<int>? bytes;
+    try {
+      bytes = await cache.load();
+    } on QpcFontIntegrityException {
+      // The cache removes changed bytes and their marker before recovery.
     }
+    request.checkActive();
+    bytes ??= await _download(page, cache, request);
+    request.checkActive();
     final family = 'qpcv2_p$page';
-    if (_loaded.add(page)) await _registerFont(family, bytes);
+    await _registerFont(family, bytes);
+    _loaded.add(page);
     return family;
   }
 
@@ -402,18 +448,21 @@ class QpcFontManager {
 
   Future<List<int>> _download(
     int page,
-    Map<String, Object> info,
-    File destination,
+    QpcFontCache cache,
+    _QpcFontLoad fontRequest,
   ) async {
     Object? lastError;
     for (final base in fontBaseUrls) {
+      fontRequest.checkActive();
       if (_cancelRequested) throw const HttpException('download cancelled');
       final client = _httpClientFactory();
+      fontRequest.client = client;
       _activeClient = client;
       try {
         final request = await client.getUrl(Uri.parse('$base/p$page.ttf'));
         request.headers.set(HttpHeaders.userAgentHeader, _userAgent);
         final response = await request.close();
+        fontRequest.checkActive();
         if (_cancelRequested) throw const HttpException('download cancelled');
         if (response.statusCode != HttpStatus.ok) {
           lastError = HttpException('HTTP ${response.statusCode}');
@@ -424,24 +473,19 @@ class QpcFontManager {
           <int>[],
           (data, chunk) => data..addAll(chunk),
         );
+        fontRequest.checkActive();
         try {
-          QpcV2Repository.verifyFontBytes(
-            page: page,
-            bytes: bytes,
-            expectedSha256: info['sha256']! as String,
-            expectedBytes: info['bytes']! as int,
-          );
+          await cache.store(bytes);
         } on QpcFontIntegrityException catch (error) {
           lastError = error;
           continue;
         }
-        await destination.parent.create(recursive: true);
-        await destination.writeAsBytes(bytes, flush: true);
         return bytes;
       } on SocketException catch (error) {
         lastError = error;
       } finally {
         client.close(force: true);
+        fontRequest.client = null;
         if (identical(_activeClient, client)) _activeClient = null;
       }
     }

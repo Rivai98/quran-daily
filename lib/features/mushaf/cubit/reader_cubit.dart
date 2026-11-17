@@ -135,6 +135,125 @@ class ReaderCubit extends Cubit<ReaderState> {
   final Future<bool> Function()? _onComplete;
   final QpcV2Repository? _qpcLayout;
   final QpcFontManager? _qpcFonts;
+  int _readingDirection = 1;
+  ({int page, int generation, void Function(int)? onPrepared})? _queuedPrefetch;
+  bool _prefetchRunning = false;
+  int _prefetchGeneration = 0;
+  Timer? _positionTimer;
+  int? _pendingPosition;
+  bool _scrolling = false;
+  Future<void>? _positionWrite;
+
+  void pageScrollStarted() {
+    _scrolling = true;
+    _positionTimer?.cancel();
+    pageTurnStarted();
+  }
+
+  void pageScrollEnded() {
+    _scrolling = false;
+    _schedulePositionSave();
+  }
+
+  void _schedulePositionSave() {
+    _positionTimer?.cancel();
+    if (_pendingPosition == null || _scrolling) return;
+    _positionTimer = Timer(const Duration(milliseconds: 600), () {
+      unawaited(flushPosition());
+    });
+  }
+
+  /// Flush on exit/background so the idle delay cannot lose the last page.
+  Future<void> flushPosition() {
+    _positionTimer?.cancel();
+    final page = _pendingPosition;
+    _pendingPosition = null;
+    if (page != null) {
+      // Serialize writes: a slow earlier write must not overwrite a later page.
+      final write = (_positionWrite ?? Future<void>.value()).then(
+        (_) => _savePosition(page),
+      );
+      _positionWrite = write;
+      unawaited(
+        write.then((_) {
+          if (identical(_positionWrite, write)) _positionWrite = null;
+        }),
+      );
+    }
+    return _positionWrite ?? Future<void>.value();
+  }
+
+  Future<void> _savePosition(int page) async {
+    try {
+      await _storage.savePage(page);
+    } on Object {
+      // Reading remains available if the local position cache is unavailable.
+    }
+  }
+
+  void pageTurnStarted() {
+    _prefetchGeneration++;
+    _queuedPrefetch = null;
+    _qpcFonts?.cancelPrefetch();
+  }
+
+  /// Called only after scroll-end, a painted frame and the scheduler's idle gate.
+  /// Speculative font errors never change the visible reader state.
+  Future<void> prefetchSettledPage(
+    int page, {
+    void Function(int)? onPrepared,
+  }) async {
+    final fonts = _qpcFonts;
+    if (isClosed ||
+        fonts == null ||
+        state.page?.number != page ||
+        state.isCompletionPage) {
+      return;
+    }
+    final target = page + _readingDirection;
+    final minimum = state.startPage ?? 1;
+    final maximum = state.endPage ?? _repository.pageCount;
+    if (target < minimum || target > maximum) return;
+    _queuedPrefetch = (
+      page: target,
+      generation: _prefetchGeneration,
+      onPrepared: onPrepared,
+    );
+    if (_prefetchRunning) return;
+    await _drainPrefetch(fonts);
+  }
+
+  Future<void> _drainPrefetch(QpcFontManager fonts) async {
+    _prefetchRunning = true;
+    try {
+      while (!isClosed && _queuedPrefetch != null) {
+        final next = _queuedPrefetch!;
+        _queuedPrefetch = null;
+        try {
+          await fonts.prefetch(next.page);
+        } on Object {
+          // Visible-page loading retries normally if preparation was unavailable.
+          continue;
+        }
+        if (!isClosed &&
+            next.generation == _prefetchGeneration &&
+            next.onPrepared != null &&
+            fonts.isLoaded(next.page)) {
+          next.onPrepared!(next.page);
+        }
+      }
+    } finally {
+      _prefetchRunning = false;
+    }
+  }
+
+  @override
+  Future<void> close() async {
+    pageTurnStarted();
+    final closing = super.close();
+    await flushPosition();
+    await closing;
+  }
 
   Future<void> openLastPosition() async {
     int? saved;
@@ -147,6 +266,9 @@ class ReaderCubit extends Cubit<ReaderState> {
   }
 
   Future<void> openPage(int number) async {
+    pageTurnStarted();
+    await flushPosition();
+    _readingDirection = 1;
     emit(const ReaderState(status: ReaderStatus.loading));
     try {
       await _repository.load();
@@ -163,11 +285,8 @@ class ReaderCubit extends Cubit<ReaderState> {
           isFontFallback: exact.$3,
         ),
       );
-      try {
-        await _storage.savePage(number);
-      } on Object {
-        // Reading remains available if the local position cache is unavailable.
-      }
+      _pendingPosition = number;
+      await flushPosition();
     } catch (error) {
       emit(ReaderState(status: ReaderStatus.error, error: error));
     }
@@ -179,6 +298,9 @@ class ReaderCubit extends Cubit<ReaderState> {
     required String assignmentId,
     bool alreadyCompleted = false,
   }) async {
+    pageTurnStarted();
+    await flushPosition();
+    _readingDirection = 1;
     emit(const ReaderState(status: ReaderStatus.loading));
     try {
       await _repository.load();
@@ -203,13 +325,6 @@ class ReaderCubit extends Cubit<ReaderState> {
           isFontFallback: exact.$3,
         ),
       );
-      final fonts = _qpcFonts;
-      final layout = _qpcLayout;
-      if (fonts != null && layout != null) {
-        for (var page = range.startPage + 1; page <= range.endPage; page++) {
-          unawaited(fonts.ensureLoaded(page).catchError((_) => ''));
-        }
-      }
     } catch (error) {
       emit(ReaderState(status: ReaderStatus.error, error: error));
     }
@@ -219,6 +334,11 @@ class ReaderCubit extends Cubit<ReaderState> {
     final minimum = state.isPortion ? state.startPage! : 1;
     final maximum = state.isPortion ? state.endPage! : _repository.pageCount;
     if (number < minimum || number > maximum) return;
+    final previous = state.page?.number;
+    if (previous != null && number != previous) {
+      _readingDirection = number > previous ? 1 : -1;
+    }
+    pageTurnStarted();
     try {
       emit(
         state.copyWith(
@@ -227,16 +347,9 @@ class ReaderCubit extends Cubit<ReaderState> {
           isCompletionPage: false,
         ),
       );
-      // Each printed page loads its own lines and font inside the page view, so a
-      // page turn only updates the current page number (no second rebuild) and
-      // warms up the neighbouring pages' fonts in the background.
-      _prefetchAround(number);
       if (!state.isPortion) {
-        try {
-          await _storage.savePage(number);
-        } on Object {
-          // A failed position write must not interrupt reading.
-        }
+        _pendingPosition = number;
+        _schedulePositionSave();
       }
     } catch (error) {
       emit(state.copyWith(status: ReaderStatus.error, error: error));
@@ -245,6 +358,7 @@ class ReaderCubit extends Cubit<ReaderState> {
 
   void showCompletionPage() {
     if (!state.isPortion || state.isCompletionPage) return;
+    pageTurnStarted();
     emit(
       state.copyWith(
         page: _repository.page(state.endPage!),
@@ -285,16 +399,6 @@ class ReaderCubit extends Cubit<ReaderState> {
     final min = state.isPortion ? state.startPage! : 1;
     if (current > min) {
       await turnTo(current - 1);
-    }
-  }
-
-  void _prefetchAround(int number) {
-    final fonts = _qpcFonts;
-    if (fonts == null) return;
-    for (final page in [number - 2, number - 1, number + 1, number + 2, number + 3]) {
-      if (page >= 1 && page <= 604) {
-        unawaited(fonts.ensureLoaded(page).catchError((_) => ''));
-      }
     }
   }
 

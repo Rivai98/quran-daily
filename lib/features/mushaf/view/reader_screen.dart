@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
@@ -23,7 +24,10 @@ import '../cubit/reader_cubit.dart';
 import '../data/reader_storage.dart';
 import 'widgets/ayah_flow_paragraph.dart';
 import 'widgets/qpc_page_view.dart';
+import 'widgets/qpc_page_layout.dart';
+import 'widgets/qpc_page_layout_cache.dart';
 import 'widgets/reader_completion_page.dart';
+import 'widgets/reader_page.dart';
 import 'widgets/snappy_mushaf_scroll_physics.dart';
 import 'widgets/surah_title_band.dart';
 
@@ -45,21 +49,28 @@ class ReaderScreen extends StatefulWidget {
   State<ReaderScreen> createState() => _ReaderScreenState();
 }
 
-class _ReaderScreenState extends State<ReaderScreen> {
+class _ReaderScreenState extends State<ReaderScreen>
+    with WidgetsBindingObserver {
   PageController? _pages;
   final GlobalKey _startAyahKey = GlobalKey();
   String? _dua;
   bool _chromeVisible = true;
   int? _settledPageIndex;
+  int _prefetchGeneration = 0;
+  late final ReaderCubit _reader;
+  final _qpcLayouts = QpcPageLayoutCache();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _reader = context.read<ReaderCubit>();
     unawaited(WakelockPlus.enable());
     _loadDua();
     widget.metadata.load().then((_) {
       if (mounted) setState(() {});
     });
+    _schedulePrefetch(_reader.state.page?.number);
   }
 
   Future<void> _loadDua() async {
@@ -75,10 +86,114 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _prefetchGeneration++;
+    _reader.pageTurnStarted();
+    unawaited(_reader.flushPosition());
+    _qpcLayouts.dispose();
     _pages?.dispose();
     unawaited(WakelockPlus.disable());
     unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) {
+      unawaited(_reader.flushPosition());
+    }
+  }
+
+  bool _onPageScroll(ScrollNotification notification) {
+    if (notification.depth != 0 ||
+        notification.metrics.axis != Axis.horizontal) {
+      return false;
+    }
+    if (notification is ScrollStartNotification) {
+      _prefetchGeneration++;
+      _reader.pageScrollStarted();
+    } else if (notification is ScrollEndNotification) {
+      _reader.pageScrollEnded();
+      _schedulePrefetch(_reader.state.page?.number);
+    }
+    return false;
+  }
+
+  void _schedulePrefetch(int? page) {
+    if (page == null) return;
+    final generation = ++_prefetchGeneration;
+    _scheduleIdlePreparation(generation, () {
+      unawaited(
+        _reader.prefetchSettledPage(
+          page,
+          onPrepared: widget.qpcLayout == null
+              ? null
+              : (next) {
+                  unawaited(_preparePageLayout(next, generation));
+                },
+        ),
+      );
+    });
+  }
+
+  void _scheduleIdlePreparation(int generation, VoidCallback prepare) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _queueIdlePreparation(generation, prepare);
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
+  }
+
+  void _queueIdlePreparation(int generation, VoidCallback prepare) {
+    if (!mounted || generation != _prefetchGeneration) return;
+    // Wait on frames rather than polling idle tasks during route/scroll animations.
+    if (SchedulerBinding.instance.transientCallbackCount > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _queueIdlePreparation(generation, prepare);
+      });
+      return;
+    }
+    unawaited(
+      SchedulerBinding.instance.scheduleTask<void>(
+        () {
+          if (!mounted ||
+              generation != _prefetchGeneration ||
+              _pages?.position.isScrollingNotifier.value == true) {
+            return;
+          }
+          prepare();
+        },
+        Priority.idle,
+        debugLabel: 'mushaf-idle-preparation',
+      ),
+    );
+  }
+
+  Future<void> _preparePageLayout(int page, int generation) async {
+    final layout = widget.qpcLayout;
+    final fonts = _qpcFonts();
+    if (!mounted ||
+        generation != _prefetchGeneration ||
+        layout == null ||
+        fonts == null) {
+      return;
+    }
+    final hasBasmala = layout
+        .linesForPage(page)
+        .any((line) => line.lineType == QpcLineType.basmallah);
+    if (hasBasmala && !fonts.isLoaded(1)) {
+      try {
+        await fonts.prefetch(1);
+      } on Object {
+        return;
+      }
+    }
+    if (!mounted || generation != _prefetchGeneration) return;
+    final data = QpcPageData.forLoadedPage(layout, fonts, page);
+    if (data == null) return;
+    _scheduleIdlePreparation(generation, () {
+      final spec = _qpcLayouts.specFor(data);
+      if (spec != null) _qpcLayouts.store(QpcPageLayout(spec));
+    });
   }
 
   void _toggleChrome() {
@@ -125,6 +240,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           (!previous.isCompleted && current.isCompleted),
       listener: (context, state) {
         final page = state.page?.number;
+        if (_pages == null) _schedulePrefetch(page);
         if (page != null && !state.isCompletionPage) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             final pages = _pages;
@@ -153,131 +269,20 @@ class _ReaderScreenState extends State<ReaderScreen> {
         }
       },
       child: BlocBuilder<ReaderCubit, ReaderState>(
+        buildWhen: (previous, current) =>
+            _readerStructure(previous) != _readerStructure(current),
         builder: (context, state) {
           final colors = Theme.of(context).extension<AppColors>()!;
           final page = state.page;
           return Scaffold(
             appBar: _chromeVisible && page != null && !state.isCompletionPage
-                ? AppBar(
-                    titleSpacing: 0,
-                    title: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            _surahName(page.firstSurah),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.caption.copyWith(
-                              color: colors.primary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Flexible(
-                          child: Text(
-                            state.isPortion
-                                ? ArabicStrings.portionPageProgress(
-                                    page.number - state.startPage! + 1,
-                                    state.portionPageCount,
-                                  )
-                                : '${ArabicStrings.juzLabel} ${ArabicNumerals.format(page.juz)}، ${ArabicStrings.portionUnitHizb} ${ArabicNumerals.format(_hizbForPage(page.number))}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.end,
-                            style: AppTypography.caption.copyWith(
-                              color: colors.inkMuted,
-                            ),
-                          ),
-                        ),
-                      ],
+                ? PreferredSize(
+                    preferredSize: Size.fromHeight(
+                      kToolbarHeight + (state.isPortion ? AppSpacing.xxs : 0),
                     ),
-                    actions: [
-                      PopupMenuButton<String>(
-                        tooltip: ArabicStrings.mushafTitle,
-                        onSelected: (action) {
-                          switch (action) {
-                            case 'bookmark':
-                              _addBookmark(
-                                context,
-                                page.number,
-                                page.firstSurah,
-                                null,
-                              );
-                            case 'bookmarks':
-                              Navigator.pushNamed(
-                                context,
-                                AppRoutes.mushafBookmarks,
-                                arguments: widget.storage,
-                              );
-                            case 'index':
-                              Navigator.pushNamed(
-                                context,
-                                AppRoutes.mushafIndex,
-                              );
-                            case 'info':
-                              Navigator.pushNamed(
-                                context,
-                                AppRoutes.mushafLicenses,
-                              );
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: 'bookmark',
-                            child: _ReaderMenuItem(
-                              icon: Icons.bookmark_add_rounded,
-                              label: ArabicStrings.addBookmarkAction,
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'bookmarks',
-                            child: _ReaderMenuItem(
-                              icon: Icons.bookmarks_rounded,
-                              label: ArabicStrings.bookmarksTitle,
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'index',
-                            child: _ReaderMenuItem(
-                              icon: Icons.menu_book_rounded,
-                              label: ArabicStrings.mushafIndexAction,
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'info',
-                            child: _ReaderMenuItem(
-                              icon: Icons.info_outline_rounded,
-                              label: ArabicStrings.mushafLicensesTitle,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    bottom:
-                        state.isPortion &&
-                            state.startPage != null &&
-                            state.endPage != null
-                        ? PreferredSize(
-                            preferredSize: const Size.fromHeight(
-                              AppSpacing.xxs,
-                            ),
-                            child: Padding(
-                              padding: AppSpacing.screenH,
-                              child: LinearProgressIndicator(
-                                key: const ValueKey('reader-portion-progress'),
-                                minHeight: AppSpacing.xxs / 2,
-                                value:
-                                    ((page.number - state.startPage! + 1) /
-                                            (state.endPage! -
-                                                state.startPage! +
-                                                1))
-                                        .clamp(0.0, 1.0),
-                                backgroundColor: colors.surfaceMuted,
-                                color: colors.primary,
-                              ),
-                            ),
-                          )
-                        : null,
+                    child: BlocBuilder<ReaderCubit, ReaderState>(
+                      builder: (context, state) => _buildAppBar(context, state),
+                    ),
                   )
                 : null,
             body: SafeArea(
@@ -335,152 +340,177 @@ class _ReaderScreenState extends State<ReaderScreen> {
                             _toggleChrome();
                           }
                         },
-                        child: PageView.builder(
-                          key: const ValueKey('mushaf-page-view'),
-                          controller: _pages ??= PageController(
-                            initialPage: page!.number - (state.startPage ?? 1),
-                          ),
-                          dragStartBehavior: DragStartBehavior.down,
-                          physics: SnappyMushafScrollPhysics(
-                            settledPageGetter: () =>
-                                (_settledPageIndex ??
-                                        page?.number ??
-                                        1 - (state.startPage ?? 1))
-                                    .toDouble(),
-                          ),
-                          padEnds: false,
-                          // The app is RTL, so a non-reversed horizontal PageView
-                          // already places the next page on the left, like a
-                          // printed Mushaf.
-                          itemCount: state.isPortion
-                              ? state.portionPageCount + 1
-                              : widget.repository.pageCount,
-                          onPageChanged: (index) {
-                            _settledPageIndex = index;
-                            final cubit = context.read<ReaderCubit>();
-                            if (state.isPortion &&
-                                index >= state.portionPageCount) {
-                              cubit.showCompletionPage();
-                            } else {
-                              cubit.turnTo((state.startPage ?? 1) + index);
-                            }
-                          },
-                          itemBuilder: (context, index) {
-                            if (state.isPortion &&
-                                index == state.portionPageCount) {
-                              return ReaderCompletionPage(
-                                completed: state.isCompleted,
+                        child: NotificationListener<ScrollNotification>(
+                          onNotification: _onPageScroll,
+                          child: PageView.builder(
+                            key: const ValueKey('mushaf-page-view'),
+                            controller: _pages ??= PageController(
+                              initialPage:
+                                  page!.number - (state.startPage ?? 1),
+                            ),
+                            dragStartBehavior: DragStartBehavior.down,
+                            physics: SnappyMushafScrollPhysics(
+                              settledPageGetter: () =>
+                                  (_settledPageIndex ??
+                                          page?.number ??
+                                          1 - (state.startPage ?? 1))
+                                      .toDouble(),
+                            ),
+                            padEnds: false,
+                            // The app is RTL, so a non-reversed horizontal PageView
+                            // already places the next page on the left, like a
+                            // printed Mushaf.
+                            itemCount: state.isPortion
+                                ? state.portionPageCount + 1
+                                : widget.repository.pageCount,
+                            onPageChanged: (index) {
+                              _settledPageIndex = index;
+                              final cubit = context.read<ReaderCubit>();
+                              if (state.isPortion &&
+                                  index >= state.portionPageCount) {
+                                cubit.showCompletionPage();
+                              } else {
+                                cubit.turnTo((state.startPage ?? 1) + index);
+                              }
+                            },
+                            itemBuilder: (context, index) {
+                              if (state.isPortion &&
+                                  index == state.portionPageCount) {
+                                return ReaderCompletionPage(
+                                  completed: state.isCompleted,
+                                );
+                              }
+                              final mushafPage = widget.repository.page(
+                                (state.startPage ?? 1) + index,
                               );
-                            }
-                            final mushafPage = widget.repository.page(
-                              (state.startPage ?? 1) + index,
-                            );
-                            final qpcFonts = _qpcFonts();
-                            if (widget.qpcLayout != null && qpcFonts != null) {
-                              return Column(
-                                children: [
-                                  Expanded(
-                                    child: QpcPageView(
-                                      key: ValueKey<int>(mushafPage.number),
-                                      pageNumber: mushafPage.number,
-                                      layout: widget.qpcLayout!,
-                                      fonts: qpcFonts,
-                                      startAyah: state.startAyah,
-                                      endAyah: state.endAyah,
-                                      onLongPress: (word) => _addBookmark(
-                                        context,
-                                        mushafPage.number,
-                                        word.surah,
-                                        word.ayah,
-                                      ),
-                                      surahName: (surah) => _surahName(surah),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: AppSpacing.xxs,
-                                    ),
-                                    child: Text(
-                                      ArabicNumerals.format(mushafPage.number),
-                                      style: AppTypography.caption.copyWith(
-                                        color: colors.inkMuted,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }
-                            return Column(
-                              children: [
-                                Expanded(
-                                  child: ListView(
-                                    key: PageStorageKey<int>(mushafPage.number),
-                                    padding: const EdgeInsetsDirectional.only(
-                                      start: AppSpacing.md,
-                                      top: AppSpacing.xs,
-                                      end: AppSpacing.md,
-                                      bottom: AppSpacing.xs,
-                                    ),
+                              final qpcFonts = _qpcFonts();
+                              if (widget.qpcLayout != null &&
+                                  qpcFonts != null) {
+                                return ReaderPage(
+                                  pageNumber: mushafPage.number,
+                                  child: Column(
                                     children: [
-                                      for (final segment in groupAyahs(
-                                        mushafPage.ayahs,
-                                      )) ...[
-                                        if (segment.first.ref.ayah == 1)
-                                          SurahTitleBand(
-                                            surahName: _surahName(
-                                              segment.first.ref.surah,
-                                            ),
-                                          ),
-                                        AyahFlowParagraph(
-                                          ayahs: segment,
+                                      Expanded(
+                                        child: QpcPageView(
+                                          key: ValueKey<int>(mushafPage.number),
+                                          pageNumber: mushafPage.number,
+                                          layout: widget.qpcLayout!,
+                                          fonts: qpcFonts,
+                                          layoutCache: _qpcLayouts,
                                           startAyah: state.startAyah,
                                           endAyah: state.endAyah,
-                                          textScale: state.quranTextScale,
-                                          onLongPress: (ayah) => _addBookmark(
+                                          onLongPress: (word) => _addBookmark(
                                             context,
                                             mushafPage.number,
-                                            ayah.ref.surah,
-                                            ayah.ref.ayah,
+                                            word.surah,
+                                            word.ayah,
                                           ),
-                                          anchorKey:
-                                              segment.any(
-                                                (ayah) =>
-                                                    ayah.ref == state.startAyah,
-                                              )
-                                              ? _startAyahKey
-                                              : null,
+                                          surahName: (surah) =>
+                                              _surahName(surah),
                                         ),
-                                      ],
-                                      if (!state.isPortion &&
-                                          mushafPage.number ==
-                                              widget.repository.pageCount &&
-                                          _dua != null)
-                                        TextButton(
-                                          onPressed: () => _showDua(context),
-                                          child: const Text(
-                                            ArabicStrings.khatmDuaTitle,
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: AppSpacing.xxs,
+                                        ),
+                                        child: Text(
+                                          ArabicNumerals.format(
+                                            mushafPage.number,
+                                          ),
+                                          style: AppTypography.caption.copyWith(
+                                            color: colors.inkMuted,
                                           ),
                                         ),
+                                      ),
                                     ],
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: AppSpacing.xxs,
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      ArabicNumerals.format(mushafPage.number),
-                                      style: AppTypography.caption.copyWith(
-                                        color: colors.inkMuted,
-                                        fontWeight: FontWeight.w600,
+                                );
+                              }
+                              return ReaderPage(
+                                pageNumber: mushafPage.number,
+                                child: Column(
+                                  children: [
+                                    Expanded(
+                                      child: ListView(
+                                        key: PageStorageKey<int>(
+                                          mushafPage.number,
+                                        ),
+                                        padding:
+                                            const EdgeInsetsDirectional.only(
+                                              start: AppSpacing.md,
+                                              top: AppSpacing.xs,
+                                              end: AppSpacing.md,
+                                              bottom: AppSpacing.xs,
+                                            ),
+                                        children: [
+                                          for (final segment in groupAyahs(
+                                            mushafPage.ayahs,
+                                          )) ...[
+                                            if (segment.first.ref.ayah == 1)
+                                              SurahTitleBand(
+                                                surahName: _surahName(
+                                                  segment.first.ref.surah,
+                                                ),
+                                              ),
+                                            AyahFlowParagraph(
+                                              ayahs: segment,
+                                              startAyah: state.startAyah,
+                                              endAyah: state.endAyah,
+                                              textScale: state.quranTextScale,
+                                              onLongPress: (ayah) =>
+                                                  _addBookmark(
+                                                    context,
+                                                    mushafPage.number,
+                                                    ayah.ref.surah,
+                                                    ayah.ref.ayah,
+                                                  ),
+                                              anchorKey:
+                                                  mushafPage.number ==
+                                                          state.startPage &&
+                                                      segment.any(
+                                                        (ayah) =>
+                                                            ayah.ref ==
+                                                            state.startAyah,
+                                                      )
+                                                  ? _startAyahKey
+                                                  : null,
+                                            ),
+                                          ],
+                                          if (!state.isPortion &&
+                                              mushafPage.number ==
+                                                  widget.repository.pageCount &&
+                                              _dua != null)
+                                            TextButton(
+                                              onPressed: () =>
+                                                  _showDua(context),
+                                              child: const Text(
+                                                ArabicStrings.khatmDuaTitle,
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ),
-                                  ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: AppSpacing.xxs,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          ArabicNumerals.format(
+                                            mushafPage.number,
+                                          ),
+                                          style: AppTypography.caption.copyWith(
+                                            color: colors.inkMuted,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ),
@@ -555,6 +585,111 @@ class _ReaderScreenState extends State<ReaderScreen> {
           );
         },
       ),
+    );
+  }
+
+  AppBar _buildAppBar(BuildContext context, ReaderState state) {
+    final page = state.page!;
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return AppBar(
+      titleSpacing: 0,
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              _surahName(page.firstSurah),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.caption.copyWith(color: colors.primary),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Flexible(
+            child: Text(
+              state.isPortion
+                  ? ArabicStrings.portionPageProgress(
+                      page.number - state.startPage! + 1,
+                      state.portionPageCount,
+                    )
+                  : '${ArabicStrings.juzLabel} ${ArabicNumerals.format(page.juz)}، ${ArabicStrings.portionUnitHizb} ${ArabicNumerals.format(_hizbForPage(page.number))}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+              style: AppTypography.caption.copyWith(color: colors.inkMuted),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        PopupMenuButton<String>(
+          tooltip: ArabicStrings.mushafTitle,
+          onSelected: (action) {
+            switch (action) {
+              case 'bookmark':
+                _addBookmark(context, page.number, page.firstSurah, null);
+              case 'bookmarks':
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.mushafBookmarks,
+                  arguments: widget.storage,
+                );
+              case 'index':
+                Navigator.pushNamed(context, AppRoutes.mushafIndex);
+              case 'info':
+                Navigator.pushNamed(context, AppRoutes.mushafLicenses);
+            }
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'bookmark',
+              child: _ReaderMenuItem(
+                icon: Icons.bookmark_add_rounded,
+                label: ArabicStrings.addBookmarkAction,
+              ),
+            ),
+            PopupMenuItem(
+              value: 'bookmarks',
+              child: _ReaderMenuItem(
+                icon: Icons.bookmarks_rounded,
+                label: ArabicStrings.bookmarksTitle,
+              ),
+            ),
+            PopupMenuItem(
+              value: 'index',
+              child: _ReaderMenuItem(
+                icon: Icons.menu_book_rounded,
+                label: ArabicStrings.mushafIndexAction,
+              ),
+            ),
+            PopupMenuItem(
+              value: 'info',
+              child: _ReaderMenuItem(
+                icon: Icons.info_outline_rounded,
+                label: ArabicStrings.mushafLicensesTitle,
+              ),
+            ),
+          ],
+        ),
+      ],
+      bottom:
+          state.isPortion && state.startPage != null && state.endPage != null
+          ? PreferredSize(
+              preferredSize: const Size.fromHeight(AppSpacing.xxs),
+              child: Padding(
+                padding: AppSpacing.screenH,
+                child: LinearProgressIndicator(
+                  key: const ValueKey('reader-portion-progress'),
+                  minHeight: AppSpacing.xxs / 2,
+                  value:
+                      ((page.number - state.startPage! + 1) /
+                              (state.endPage! - state.startPage! + 1))
+                          .clamp(0.0, 1.0),
+                  backgroundColor: colors.surfaceMuted,
+                  color: colors.primary,
+                ),
+              ),
+            )
+          : null,
     );
   }
 
@@ -668,3 +803,17 @@ class _ReaderMenuItem extends StatelessWidget {
 QpcFontManager? _qpcFonts() => serviceLocator.isRegistered<QpcFontManager>()
     ? serviceLocator<QpcFontManager>()
     : null;
+
+// Page-number changes affect chrome and page retention, not the reader shell.
+Object _readerStructure(ReaderState state) => (
+  state.status,
+  state.startAyah,
+  state.endAyah,
+  state.startPage,
+  state.endPage,
+  state.isCompleted,
+  state.isCompletionPage,
+  state.isOffline,
+  state.isFontFallback,
+  state.quranTextScale,
+);
