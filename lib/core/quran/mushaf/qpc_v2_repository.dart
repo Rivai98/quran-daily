@@ -6,6 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'qpc_font_cache.dart';
+
+export 'qpc_font_cache.dart' show QpcFontIntegrityException;
+
 enum QpcLineType { surahName, basmallah, ayah, blank }
 
 class QpcWord {
@@ -46,13 +50,6 @@ class QpcLine {
   final int? lastWordId;
   final int? surahNumber;
   final List<QpcWord> words;
-}
-
-class QpcFontIntegrityException implements Exception {
-  const QpcFontIntegrityException(this.message);
-  final String message;
-  @override
-  String toString() => 'QpcFontIntegrityException: $message';
 }
 
 /// Reads the owner supplied QPC V2 SQLite sources without transforming their text.
@@ -342,26 +339,22 @@ class QpcFontManager {
     await layout.load();
     final info = layout.fontInfo(page);
     final dir = await _fontDirectory();
-    final file = File('${dir.path}${Platform.pathSeparator}p$page.ttf');
-    List<int> bytes;
-    if (await file.exists()) {
-      bytes = await file.readAsBytes();
-      try {
-        QpcV2Repository.verifyFontBytes(
-          page: page,
-          bytes: bytes,
-          expectedSha256: info['sha256']! as String,
-          expectedBytes: info['bytes']! as int,
-        );
-      } on QpcFontIntegrityException {
-        await file.delete();
-        bytes = await _download(page, info, file);
-      }
-    } else {
-      bytes = await _download(page, info, file);
+    final cache = QpcFontCache(
+      directory: dir,
+      page: page,
+      expectedBytes: info['bytes']! as int,
+      expectedSha256: info['sha256']! as String,
+    );
+    List<int>? bytes;
+    try {
+      bytes = await cache.load();
+    } on QpcFontIntegrityException {
+      // The cache removes changed bytes and their marker before recovery.
     }
+    bytes ??= await _download(page, cache);
     final family = 'qpcv2_p$page';
-    if (_loaded.add(page)) await _registerFont(family, bytes);
+    await _registerFont(family, bytes);
+    _loaded.add(page);
     return family;
   }
 
@@ -400,11 +393,7 @@ class QpcFontManager {
     if (await dir.exists()) await dir.delete(recursive: true);
   }
 
-  Future<List<int>> _download(
-    int page,
-    Map<String, Object> info,
-    File destination,
-  ) async {
+  Future<List<int>> _download(int page, QpcFontCache cache) async {
     Object? lastError;
     for (final base in fontBaseUrls) {
       if (_cancelRequested) throw const HttpException('download cancelled');
@@ -425,18 +414,11 @@ class QpcFontManager {
           (data, chunk) => data..addAll(chunk),
         );
         try {
-          QpcV2Repository.verifyFontBytes(
-            page: page,
-            bytes: bytes,
-            expectedSha256: info['sha256']! as String,
-            expectedBytes: info['bytes']! as int,
-          );
+          await cache.store(bytes);
         } on QpcFontIntegrityException catch (error) {
           lastError = error;
           continue;
         }
-        await destination.parent.create(recursive: true);
-        await destination.writeAsBytes(bytes, flush: true);
         return bytes;
       } on SocketException catch (error) {
         lastError = error;

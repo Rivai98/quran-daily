@@ -78,6 +78,8 @@ setup and font-cache preparation. Host tests finished before runtime capture.
 |---|---:|---:|---:|---:|---:|---:|
 | Baseline / cold registration 100 → 120 | 367 | 570.424 | 225.057 | 14.99% | 39.78% | 39.78% |
 | Baseline / repeat 120 → 100 | 707 | 670.206 | 193.696 | 5.80% | 28.85% | 28.85% |
+| B / cold registration 100 → 120 | 270 | 822.540 | 264.326 | 18.52% | 43.70% | 43.70% |
+| B / repeat 120 → 100 | 540 | 823.871 | 475.137 | 7.41% | 30.56% | 30.56% |
 
 Raw capture: [baseline-android-emulator-impeller.json](baseline-android-emulator-impeller.json).
 Its renderer field is `default`; the engine log above identifies the backend
@@ -88,3 +90,49 @@ demonstrate substantial over-budget work in this setup; they do not predict
 physical-phone timings or establish the no-dropped-frames target. Before/after
 and Skia comparisons must use this same harness, plus a separate profile run on
 the target physical phone for acceptance.
+
+## Step B: font verification and persistent cache markers
+
+`QpcFontCache` runs font reads, SHA-256, cache writes and marker writes inside
+`Isolate.run`. Only paths, manifest expectations and byte buffers cross that
+boundary; font registration stays on Flutter's root isolate. Downloads must
+match both the approved manifest's byte count and SHA-256 before an atomic
+font replacement and marker write. A failed FontLoader registration no longer
+marks the page as loaded, so a later attempt can retry.
+
+Markers are keyed by page and manifest SHA (`p<page>-<sha>.verified`) and record
+the verified file size, modification time and POSIX change time. An unchanged
+app-private file reuses verification across process restarts. Missing/malformed
+markers, changed file state or a new manifest digest require a fresh hash.
+The reader checks file state before and after reading; invalid bytes remove the
+font and its marker before the existing download recovery runs. Reads still
+check byte count even when the marker matches. Marker and font writes use
+temporary files and atomic renames, so a partial write cannot certify a font.
+
+This trusts the app-private cache directory and OS metadata. POSIX change time
+detects same-size rewrites even when modification time is restored. Privileged
+tampering that rewrites both the font and its marker/OS metadata is outside
+that trust boundary. Dart exposes creation time for `FileStat.changed` on
+Windows, so Windows conservatively hashes every load off-isolate; the mobile
+optimization does not weaken that platform's integrity check. See the SDK
+contracts for [FileStat.changed](https://api.dart.dev/stable/latest/dart-io/FileStat/changed.html)
+and [Isolate.run](https://api.dart.dev/stable/latest/dart-isolate/Isolate/run.html).
+
+Five real-filesystem tests cover restart persistence, same-size tampering with
+restored mtime, manifest digest changes, malformed markers, rejected corrupt
+downloads and concurrent reads. A concurrent-read test exposed an unnecessary
+Windows marker rewrite race; unchanged markers are now left in place even when
+Windows rehashes. Step B gates: analyze zero issues, all 620 host tests pass.
+
+The same profile benchmark passed after B with Impeller OpenGLES; its
+incremental Android build took 70.2 seconds and the test took 84 seconds.
+Raw capture: [step-b-android-emulator-impeller.json](step-b-android-emulator-impeller.json);
+local runtime log: `build-step-b-profile.log`. Setup creates valid markers before
+timing, modeling page turns after the fonts have been downloaded and verified.
+
+This single software-graphics emulator run demonstrates **no speedup**: the
+captured-frame over-budget fraction increased by 3.92 percentage points on the
+forward route and 1.70 points on the reverse route. Hashing/file work now runs
+off-isolate, but this change alone does not resolve page-turn jank. Host-load
+variance and the unchanged widget/layout/paint work prevent attributing those
+deltas to one cause. The target remains unmet; subsequent steps must be measured.
