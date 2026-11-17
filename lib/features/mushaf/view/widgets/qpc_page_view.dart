@@ -41,13 +41,9 @@ class QpcPageView extends StatefulWidget {
   State<QpcPageView> createState() => _QpcPageViewState();
 }
 
-class _QpcPageViewState extends State<QpcPageView>
-    with AutomaticKeepAliveClientMixin {
+class _QpcPageViewState extends State<QpcPageView> {
   late Future<QpcPageData> _data;
   QpcPageData? _syncData;
-
-  @override
-  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -90,7 +86,6 @@ class _QpcPageViewState extends State<QpcPageView>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     final colors = Theme.of(context).extension<AppColors>()!;
     if (_syncData != null) {
       return _QpcPageBody(

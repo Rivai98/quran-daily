@@ -279,6 +279,21 @@ void main() {
       await tester.pump(Duration.zero);
       expect(cache.specFor(next), isNull, reason: 'idle layout is now ready');
       animation.dispose();
+      final firstLayout =
+          (tester
+                      .widget<CustomPaint>(
+                        find.byKey(const ValueKey('qpc-page-canvas')),
+                      )
+                      .painter!
+                  as QpcPagePainter)
+              .layout;
+      final pager = tester.widget<PageView>(find.byType(PageView)).controller!;
+      pager.jumpToPage(1);
+      await tester.pumpAndSettle();
+      expect(firstLayout.words.first.painter.debugDisposed, isFalse);
+      pager.jumpToPage(105);
+      await tester.pumpAndSettle();
+      expect(firstLayout.words.first.painter.debugDisposed, isTrue);
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );

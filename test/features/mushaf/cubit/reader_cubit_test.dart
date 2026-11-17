@@ -234,12 +234,58 @@ void main() {
 
     tearDown(() => syncingCubit.close());
 
-    test('free reading queues a sync for each saved position', () async {
+    testWidgets('rapid turns save and sync only after 600 ms of idle', (
+      tester,
+    ) async {
       await syncingCubit.openPage(1);
       await syncingCubit.turnTo(2);
+      await tester.pump(const Duration(milliseconds: 400));
+      syncingCubit.pageScrollStarted();
+      await syncingCubit.turnTo(3);
+      await tester.pump(const Duration(seconds: 1));
+      expect(storage.savedPage, 1, reason: 'a held drag is not idle');
+      syncingCubit.pageScrollEnded();
+      await tester.pump(const Duration(milliseconds: 599));
+      expect(storage.savedPage, 1);
+      expect(scheduled, 1);
+      await tester.pump(const Duration(milliseconds: 1));
+      expect(storage.savedPage, 3);
+      expect(scheduled, 2);
+    });
+
+    test('closing flushes the latest page before the idle delay', () async {
+      await syncingCubit.openPage(1);
+      await syncingCubit.turnTo(2);
+      expect(storage.savedPage, 1);
+      await syncingCubit.close();
       expect(storage.savedPage, 2);
       expect(scheduled, 2);
     });
+
+    testWidgets(
+      'slow position writes finish in order and closing awaits the latest',
+      (tester) async {
+        final delayed = _PositionStorage();
+        final pending = Completer<void>();
+        final written = <int>[];
+        when(() => delayed.savePage(any())).thenAnswer((call) async {
+          final page = call.positionalArguments.single as int;
+          if (page == 2) await pending.future;
+          written.add(page);
+        });
+        final reader = ReaderCubit(repository: repository, storage: delayed);
+        await reader.openPage(1);
+        await reader.turnTo(2);
+        await tester.pump(const Duration(milliseconds: 600));
+        await reader.turnTo(3);
+        await tester.pump(const Duration(milliseconds: 600));
+        expect(written, [1]);
+        final closing = reader.close();
+        pending.complete();
+        await closing;
+        expect(written, [1, 2, 3]);
+      },
+    );
 
     test('opens the last position pulled into local storage', () async {
       storage.savedPage = 2;
@@ -266,6 +312,8 @@ void main() {
 
 // The font manager is the platform/network boundary; no font work runs in Cubit tests.
 class _Fonts extends Mock implements QpcFontManager {}
+
+class _PositionStorage extends Mock implements ReaderStorage {}
 
 class _Repository implements MushafRepository {
   _Repository(this.ayahs);

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -137,6 +139,57 @@ class ReaderCubit extends Cubit<ReaderState> {
   ({int page, int generation, void Function(int)? onPrepared})? _queuedPrefetch;
   bool _prefetchRunning = false;
   int _prefetchGeneration = 0;
+  Timer? _positionTimer;
+  int? _pendingPosition;
+  bool _scrolling = false;
+  Future<void>? _positionWrite;
+
+  void pageScrollStarted() {
+    _scrolling = true;
+    _positionTimer?.cancel();
+    pageTurnStarted();
+  }
+
+  void pageScrollEnded() {
+    _scrolling = false;
+    _schedulePositionSave();
+  }
+
+  void _schedulePositionSave() {
+    _positionTimer?.cancel();
+    if (_pendingPosition == null || _scrolling) return;
+    _positionTimer = Timer(const Duration(milliseconds: 600), () {
+      unawaited(flushPosition());
+    });
+  }
+
+  /// Flush on exit/background so the idle delay cannot lose the last page.
+  Future<void> flushPosition() {
+    _positionTimer?.cancel();
+    final page = _pendingPosition;
+    _pendingPosition = null;
+    if (page != null) {
+      // Serialize writes: a slow earlier write must not overwrite a later page.
+      final write = (_positionWrite ?? Future<void>.value()).then(
+        (_) => _savePosition(page),
+      );
+      _positionWrite = write;
+      unawaited(
+        write.then((_) {
+          if (identical(_positionWrite, write)) _positionWrite = null;
+        }),
+      );
+    }
+    return _positionWrite ?? Future<void>.value();
+  }
+
+  Future<void> _savePosition(int page) async {
+    try {
+      await _storage.savePage(page);
+    } on Object {
+      // Reading remains available if the local position cache is unavailable.
+    }
+  }
 
   void pageTurnStarted() {
     _prefetchGeneration++;
@@ -195,9 +248,11 @@ class ReaderCubit extends Cubit<ReaderState> {
   }
 
   @override
-  Future<void> close() {
+  Future<void> close() async {
     pageTurnStarted();
-    return super.close();
+    final closing = super.close();
+    await flushPosition();
+    await closing;
   }
 
   Future<void> openLastPosition() async {
@@ -212,6 +267,7 @@ class ReaderCubit extends Cubit<ReaderState> {
 
   Future<void> openPage(int number) async {
     pageTurnStarted();
+    await flushPosition();
     _readingDirection = 1;
     emit(const ReaderState(status: ReaderStatus.loading));
     try {
@@ -229,11 +285,8 @@ class ReaderCubit extends Cubit<ReaderState> {
           isFontFallback: exact.$3,
         ),
       );
-      try {
-        await _storage.savePage(number);
-      } on Object {
-        // Reading remains available if the local position cache is unavailable.
-      }
+      _pendingPosition = number;
+      await flushPosition();
     } catch (error) {
       emit(ReaderState(status: ReaderStatus.error, error: error));
     }
@@ -246,6 +299,7 @@ class ReaderCubit extends Cubit<ReaderState> {
     bool alreadyCompleted = false,
   }) async {
     pageTurnStarted();
+    await flushPosition();
     _readingDirection = 1;
     emit(const ReaderState(status: ReaderStatus.loading));
     try {
@@ -294,11 +348,8 @@ class ReaderCubit extends Cubit<ReaderState> {
         ),
       );
       if (!state.isPortion) {
-        try {
-          await _storage.savePage(number);
-        } on Object {
-          // A failed position write must not interrupt reading.
-        }
+        _pendingPosition = number;
+        _schedulePositionSave();
       }
     } catch (error) {
       emit(state.copyWith(status: ReaderStatus.error, error: error));
