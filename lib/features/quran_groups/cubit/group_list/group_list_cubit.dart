@@ -14,19 +14,16 @@ class GroupListState extends Equatable {
     this.status = GroupListStatus.initial,
     this.overview,
     this.failure,
-    this.isRefreshing = false,
   });
 
   final GroupListStatus status;
   final MyGroupsOverview? overview;
   final AppFailure? failure;
-  final bool isRefreshing;
 
   bool get isStale => overview?.isStale ?? false;
 
   GroupListState copyWith({
     GroupListStatus? status,
-    bool? isRefreshing,
     MyGroupsOverview? overview,
     bool clearOverview = false,
     AppFailure? failure,
@@ -34,14 +31,13 @@ class GroupListState extends Equatable {
   }) {
     return GroupListState(
       status: status ?? this.status,
-      isRefreshing: isRefreshing ?? this.isRefreshing,
       overview: clearOverview ? null : (overview ?? this.overview),
       failure: clearFailure ? null : (failure ?? this.failure),
     );
   }
 
   @override
-  List<Object?> get props => [status, overview, failure, isRefreshing];
+  List<Object?> get props => [status, overview, failure];
 }
 
 /// S1 group selection: my groups + pending rows + entry points.
@@ -50,46 +46,22 @@ class GroupListCubit extends Cubit<GroupListState> {
 
   final GroupsRepository _repository;
 
-  Future<void>? _refreshing;
-  Future<void> refresh() => _refreshing ??= _refresh().whenComplete(() {
-    _refreshing = null;
-  });
-
-  Future<void> _refresh() async {
-    emit(
-      state.copyWith(
-        status: state.overview == null ? GroupListStatus.loading : state.status,
-        isRefreshing: state.overview != null,
-        clearFailure: true,
-      ),
-    );
-    final result = await _repository.getMyGroups(onCached: _applyOverview);
-    if (isClosed) return;
+  Future<void> refresh() async {
+    emit(state.copyWith(status: GroupListStatus.loading, clearFailure: true));
+    final result = await _repository.getMyGroups();
     result.when(
-      success: (overview) => _applyOverview(overview, refreshing: false),
-      failure: (AppFailure failure) => emit(
+      success: (MyGroupsOverview overview) => emit(
         state.copyWith(
-          status: state.overview == null
-              ? GroupListStatus.failure
-              : state.status,
-          failure: failure,
-          isRefreshing: false,
+          status: overview.groups.isEmpty && overview.pendingRequests.isEmpty
+              ? GroupListStatus.empty
+              : (overview.isStale
+                    ? GroupListStatus.offline
+                    : GroupListStatus.success),
+          overview: overview,
         ),
       ),
-    );
-  }
-
-  void _applyOverview(MyGroupsOverview overview, {bool refreshing = true}) {
-    if (isClosed) return;
-    emit(
-      state.copyWith(
-        status: overview.groups.isEmpty && overview.pendingRequests.isEmpty
-            ? GroupListStatus.empty
-            : overview.isStale
-            ? GroupListStatus.offline
-            : GroupListStatus.success,
-        overview: overview,
-        isRefreshing: refreshing,
+      failure: (AppFailure failure) => emit(
+        state.copyWith(status: GroupListStatus.failure, failure: failure),
       ),
     );
   }

@@ -200,7 +200,8 @@ class AppRoutes {
         return given != null
             ? BlocProvider.value(value: given, child: screen)
             : BlocProvider(
-                create: (_) => serviceLocator<JoinRequestsCubit>(),
+                create: (_) =>
+                    serviceLocator<JoinRequestsCubit>()..load(groupId),
                 child: screen,
               );
       },
@@ -217,7 +218,7 @@ class AppRoutes {
         return given != null
             ? BlocProvider.value(value: given, child: screen)
             : BlocProvider(
-                create: (_) => serviceLocator<MembersCubit>(),
+                create: (_) => serviceLocator<MembersCubit>()..load(groupId),
                 child: screen,
               );
       },

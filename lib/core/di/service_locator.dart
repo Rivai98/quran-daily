@@ -1,6 +1,3 @@
-import '../sync/personal_operation_overlay.dart';
-import '../design_system/cubit/group_photo_cubit.dart';
-
 import 'package:get_it/get_it.dart';
 
 import '../auth/session_gateway.dart';
@@ -129,14 +126,6 @@ void configureServiceLocator({
     );
   }
 
-  if (!locator.isRegistered<GroupPhotoCubit>()) {
-    locator.registerFactory<GroupPhotoCubit>(
-      () => GroupPhotoCubit(
-        loadPhoto: locator<GroupsRepository>().getGroupPhotoBytes,
-      ),
-    );
-  }
-
   if (withSupabase) {
     if (!locator.isRegistered<SupabaseClientProvider>()) {
       locator.registerLazySingleton<SupabaseClientProvider>(
@@ -190,7 +179,6 @@ void configureServiceLocator({
         () => RemindersRepositoryImpl(
           rpc: locator<RpcClient>(),
           onChanged: () => locator<ReminderPlanningService>().refresh(),
-          snapshots: locator<CachedSnapshotsDao>(),
         ),
       );
     }
@@ -245,15 +233,6 @@ void configureServiceLocator({
       );
     }
 
-    if (!locator.isRegistered<PersonalOperationOverlay>()) {
-      locator.registerLazySingleton<PersonalOperationOverlay>(
-        () => PersonalOperationOverlay(
-          queue: locator<SyncQueueDao>(),
-          snapshots: locator<CachedSnapshotsDao>(),
-        ),
-      );
-    }
-
     if (!locator.isRegistered<KhatmaRemoteDataSource>()) {
       locator.registerLazySingleton<KhatmaRemoteDataSource>(
         () => KhatmaRemoteDataSourceImpl(locator<RpcClient>()),
@@ -266,12 +245,9 @@ void configureServiceLocator({
           remote: locator<KhatmaRemoteDataSource>(),
           cache: locator<CachedSnapshotsDao>(),
           queue: locator<SyncQueueDao>(),
-          pendingOperations: locator<PersonalOperationOverlay>(),
           historyDao: CachedHistoryDao(locator<LocalDatabase>()),
-          onCompletionChanged: (_) async {
-            locator<ProfileRepository>().invalidate();
-            await locator<ReminderPlanningService>().refresh();
-          },
+          onCompletionChanged: (_) =>
+              locator<ReminderPlanningService>().refresh(),
         ),
       );
     }
@@ -365,8 +341,6 @@ void configureServiceLocator({
           clientProvider: locator.isRegistered<SupabaseClientProvider>()
               ? locator<SupabaseClientProvider>()
               : null,
-          khatmaRepository: locator<KhatmaRepository>(),
-          onProfileChanged: () => locator<ProfileRepository>().invalidate(),
         ),
       );
     }
@@ -425,7 +399,6 @@ void configureServiceLocator({
           remote: locator<LogRemoteDataSource>(),
           cache: CachedHistoryDao(locator<LocalDatabase>()),
           session: locator<SessionGateway>(),
-          pendingOperations: locator<PersonalOperationOverlay>(),
         ),
       );
     }
@@ -477,7 +450,6 @@ void configureServiceLocator({
           cache: locator<ProfileLocalDataSource>(),
           sessionGateway: locator<SessionGateway>(),
           connectivity: locator<ConnectivityService>(),
-          nextRollover: () => _nextProfileRollover(locator),
         ),
       );
     }
@@ -504,7 +476,6 @@ void configureServiceLocator({
           remote: locator<TodayRemoteDataSource>(),
           cache: locator<CachedTodayDao>(),
           session: locator<SessionGateway>(),
-          pendingOperations: locator<PersonalOperationOverlay>(),
         ),
       );
     }
@@ -523,23 +494,4 @@ void configureServiceLocator({
 
 Future<void> resetServiceLocator({GetIt? getIt}) {
   return (getIt ?? serviceLocator).reset();
-}
-
-Future<DateTime?> _nextProfileRollover(GetIt locator) async {
-  final ends = <DateTime>[];
-  final userId = locator<SessionGateway>().currentUserId;
-  if (userId != null) {
-    final today = await locator<CachedTodayDao>().read(userId);
-    for (final raw in today?.json['groups'] as List? ?? const []) {
-      final day = (raw as Map)['day'] as Map?;
-      if (day != null) ends.add(DateTime.parse(day['ends_at'] as String));
-    }
-  }
-  for (final row in await locator<CachedSnapshotsDao>().readAll()) {
-    final day = row.json['today'] as Map?;
-    if (day != null) ends.add(DateTime.parse(day['ends_at'] as String));
-  }
-  ends.removeWhere((end) => !end.isAfter(DateTime.now()));
-  ends.sort();
-  return ends.firstOrNull;
 }

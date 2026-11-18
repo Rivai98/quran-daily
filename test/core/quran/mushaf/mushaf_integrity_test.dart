@@ -1,4 +1,3 @@
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/services.dart';
 import 'package:xml/xml.dart';
@@ -15,24 +14,6 @@ void main() {
   setUp(() {
     repository = MushafRepositoryImpl(metadata: QuranMetadataRepository());
   });
-
-  test(
-    'concurrent hydration shares initialization and retries failure (#5)',
-    () async {
-      final bundle = _CountingBundle();
-      final source = MushafRepositoryImpl(bundle: bundle);
-      final first = source.load();
-      final second = source.load();
-      expect(identical(first, second), isTrue);
-      await expectLater(first, throwsA(isA<MushafIntegrityException>()));
-      expect(bundle.loads, 1);
-      await expectLater(
-        source.load(),
-        throwsA(isA<MushafIntegrityException>()),
-      );
-      expect(bundle.loads, 2);
-    },
-  );
 
   test(
     'verified source creates all pages and every source ayah exactly once',
@@ -84,13 +65,4 @@ void main() {
       }
     }
   });
-}
-
-class _CountingBundle extends CachingAssetBundle {
-  int loads = 0;
-  @override
-  Future<ByteData> load(String key) async {
-    loads++;
-    throw StateError('missing source');
-  }
 }

@@ -31,8 +31,7 @@ void main() {
   blocTest<LogCubit, LogState>(
     'loads log and exposes empty state',
     build: () {
-      when(() => repository.getLog(onCached: any(named: 'onCached')))
-          .thenAnswer((_) async => Success(_log()));
+      when(() => repository.getLog()).thenAnswer((_) async => Success(_log()));
       return LogCubit(repository: repository);
     },
     act: (cubit) => cubit.load(),
@@ -45,7 +44,7 @@ void main() {
   blocTest<LogCubit, LogState>(
     'uses cached data as offline state',
     build: () {
-      when(() => repository.getLog(onCached: any(named: 'onCached')))
+      when(() => repository.getLog())
           .thenAnswer((_) async => Success(_log().copyWith(isStale: true)));
       return LogCubit(repository: repository);
     },
@@ -59,18 +58,17 @@ void main() {
   blocTest<LogCubit, LogState>(
     'refresh reloads the first page',
     build: () {
-      when(() => repository.getLog(onCached: any(named: 'onCached')))
-          .thenAnswer((_) async => Success(_log()));
+      when(() => repository.getLog()).thenAnswer((_) async => Success(_log()));
       return LogCubit(repository: repository);
     },
     act: (cubit) async {
       await cubit.load();
       await cubit.refresh();
     },
-    verify: (_) =>
-        verify(() => repository.getLog(onCached: any(named: 'onCached')))
-            .called(2),
+    verify: (_) => verify(() => repository.getLog()).called(2),
     expect: () => [
+      isA<LogState>().having((s) => s.status, 'status', LogStatus.loading),
+      isA<LogState>().having((s) => s.status, 'status', LogStatus.empty),
       isA<LogState>().having((s) => s.status, 'status', LogStatus.loading),
       isA<LogState>().having((s) => s.status, 'status', LogStatus.empty),
     ],
@@ -95,8 +93,7 @@ void main() {
           ),
         ],
       );
-      when(() => repository.getLog(onCached: any(named: 'onCached')))
-          .thenAnswer((_) async => Success(first));
+      when(() => repository.getLog()).thenAnswer((_) async => Success(first));
       when(() => repository.getLog(before: '2026-10-31'))
           .thenAnswer((_) async => Success(more));
       return LogCubit(repository: repository);
@@ -120,12 +117,11 @@ void main() {
   blocTest<LogCubit, LogState>(
     'reports errors',
     build: () {
-      when(() => repository.getLog(onCached: any(named: 'onCached')))
-          .thenAnswer(
-            (_) async => const FailureResult(
-              NetworkFailure(message: 'offline', code: 'network'),
-            ),
-          );
+      when(() => repository.getLog()).thenAnswer(
+        (_) async => const FailureResult(
+          NetworkFailure(message: 'offline', code: 'network'),
+        ),
+      );
       return LogCubit(repository: repository);
     },
     act: (cubit) => cubit.load(),

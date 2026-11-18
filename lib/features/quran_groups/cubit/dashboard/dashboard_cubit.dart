@@ -1,12 +1,9 @@
-import 'dart:convert';
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/errors/failures.dart';
-import '../../../../core/sync/current_group_day.dart';
-import '../../data/models/models.dart';
 import '../../../../core/errors/result.dart';
 import '../../../../core/network/connectivity_service.dart';
 import '../../data/entities/entities.dart';
@@ -57,23 +54,18 @@ class DashboardCubit extends Cubit<DashboardState> {
     DashboardState initialState = const DashboardState(),
     this.onOpened,
     this.setAsMain,
-    DateTime Function()? clock,
-  }) : _now = clock ?? DateTime.now,
-       super(initialState) {
+  }) : super(initialState) {
     if (connectivityService != null) observeConnectivity(connectivityService);
     _followCache();
   }
 
   final KhatmaRepository _repository;
-  final DateTime Function() _now;
   final SyncPendingCompletions? _syncPending;
   final String groupId;
   final GroupsRepository? groupsRepository;
   final Future<void> Function()? onOpened;
   final Future<void> Function()? setAsMain;
   bool _markedOpened = false;
-  Future<void>? _refreshing;
-  Timer? _rollover;
   StreamSubscription<bool>? _connectivitySubscription;
   StreamSubscription<DashboardSnapshot?>? _cacheSubscription;
 
@@ -90,21 +82,12 @@ class DashboardCubit extends Cubit<DashboardState> {
   }
 
   void _applyCached(DashboardSnapshot? snapshot) {
-    if (isClosed || snapshot == null) return;
+    if (isClosed || snapshot == null || snapshot.isStale) return;
     if (snapshot == state.snapshot) return;
-    final current = state.snapshot;
-    if (snapshot.isStale &&
-        current != null &&
-        !current.isStale &&
-        jsonEncode(dashboardSnapshotToJson(snapshot)) ==
-            jsonEncode(dashboardSnapshotToJson(current))) {
-      return;
-    }
+    if (state.status == DashboardStatus.loading) return; // refresh emits it
     emit(
       DashboardState(
-        status: snapshot.isStale
-            ? DashboardStatus.offline
-            : snapshot.status == GroupStatus.forming
+        status: snapshot.status == GroupStatus.forming
             ? DashboardStatus.empty
             : DashboardStatus.success,
         snapshot: snapshot,
@@ -112,23 +95,6 @@ class DashboardCubit extends Cubit<DashboardState> {
         startingKhatma: state.startingKhatma,
       ),
     );
-    _armRollover(snapshot);
-  }
-
-  void _armRollover(DashboardSnapshot snapshot) {
-    _rollover?.cancel();
-    final end = snapshot.today?.endsAt;
-    if (end == null || !end.isAfter(_now())) return;
-    _rollover = Timer(end.difference(_now()), () {
-      if (isClosed) return;
-      _applyCached(
-        dashboardSnapshotFromJson(
-          currentDashboardJson(dashboardSnapshotToJson(snapshot), _now()),
-          isStale: true,
-        ),
-      );
-      unawaited(refresh());
-    });
   }
 
   void observeConnectivity(ConnectivityService connectivityService) {
@@ -138,38 +104,27 @@ class DashboardCubit extends Cubit<DashboardState> {
     });
   }
 
-  Future<void> refresh() => _refreshing ??= _refresh().whenComplete(() {
-    _refreshing = null;
-  });
-
-  Future<void> _markOpened() async {
-    try {
-      await onOpened?.call();
-    } catch (_) {
-      // Bookkeeping is best effort; cached reading remains available offline.
-    }
-  }
-
-  Future<void> _refresh() async {
+  Future<void> refresh() async {
     if (!_markedOpened && onOpened != null) {
       _markedOpened = true;
-      unawaited(_markOpened());
+      try {
+        await onOpened!();
+      } catch (_) {
+        /* opening remains available offline */
+      }
     }
     try {
-      final report = await _syncPending?.call();
-      if (report?.refreshedGroupIds.contains(groupId) ?? false) return;
+      await _syncPending?.call();
     } catch (_) {
-      // A failed background replay must not prevent dashboard reads.
+      // Dashboard reads remain available even if background queue replay fails.
     }
     final previousDate = state.snapshot?.today?.groupDate;
     emit(
       DashboardState(status: DashboardStatus.loading, snapshot: state.snapshot),
     );
     final result = await _repository.getDashboard(groupId);
-    if (isClosed) return;
     result.when(
       success: (snapshot) {
-        _armRollover(snapshot);
         final empty = snapshot.status == GroupStatus.forming;
         emit(
           DashboardState(
@@ -270,18 +225,9 @@ class DashboardCubit extends Cubit<DashboardState> {
     );
     final result = await groups.startKhatma(groupId, startJuz);
     await result.when(
-      success: (snapshot) async {
-        if (isClosed) return;
-        emit(
-          DashboardState(
-            status: snapshot.isStale
-                ? DashboardStatus.offline
-                : DashboardStatus.success,
-            snapshot: snapshot,
-          ),
-        );
-        _armRollover(snapshot);
-      },
+      // Reload through KhatmaRepository so the active snapshot is cached;
+      // completion looks today's assignments up in that cache.
+      success: (_) => refresh(),
       failure: (failure) async => emit(
         DashboardState(
           status: before.status,
@@ -335,7 +281,6 @@ class DashboardCubit extends Cubit<DashboardState> {
 
   @override
   Future<void> close() async {
-    _rollover?.cancel();
     await _connectivitySubscription?.cancel();
     await _cacheSubscription?.cancel();
     await super.close();

@@ -123,7 +123,6 @@ void main() {
     final remote = _Remote();
     final connectivity = _Connectivity();
     final repository = KhatmaRepositoryImpl(
-      now: () => DateTime.utc(2026, 11, 15, 12),
       remote: remote,
       cache: cache,
       queue: queue,

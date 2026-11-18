@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -12,38 +11,12 @@ import '../domain/reminder_planner.dart';
 
 class NotificationScheduler {
   NotificationScheduler({FlutterLocalNotificationsPlugin? plugin})
-    : _plugin = plugin ?? FlutterLocalNotificationsPlugin() {
-    _ready.future.ignore();
-  }
+    : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
   final FlutterLocalNotificationsPlugin _plugin;
-  Completer<void> _ready = Completer<void>();
-  Future<void>? _initializing;
-  Future<void> _scheduling = Future<void>.value();
-  void Function(String? payload)? _onTap;
   static const int _firstReminderId = 6000;
   static const int _lastReminderId = 8999;
 
-  Future<void> initialize({void Function(String? payload)? onTap}) {
-    _onTap = onTap ?? _onTap;
-    if (_initializing != null) return _initializing!;
-    if (_ready.isCompleted) {
-      _ready = Completer<void>();
-      _ready.future.ignore();
-    }
-    _initializing = _initialize().then(
-      (_) {
-        _ready.complete();
-      },
-      onError: (Object error, StackTrace stack) {
-        _ready.completeError(error, stack);
-        _initializing = null;
-        Error.throwWithStackTrace(error, stack);
-      },
-    );
-    return _initializing!;
-  }
-
-  Future<void> _initialize() async {
+  Future<void> initialize({void Function(String? payload)? onTap}) async {
     tzdata.initializeTimeZones();
     await _refreshTimezone();
     await _plugin.initialize(
@@ -52,11 +25,11 @@ class NotificationScheduler {
         iOS: DarwinInitializationSettings(),
       ),
       onDidReceiveNotificationResponse: (response) =>
-          _onTap?.call(response.payload),
+          onTap?.call(response.payload),
     );
     final launchDetails = await _plugin.getNotificationAppLaunchDetails();
     if (launchDetails?.didNotificationLaunchApp == true) {
-      _onTap?.call(launchDetails?.notificationResponse?.payload);
+      onTap?.call(launchDetails?.notificationResponse?.payload);
     }
     await _plugin
         .resolvePlatformSpecificImplementation<
@@ -73,7 +46,6 @@ class NotificationScheduler {
   }
 
   Future<bool?> requestPermissions() async {
-    await _ready.future;
     final android = await _plugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
@@ -87,43 +59,11 @@ class NotificationScheduler {
     return android ?? ios;
   }
 
-  Future<void> schedule(List<PlannedReminder> reminders) {
-    final next = List<PlannedReminder>.unmodifiable(reminders);
-    return _scheduling = _scheduling.then(
-      (_) => _apply(next),
-      onError: (Object _, StackTrace _) => _apply(next),
-    );
-  }
-
-  Future<void> _apply(List<PlannedReminder> reminders) async {
-    await _ready.future;
+  Future<void> schedule(List<PlannedReminder> reminders) async {
     await _refreshTimezone();
-    final pending = {
-      for (final request in await _plugin.pendingNotificationRequests())
-        request.id: request,
-    };
-    final desiredIds = <int>{};
-    final ordered = [...reminders]
-      ..sort((a, b) => _reminderKey(a).compareTo(_reminderKey(b)));
-    for (final reminder in ordered) {
-      var id = _notificationId(reminder);
-      while (!desiredIds.add(id)) {
-        id =
-            _firstReminderId +
-            (id - _firstReminderId + 1) % (_lastReminderId - _firstReminderId);
-      }
-      final payload = jsonEncode({
-        'destination': 'today',
-        'groupIds': reminder.groupIds.toList()..sort(),
-        'fireAt': reminder.fireAt.toUtc().toIso8601String(),
-        'timezone': tz.local.name,
-      });
-      final existing = pending[id];
-      if (existing?.title == reminder.title &&
-          existing?.body == reminder.body &&
-          existing?.payload == payload) {
-        continue;
-      }
+    await cancelScheduledReminders();
+    for (final reminder in reminders) {
+      final id = _notificationId(reminder);
       await _plugin.zonedSchedule(
         id: id,
         title: reminder.title,
@@ -134,22 +74,12 @@ class NotificationScheduler {
           iOS: const DarwinNotificationDetails(),
         ),
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        payload: payload,
+        payload: jsonEncode({
+          'destination': 'today',
+          'groupIds': reminder.groupIds.toList(),
+        }),
       );
     }
-    for (final id in pending.keys) {
-      if (id >= _firstReminderId &&
-          id <= _lastReminderId &&
-          !desiredIds.contains(id)) {
-        await _plugin.cancel(id: id);
-      }
-    }
-  }
-
-  String _reminderKey(PlannedReminder reminder) {
-    final date = reminder.fireAt;
-    final groups = reminder.groupIds.toList()..sort();
-    return '${date.year}-${date.month}-${date.day}:${reminder.slot.name}:${groups.join(',')}';
   }
 
   Future<void> _refreshTimezone() async {
@@ -158,7 +88,6 @@ class NotificationScheduler {
   }
 
   Future<void> cancelScheduledReminders() async {
-    await _ready.future;
     final pending = await _plugin.pendingNotificationRequests();
     for (final request in pending.where(
       (item) => item.id >= _firstReminderId && item.id <= _lastReminderId,
@@ -193,10 +122,10 @@ class NotificationScheduler {
       );
 
   int _notificationId(PlannedReminder reminder) {
-    var hash = 2166136261;
-    for (final code in _reminderKey(reminder).codeUnits) {
-      hash = ((hash ^ code) * 16777619) & 0x7fffffff;
-    }
-    return _firstReminderId + hash % (_lastReminderId - _firstReminderId);
+    final day =
+        reminder.fireAt.year * 10000 +
+        reminder.fireAt.month * 100 +
+        reminder.fireAt.day;
+    return _firstReminderId + (day % 1000) * 3 + reminder.slot.index;
   }
 }

@@ -1,4 +1,3 @@
-import '../../../core/sync/current_group_day.dart';
 import '../../../core/localization/arabic_strings.dart';
 import '../../../core/quran/quran_metadata_repository.dart';
 import '../../../core/storage/daos/daos.dart';
@@ -23,24 +22,7 @@ class ReminderPlanningService {
   final RemindersRepository _preferences;
   final NotificationScheduler _notifications;
 
-  Future<void>? _refreshing;
-  bool _dirty = false;
-
-  Future<void> refresh() {
-    _dirty = true;
-    return _refreshing ??= _drain().whenComplete(() {
-      _refreshing = null;
-    });
-  }
-
-  Future<void> _drain() async {
-    do {
-      _dirty = false;
-      await _plan();
-    } while (_dirty);
-  }
-
-  Future<void> _plan() async {
+  Future<void> refresh() async {
     final settings = await _preferences.loadPersonalSettings();
     await _metadata.load();
     final snapshots = await _snapshots.readAll();
@@ -67,9 +49,6 @@ class ReminderPlanningService {
             message: schedule.message,
           ),
         );
-      }
-      if (groupDayExpired(cached.json['today'] as Map?, DateTime.now())) {
-        continue;
       }
       for (final assignment in snapshot.myAssignments.where(
         (item) => item.status == AssignmentStatusEnum.pending,

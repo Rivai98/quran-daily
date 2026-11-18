@@ -49,27 +49,6 @@ class _GroupSelectionScreenState extends State<GroupSelectionScreen> {
           ArabicStrings.authError(state.failure!.code),
         ),
         builder: (context, state) {
-          if (state.overview != null) {
-            return Stack(
-              children: [
-                if (state.overview!.groups.isEmpty &&
-                    state.overview!.pendingRequests.isEmpty)
-                  const _EmptyEntryPoints()
-                else
-                  _GroupList(
-                    state: state,
-                    metadataRepository: _metadataRepository,
-                  ),
-                if (state.isRefreshing)
-                  const Align(
-                    alignment: Alignment.topCenter,
-                    child: LinearProgressIndicator(
-                      semanticsLabel: ArabicStrings.loading,
-                    ),
-                  ),
-              ],
-            );
-          }
           switch (state.status) {
             case GroupListStatus.initial:
             case GroupListStatus.loading:

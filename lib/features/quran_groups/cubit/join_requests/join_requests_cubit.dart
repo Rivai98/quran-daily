@@ -34,16 +34,7 @@ class JoinRequestsCubit extends Cubit<JoinRequestsState> {
   final GroupsRepository _repository;
   String? _groupId;
 
-  final Map<String, Future<void>> _loads = {};
-
-  Future<void> load(String groupId) => _loads.putIfAbsent(
-    groupId,
-    () => _load(groupId).whenComplete(() {
-      _loads.remove(groupId);
-    }),
-  );
-
-  Future<void> _load(String groupId) async {
+  Future<void> load(String groupId) async {
     final previousRequests = _groupId == groupId
         ? state.requests
         : const <PublicJoinRequestInfo>[];
@@ -55,7 +46,6 @@ class JoinRequestsCubit extends Cubit<JoinRequestsState> {
       ),
     );
     final result = await _repository.listJoinRequests(groupId);
-    if (isClosed || _groupId != groupId) return;
     result.when(
       success: (items) => emit(
         JoinRequestsState(

@@ -134,7 +134,7 @@ class _Repo implements TodayRepository {
   int calls = 0;
 
   @override
-  Future<Result<TodaySnapshot>> getToday({void Function(TodaySnapshot)? onCached}) async {
+  Future<Result<TodaySnapshot>> getToday() async {
     calls++;
     return Success(
       snapshot ??

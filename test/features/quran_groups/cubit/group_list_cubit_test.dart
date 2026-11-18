@@ -23,7 +23,7 @@ void main() {
   blocTest<GroupListCubit, GroupListState>(
     'loading my groups with data ends success',
     build: build,
-    setUp: () => when(() => repo.getMyGroups(onCached: any(named: 'onCached'))).thenAnswer(
+    setUp: () => when(() => repo.getMyGroups()).thenAnswer(
       (_) async =>
           Success(TestFixtures.overview(groups: [TestFixtures.myGroup()])),
     ),
@@ -40,7 +40,7 @@ void main() {
     'no groups ends empty with entry points',
     build: build,
     setUp: () =>
-        when(() => repo.getMyGroups(onCached: any(named: 'onCached')))
+        when(() => repo.getMyGroups())
             .thenAnswer((_) async => Success(TestFixtures.overview())),
     act: (cubit) => cubit.refresh(),
     expect: () => [
@@ -56,7 +56,7 @@ void main() {
   blocTest<GroupListCubit, GroupListState>(
     'stale cache maps to offline status with data',
     build: build,
-    setUp: () => when(() => repo.getMyGroups(onCached: any(named: 'onCached'))).thenAnswer(
+    setUp: () => when(() => repo.getMyGroups()).thenAnswer(
       (_) async => Success(
         TestFixtures.overview(groups: [TestFixtures.myGroup()], stale: true),
       ),
@@ -73,7 +73,7 @@ void main() {
   blocTest<GroupListCubit, GroupListState>(
     'failure maps to failure status with the failure',
     build: build,
-    setUp: () => when(() => repo.getMyGroups(onCached: any(named: 'onCached'))).thenAnswer(
+    setUp: () => when(() => repo.getMyGroups()).thenAnswer(
       (_) async =>
           const FailureResult(NetworkFailure(message: 'n', code: 'network')),
     ),

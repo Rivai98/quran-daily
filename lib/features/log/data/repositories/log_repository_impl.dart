@@ -1,4 +1,3 @@
-import '../../../../core/sync/personal_operation_overlay.dart';
 import '../../../../core/auth/session_gateway.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/result.dart';
@@ -12,66 +11,32 @@ class LogRepositoryImpl implements LogRepository {
     required this._remote,
     required this._cache,
     required this._session,
-    this.pendingOperations,
   });
   final LogRemoteDataSource _remote;
   final CachedHistoryDao _cache;
   final SessionGateway _session;
-  final PersonalOperationOverlay? pendingOperations;
 
   String? get _cacheKey => _session.currentUserId == null
       ? null
       : 'personal-log:${_session.currentUserId}';
 
   @override
-  Future<Result<PersonalLog>> getLog({
-    String? before,
-    int days = 30,
-    void Function(PersonalLog)? onCached,
-  }) async {
-    final revision = pendingOperations?.revision;
-    final cacheKey = _cacheKey;
-    if (before == null && cacheKey != null && onCached != null) {
-      final cached = await _cache.read(cacheKey);
-      if (cached != null && _cacheKey == cacheKey) {
-        final log = await _personalLog(cached.json, stale: true);
-        if (_cacheKey == cacheKey) onCached(log);
-      }
-    }
+  Future<Result<PersonalLog>> getLog({String? before, int days = 30}) async {
     try {
       final log = await _remote.getLog(before: before, days: days);
-      if (revision != pendingOperations?.revision) {
-        return await getLog(before: before, days: days);
+      if (before == null && _cacheKey != null) {
+        await _cache.upsert(_cacheKey!, _toJson(log));
       }
-      if (_cacheKey != cacheKey) {
-        return const FailureResult(
-          AuthFailure(message: 'session changed', code: 'unauthenticated'),
-        );
-      }
-      final json = _toJson(log);
-      final reconciled = await _personalLog(json);
-      if (revision != pendingOperations?.revision) {
-        return await getLog(before: before, days: days);
-      }
-      if (before == null && cacheKey != null) {
-        await _cache.upsert(cacheKey, json);
-      }
-      if (revision != pendingOperations?.revision) {
-        return await getLog(before: before, days: days);
-      }
-      if (_cacheKey != cacheKey) {
-        return const FailureResult(
-          AuthFailure(message: 'session changed', code: 'unauthenticated'),
-        );
-      }
-      return Success(reconciled);
+      return Success(log);
     } on AppFailure catch (failure) {
       if (failure.kind == FailureKind.network &&
           before == null &&
           _cacheKey != null) {
         final cached = await _cache.read(_cacheKey!);
         if (cached != null) {
-          return Success(await _personalLog(cached.json, stale: true));
+          return Success(
+            PersonalLog.fromJson(cached.json).copyWith(isStale: true),
+          );
         }
       }
       return FailureResult(failure);
@@ -84,15 +49,6 @@ class LogRepositoryImpl implements LogRepository {
         ),
       );
     }
-  }
-
-  Future<PersonalLog> _personalLog(
-    Map<String, Object?> json, {
-    bool stale = false,
-  }) async {
-    final personal = await pendingOperations?.log(json);
-    return PersonalLog.fromJson(personal?.json ?? json)
-        .copyWith(isStale: stale || (personal?.hasPending ?? false));
   }
 
   Map<String, Object?> _toJson(PersonalLog log) => {

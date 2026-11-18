@@ -307,9 +307,6 @@ Future<void> _show(
 
 class _ProfileRepository implements ProfileRepository {
   @override
-  void invalidate() {}
-
-  @override
   Future<Result<UserProfile>> getProfile({bool forceRefresh = false}) async =>
       Success(
         UserProfile(
@@ -447,7 +444,7 @@ class _TodayRepository implements TodayRepository {
   final Result<TodaySnapshot>? result;
   final Future<Result<TodaySnapshot>>? pendingResult;
   @override
-  Future<Result<TodaySnapshot>> getToday({void Function(TodaySnapshot)? onCached}) =>
+  Future<Result<TodaySnapshot>> getToday() =>
       pendingResult ?? Future.value(result!);
   @override
   Future<Result<void>> setMainGroup(String? groupId) async =>

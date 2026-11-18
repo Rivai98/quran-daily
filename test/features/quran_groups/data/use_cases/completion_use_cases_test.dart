@@ -196,6 +196,7 @@ void main() {
         expect(report.remaining, 0);
         verifyInOrder([
           () => remote.markComplete('a-1', _recordedAt, offlineSync: true),
+          () => remote.getDashboard('g1'),
           () => remote.undoCompletion('a-1'),
           () => remote.getDashboard('g1'),
         ]);

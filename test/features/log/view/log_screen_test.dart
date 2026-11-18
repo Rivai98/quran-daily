@@ -62,7 +62,7 @@ void main() {
     WidgetTester tester, {
     required Future<Result<PersonalLog>> Function() response,
   }) async {
-    when(() => repository.getLog(onCached: any(named: 'onCached'))).thenAnswer((_) => response());
+    when(() => repository.getLog()).thenAnswer((_) => response());
     await tester.pumpWidget(
       buildArabicTestApp(LogScreen(repository: repository)),
     );
@@ -127,7 +127,7 @@ void main() {
     tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1;
     for (final dark in [false, true]) {
-      when(() => repository.getLog(onCached: any(named: 'onCached'))).thenAnswer((_) async => Success(_log()));
+      when(() => repository.getLog()).thenAnswer((_) async => Success(_log()));
       await tester.pumpWidget(
         buildArabicTestApp(
           LogScreen(repository: repository),
@@ -155,7 +155,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     for (final dark in [false, true]) {
-      when(() => repository.getLog(onCached: any(named: 'onCached')))
+      when(() => repository.getLog())
           .thenAnswer((_) async => Success(_log(days: [_day()])));
       await tester.pumpWidget(
         buildArabicTestApp(
@@ -217,7 +217,7 @@ void main() {
   testWidgets('all accessibility variants render without overflow', (
     tester,
   ) async {
-    when(() => repository.getLog(onCached: any(named: 'onCached')))
+    when(() => repository.getLog())
         .thenAnswer((_) async => Success(_log(days: [_day()])));
     await pumpAllVariants(tester, LogScreen(repository: repository), (
       tester,

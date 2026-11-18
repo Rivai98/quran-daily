@@ -1,5 +1,3 @@
-import '../core/quran/mushaf/mushaf_repository.dart';
-
 import 'dart:async';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
@@ -59,17 +57,12 @@ class _QuranDailyAppState extends State<QuranDailyApp>
           if (uri != null) _handleUri(uri);
         })
         .catchError((_) {});
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _initializeNotifications();
-    });
-  }
-
-  void _initializeNotifications() {
     if (serviceLocator.isRegistered<NotificationScheduler>()) {
       unawaited(
         serviceLocator<NotificationScheduler>()
-            .initialize(onTap: (_) => openHomeFromReminder())
+            .initialize(
+              onTap: (_) => openHomeFromReminder(),
+            )
             .then((_) async {
               if (serviceLocator.isRegistered<ReminderPlanningService>()) {
                 await serviceLocator<ReminderPlanningService>().refresh();
@@ -277,10 +270,6 @@ class _AuthGate extends StatelessWidget {
                   onHomeSelected: context.read<HomeCubit>().refreshIfStale,
                   homeBuilder: (_) => HomeScreen(
                     displayName: state.profile?.displayName,
-                    mushafRepository:
-                        serviceLocator.isRegistered<MushafRepository>()
-                        ? serviceLocator<MushafRepository>()
-                        : null,
                     metadataRepository:
                         serviceLocator.isRegistered<QuranMetadataRepository>()
                         ? serviceLocator<QuranMetadataRepository>()

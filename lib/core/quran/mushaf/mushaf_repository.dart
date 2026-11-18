@@ -42,17 +42,9 @@ class MushafRepositoryImpl implements MushafRepository {
   List<({int juz, int startPage})>? _juzs;
   List<({int hizb, int startPage})>? _hizbs;
 
-  Future<void>? _loading;
-
   @override
-  Future<void> load() {
-    if (_pages != null) return Future<void>.value();
-    return _loading ??= _load().whenComplete(() {
-      _loading = null;
-    });
-  }
-
-  Future<void> _load() async {
+  Future<void> load() async {
+    if (_pages != null) return;
     try {
       final textBytes = (await _bundle.load(textAsset)).buffer.asUint8List();
       final fontBytes = (await _bundle.load(fontAsset)).buffer.asUint8List();

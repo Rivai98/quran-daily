@@ -11,9 +11,6 @@ class MockProfileRepository implements ProfileRepository {
   bool lastForceRefresh = false;
 
   @override
-  void invalidate() {}
-
-  @override
   Future<Result<UserProfile>> getProfile({bool forceRefresh = false}) async {
     lastForceRefresh = forceRefresh;
     return result ??
